@@ -17,15 +17,12 @@ package software.amazon.awssdk.services.s3.internal.crt;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.DrainingSubscriber;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * Transforms a {@link GetObjectResponse} and its borrowed-buffer body on the CRT client into a {@link ResponseInputStream}.
@@ -33,40 +30,25 @@ import software.amazon.awssdk.utils.Validate;
  * <p>Body bytes arrive through {@link #currentAttempt()}. The publisher passed to {@link #onStream} is drained and ignored.
  * The future returned by {@link #prepare()} completes when the first body data or the successful completion arrives.
  *
- * <p>Each instance serves one download. The CRT client calls {@link #activate()} before sending the request.
- * {@link #prepare()} fails on an instance that was never activated, or whose current attempt is still in progress or has
- * published its stream, so wrappers, non-CRT clients, and reuse fail before request transmission. A new attempt is allowed
- * only after the previous one failed, as in a cross-region redirect.
+ * <p>A cross-region redirect starts a new attempt after the previous attempt fails. Each attempt keeps its callbacks
+ * separate so late callbacks cannot affect the replacement attempt.
  */
 @SdkInternalApi
 public final class S3CrtBorrowedBufferBlockingResponseTransformer
     implements AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> {
 
-    private enum State {
-        NEW,
-        ACTIVE,
-        DONE
-    }
-
-    private final AtomicReference<State> state = new AtomicReference<>(State.NEW);
-    private final AtomicBoolean aborted = new AtomicBoolean();
-    private volatile Attempt currentAttempt;
+    private volatile boolean aborted;
+    private volatile S3CrtBorrowedBufferStreamHandler currentAttempt;
 
     @Override
     public synchronized CompletableFuture<ResponseInputStream<GetObjectResponse>> prepare() {
-        State currentState = state.get();
-        if (currentState == State.NEW) {
-            throw new UnsupportedOperationException(
-                "This transformer requires an S3 CRT async client with a configured direct buffer pool");
+        S3CrtBorrowedBufferStreamHandler previousAttempt = currentAttempt;
+        if (previousAttempt != null && !previousAttempt.future().isCompletedExceptionally()) {
+            throw new IllegalStateException("The current borrowed-buffer response attempt has not failed.");
         }
-        Attempt previousAttempt = currentAttempt;
-        if (currentState == State.DONE
-            || (previousAttempt != null && !previousAttempt.future().isCompletedExceptionally())) {
-            throw alreadyUsed();
-        }
-        Attempt attempt = new Attempt();
+        S3CrtBorrowedBufferStreamHandler attempt = new S3CrtBorrowedBufferStreamHandler();
         currentAttempt = attempt;
-        if (aborted.get()) {
+        if (aborted) {
             attempt.onBorrowedStreamAbort();
         }
         return attempt.future();
@@ -86,19 +68,9 @@ public final class S3CrtBorrowedBufferBlockingResponseTransformer
         return currentAttempt;
     }
 
-    void activate() {
-        if (!state.compareAndSet(State.NEW, State.ACTIVE)) {
-            throw alreadyUsed();
-        }
-    }
-
-    void done() {
-        state.set(State.DONE);
-    }
-
     void abort() {
-        aborted.set(true);
-        Attempt attempt = currentAttempt;
+        aborted = true;
+        S3CrtBorrowedBufferStreamHandler attempt = currentAttempt;
         if (attempt != null) {
             attempt.onBorrowedStreamAbort();
         }
@@ -106,11 +78,7 @@ public final class S3CrtBorrowedBufferBlockingResponseTransformer
 
     @Override
     public void exceptionOccurred(Throwable error) {
-        // A rejected reuse reports its own failure here. It must not fail the download that owns this transformer.
-        if (isReuseRejection(error)) {
-            return;
-        }
-        Attempt attempt = currentAttempt;
+        S3CrtBorrowedBufferStreamHandler attempt = currentAttempt;
         if (attempt != null) {
             attempt.future().completeExceptionally(error);
             attempt.onBorrowedStreamError(error);
@@ -119,115 +87,6 @@ public final class S3CrtBorrowedBufferBlockingResponseTransformer
 
     @Override
     public String name() {
-        return TransformerType.STREAM.getName();
-    }
-
-    private static IllegalStateException alreadyUsed() {
-        return new ReuseRejectedException();
-    }
-
-    private static boolean isReuseRejection(Throwable error) {
-        for (Throwable cause = error; cause != null; cause = cause.getCause()) {
-            if (cause instanceof ReuseRejectedException) {
-                return true;
-            }
-            if (cause.getCause() == cause) {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    private static final class ReuseRejectedException extends IllegalStateException {
-        private static final long serialVersionUID = 1L;
-
-        private ReuseRejectedException() {
-            super("This transformer has already been used. Create a new transformer for each getObject call.");
-        }
-    }
-
-    /**
-     * The stream and borrowed-buffer callbacks for one request attempt. A cross-region redirect starts a second attempt, and
-     * binding callbacks to an attempt keeps late callbacks from the first attempt out of the second attempt's stream.
-     */
-    private static final class Attempt implements S3CrtBorrowedBufferStreamHandler {
-        private final CompletableFuture<ResponseInputStream<GetObjectResponse>> future = new CompletableFuture<>();
-        private final DeferredCancellation cancellation = new DeferredCancellation();
-        private final S3CrtBorrowedBufferInputStream inputStream =
-            new S3CrtBorrowedBufferInputStream(cancellation::cancel);
-        private volatile GetObjectResponse response;
-
-        private Attempt() {
-            future.whenComplete((ignored, error) -> {
-                if (error != null) {
-                    inputStream.abort();
-                }
-            });
-        }
-
-        private CompletableFuture<ResponseInputStream<GetObjectResponse>> future() {
-            return future;
-        }
-
-        private void onResponse(GetObjectResponse response) {
-            this.response = response;
-        }
-
-        @Override
-        public void onBorrowedStreamStart(Runnable cancellationAction) {
-            GetObjectResponse currentResponse = response;
-            Validate.validState(currentResponse != null, "onResponse() must be called before borrowed delivery starts");
-            cancellation.set(cancellationAction);
-            future.complete(new ResponseInputStream<>(currentResponse, inputStream));
-        }
-
-        @Override
-        public boolean onBorrowedBuffer(S3CrtBorrowedBufferLease buffer) {
-            return inputStream.onBuffer(buffer);
-        }
-
-        @Override
-        public void onBorrowedStreamComplete() {
-            inputStream.onComplete();
-        }
-
-        @Override
-        public void onBorrowedStreamError(Throwable error) {
-            inputStream.onError(error);
-        }
-
-        @Override
-        public void onBorrowedStreamAbort() {
-            inputStream.abort();
-        }
-
-        @Override
-        public void onBorrowedStreamAbort(Throwable error) {
-            inputStream.abort(error);
-        }
-    }
-
-    private static final class DeferredCancellation {
-        private final AtomicReference<Runnable> action = new AtomicReference<>();
-        private final AtomicBoolean cancelled = new AtomicBoolean();
-        private final AtomicBoolean invoked = new AtomicBoolean();
-
-        private void set(Runnable cancellationAction) {
-            Validate.validState(action.compareAndSet(null, cancellationAction),
-                                "Borrowed delivery cancellation is already configured");
-            invokeIfReady();
-        }
-
-        private void cancel() {
-            cancelled.set(true);
-            invokeIfReady();
-        }
-
-        private void invokeIfReady() {
-            Runnable cancellationAction = action.get();
-            if (cancelled.get() && cancellationAction != null && invoked.compareAndSet(false, true)) {
-                cancellationAction.run();
-            }
-        }
+        return TransformerType.DIRECT_BUFFER_POOL_STREAM.getName();
     }
 }

@@ -43,7 +43,7 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.crt.S3CrtAsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
@@ -137,7 +137,7 @@ class DefaultS3CrtAsyncClientTest {
         try (S3AsyncClient client = S3AsyncClient.crtBuilder().build()) {
             assertThatThrownBy(() -> client.getObject(
                 r -> r.bucket("bucket").key("key"),
-                S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool()).join())
+                S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()).join())
                 .hasCauseInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("direct buffer pool");
         }
@@ -176,7 +176,7 @@ class DefaultS3CrtAsyncClientTest {
                                                    S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES))
                                            .build()) {
             assertThatThrownBy(() -> client.getObject(
-                request, S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool()).join())
+                request, S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()).join())
                 .hasMessageContaining("STOP");
         }
 
@@ -187,7 +187,7 @@ class DefaultS3CrtAsyncClientTest {
         assertThat(capturedAttributes.get().getAttribute(S3InternalSdkHttpExecutionAttribute.RESPONSE_BYTES_READ))
             .isSameAs(responseBytesRead.get());
         assertThat(((AsyncResponseTransformer<?, ?>) handler).name())
-            .isEqualTo(AsyncResponseTransformer.TransformerType.STREAM.getName());
+            .isEqualTo(AsyncResponseTransformer.TransformerType.DIRECT_BUFFER_POOL_STREAM.getName());
         assertThat(capturedCallerAttribute).hasValue("value");
         assertThat(request.overrideConfiguration().get().executionAttributes().getAttribute(callerAttribute))
             .isEqualTo("value");

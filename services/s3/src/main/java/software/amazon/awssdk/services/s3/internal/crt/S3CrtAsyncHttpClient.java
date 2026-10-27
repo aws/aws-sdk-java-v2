@@ -139,24 +139,30 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .ifPresent(options::withHttpMonitoringOptions);
         Optional.ofNullable(s3NativeClientConfiguration.memoryBufferDisabled())
             .ifPresent(memoryBufferDisabled -> options.withFileIoOptions(new FileIoOptions(memoryBufferDisabled, 0.0, false)));
+
         S3CrtDirectBufferPoolConfiguration directBufferPoolConfiguration =
             s3NativeClientConfiguration.directBufferPoolConfiguration();
         // S3DirectBufferPoolOptions is absent from older CRT runtimes, so it is only referenced when a pool is configured.
         if (directBufferPoolConfiguration != null) {
-            S3DirectBufferPoolOptions directBufferPoolOptions;
-            if (directBufferPoolConfiguration.minimumSizeInBytes() != null) {
-                directBufferPoolOptions = S3DirectBufferPoolOptions.elastic(
-                    directBufferPoolConfiguration.minimumSizeInBytes(),
-                    directBufferPoolConfiguration.memoryLimitInBytes());
-            } else if (directBufferPoolConfiguration.memoryLimitInBytes() == null) {
-                directBufferPoolOptions = S3DirectBufferPoolOptions.auto();
-            } else {
-                directBufferPoolOptions = S3DirectBufferPoolOptions.fixed(
-                    directBufferPoolConfiguration.memoryLimitInBytes());
-            }
-            options.withDirectBufferPoolOptions(directBufferPoolOptions);
+            options.withDirectBufferPoolOptions(toCrtDirectBufferPoolOptions(directBufferPoolConfiguration));
         }
+
         return options;
+    }
+
+    private static S3DirectBufferPoolOptions toCrtDirectBufferPoolOptions(
+        S3CrtDirectBufferPoolConfiguration directBufferPoolConfiguration) {
+        Optional<Long> minimumSizeInBytes = directBufferPoolConfiguration.minimumSizeInBytes();
+        Optional<Long> memoryLimitInBytes = directBufferPoolConfiguration.memoryLimitInBytes();
+        if (minimumSizeInBytes.isPresent()) {
+            return S3DirectBufferPoolOptions.elastic(minimumSizeInBytes.get(), memoryLimitInBytes.get());
+        }
+
+        if (memoryLimitInBytes.isPresent()) {
+            return S3DirectBufferPoolOptions.fixed(memoryLimitInBytes.get());
+        }
+
+        return S3DirectBufferPoolOptions.auto();
     }
 
     @Override

@@ -15,23 +15,95 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.function.LongConsumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.utils.Validate;
 
+/**
+ * Receives the borrowed-buffer body of one {@code GetObject} attempt.
+ */
 @SdkInternalApi
-public interface S3CrtBorrowedBufferStreamHandler {
-    void onBorrowedStreamStart(Runnable cancellationAction);
+public final class S3CrtBorrowedBufferStreamHandler {
+    private final CompletableFuture<ResponseInputStream<GetObjectResponse>> future = new CompletableFuture<>();
+    private final CompletableFuture<Runnable> cancellation = new CompletableFuture<>();
+    private final S3CrtBorrowedBufferInputStream inputStream =
+        new S3CrtBorrowedBufferInputStream(() -> cancellation.thenAccept(Runnable::run),
+                                           bytes -> this.readWindowAction.accept(bytes));
+    private volatile LongConsumer readWindowAction;
+    private volatile GetObjectResponse response;
 
-    /** Returns whether the stream accepted the buffer. Rejected buffers are discarded. */
-    boolean onBorrowedBuffer(S3CrtBorrowedBufferLease buffer);
+    S3CrtBorrowedBufferStreamHandler() {
+        future.whenComplete((ignored, error) -> {
+            if (error != null) {
+                inputStream.abort();
+            }
+        });
+    }
 
-    void onBorrowedStreamComplete();
+    CompletableFuture<ResponseInputStream<GetObjectResponse>> future() {
+        return future;
+    }
 
-    /** Reports an error after the reader drains queued buffers. */
-    void onBorrowedStreamError(Throwable error);
+    void onResponse(GetObjectResponse response) {
+        this.response = response;
+    }
 
-    /** Discards queued buffers and closes the stream. */
-    void onBorrowedStreamAbort();
+    /**
+     * Publishes the response stream when the first buffer is accepted, or after an empty response completes.
+     *
+     * @param cancellationAction cancels the CRT request when the stream closes before completion
+     * @param readWindowAction credits CRT after a fully read buffer is released
+     */
+    void onBorrowedStreamStart(Runnable cancellationAction, LongConsumer readWindowAction) {
+        GetObjectResponse currentResponse = response;
+        Validate.validState(currentResponse != null, "onResponse() must be called before borrowed delivery starts");
+        this.readWindowAction = readWindowAction;
+        cancellation.complete(cancellationAction);
+        future.complete(new ResponseInputStream<>(currentResponse, inputStream));
+    }
 
-    /** Discards queued buffers and causes later reads to fail with the error. */
-    void onBorrowedStreamAbort(Throwable error);
+    /**
+     * Delivers a borrowed buffer to the stream.
+     *
+     * @param buffer borrowed buffer to deliver
+     * @return {@code true} if the stream accepted the buffer, or {@code false} if it was discarded
+     */
+    boolean onBorrowedBuffer(S3CrtBorrowedBufferLease buffer) {
+        return inputStream.onBuffer(buffer);
+    }
+
+    /**
+     * Ends the body. Reads return {@code -1} after accepted buffers are drained.
+     */
+    void onBorrowedStreamComplete() {
+        inputStream.onComplete();
+    }
+
+    /**
+     * Reports an error after the reader drains queued buffers.
+     *
+     * @param error failure to report after queued buffers are drained
+     */
+    void onBorrowedStreamError(Throwable error) {
+        inputStream.onError(error);
+    }
+
+    /**
+     * Discards queued buffers and closes the stream.
+     */
+    void onBorrowedStreamAbort() {
+        inputStream.abort();
+    }
+
+    /**
+     * Discards queued buffers and causes later reads to fail with the error.
+     *
+     * @param error failure to report from later reads
+     */
+    void onBorrowedStreamAbort(Throwable error) {
+        inputStream.abort(error);
+    }
 }

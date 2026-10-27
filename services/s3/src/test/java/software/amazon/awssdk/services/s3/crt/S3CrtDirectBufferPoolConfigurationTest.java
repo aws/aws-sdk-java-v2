@@ -33,16 +33,16 @@ class S3CrtDirectBufferPoolConfigurationTest {
     void auto_shouldCreateAutomaticConfiguration() {
         S3CrtDirectBufferPoolConfiguration configuration = S3CrtDirectBufferPoolConfiguration.auto();
 
-        assertThat(configuration.minimumSizeInBytes()).isNull();
-        assertThat(configuration.memoryLimitInBytes()).isNull();
+        assertThat(configuration.minimumSizeInBytes()).isEmpty();
+        assertThat(configuration.memoryLimitInBytes()).isEmpty();
     }
 
     @Test
     void fixed_shouldCreateFixedConfiguration() {
         S3CrtDirectBufferPoolConfiguration configuration = S3CrtDirectBufferPoolConfiguration.fixed(1024);
 
-        assertThat(configuration.minimumSizeInBytes()).isNull();
-        assertThat(configuration.memoryLimitInBytes()).isEqualTo(1024);
+        assertThat(configuration.minimumSizeInBytes()).isEmpty();
+        assertThat(configuration.memoryLimitInBytes()).contains(1024L);
         assertThat(configuration.toString()).contains("1024");
     }
 
@@ -50,8 +50,8 @@ class S3CrtDirectBufferPoolConfigurationTest {
     void elastic_shouldCreateElasticConfiguration() {
         S3CrtDirectBufferPoolConfiguration configuration = S3CrtDirectBufferPoolConfiguration.elastic(0, 1024);
 
-        assertThat(configuration.minimumSizeInBytes()).isZero();
-        assertThat(configuration.memoryLimitInBytes()).isEqualTo(1024);
+        assertThat(configuration.minimumSizeInBytes()).contains(0L);
+        assertThat(configuration.memoryLimitInBytes()).contains(1024L);
         assertThat(configuration).isNotEqualTo(S3CrtDirectBufferPoolConfiguration.fixed(1024));
         assertThat(configuration.toString()).contains("minimumSizeInBytes=0", "memoryLimitInBytes=1024");
     }
@@ -61,8 +61,8 @@ class S3CrtDirectBufferPoolConfigurationTest {
         S3CrtDirectBufferPoolConfiguration configuration = S3CrtDirectBufferPoolConfiguration.elastic(1024, 1024);
         S3CrtDirectBufferPoolConfiguration equalConfiguration = S3CrtDirectBufferPoolConfiguration.elastic(1024, 1024);
 
-        assertThat(configuration.minimumSizeInBytes()).isEqualTo(1024);
-        assertThat(configuration.memoryLimitInBytes()).isEqualTo(1024);
+        assertThat(configuration.minimumSizeInBytes()).contains(1024L);
+        assertThat(configuration.memoryLimitInBytes()).contains(1024L);
         assertThat(configuration).isEqualTo(equalConfiguration)
                               .hasSameHashCodeAs(equalConfiguration)
                               .isNotEqualTo(S3CrtDirectBufferPoolConfiguration.fixed(1024));

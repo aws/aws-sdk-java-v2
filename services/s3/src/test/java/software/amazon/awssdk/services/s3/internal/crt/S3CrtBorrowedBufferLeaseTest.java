@@ -27,88 +27,58 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
 
 class S3CrtBorrowedBufferLeaseTest {
     @Test
-    void consumed_releasesBeforeCreditingOriginalByteCount() {
-        List<String> actions = new ArrayList<>();
-        AtomicLong credited = new AtomicLong();
+    void copyTo_readsOriginalByteCountWithoutExposingBuffer() {
         ByteBuffer view = ByteBuffer.allocateDirect(3);
-        S3CrtBorrowedBufferLease buffer = new S3CrtBorrowedBufferLease(
-            view, () -> actions.add("release"), bytes -> {
-                actions.add("credit");
-                credited.addAndGet(bytes);
-            });
+        view.put(new byte[] {'a', 'b', 'c'}).flip();
+        S3CrtBorrowedBufferLease buffer = new S3CrtBorrowedBufferLease(view, () -> { });
+        byte[] destination = new byte[3];
 
-        view.get();
-        buffer.consumed();
-        buffer.consumed();
-        buffer.discard();
-
-        assertThat(actions).containsExactly("release", "credit");
-        assertThat(credited).hasValue(3);
-        // The credited count is the byte count the lease was created with, not whatever remains in the view now.
+        assertThat(buffer.copyTo(destination, 0, destination.length)).isEqualTo(3);
+        assertThat(destination).containsExactly('a', 'b', 'c');
+        assertThat(buffer.hasRemaining()).isFalse();
         assertThat(buffer.byteCount()).isEqualTo(3);
     }
 
     @Test
-    void buffer_afterRelease_throwsRatherThanExposingReleasedMemory() {
-        S3CrtBorrowedBufferLease consumedBuffer = buffer(2, () -> {
-        }, bytes -> {
-        });
-        consumedBuffer.buffer().get(new byte[2]);
-        consumedBuffer.consumed();
+    void copyMethods_afterRelease_throw() {
+        S3CrtBorrowedBufferLease buffer = buffer(2, () -> { });
 
-        // Once the lease is released the pooled memory can belong to another request, so handing the view back out
-        // would silently serve someone else's bytes as this object's content.
-        assertThatThrownBy(consumedBuffer::buffer)
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("after its lease was released");
+        buffer.release();
 
-        S3CrtBorrowedBufferLease discardedBuffer = buffer(2, () -> {
-        }, bytes -> {
-        });
-        discardedBuffer.discard();
-        assertThatThrownBy(discardedBuffer::buffer).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> buffer.copyTo(new byte[2], 0, 2)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(buffer::hasRemaining).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    void discard_releasesWithoutCredit() {
+    void release_releasesOnce() {
         AtomicInteger releases = new AtomicInteger();
-        AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBufferLease buffer = buffer(2, releases::incrementAndGet, credited::addAndGet);
+        S3CrtBorrowedBufferLease buffer = buffer(2, releases::incrementAndGet);
 
-        buffer.discard();
-        buffer.consumed();
-        buffer.discard();
+        buffer.release();
+        buffer.release();
 
         assertThat(releases).hasValue(1);
-        assertThat(credited).hasValue(0);
     }
 
     @Test
-    void racingTerminalOperations_chooseOnePath() throws Exception {
+    void racingReleaseOperations_releaseOnce() throws Exception {
         AtomicInteger releases = new AtomicInteger();
-        AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBufferLease buffer = buffer(4, releases::incrementAndGet, credited::addAndGet);
+        S3CrtBorrowedBufferLease buffer = buffer(4, releases::incrementAndGet);
         ExecutorService executor = Executors.newFixedThreadPool(8);
         CountDownLatch ready = new CountDownLatch(8);
         CountDownLatch start = new CountDownLatch(1);
         List<Throwable> failures = Collections.synchronizedList(new ArrayList<>());
         try {
             for (int i = 0; i < 8; i++) {
-                boolean consume = i % 2 == 0;
                 executor.submit(() -> {
                     ready.countDown();
                     try {
                         start.await();
-                        if (consume) {
-                            buffer.consumed();
-                        } else {
-                            buffer.discard();
-                        }
+                        buffer.release();
                     } catch (Throwable t) {
                         failures.add(t);
                     }
@@ -123,44 +93,24 @@ class S3CrtBorrowedBufferLeaseTest {
 
         assertThat(failures).isEmpty();
         assertThat(releases).hasValue(1);
-        assertThat(credited.get()).isIn(0L, 4L);
     }
 
     @Test
-    void releaseFailure_preventsCreditAndIsNotRetried() {
+    void releaseFailure_isNotRetried() {
         AtomicInteger releases = new AtomicInteger();
-        AtomicLong credited = new AtomicLong();
         RuntimeException failure = new RuntimeException("release failed");
         S3CrtBorrowedBufferLease buffer = buffer(2, () -> {
             releases.incrementAndGet();
             throw failure;
-        }, credited::addAndGet);
-
-        assertThatThrownBy(buffer::consumed).isSameAs(failure);
-        buffer.consumed();
-        buffer.discard();
-
-        assertThat(releases).hasValue(1);
-        assertThat(credited).hasValue(0);
-    }
-
-    @Test
-    void creditFailure_occursAfterReleaseAndIsNotRetried() {
-        List<String> actions = new ArrayList<>();
-        RuntimeException failure = new RuntimeException("credit failed");
-        S3CrtBorrowedBufferLease buffer = buffer(2, () -> actions.add("release"), bytes -> {
-            actions.add("credit");
-            throw failure;
         });
 
-        assertThatThrownBy(buffer::consumed).isSameAs(failure);
-        buffer.consumed();
-        buffer.discard();
+        assertThatThrownBy(buffer::release).isSameAs(failure);
+        buffer.release();
 
-        assertThat(actions).containsExactly("release", "credit");
+        assertThat(releases).hasValue(1);
     }
 
-    private static S3CrtBorrowedBufferLease buffer(int size, Runnable release, java.util.function.LongConsumer credit) {
-        return new S3CrtBorrowedBufferLease(ByteBuffer.allocateDirect(size), release, credit);
+    private static S3CrtBorrowedBufferLease buffer(int size, Runnable release) {
+        return new S3CrtBorrowedBufferLease(ByteBuffer.allocateDirect(size), release);
     }
 }

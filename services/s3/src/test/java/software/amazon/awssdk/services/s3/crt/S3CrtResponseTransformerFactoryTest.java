@@ -32,27 +32,29 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtDirectBufferPoolStreamMarker;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 
-class S3CrtAsyncResponseTransformerTest {
-    private static final String FACTORY_CLASS = "software.amazon.awssdk.services.s3.crt.S3CrtAsyncResponseTransformer";
-    private static final String TRANSFORMER_CLASS =
-        "software.amazon.awssdk.services.s3.internal.crt.S3CrtBorrowedBufferBlockingResponseTransformer";
+class S3CrtResponseTransformerFactoryTest {
+    private static final String UNSUPPORTED_CLIENT_MESSAGE =
+        "This transformer requires a CRT-based S3 client configured with a direct buffer pool, and cannot be wrapped by "
+        + "another transformer.";
 
     @Test
     void borrowedFactory_withoutCrtClasses_shouldLoadAndFailClearlyWhenExecuted() throws Exception {
         // Load the transformer locally to detect accidental CRT linkage from the public factory.
-        NoCrtClassLoader classLoader = new NoCrtClassLoader(getClass().getClassLoader(),
-                                                            FACTORY_CLASS, TRANSFORMER_CLASS, TRANSFORMER_CLASS + "$State");
-        Class<?> factory = Class.forName(FACTORY_CLASS, true, classLoader);
+        String factoryClass = S3CrtResponseTransformerFactory.class.getName();
+        String transformerClass = S3CrtDirectBufferPoolStreamMarker.class.getName();
+        NoCrtClassLoader classLoader = new NoCrtClassLoader(getClass().getClassLoader(), factoryClass, transformerClass);
+        Class<?> factory = Class.forName(factoryClass, true, classLoader);
         Object transformer = factory.getMethod("toBlockingInputStreamFromDirectBufferPool").invoke(null);
 
         assertThat(transformer.getClass().getClassLoader()).isSameAs(classLoader);
         assertThatThrownBy(() -> invokePrepare(transformer))
             .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("S3 CRT async client");
+            .hasMessageContaining("CRT-based S3 client");
         assertThat(classLoader.crtClassRequested()).isFalse();
     }
 
@@ -67,7 +69,7 @@ class S3CrtAsyncResponseTransformerTest {
                                                                      .bucket("bucket")
                                                                      .key("key")
                                                                      .build(),
-                                                       S3CrtAsyncResponseTransformer
+                                                       S3CrtResponseTransformerFactory
                                                            .toBlockingInputStreamFromDirectBufferPool()).join())
                 .hasCauseInstanceOf(UnsupportedOperationException.class);
             assertThat(httpClient.getRequests()).isEmpty();
@@ -82,14 +84,14 @@ class S3CrtAsyncResponseTransformerTest {
                                                  .httpClient(httpClient)
                                                  .build()) {
             AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer =
-                S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool();
+                S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool();
             assertThatThrownBy(() -> client.getObject(GetObjectRequest.builder()
                                                                      .bucket("bucket")
                                                                      .key("key")
                                                                      .build(),
                                                        new ForwardingTransformer(transformer)).join())
                 .hasCauseInstanceOf(UnsupportedOperationException.class)
-                .hasRootCauseMessage("This transformer requires an S3 CRT async client with a configured direct buffer pool");
+                .hasRootCauseMessage(UNSUPPORTED_CLIENT_MESSAGE);
             assertThat(httpClient.getRequests()).isEmpty();
         }
     }
@@ -106,10 +108,10 @@ class S3CrtAsyncResponseTransformerTest {
                                                                      .bucket("bucket")
                                                                      .key("key")
                                                                      .build(),
-                                                       S3CrtAsyncResponseTransformer
+                                                       S3CrtResponseTransformerFactory
                                                            .toBlockingInputStreamFromDirectBufferPool()).join())
                 .hasCauseInstanceOf(UnsupportedOperationException.class)
-                .hasRootCauseMessage("This transformer requires an S3 CRT async client with a configured direct buffer pool");
+                .hasRootCauseMessage(UNSUPPORTED_CLIENT_MESSAGE);
             assertThat(httpClient.getRequests()).isEmpty();
         }
     }

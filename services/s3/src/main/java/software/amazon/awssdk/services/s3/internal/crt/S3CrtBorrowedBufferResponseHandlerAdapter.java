@@ -17,14 +17,11 @@ package software.amazon.awssdk.services.s3.internal.crt;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
-import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
-import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3BorrowedBuffer;
@@ -46,8 +43,6 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class S3CrtBorrowedBufferResponseHandlerAdapter
     implements S3MetaRequestResponseHandler, S3BorrowedBufferDelivery {
-    private static final long USE_FIRST_CALLBACK_START = -1;
-
     private final S3CrtResponseHandlerAdapter delegate;
     private final CompletableFuture<Void> executeFuture;
     private final S3CrtBorrowedBufferStreamHandler streamHandler;
@@ -71,15 +66,11 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         this.streamHandler = Validate.paramNotNull(streamHandler, "streamHandler");
         this.metaRequestFuture = metaRequestFuture;
         this.responseBytesRead = responseBytesRead;
-        // A timeout or cancellation discards queued data. Other failures reach the reader after queued data.
         executeFuture.whenComplete((ignored, error) -> {
             if (error != null) {
                 try {
-                    Throwable timeout = findTimeout(error);
-                    if (timeout != null) {
-                        streamHandler.onBorrowedStreamAbort(timeout);
-                    } else if (isCancellation(error)) {
-                        streamHandler.onBorrowedStreamAbort();
+                    if (!streamInitiated.get()) {
+                        streamHandler.onBorrowedStreamAbort(error);
                     } else {
                         streamHandler.onBorrowedStreamError(error);
                     }
@@ -115,10 +106,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
             Validate.paramNotNull(crtBuffer, "crtBuffer");
             delegate.initiateResponseHandlingForBorrowedResponse();
             ByteBuffer directView = crtBuffer.asByteBuffer();
-            sdkBuffer = new S3CrtBorrowedBufferLease(
-                directView,
-                crtBuffer::close,
-                this::incrementReadWindow);
+            sdkBuffer = new S3CrtBorrowedBufferLease(directView, crtBuffer::close);
             acceptedByStream = validateAndAcceptBuffer(sdkBuffer, objectRangeStart, objectRangeEnd);
             initiateStream();
         } catch (Throwable t) {
@@ -168,7 +156,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
                 if (range.isPresent() && range.get().left() >= 0) {
                     return range.get().left();
                 }
-                return USE_FIRST_CALLBACK_START;
+                return 0;
             }
         }
         return 0;
@@ -182,12 +170,9 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
             Validate.validState(objectRangeStart >= 0,
                                 "CRT borrowed buffer started at object offset %d, but the expected offset was non-negative",
                                 objectRangeStart);
-            long expectedStart = expectedObjectRangeStart == USE_FIRST_CALLBACK_START
-                                 ? objectRangeStart
-                                 : expectedObjectRangeStart;
-            Validate.validState(objectRangeStart == expectedStart,
+            Validate.validState(objectRangeStart == expectedObjectRangeStart,
                                 "CRT borrowed buffer started at object offset %d, but the expected offset was %d",
-                                objectRangeStart, expectedStart);
+                                objectRangeStart, expectedObjectRangeStart);
 
             long expectedEnd;
             try {
@@ -211,35 +196,13 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         }
     }
 
-    private static Throwable findTimeout(Throwable error) {
-        Throwable current = error;
-        while (current != null) {
-            if (current instanceof ApiCallAttemptTimeoutException || current instanceof ApiCallTimeoutException) {
-                return current;
-            }
-            current = current.getCause();
-        }
-        return null;
-    }
-
-    private static boolean isCancellation(Throwable error) {
-        Throwable current = error;
-        while (current != null) {
-            if (current instanceof CancellationException) {
-                return true;
-            }
-            current = current.getCause();
-        }
-        return false;
-    }
-
     private static void releaseUnacceptedBuffer(
         Throwable failure,
         S3CrtBorrowedBufferLease sdkBuffer,
         S3BorrowedBuffer crtBuffer) {
         try {
             if (sdkBuffer != null) {
-                sdkBuffer.discard();
+                sdkBuffer.release();
             } else if (crtBuffer != null) {
                 crtBuffer.close();
             }
@@ -264,7 +227,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
 
     private void initiateStream() {
         if (streamInitiated.compareAndSet(false, true)) {
-            streamHandler.onBorrowedStreamStart(() -> executeFuture.cancel(true));
+            streamHandler.onBorrowedStreamStart(() -> executeFuture.cancel(true), this::incrementReadWindow);
         }
     }
 

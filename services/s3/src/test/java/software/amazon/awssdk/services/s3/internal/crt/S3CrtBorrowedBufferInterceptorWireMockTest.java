@@ -53,11 +53,16 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.crt.S3CrtAsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
-/** Verifies that response-content interceptors do not receive borrowed object-body data. */
+/**
+ * Verifies response-content interceptor behavior for borrowed body delivery.
+ *
+ * <p>Successful borrowed downloads expose no body bytes to content interceptors, while ordinary downloads and error
+ * documents use the ordinary response pipeline.</p>
+ */
 @WireMockTest
 @Timeout(20)
 class S3CrtBorrowedBufferInterceptorWireMockTest {
@@ -73,7 +78,7 @@ class S3CrtBorrowedBufferInterceptorWireMockTest {
         try (S3AsyncClient client = newClient(wireMock, interceptor);
              ResponseInputStream<GetObjectResponse> stream =
                  client.getObject(r -> r.bucket("bucket").key("key"),
-                                  S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool())
+                                  S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
                        .get(10, TimeUnit.SECONDS)) {
             assertThat(readAll(stream)).containsExactly(CONTENT);
             assertThat(stream.read()).isEqualTo(-1);
@@ -129,7 +134,7 @@ class S3CrtBorrowedBufferInterceptorWireMockTest {
         try (S3AsyncClient client = newClient(wireMock, interceptor)) {
             assertThatThrownBy(() -> client.getObject(
                 r -> r.bucket("bucket").key("key"),
-                S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool()).get(10, TimeUnit.SECONDS))
+                S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()).get(10, TimeUnit.SECONDS))
                 .isNotNull();
         }
 

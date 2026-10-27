@@ -158,7 +158,6 @@ public class S3CrtAsyncHttpClientTest {
     void getObject_withBorrowedHandler_shouldSelectBorrowedResponseAdapter() {
         S3CrtBorrowedBufferBlockingResponseTransformer borrowedBufferResponseTransformer =
             new S3CrtBorrowedBufferBlockingResponseTransformer();
-        borrowedBufferResponseTransformer.activate();
         borrowedBufferResponseTransformer.prepare();
         AsyncExecuteRequest asyncExecuteRequest =
             getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME, "GetObject")

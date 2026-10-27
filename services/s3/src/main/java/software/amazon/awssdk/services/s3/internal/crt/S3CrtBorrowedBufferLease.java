@@ -17,53 +17,45 @@ package software.amazon.awssdk.services.s3.internal.crt;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.LongConsumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * A lease of a CRT borrowed buffer.
  *
- * <p>{@link #consumed()} releases the buffer and credits its bytes to the CRT read window; {@link #discard()} only releases
- * it. The first terminal action invalidates {@link #buffer()}.
+ * <p>{@link #release()} returns the buffer to CRT, and later reads throw.
  */
 @SdkInternalApi
 public final class S3CrtBorrowedBufferLease {
     private final ByteBuffer buffer;
     private final long byteCount;
     private final Runnable releaseAction;
-    private final LongConsumer readWindowAction;
-    private final AtomicBoolean terminal = new AtomicBoolean();
+    private final AtomicBoolean released = new AtomicBoolean();
 
-    S3CrtBorrowedBufferLease(ByteBuffer buffer,
-                              Runnable releaseAction,
-                              LongConsumer readWindowAction) {
+    S3CrtBorrowedBufferLease(ByteBuffer buffer, Runnable releaseAction) {
         this.releaseAction = releaseAction;
-        this.readWindowAction = readWindowAction;
         this.buffer = buffer;
         this.byteCount = buffer.remaining();
     }
 
-    ByteBuffer buffer() {
-        Validate.validState(!terminal.get(),
-                            "Borrowed buffer was read after its lease was released. The native memory it referenced is "
-                            + "no longer owned by this request.");
-        return buffer;
+    int copyTo(byte[] destination, int offset, int length) {
+        Validate.validState(!released.get(), "Borrowed buffer was read after its lease was released.");
+        int count = Math.min(buffer.remaining(), length);
+        buffer.get(destination, offset, count);
+        return count;
+    }
+
+    boolean hasRemaining() {
+        Validate.validState(!released.get(), "Borrowed buffer was read after its lease was released.");
+        return buffer.hasRemaining();
     }
 
     long byteCount() {
         return byteCount;
     }
 
-    void consumed() {
-        if (terminal.compareAndSet(false, true)) {
-            releaseAction.run();
-            readWindowAction.accept(byteCount);
-        }
-    }
-
-    void discard() {
-        if (terminal.compareAndSet(false, true)) {
+    void release() {
+        if (released.compareAndSet(false, true)) {
             releaseAction.run();
         }
     }

@@ -23,7 +23,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.setGlobalFixedDelay;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -34,6 +33,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.time.Duration;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,14 +51,16 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.crt.S3CrtAsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
@@ -99,6 +101,23 @@ class S3CrtBorrowedBufferClientWireMockTest {
     }
 
     @Test
+    void noPoolClient_shouldFailBeforeTransmission(WireMockRuntimeInfo wireMock) {
+        try (S3AsyncClient client = S3AsyncClient.crtBuilder()
+                                                 .region(Region.US_EAST_1)
+                                                 .endpointOverride(URI.create("http://localhost:"
+                                                                              + wireMock.getHttpPort()))
+                                                 .credentialsProvider(StaticCredentialsProvider.create(
+                                                     AwsBasicCredentials.create("key", "secret")))
+                                                 .build()) {
+            assertThatThrownBy(() -> getObjectFuture(client).join())
+                .hasRootCauseInstanceOf(IllegalStateException.class)
+                .hasRootCauseMessage("A direct buffer pool must be configured on S3CrtAsyncClientBuilder before using the "
+                                     + "borrowed buffer response transformer");
+        }
+        verify(0, anyRequestedFor(anyUrl()));
+    }
+
+    @Test
     void getObjectWithPartNumber_shouldUseResolvedContentRangeStart(WireMockRuntimeInfo wireMock) throws Exception {
         int start = PART_SIZE;
         int end = 2 * PART_SIZE - 1;
@@ -113,7 +132,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
         try (S3AsyncClient client = newClient(wireMock);
              ResponseInputStream<GetObjectResponse> stream =
                  client.getObject(r -> r.bucket("bucket").key("key").partNumber(2),
-                                  S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool())
+                                  S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
                        .get(10, TimeUnit.SECONDS)) {
             assertThat(stream.response().contentRange()).isEqualTo("bytes " + start + "-" + end + "/" + CONTENT.length);
             assertThat(readAll(stream)).containsExactly(part);
@@ -140,51 +159,41 @@ class S3CrtBorrowedBufferClientWireMockTest {
     }
 
     @Test
-    void reusedTransformer_afterDownload_shouldFailBeforeTransmission(WireMockRuntimeInfo wireMock) throws Exception {
+    void reusedTransformer_afterDownload_shouldStartAnotherDownload(WireMockRuntimeInfo wireMock) throws Exception {
         stubMultipartObject(CONTENT);
         AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer =
-            S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool();
+            S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool();
 
         try (S3AsyncClient client = newClient(wireMock)) {
             try (ResponseInputStream<GetObjectResponse> first =
                      client.getObject(r -> r.bucket("bucket").key("key"), transformer).get(10, TimeUnit.SECONDS)) {
                 assertThat(readAll(first)).containsExactly(CONTENT);
             }
-            assertThatThrownBy(() -> client.getObject(r -> r.bucket("bucket").key("second"), transformer)
-                                           .get(10, TimeUnit.SECONDS))
-                .hasCauseInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("already been used");
-            verify(0, anyRequestedFor(urlMatching(".*/second.*")));
+            try (ResponseInputStream<GetObjectResponse> second =
+                     client.getObject(r -> r.bucket("bucket").key("second"), transformer).get(10, TimeUnit.SECONDS)) {
+                assertThat(readAll(second)).containsExactly(CONTENT);
+            }
         }
     }
 
     @Test
-    void reusedTransformer_whileDownloadActive_shouldFailBeforeTransmission(WireMockRuntimeInfo wireMock)
+    void reusedTransformer_whileFirstStreamOpen_shouldCompleteAfterFirstCloses(WireMockRuntimeInfo wireMock)
         throws Exception {
         stubMultipartObject(CONTENT);
         AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer =
-            S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool();
-        HoldingExecutor completionExecutor = new HoldingExecutor();
-        S3AsyncClient client = newClient(wireMock, completionExecutor);
-        try {
-            CompletableFuture<ResponseInputStream<GetObjectResponse>> first =
-                client.getObject(r -> r.bucket("bucket").key("key"), transformer);
-            completionExecutor.awaitTask();
-            assertThat(first).isNotDone();
+            S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool();
 
-            assertThatThrownBy(() -> client.getObject(r -> r.bucket("bucket").key("second"), transformer)
-                                           .get(10, TimeUnit.SECONDS))
-                .hasCauseInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("already been used");
-            verify(0, anyRequestedFor(urlMatching(".*/second.*")));
+        try (S3AsyncClient client = newClient(wireMock);
+             ResponseInputStream<GetObjectResponse> first =
+                 client.getObject(r -> r.bucket("bucket").key("key"), transformer).get(10, TimeUnit.SECONDS)) {
+            CompletableFuture<ResponseInputStream<GetObjectResponse>> second =
+                client.getObject(r -> r.bucket("bucket").key("second"), transformer);
+            assertThat(second).isNotDone();
 
-            completionExecutor.release();
-            try (ResponseInputStream<GetObjectResponse> stream = first.get(10, TimeUnit.SECONDS)) {
+            first.close();
+            try (ResponseInputStream<GetObjectResponse> stream = second.get(10, TimeUnit.SECONDS)) {
                 assertThat(readAll(stream)).containsExactly(CONTENT);
             }
-        } finally {
-            completionExecutor.release();
-            client.close();
         }
     }
 
@@ -193,7 +202,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
         throws Exception {
         stubMultipartObject(CONTENT);
         AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer =
-            S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool();
+            S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool();
         setGlobalFixedDelay(1_000);
         try (S3AsyncClient crtClient = newClient(wireMock);
              MockAsyncHttpClient javaHttpClient = new MockAsyncHttpClient();
@@ -208,8 +217,8 @@ class S3CrtBorrowedBufferClientWireMockTest {
             assertThat(first).isNotDone();
 
             assertThatThrownBy(() -> javaClient.getObject(r -> r.bucket("bucket").key("key"), transformer).join())
-                .hasCauseInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("already been used");
+                .hasCauseInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("CRT-based S3 client");
             assertThat(javaHttpClient.getRequests()).isEmpty();
 
             setGlobalFixedDelay(0);
@@ -225,13 +234,13 @@ class S3CrtBorrowedBufferClientWireMockTest {
     void wrappedTransformer_shouldFailBeforeTransmission(WireMockRuntimeInfo wireMock) {
         stubMultipartObject(CONTENT);
         AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> wrapped =
-            new ForwardingTransformer(S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool());
+            new ForwardingTransformer(S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool());
 
         try (S3AsyncClient client = newClient(wireMock)) {
             assertThatThrownBy(() -> client.getObject(r -> r.bucket("bucket").key("key"), wrapped)
                                            .get(10, TimeUnit.SECONDS))
                 .hasCauseInstanceOf(UnsupportedOperationException.class)
-                .hasMessageContaining("S3 CRT async client");
+                .hasMessageContaining("CRT-based S3 client");
             verify(0, anyRequestedFor(anyUrl()));
         }
     }
@@ -266,6 +275,35 @@ class S3CrtBorrowedBufferClientWireMockTest {
             completionExecutor.release();
 
             assertThat(first).isCancelled();
+            try (ResponseInputStream<GetObjectResponse> second = getObject(client)) {
+                assertThat(readAll(second)).containsExactly(CONTENT);
+            }
+        } finally {
+            completionExecutor.release();
+            client.close();
+        }
+    }
+
+    @Test
+    void apiCallTimeoutAfterStreamInitiationBeforePublication_shouldReleasePoolForNextRequest(
+        WireMockRuntimeInfo wireMock) throws Exception {
+        stubMultipartObject(CONTENT);
+        HoldingExecutor completionExecutor = new HoldingExecutor();
+        S3AsyncClient client = newClient(wireMock, completionExecutor);
+        try {
+            GetObjectRequest request = GetObjectRequest.builder()
+                                                       .bucket("bucket")
+                                                       .key("timed-out")
+                                                       .overrideConfiguration(c -> c.apiCallTimeout(Duration.ofMillis(100)))
+                                                       .build();
+            CompletableFuture<ResponseInputStream<GetObjectResponse>> first =
+                client.getObject(request, S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool());
+            completionExecutor.awaitTask();
+            assertThat(first).isNotDone();
+
+            assertThatThrownBy(() -> first.get(5, TimeUnit.SECONDS)).hasRootCauseInstanceOf(ApiCallTimeoutException.class);
+            completionExecutor.release();
+
             try (ResponseInputStream<GetObjectResponse> second = getObject(client)) {
                 assertThat(readAll(second)).containsExactly(CONTENT);
             }
@@ -404,7 +442,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
 
     private static CompletableFuture<ResponseInputStream<GetObjectResponse>> getObjectFuture(S3AsyncClient client) {
         return client.getObject(r -> r.bucket("bucket").key("key"),
-                                S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool());
+                                S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool());
     }
 
     private static ResponseInputStream<GetObjectResponse> getObject(S3AsyncClient client) throws Exception {

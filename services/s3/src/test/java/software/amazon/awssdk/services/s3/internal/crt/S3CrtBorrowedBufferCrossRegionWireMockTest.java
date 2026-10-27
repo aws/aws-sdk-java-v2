@@ -52,13 +52,17 @@ import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.crt.S3CrtAsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
+/**
+ * Covers cross-region redirects, where {@code S3CrossRegionAsyncClient} calls {@code getObject} again with the same
+ * borrowed-buffer transformer.
+ */
 @WireMockTest
 @Timeout(20)
 class S3CrtBorrowedBufferCrossRegionWireMockTest {
@@ -207,7 +211,7 @@ class S3CrtBorrowedBufferCrossRegionWireMockTest {
                                                        config -> config.endpointProvider(
                                                            localRegionalEndpointProvider(wireMock.getHttpPort())))
                                                    .build();
-        return client.getObject(request, S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool());
+        return client.getObject(request, S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool());
     }
 
     private static S3EndpointProvider localRegionalEndpointProvider(int port) {

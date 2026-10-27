@@ -148,7 +148,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         GetObjectRequest getObjectRequest,
         AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
-        if (!(asyncResponseTransformer instanceof S3CrtBorrowedBufferBlockingResponseTransformer)) {
+        if (!(asyncResponseTransformer instanceof S3CrtDirectBufferPoolStreamMarker)) {
             return super.getObject(getObjectRequest, asyncResponseTransformer);
         }
 
@@ -160,12 +160,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         }
 
         S3CrtBorrowedBufferBlockingResponseTransformer borrowedBufferResponseTransformer =
-            (S3CrtBorrowedBufferBlockingResponseTransformer) asyncResponseTransformer;
-        try {
-            borrowedBufferResponseTransformer.activate();
-        } catch (IllegalStateException e) {
-            return CompletableFutureUtils.failedFuture(e);
-        }
+            new S3CrtBorrowedBufferBlockingResponseTransformer();
         AwsRequestOverrideConfiguration overrideConfig =
             getObjectRequest.overrideConfiguration()
                             .map(AwsRequestOverrideConfiguration::toBuilder)
@@ -178,7 +173,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         CompletableFuture<ReturnT> result =
             (CompletableFuture<ReturnT>) super.getObject(requestWithBorrowedHandler, borrowedBufferResponseTransformer);
         result.whenComplete((ignored, error) -> {
-            borrowedBufferResponseTransformer.done();
             if (error != null) {
                 borrowedBufferResponseTransformer.abort();
             }

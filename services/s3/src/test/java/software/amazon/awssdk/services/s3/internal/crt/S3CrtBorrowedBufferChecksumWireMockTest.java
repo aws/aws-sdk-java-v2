@@ -40,7 +40,7 @@ import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.crt.S3CrtAsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -100,8 +100,8 @@ class S3CrtBorrowedBufferChecksumWireMockTest {
 
         assertThat(borrowedFailure).isInstanceOf(SdkClientException.class)
                                    .hasMessageContaining("checksum");
-        assertThat(ordinaryFailure).isExactlyInstanceOf(borrowedFailure.getClass())
-                                   .hasMessage(borrowedFailure.getMessage());
+        assertThat(borrowedFailure).isExactlyInstanceOf(ordinaryFailure.getClass())
+                                   .hasMessage(ordinaryFailure.getMessage());
     }
 
     private static S3AsyncClient newClient(WireMockRuntimeInfo wireMock) {
@@ -119,7 +119,7 @@ class S3CrtBorrowedBufferChecksumWireMockTest {
     }
 
     private static ResponseInputStream<GetObjectResponse> borrowedStream(S3AsyncClient client) throws Exception {
-        return client.getObject(request(), S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool())
+        return client.getObject(request(), S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
                      .get();
     }
 

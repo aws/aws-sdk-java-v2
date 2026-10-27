@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.crt;
 
 import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -25,12 +26,12 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * Configuration for the client-wide direct buffer pool used by the CRT-based S3 client.
  *
- * <p>Downloads that use {@link S3CrtAsyncResponseTransformer#toBlockingInputStreamFromDirectBufferPool()}, except
+ * <p>Downloads that use {@link S3CrtResponseTransformerFactory#toBlockingInputStreamFromDirectBufferPool()}, except
  * {@code GetObject} requests with {@code partNumber}, hold pool memory until the application reads or closes them. Size the
- * pool for the expected concurrent pooled downloads and leave headroom for ordinary downloads and multipart uploads on the
- * same client. A starting point is the number of concurrent pooled downloads times
+ * pool for the expected concurrent downloads that use it and leave headroom for ordinary downloads and multipart uploads on the
+ * same client. A starting point is the number of concurrent downloads that use the pool times
  * ({@code initialReadBufferSizeInBytes} plus one part size), because each download can have one requested part beyond its
- * read window. If the pool is too small for the concurrent pooled downloads, some downloads can stop receiving data until
+ * read window. If the pool is too small for the concurrent downloads that use it, some downloads can stop receiving data until
  * other downloads finish. The SDK does not time out a download that stops after its stream is returned. The application can
  * close the stream to end it.</p>
  *
@@ -49,8 +50,9 @@ import software.amazon.awssdk.utils.Validate;
  * to fit.</p>
  *
  * <p>With a pool, an explicitly set {@code minimumPartSizeInBytes} is used as the exact upload part size and is never
- * raised. A multipart upload of known size fails before sending data if that part size is below 5 MiB or the object
- * needs more than 10,000 parts.</p>
+ * raised. For a known-size upload that exceeds the multipart threshold, the upload fails before sending data if that part
+ * size is below S3's 5 MiB minimum for non-final parts or the object needs more than 10,000 parts. Single-part uploads
+ * are not affected.</p>
  *
  * <p>With a pool, a {@code minimumPartSizeInBytes} of 128 MiB or more can fail client creation.</p>
  *
@@ -58,8 +60,8 @@ import software.amazon.awssdk.utils.Validate;
  * Single-part uploads do not use the pool. Every request that uses the pool takes at least one full part of pool memory
  * while it runs, so a 1 KiB download still uses an 8 MiB part with the default part size.</p>
  *
- * <p>Other requests on a pooled client share its memory, so a slow reader of a pooled download can delay them, and uploads
- * are limited by the pool's part size. Size the pool for all requests on the client.</p>
+ * <p>Other requests on a client with a direct buffer pool share its memory, so a slow reader of a download that uses the
+ * pool can delay them, and uploads are limited by the pool's part size. Size the pool for all requests on the client.</p>
  */
 @SdkPublicApi
 @Immutable
@@ -76,10 +78,10 @@ public final class S3CrtDirectBufferPoolConfiguration {
     /**
      * Creates a configuration for a pool whose memory limit is automatically determined by CRT.
      *
-     * <p>CRT sizes the pool the same way as its default native memory pool, from system information and the client's
-     * throughput target. The pool grows with demand and releases memory it is not using. The derived ceiling can be
-     * reduced to fit the JVM direct-memory limit. Use {@link #elastic(long, long)} for a known number of concurrent pooled
-     * downloads that needs an explicit ceiling.</p>
+     * <p>CRT sizes the pool from system information and the client's throughput target. The pool grows with demand and
+     * releases memory it is not using. The derived ceiling can be reduced to fit the JVM direct-memory limit. Use
+     * {@link #elastic(long, long)} for a known number of concurrent downloads that use the pool and need an explicit
+     * ceiling.</p>
      *
      * @return an automatically sized pool configuration
      */
@@ -128,21 +130,21 @@ public final class S3CrtDirectBufferPoolConfiguration {
     }
 
     /**
-     * Returns the configured pool ceiling, or {@code null} when automatic sizing is configured.
+     * Returns the configured pool ceiling.
      *
-     * @return the pool ceiling, or {@code null} when automatic sizing is configured
+     * @return the pool ceiling, or an empty optional when automatic sizing is configured
      */
-    public Long memoryLimitInBytes() {
-        return memoryLimitInBytes;
+    public Optional<Long> memoryLimitInBytes() {
+        return Optional.ofNullable(memoryLimitInBytes);
     }
 
     /**
-     * Returns the configured elastic pool floor, or {@code null} when the pool is automatic or fixed.
+     * Returns the configured elastic pool floor.
      *
-     * @return the elastic pool floor, or {@code null} when the pool is automatic or fixed
+     * @return the elastic pool floor, or an empty optional when the pool is automatic or fixed
      */
-    public Long minimumSizeInBytes() {
-        return minimumSizeInBytes;
+    public Optional<Long> minimumSizeInBytes() {
+        return Optional.ofNullable(minimumSizeInBytes);
     }
 
     @Override

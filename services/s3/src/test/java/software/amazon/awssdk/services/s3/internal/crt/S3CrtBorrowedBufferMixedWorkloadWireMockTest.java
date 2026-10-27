@@ -51,7 +51,7 @@ import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.crt.S3CrtAsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -81,7 +81,7 @@ class S3CrtBorrowedBufferMixedWorkloadWireMockTest {
         try (S3AsyncClient client = newClient(wireMock, 8L * PART_SIZE)) {
             ResponseInputStream<GetObjectResponse> borrowed =
                 client.getObject(r -> r.bucket("bucket").key("download"),
-                                 S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool())
+                                 S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
                       .get(20, TimeUnit.SECONDS);
 
             // Read one byte and then stop. The first borrowed buffer is now leased to this reader and stays leased for
@@ -125,7 +125,7 @@ class S3CrtBorrowedBufferMixedWorkloadWireMockTest {
             for (int round = 0; round < 3; round++) {
                 try (ResponseInputStream<GetObjectResponse> borrowed =
                          client.getObject(r -> r.bucket("bucket").key("download"),
-                                          S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool())
+                                          S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
                                .get(20, TimeUnit.SECONDS)) {
                     assertThat(readAll(borrowed)).containsExactly(DOWNLOAD_CONTENT);
                 }

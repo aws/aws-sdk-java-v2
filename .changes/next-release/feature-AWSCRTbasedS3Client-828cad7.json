@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "AWS CRT-based S3 Client",
     "contributor": "",
-    "description": "Add support for direct buffer pool downloads to the AWS CRT-based S3 client."
+    "description": "Add support for direct buffer pool downloads to the AWS CRT-based S3 client. Configure a pool with `S3CrtAsyncClientBuilder#directBufferPoolConfiguration`, then use `S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()` to read a `GetObject` response as an InputStream backed by the CRT direct buffer pool, without the extra copy into Java heap buffers."
 }

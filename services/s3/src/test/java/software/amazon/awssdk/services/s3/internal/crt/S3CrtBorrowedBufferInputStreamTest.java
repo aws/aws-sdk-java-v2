@@ -33,15 +33,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.LongConsumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
 @Timeout(10)
 class S3CrtBorrowedBufferInputStreamTest {
+    private static final LongConsumer NO_CREDIT = ignored -> { };
+
     @Test
     void emptyCompletion_returnsRepeatedEof() throws Exception {
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { });
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { }, NO_CREDIT);
         stream.onComplete();
 
         assertThat(stream.read()).isEqualTo(-1);
@@ -57,7 +60,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> {
             cancellations.incrementAndGet();
             streamReference.get().abort();
-        });
+        }, NO_CREDIT);
         streamReference.set(stream);
         CountDownLatch started = new CountDownLatch(1);
         CountDownLatch finished = new CountDownLatch(1);
@@ -90,7 +93,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger cancellations = new AtomicInteger();
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet);
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
         stream.onBuffer(buffer("a", releases::incrementAndGet, credited));
         stream.onComplete();
 
@@ -112,7 +115,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger cancellations = new AtomicInteger();
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet);
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
         stream.onBuffer(buffer("abc", releases::incrementAndGet, credited));
         stream.onBuffer(buffer("def", releases::incrementAndGet, credited));
         stream.onComplete();
@@ -137,7 +140,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         RuntimeException failure = new RuntimeException("request failed");
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { });
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { }, credited::addAndGet);
         stream.onBuffer(buffer("abc", releases::incrementAndGet, credited));
         stream.onError(failure);
 
@@ -154,7 +157,7 @@ class S3CrtBorrowedBufferInputStreamTest {
     @Test
     void sdkClientFailure_isReportedWithoutWrapping() {
         SdkClientException failure = SdkClientException.create("request failed");
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { });
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { }, NO_CREDIT);
         stream.onError(failure);
 
         assertThatThrownBy(stream::read).isSameAs(failure);
@@ -165,7 +168,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger cancellations = new AtomicInteger();
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet);
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
         stream.onBuffer(buffer("abc", releases::incrementAndGet, credited));
         stream.onBuffer(buffer("def", releases::incrementAndGet, credited));
 
@@ -190,7 +193,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         CountDownLatch firstReleaseStarted = new CountDownLatch(1);
         CountDownLatch continueFirstRelease = new CountDownLatch(1);
         AtomicReference<Thread> closeThread = new AtomicReference<>();
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet);
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
         stream.onBuffer(buffer("a", () -> {
             releases.incrementAndGet();
             firstReleaseStarted.countDown();
@@ -225,7 +228,7 @@ class S3CrtBorrowedBufferInputStreamTest {
     @Test
     void close_wakesBlockedReader() throws Exception {
         AtomicInteger cancellations = new AtomicInteger();
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet);
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, NO_CREDIT);
         ExecutorService executor = Executors.newSingleThreadExecutor();
         CountDownLatch started = new CountDownLatch(1);
         try {
@@ -248,6 +251,41 @@ class S3CrtBorrowedBufferInputStreamTest {
     }
 
     @Test
+    void close_wakesAllBlockedReaders() throws Exception {
+        AtomicInteger cancellations = new AtomicInteger();
+        S3CrtBorrowedBufferInputStream stream =
+            new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, NO_CREDIT);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        AtomicReference<Thread> firstReader = new AtomicReference<>();
+        AtomicReference<Thread> secondReader = new AtomicReference<>();
+        try {
+            Future<Integer> first = executor.submit(() -> {
+                firstReader.set(Thread.currentThread());
+                return stream.read();
+            });
+            awaitWaiting(firstReader);
+            Future<Integer> second = executor.submit(() -> {
+                secondReader.set(Thread.currentThread());
+                return stream.read();
+            });
+            awaitBlocked(secondReader);
+
+            stream.close();
+
+            assertThatThrownBy(() -> first.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(IOException.class);
+            assertThatThrownBy(() -> second.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(IOException.class);
+            assertThat(cancellations).hasValue(1);
+        } finally {
+            executor.shutdownNow();
+            assertThat(executor.awaitTermination(5, TimeUnit.SECONDS)).isTrue();
+        }
+    }
+
+    @Test
     void releaseFailure_failsStreamCancelsUpstreamAndDiscardsQueuedBuffer() throws Exception {
         RuntimeException failure = new RuntimeException("release failed");
         AtomicInteger cancellations = new AtomicInteger();
@@ -258,7 +296,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> {
             cancellations.incrementAndGet();
             streamReference.get().abort();
-        });
+        }, NO_CREDIT);
         streamReference.set(stream);
         stream.onBuffer(buffer("a", () -> {
             firstReleases.incrementAndGet();
@@ -284,7 +322,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> {
             cancellations.incrementAndGet();
             throw new RuntimeException("request cancel failed");
-        });
+        }, credited::addAndGet);
         stream.onBuffer(buffer("abc", () -> {
             releases.incrementAndGet();
             throw new RuntimeException("first release failed");
@@ -307,7 +345,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger cancellations = new AtomicInteger();
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet);
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
         stream.onBuffer(buffer("abc", releases::incrementAndGet, credited));
 
         stream.abort();
@@ -326,7 +364,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> {
             cancellations.incrementAndGet();
             throw new RuntimeException("request cancel failed");
-        });
+        }, credited::addAndGet);
         stream.onBuffer(buffer("abc", () -> {
             releases.incrementAndGet();
             throw new RuntimeException("release failed");
@@ -344,7 +382,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger cancellations = new AtomicInteger();
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet);
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
 
         stream.close();
         assertThat(stream.onBuffer(buffer("abc", releases::incrementAndGet, credited))).isFalse();
@@ -358,8 +396,8 @@ class S3CrtBorrowedBufferInputStreamTest {
     void bufferAfterTerminalSignal_isDiscarded() {
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBufferInputStream completed = new S3CrtBorrowedBufferInputStream(() -> { });
-        S3CrtBorrowedBufferInputStream failed = new S3CrtBorrowedBufferInputStream(() -> { });
+        S3CrtBorrowedBufferInputStream completed = new S3CrtBorrowedBufferInputStream(() -> { }, credited::addAndGet);
+        S3CrtBorrowedBufferInputStream failed = new S3CrtBorrowedBufferInputStream(() -> { }, credited::addAndGet);
         completed.onComplete();
         failed.onError(new RuntimeException("failed"));
 
@@ -374,9 +412,8 @@ class S3CrtBorrowedBufferInputStreamTest {
     void zeroLengthBuffer_isConsumedBeforeEof() throws Exception {
         AtomicInteger releases = new AtomicInteger();
         AtomicInteger creditCalls = new AtomicInteger();
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { });
-        stream.onBuffer(new S3CrtBorrowedBufferLease(ByteBuffer.allocateDirect(0),
-                                              releases::incrementAndGet, bytes -> creditCalls.incrementAndGet()));
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { }, bytes -> creditCalls.incrementAndGet());
+        stream.onBuffer(new S3CrtBorrowedBufferLease(ByteBuffer.allocateDirect(0), releases::incrementAndGet));
         stream.onComplete();
 
         assertThat(stream.read()).isEqualTo(-1);
@@ -389,7 +426,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger cancellations = new AtomicInteger();
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet);
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
         stream.onBuffer(buffer("abc", releases::incrementAndGet, credited));
         stream.onComplete();
 
@@ -411,6 +448,18 @@ class S3CrtBorrowedBufferInputStreamTest {
         }
     }
 
+    private static void awaitWaiting(AtomicReference<Thread> threadReference) throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (System.nanoTime() < deadline) {
+            Thread thread = threadReference.get();
+            if (thread != null && thread.getState() == Thread.State.WAITING) {
+                return;
+            }
+            TimeUnit.MILLISECONDS.sleep(10);
+        }
+        throw new AssertionError("Reader did not block in take");
+    }
+
     private static void awaitBlocked(AtomicReference<Thread> threadReference) throws Exception {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
         while (System.nanoTime() < deadline) {
@@ -427,7 +476,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
         ByteBuffer view = ByteBuffer.allocateDirect(bytes.length);
         view.put(bytes).flip();
-        return new S3CrtBorrowedBufferLease(view, release, credited::addAndGet);
+        return new S3CrtBorrowedBufferLease(view, release);
     }
 
 }
