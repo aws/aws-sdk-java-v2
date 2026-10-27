@@ -1,6 +1,0 @@
-{
-    "type": "documentation",
-    "category": "AWS CRT-based S3 Client",
-    "description": "Clarified in the Javadoc that minimumPartSizeInBytes applies to downloads as well as uploads, and updated the default part size and initial read buffer size descriptions. See [#5158](https://github.com/aws/aws-sdk-java-v2/issues/5158).",
-    "contributor": "adev-code"
-}

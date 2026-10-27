@@ -110,16 +110,17 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
     S3CrtAsyncClientBuilder region(Region region);
 
     /**
-     * Sets the minimum part size for transfer parts. This applies to both uploads and downloads: uploads are sent as multipart
-     * upload parts of this size, and downloads are fetched in parts of this size using ranged GET requests. Decreasing the
-     * minimum part size causes a transfer to be split into a larger number of smaller parts. Setting this value too low has a
-     * negative effect on transfer speeds, causing extra latency and network communication for each part.
+     * Sets the minimum part size for transfer parts. This applies to uploads, copies and downloads: uploads are sent as multipart
+     * upload parts of this size, {@code copyObject} copies large objects as multipart copy parts of this size, and downloads are
+     * fetched in parts of this size using ranged GET requests. Decreasing the minimum part size causes a transfer to be split
+     * into a larger number of smaller parts. Setting this value too low has a negative effect on transfer speeds, causing extra
+     * latency and network communication for each part.
      *
      * <p>
-     * If not set, uploads use a part size of 8MB, and downloads use a part size that the AWS CRT chooses based on the
+     * If not set, uploads and copies use a part size of 8MB, and downloads use a part size that the AWS CRT chooses based on the
      * {@link #maxNativeMemoryLimitInBytes(Long)} and {@link #targetThroughputInGbps(Double)} settings. See
      * <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/qfacts.html">Amazon S3 multipart upload limits</a> for
-     * guidance on upload part sizes.
+     * guidance on part sizes.
      *
      * @param partSizeInBytes The minimum part size for transfer parts.
      * @return this builder for method chaining.
