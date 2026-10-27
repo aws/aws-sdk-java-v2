@@ -62,6 +62,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior;
 
 /**
@@ -2696,6 +2697,130 @@ public class CachedSupplierTest {
         assertThat(results).hasSize(CONCURRENT_CALLERS).containsOnly("expired");
     }
 
+    // --- Values without a stale time ---
+
+    /**
+     * A value with a null stale time never becomes stale, like a value whose stale time is not specified. Credential providers
+     * return one for credentials without an expiration. The initial fetch returns it, and the source is not called again until
+     * the prefetch time.
+     */
+    @ParameterizedTest
+    @EnumSource(StaleValueBehavior.class)
+    public void get_whenInitialFetchHasNullStaleTime_returnsValueAndRefreshesAtPrefetchTime(StaleValueBehavior behavior) {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+        String name = "nullStaleTimeInitial" + behavior;
+
+        try (CapturingAppender logs = new CapturingAppender();
+             CachedSupplier<String> cachedSupplier = supplierWithoutJitter(supplier, clock, name, behavior)) {
+            supplier.set(RefreshResult.builder("no-stale-time")
+                                      .staleTime(null)
+                                      .prefetchTime(now.plusSeconds(3600))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("no-stale-time");
+
+            supplier.set(RefreshResult.builder("next")
+                                      .staleTime(Instant.MAX)
+                                      .prefetchTime(Instant.MAX)
+                                      .build());
+            clock.time = now.plusSeconds(3599);
+            assertThat(cachedSupplier.get()).isEqualTo("no-stale-time");
+            clock.time = now.plusSeconds(3600);
+            assertThat(cachedSupplier.get()).isEqualTo("next");
+
+            assertThat(logs.warnEventsFor(name)).isEmpty();
+        }
+    }
+
+    /**
+     * A refresh that returns a value with a null stale time is a successful refresh, whether it happens in the prefetch window
+     * (1800 seconds) or once the cached value is stale (3600 seconds). The value is used, no refresh backoff is applied, and
+     * nothing is logged at WARN. The value does not become stale when the previous value would have, and is refreshed at its
+     * own prefetch time.
+     */
+    @ParameterizedTest(name = "{0}, refresh at {1}s")
+    @CsvSource({
+        "STRICT, 1800",
+        "STRICT, 3600",
+        "ALLOW,  1800",
+        "ALLOW,  3600"
+    })
+    public void get_whenRefreshReturnsNullStaleTime_usesNewValueWithoutBackoff(StaleValueBehavior behavior,
+                                                                                long refreshOffsetSeconds) {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+        String name = "nullStaleTimeRefresh" + behavior + refreshOffsetSeconds;
+
+        try (CapturingAppender logs = new CapturingAppender();
+             CachedSupplier<String> cachedSupplier = supplierWithoutJitter(supplier, clock, name, behavior)) {
+            supplier.set(RefreshResult.builder("old")
+                                      .expiration(now.plusSeconds(3660))
+                                      .staleTime(now.plusSeconds(3600))
+                                      .prefetchTime(now.plusSeconds(1800))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("old");
+
+            Instant refreshTime = now.plusSeconds(refreshOffsetSeconds);
+            Instant nextPrefetchTime = refreshTime.plusSeconds(3600);
+            clock.time = refreshTime;
+            supplier.set(RefreshResult.builder("no-stale-time")
+                                      .staleTime(null)
+                                      .prefetchTime(nextPrefetchTime)
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("no-stale-time");
+
+            supplier.set(RefreshResult.builder("next")
+                                      .staleTime(Instant.MAX)
+                                      .prefetchTime(Instant.MAX)
+                                      .build());
+            // Past the previous value's expiration, the new value is still used without calling the source.
+            clock.time = now.plusSeconds(3661);
+            assertThat(cachedSupplier.get()).isEqualTo("no-stale-time");
+            clock.time = nextPrefetchTime.minusSeconds(1);
+            assertThat(cachedSupplier.get()).isEqualTo("no-stale-time");
+            clock.time = nextPrefetchTime;
+            assertThat(cachedSupplier.get()).isEqualTo("next");
+
+            assertThat(logs.warnEventsFor(name)).isEmpty();
+        }
+    }
+
+    /**
+     * Invalidating a cached value that has a null stale time and no prefetch time, and so would otherwise never be refreshed,
+     * makes the next call refresh it.
+     */
+    @ParameterizedTest
+    @EnumSource(StaleValueBehavior.class)
+    public void invalidate_whenCachedValueHasNullStaleTime_nextGetRefreshes(StaleValueBehavior behavior) {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        try (CachedSupplier<String> cachedSupplier = supplierWithoutJitter(supplier, clock, "nullStaleTimeInvalidate",
+                                                                           behavior)) {
+            supplier.set(RefreshResult.builder("no-stale-time")
+                                      .staleTime(null)
+                                      .prefetchTime(null)
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("no-stale-time");
+
+            supplier.set(RefreshResult.builder("next")
+                                      .staleTime(Instant.MAX)
+                                      .prefetchTime(Instant.MAX)
+                                      .build());
+            clock.time = now.plus(Duration.ofDays(365));
+            assertThat(cachedSupplier.get()).isEqualTo("no-stale-time");
+
+            cachedSupplier.invalidate("no-stale-time"::equals);
+            assertThat(cachedSupplier.get()).isEqualTo("next");
+        }
+    }
+
     /**
      * A value whose expiration, stale time, and prefetch time are all before {@code now}, shaped like the credentials an STS
      * or container credential provider would cache.
@@ -2714,9 +2839,14 @@ public class CachedSupplierTest {
     }
 
     private static CachedSupplier<String> allowModeSupplier(MutableSupplier supplier, AdjustableClock clock, String name) {
+        return supplierWithoutJitter(supplier, clock, name, ALLOW);
+    }
+
+    private static CachedSupplier<String> supplierWithoutJitter(MutableSupplier supplier, AdjustableClock clock, String name,
+                                                                StaleValueBehavior behavior) {
         return CachedSupplier.builder(supplier)
                              .cachedValueName(name)
-                             .staleValueBehavior(ALLOW)
+                             .staleValueBehavior(behavior)
                              .clock(clock)
                              .prefetchJitterEnabled(false)
                              .build();

@@ -173,7 +173,8 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         Validate.notNull(builder.supplier, "builder.supplier");
         Validate.notNull(builder.prefetchJitterEnabled, "builder.prefetchJitterEnabled");
 
-        this.valueSupplier = jitteredPrefetchValueSupplier(builder.supplier, builder.prefetchJitterEnabled);
+        this.valueSupplier = jitteredPrefetchValueSupplier(nullStaleTimeAsNeverStaleValueSupplier(builder.supplier),
+                                                           builder.prefetchJitterEnabled);
         this.prefetchStrategy = Validate.notNull(builder.prefetchStrategy, "builder.prefetchStrategy");
         this.staleValueBehavior = Validate.notNull(builder.staleValueBehavior, "builder.staleValueBehavior");
         this.clock = Validate.notNull(builder.clock, "builder.clock");
@@ -607,6 +608,25 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
     private static long clamp(long value, long min, long max) {
         return Math.max(min, Math.min(value, max));
+    }
+
+    /**
+     * Wrap a value supplier with one that replaces a {@code null} {@link RefreshResult#staleTime()} with {@link Instant#MAX}.
+     * A {@code null} stale time means the value never becomes stale, the same as a stale time that is not specified, which
+     * {@link RefreshResult.Builder} defaults to {@link Instant#MAX}. Credential providers return a {@code null} stale time for
+     * credentials without an expiration. Replacing it as each value is fetched means that the prefetch jitter, the
+     * {@link #prefetchStrategy}, and the handling of the fetched and cached values never see a {@code null} stale time.
+     */
+    private static <T> Supplier<RefreshResult<T>> nullStaleTimeAsNeverStaleValueSupplier(Supplier<RefreshResult<T>> supplier) {
+        return () -> {
+            RefreshResult<T> result = supplier.get();
+            if (result.staleTime() != null) {
+                return result;
+            }
+            return result.toBuilder()
+                         .staleTime(Instant.MAX)
+                         .build();
+        };
     }
 
     /**

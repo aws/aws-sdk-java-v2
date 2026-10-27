@@ -110,7 +110,7 @@ public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.B
          * Specify the time at which the value in this cache is stale, and all calls to {@link CachedSupplier#get()} should block
          * to try to update the value.
          *
-         * If this isn't specified, all threads will never block to update the value.
+         * If this isn't specified, or is {@code null}, all threads will never block to update the value.
          */
         public Builder<T> staleTime(Instant staleTime) {
             this.staleTime = staleTime;

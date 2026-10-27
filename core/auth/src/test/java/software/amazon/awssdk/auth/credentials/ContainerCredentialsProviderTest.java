@@ -389,6 +389,63 @@ public class ContainerCredentialsProviderTest {
         mockServer.verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
     }
 
+    /**
+     * Credentials without an expiration are returned and cached. Their prefetch time is about an hour after the fetch, so the
+     * next call is served from the cache.
+     */
+    @Test
+    public void resolveCredentials_credentialsWithoutExpiration_returnedAndCached() {
+        stubFor200Response(credentialsBodyWithoutExpiration(ACCESS_KEY_ID));
+        mockServer.resetRequests();
+
+        AwsCredentials credentials = credentialsProvider.resolveCredentials();
+        assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        assertThat(credentials.expirationTime()).isEmpty();
+
+        assertThat(credentialsProvider.resolveCredentials().accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        mockServer.verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+    }
+
+    /**
+     * When a refresh of credentials that have an expiration returns credentials without one, the new credentials are used and
+     * cached. Credentials that expire in 90 seconds are already in their prefetch window, so the second call refreshes them.
+     */
+    @Test
+    public void resolveCredentials_refreshReturnsCredentialsWithoutExpiration_usesThem() {
+        stubFor200Response(credentialsBody("first", DateUtils.formatIso8601Date(Instant.now().plusSeconds(90))));
+        assertThat(credentialsProvider.resolveCredentials().accessKeyId()).isEqualTo("first");
+
+        stubFor200Response(credentialsBodyWithoutExpiration("second"));
+        mockServer.resetRequests();
+        AwsCredentials refreshed = credentialsProvider.resolveCredentials();
+        assertThat(refreshed.accessKeyId()).isEqualTo("second");
+        assertThat(refreshed.expirationTime()).isEmpty();
+        mockServer.verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+
+        assertThat(credentialsProvider.resolveCredentials().accessKeyId()).isEqualTo("second");
+        mockServer.verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+    }
+
+    /**
+     * Invalidating cached credentials that have no expiration makes the next call refresh them.
+     */
+    @Test
+    public void invalidate_credentialsWithoutExpiration_nextCallRefreshes() {
+        stubFor200Response(credentialsBodyWithoutExpiration("first"));
+        assertThat(credentialsProvider.resolveCredentials().accessKeyId()).isEqualTo("first");
+
+        credentialsProvider.invalidate(AwsBasicCredentials.create("first", SECRET_ACCESS_KEY)).join();
+
+        stubFor200Response(credentialsBodyWithoutExpiration("second"));
+        assertThat(credentialsProvider.resolveCredentials().accessKeyId()).isEqualTo("second");
+    }
+
+    private static String credentialsBodyWithoutExpiration(String accessKeyId) {
+        return "{\"AccessKeyId\":\"" + accessKeyId + "\"," +
+               "\"SecretAccessKey\":\"" + SECRET_ACCESS_KEY + "\"," +
+               "\"Token\":\"" + TOKEN + "\"}";
+    }
+
     private static String credentialsBody(String accessKeyId, String expiration) {
         return "{\"AccessKeyId\":\"" + accessKeyId + "\"," +
                "\"SecretAccessKey\":\"" + SECRET_ACCESS_KEY + "\"," +

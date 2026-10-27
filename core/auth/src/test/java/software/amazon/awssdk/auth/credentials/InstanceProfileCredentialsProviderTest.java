@@ -748,6 +748,65 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     /**
+     * Credentials without an expiration are returned, and IMDS is not called again until their prefetch time, 60 minutes after
+     * the fetch with the random fraction pinned to 0.
+     */
+    @Test
+    void resolveCredentials_credentialsWithoutExpiration_returnedAndRefreshedAtNoExpirationPrefetchTime() {
+        AdjustableClock clock = new AdjustableClock();
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithPrefetchJitter(clock, () -> 0);
+        Instant now = Instant.now().truncatedTo(SECONDS);
+
+        clock.time = now;
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsResponseWithoutExpiration("SECRET_ACCESS_KEY")));
+        AwsCredentials credentials = credentialsProvider.resolveCredentials();
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(credentials.expirationTime()).isEmpty();
+        int requestCountAfterFetch = wireMockServer.countRequestsMatching(RequestPattern.everything()).getCount();
+
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsResponseWithoutExpiration("SECRET_ACCESS_KEY2")));
+        clock.time = now.plus(60, MINUTES).minusMillis(1);
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(wireMockServer.countRequestsMatching(RequestPattern.everything()).getCount())
+            .isEqualTo(requestCountAfterFetch);
+
+        clock.time = now.plus(60, MINUTES);
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
+    }
+
+    /**
+     * When a refresh of credentials that have an expiration returns credentials without one, the new credentials are used.
+     * They are kept past the expiration of the previous credentials, and refreshed 60 minutes after they were fetched.
+     */
+    @Test
+    void resolveCredentials_refreshReturnsCredentialsWithoutExpiration_usesThem() {
+        AdjustableClock clock = new AdjustableClock();
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithPrefetchJitter(clock, () -> 0);
+        Instant now = Instant.now().truncatedTo(SECONDS);
+        Instant expiration = now.plus(70, MINUTES);
+        Instant refreshTime = now.plus(35, MINUTES);
+
+        // 70 minute credentials have a 15 minute advisory window. With the random fraction pinned to 0, they are refreshed
+        // 35 minutes (half their lifetime) after the fetch.
+        clock.time = now;
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse("SECRET_ACCESS_KEY", expiration)));
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsResponseWithoutExpiration("SECRET_ACCESS_KEY2")));
+        clock.time = refreshTime;
+        AwsCredentials refreshed = credentialsProvider.resolveCredentials();
+        assertThat(refreshed.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
+        assertThat(refreshed.expirationTime()).isEmpty();
+
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsResponseWithoutExpiration("SECRET_ACCESS_KEY3")));
+        clock.time = expiration.plusSeconds(1);
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
+
+        clock.time = refreshTime.plus(60, MINUTES);
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY3");
+    }
+
+    /**
      * With the random fraction pinned to 0 or 1, the provider refreshes exactly at the lower or upper bound of the default
      * prefetch range, and not a millisecond earlier: no other jitter is applied.
      */
@@ -1055,6 +1114,13 @@ public class InstanceProfileCredentialsProviderTest {
                + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
                + "\"SecretAccessKey\":\"" + secretAccessKey + "\","
                + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration) + '"'
+               + "}";
+    }
+
+    private static String credentialsResponseWithoutExpiration(String secretAccessKey) {
+        return "{"
+               + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+               + "\"SecretAccessKey\":\"" + secretAccessKey + "\""
                + "}";
     }
 
