@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.56.1-SNAPSHOT</version>
+    <version>2.57.5-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -104,13 +104,12 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.56.0</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.55.16</awsjavasdk.previous-previous.version>
-        <jackson.version>2.21.7</jackson.version>
-        <jackson.databind.version>2.21.7</jackson.databind.version>
-        <jacksonjr.version>2.21.7</jacksonjr.version>
+        <awsjavasdk.previous.version>2.57.4</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.57.3</awsjavasdk.previous-previous.version>
+        <jackson.version>2.21.8</jackson.version>
+        <jackson.databind.version>2.21.8</jackson.databind.version>
+        <jacksonjr.version>2.21.8</jacksonjr.version>
         <jackson.annotations.version>2.21</jackson.annotations.version>
-        <eventstream.version>1.0.1</eventstream.version>
         <commons.lang.version>3.14.0</commons.lang.version>
         <wiremock.version>2.32.0</wiremock.version>
         <slf4j.version>1.7.36</slf4j.version>
@@ -131,7 +130,7 @@
         <rxjava3.version>3.1.5</rxjava3.version>
         <commons-codec.verion>1.17.1</commons-codec.verion>
         <jmh.version>1.37</jmh.version>
-        <awscrt.version>0.48.5</awscrt.version>
+        <awscrt.version>0.49.0</awscrt.version>
 
         <!--Test dependencies -->
         <junit5.version>5.10.3</junit5.version>
@@ -153,6 +152,9 @@
         <archunit.version>1.3.0</archunit.version>
         <json-schema-validator.version>1.5.4</json-schema-validator.version>
         <kerby.version>2.0.3</kerby.version>
+        <bouncycastle-bcpkix.version>1.80</bouncycastle-bcpkix.version>
+        <!-- bcpkix 1.80 resolves bcutil 1.80.2, which requires bcprov 1.80.2 -->
+        <bouncycastle-bcprov.version>1.80.2</bouncycastle-bcprov.version>
 
         <!-- build plugin dependencies-->
         <maven.surefire.version>3.1.2</maven.surefire.version>
@@ -161,6 +163,7 @@
         <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
+        <maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
@@ -724,6 +727,7 @@
                             <includeModule>imds</includeModule>
                             <includeModule>retries</includeModule>
                             <includeModule>retries-spi</includeModule>
+                            <includeModule>eventstream</includeModule>
 
                             <!-- High level libraries -->
                             <includeModule>dynamodb-enhanced</includeModule>

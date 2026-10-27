@@ -540,6 +540,102 @@ static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
        .build();
 ```
 
+### Store a list of objects inside an item
+To store a `List` of your own objects inside a single attribute, pass a schema
+for the nested class to the enhanced client. Each object is saved as a map, and
+the attribute is saved as a DynamoDB list of those maps. The stored item looks
+like this (shown without DynamoDB's type labels, such as `L` for list and `M`
+for map):
+
+```
+name: "ABC"
+recordMetadata: [ {id: "123", details: "hello"}, {id: "456", details: "yellow"} ]
+```
+
+Using annotations, annotate both classes with `@DynamoDbBean`:
+
+```java
+import java.util.List;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+
+@DynamoDbBean
+public class Customer {
+    private String name;
+    private List<GenericRecord> recordMetadata;
+
+    @DynamoDbPartitionKey
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public List<GenericRecord> getRecordMetadata() { return recordMetadata; }
+    public void setRecordMetadata(List<GenericRecord> recordMetadata) { this.recordMetadata = recordMetadata; }
+}
+
+@DynamoDbBean
+public class GenericRecord {
+    private String id;
+    private String details;
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
+    public String getDetails() { return details; }
+    public void setDetails(String details) { this.details = details; }
+}
+
+TableSchema<Customer> schema = TableSchema.fromBean(Customer.class);
+```
+
+Using a StaticTableSchema, build a schema for the nested class and pass it to
+`EnhancedType.documentOf()` inside `EnhancedType.listOf()`:
+
+```java
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+
+// Schema for the nested class. It has no key, so it is only used inside another schema.
+static final TableSchema<GenericRecord> GENERIC_RECORD_SCHEMA =
+    StaticTableSchema.builder(GenericRecord.class)
+                     .newItemSupplier(GenericRecord::new)
+                     .addAttribute(String.class, a -> a.name("id")
+                                                       .getter(GenericRecord::getId)
+                                                       .setter(GenericRecord::setId))
+                     .addAttribute(String.class, a -> a.name("details")
+                                                       .getter(GenericRecord::getDetails)
+                                                       .setter(GenericRecord::setDetails))
+                     .build();
+
+static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
+    StaticTableSchema.builder(Customer.class)
+                     .newItemSupplier(Customer::new)
+                     .addAttribute(String.class, a -> a.name("name")
+                                                       .getter(Customer::getName)
+                                                       .setter(Customer::setName)
+                                                       .tags(StaticAttributeTags.primaryPartitionKey()))
+                     .addAttribute(EnhancedType.listOf(
+                                       EnhancedType.documentOf(GenericRecord.class, GENERIC_RECORD_SCHEMA)),
+                                   a -> a.name("recordMetadata")
+                                         .getter(Customer::getRecordMetadata)
+                                         .setter(Customer::setRecordMetadata))
+                     .build();
+```
+
+Don't use `addAttribute(List.class, ...)` for this attribute. `List.class` doesn't
+tell the enhanced client the element type, so building the schema fails with an
+`IndexOutOfBoundsException`.
+
+If your classes are immutable, annotate both classes with `@DynamoDbImmutable`
+and build the schema with `TableSchema.fromImmutableClass(...)`. The list is
+stored the same way. For details, see
+[Working with immutable data classes](#working-with-immutable-data-classes).
+
+For more examples, see [Save complex types](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/ddb-en-client-adv-features-nested.html#ddb-en-client-adv-features-nested-mapping)
+in the *AWS SDK for Java 2.x Developer Guide*.
+
 ### Flat map attributes from another class
 If the attributes for your table record are spread across several
 different Java objects, either through inheritance or composition, the

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.RESPONSE_FILE_OPTION;
 import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.RESPONSE_FILE_PATH;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -46,6 +48,7 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions.ResponseFileOption;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
@@ -197,6 +200,45 @@ class CrtTransferManagerPauseAndResumeTest {
         assertThat(newResumable).isEqualTo(originalResumable);
         assertThat(fileDownload.completionFuture()).isCancelled();
         assertThat(headFuture).isCancelled();
+    }
+
+    @Test
+    void pauseAfterRestartedResume_shouldNotKeepPausedDownloadContext() {
+        MultipartDownloadResumeContext pausedContext = new MultipartDownloadResumeContext();
+        pausedContext.addCompletedPart(1);
+        pausedContext.totalParts(2);
+        GetObjectRequest getObjectRequest =
+            getObjectRequest().toBuilder()
+                              .overrideConfiguration(c -> c.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT,
+                                                                                  pausedContext))
+                              .build();
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(new CompletableFuture<>());
+        Instant s3LastModified = Instant.now();
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse(s3LastModified)));
+
+        ResumableFileDownload resumable =
+            ResumableFileDownload.builder()
+                                 .bytesTransferred(file.length())
+                                 .downloadFileRequest(downloadFileRequest)
+                                 .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                 .s3ObjectLastModified(s3LastModified)
+                                 .totalSizeInBytes(2000L)
+                                 .completedParts(Collections.singletonList(1))
+                                 .build();
+
+        ResumableFileDownload newResumable = tm.resumeDownloadFile(resumable).pause();
+
+        assertThat(newResumable.downloadFileRequest().getObjectRequest().overrideConfiguration().get()
+                               .executionAttributes().getAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT))
+            .isNotSameAs(pausedContext)
+            .satisfies(ctx -> assertThat(ctx.completedParts()).isEmpty());
     }
 
     @Test

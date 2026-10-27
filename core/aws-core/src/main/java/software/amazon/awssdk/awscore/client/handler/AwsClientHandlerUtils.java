@@ -23,10 +23,10 @@ import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.eventstream.HeaderValue;
+import software.amazon.awssdk.eventstream.Message;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.IoUtils;
-import software.amazon.eventstream.HeaderValue;
-import software.amazon.eventstream.Message;
 
 @SdkProtectedApi
 public final class AwsClientHandlerUtils {
