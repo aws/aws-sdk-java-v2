@@ -143,6 +143,21 @@ public class OnDiskTokenManagerTest {
         assertInstanceOf(IOException.class, e.getCause());
     }
 
+    @Test
+    void loadToken_whenSecretValueIsUnparseable_doesNotIncludeSecretValueInExceptionChain() throws IOException {
+        // The JSON parser's own message for this file quotes the unquoted value.
+        String contents = "{\"accessToken\":{\"secretAccessKey\": SECRETVALUE}}";
+        OnDiskTokenManager manager = OnDiskTokenManager.create(tempDir, LOGIN_SESSION_ID);
+        Files.write(tokenLocation(LOGIN_SESSION_ID), contents.getBytes(StandardCharsets.UTF_8));
+
+        InvalidLoginTokenException e = assertThrows(InvalidLoginTokenException.class, manager::loadToken);
+        assertInvalidTokenMessage(e, "the file is not valid JSON");
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            String message = String.valueOf(t.getMessage());
+            assertFalse(message.contains("SECRETVALUE"), t.getClass().getName() + ": " + message);
+        }
+    }
+
     private static Stream<Arguments> invalidTokenFiles() {
         String jsonMissingClientId = "{ \"accessToken\": { " +
                                      "\"accessKeyId\": \"AKIA\", " +

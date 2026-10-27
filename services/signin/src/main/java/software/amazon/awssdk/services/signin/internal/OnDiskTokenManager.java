@@ -158,8 +158,12 @@ public final class OnDiskTokenManager implements AccessTokenManager {
         JsonNode node;
         try {
             node = jsonParser.parse(contents);
-        } catch (UncheckedIOException e) {
-            throw invalidToken("the file is not valid JSON", e);
+        } catch (RuntimeException e) {
+            // Parse errors are reported as an UncheckedIOException. Any other RuntimeException is handled the same way as a
+            // defensive measure: the parser's IllegalArgumentException for unexpected tokens is not reachable with the text
+            // parser. The parser exception is not chained, because its message can quote the unparseable text, which may be
+            // part of a secret value.
+            throw invalidToken("the file is not valid JSON", null);
         }
         // An empty file parses to null.
         if (node == null || !node.isObject()) {
@@ -219,8 +223,9 @@ public final class OnDiskTokenManager implements AccessTokenManager {
     }
 
     /**
-     * Creates the exception for a token cache file that cannot be used. The message names the file and the problem, but
-     * never includes the file contents.
+     * Creates the exception for a token cache file that cannot be used. The message names the file and the problem, but not
+     * the file contents. The {@code cause}, if any, must not repeat secret values from the file: the cause of an invalid
+     * {@code accessToken.expiresAt} quotes only that timestamp.
      */
     private InvalidLoginTokenException invalidToken(String problem, Throwable cause) {
         return InvalidLoginTokenException.create("Invalid token cache file for login_session `" + loginSession + "` at "
