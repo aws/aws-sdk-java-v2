@@ -1,0 +1,72 @@
+{
+    "version": "2.57.1",
+    "date": "2026-10-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon S3 Files",
+            "contributor": "",
+            "description": "S3 Files adds support for the \"Misconfigured\" file system status."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "This release allows customers and their partners to easily collaborate with data stored in Databricks, without having to move or share their underlying data among collaborators."
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch Omni",
+            "contributor": "",
+            "description": "Updating max value for maxResults in SearchPrincipals API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "ECS Service Gateway makes it easier for developers to deploy ECS services without having to worry about complex ingress networking constructs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Adds support for disassociating a replica from an Amazon DynamoDB multi-Region eventual consistency global table, so you can keep it as a single-Region table with its existing data. Also adds disassociation protection, on by default, to help prevent accidental disassociation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "LiveMigration enables customers to migrate from self-hosted EC2 Redis and Valkey clusters to ElastiCache Serverless with near-zero downtime. Customers control the migration through three API-driven phases (prepare, start, complete) that handle traffic proxying, data replication, and cutover."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Workspaces Instances",
+            "contributor": "",
+            "description": "Documentation update release for AWS service"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock",
+            "contributor": "",
+            "description": "Amazon Bedrock Guardrails now supports a configurable tier for the contextual grounding policy via a new tier option. Select the Standard tier for grounding that better supports conversations and reasoning, with expanded language coverage."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Catalog Service",
+            "contributor": "",
+            "description": "Adds ListEntities filter, sort, and summary support for the ExpressPrivateOfferConfiguration entity type, including filtering by ProductId."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "Amazon CloudWatch now supports two new anomaly detector settings. AdaptationSpeed (FAST, NORMAL, SLOW) controls how fast the model adapts to baseline changes, and OutlierFilteringStrength (MINIMAL, MODERATE, STRICT) controls how aggressively outliers are filtered."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Amazon RDS now supports On-Demand Capacity Reservations for DB instances."
+        }
+    ]
+}

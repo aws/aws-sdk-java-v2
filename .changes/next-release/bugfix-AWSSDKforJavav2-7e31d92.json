@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT-based S3 Client",
-    "contributor": "",
-    "description": "Fixed an issue in the AWS CRT-based S3 client where a CRT-reported failure with a 2xx response and no error document, including a download that failed full-object checksum validation, could complete successfully."
-}

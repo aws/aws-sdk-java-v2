@@ -97,10 +97,14 @@ public final class MultipartDownloadUtils {
         if (!matcher.matches()) {
             return null;
         }
-        return new long[] {
-            Long.parseLong(matcher.group(1)),
-            Long.parseLong(matcher.group(2))
-        };
+        try {
+            return new long[] {
+                Long.parseLong(matcher.group(1)),
+                Long.parseLong(matcher.group(2))
+            };
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**
@@ -117,7 +121,11 @@ public final class MultipartDownloadUtils {
         if (!matcher.matches()) {
             return Optional.empty();
         }
-        return Optional.of(Long.parseLong(matcher.group(3)));
+        try {
+            return Optional.of(Long.parseLong(matcher.group(3)));
+        } catch (NumberFormatException e) {
+            return Optional.empty();
+        }
     }
 
     /**

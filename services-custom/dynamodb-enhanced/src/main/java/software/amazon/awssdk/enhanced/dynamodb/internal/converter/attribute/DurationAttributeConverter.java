@@ -79,8 +79,19 @@ public final class DurationAttributeConverter implements AttributeConverter<Dura
 
     @Override
     public AttributeValue transformFrom(Duration input) {
-        return AttributeValue.createN(input.getSeconds() +
-                                (input.getNano() == 0 ? "" : "." + padLeft(9, input.getNano())));
+        long seconds = input.getSeconds();
+        int nanos = input.getNano();
+        String value;
+        if (nanos == 0) {
+            value = Long.toString(seconds);
+        } else if (seconds < 0) {
+            // Duration stores negatives as negative seconds plus positive nanos; emit the signed decimal value instead.
+            value = "-" + (-(seconds + 1)) + "." + padLeft(9, 1_000_000_000 - nanos);
+        } else {
+            value = seconds + "." + padLeft(9, nanos);
+        }
+
+        return AttributeValue.createN(value);
     }
 
     @Override
@@ -101,10 +112,11 @@ public final class DurationAttributeConverter implements AttributeConverter<Dura
         public Duration convertNumber(String value) {
             String[] splitOnDecimal = ConverterUtils.splitNumberOnDecimal(value);
 
+            boolean isNegative = value.startsWith("-");
             long seconds = Long.parseLong(splitOnDecimal[0]);
             int nanoAdjustment = Integer.parseInt(padRight(splitOnDecimal[1]));
 
-            if (seconds < 0) {
+            if (isNegative) {
                 nanoAdjustment = -nanoAdjustment;
             }
 
