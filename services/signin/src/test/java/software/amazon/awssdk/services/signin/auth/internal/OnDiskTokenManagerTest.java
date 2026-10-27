@@ -127,13 +127,19 @@ public class OnDiskTokenManagerTest {
     }
 
     @Test
-    void loadToken_whenFileUnreadable_throwsInvalidLoginTokenException() throws IOException {
+    void loadToken_whenFileUnreadable_throwsRecoverableSdkClientException() throws IOException {
         // A directory at the token location exists, but reading it fails with an IOException on every OS.
         Files.createDirectory(tokenLocation(LOGIN_SESSION_ID));
         OnDiskTokenManager manager = OnDiskTokenManager.create(tempDir, LOGIN_SESSION_ID);
 
-        InvalidLoginTokenException e = assertThrows(InvalidLoginTokenException.class, manager::loadToken);
-        assertInvalidTokenMessage(e, "the file could not be read");
+        // A read failure may be transient, so it is not reported as an invalid token.
+        SdkClientException e = assertThrows(SdkClientException.class, manager::loadToken);
+        assertFalse(e instanceof InvalidLoginTokenException, e.getClass().getName());
+        String message = e.getMessage();
+        assertTrue(message.contains("Unable to read the token cache file"), message);
+        assertTrue(message.contains(LOGIN_SESSION_ID), message);
+        assertTrue(message.contains(tokenLocation(LOGIN_SESSION_ID).toString()), message);
+        assertFalse(message.contains("You must re-authenticate"), message);
         assertInstanceOf(IOException.class, e.getCause());
     }
 

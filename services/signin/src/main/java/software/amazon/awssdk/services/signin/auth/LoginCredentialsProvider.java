@@ -284,8 +284,9 @@ public final class LoginCredentialsProvider implements
      * Determines whether a given exception represents a non-recoverable refresh failure that should bypass
      * static stability. For Login, this includes:
      * <ul>
-     *   <li>The cached login token is missing, unreadable, or invalid (a required member is missing or malformed, or the
-     *       dpopKey is invalid), detected before calling the Sign-In service (requires re-authentication)</li>
+     *   <li>The cached login token is missing or invalid (a required member is missing or malformed, or the dpopKey is
+     *       invalid), detected before calling the Sign-In service (requires re-authentication). A failure to read a token
+     *       file that exists is recoverable, because it may be transient.</li>
      *   <li>An {@link AccessDeniedException} with error code {@link OAuth2ErrorCode#TOKEN_EXPIRED},
      *       {@link OAuth2ErrorCode#USER_CREDENTIALS_CHANGED}, or {@link OAuth2ErrorCode#INSUFFICIENT_PERMISSIONS}</li>
      * </ul>

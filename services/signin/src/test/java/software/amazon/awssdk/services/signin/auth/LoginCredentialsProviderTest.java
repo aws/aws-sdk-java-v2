@@ -501,6 +501,52 @@ public class LoginCredentialsProviderTest {
         assertEquals(1, mockHttpClient.getRequests().size());
     }
 
+    /**
+     * A failure to read a token file that exists may be transient, so it is recoverable: it is raised when no credentials
+     * are cached, but it is not cached as a non-recoverable error, so the next call can succeed.
+     */
+    @Test
+    public void resolveCredentials_whenTokenFileUnreadableOnInitialFetch_throwsRecoverableError() throws IOException {
+        // A directory at the token location exists, but reading it fails with an IOException on every OS.
+        Files.createDirectory(tokenFilePath());
+
+        SdkClientException e = assertThrows(SdkClientException.class, loginCredentialsProvider::resolveCredentials);
+        assertFalse(e instanceof InvalidLoginTokenException, e.getClass().getName());
+        assertTrue(e.getMessage().contains("Unable to read the token cache file"), e.getMessage());
+        assertTrue(e.getMessage().contains(tempDir.toString()), e.getMessage());
+        assertInstanceOf(IOException.class, e.getCause());
+        assertEquals(0, mockHttpClient.getRequests().size());
+
+        // Once the file is readable again, the next call succeeds instead of rethrowing a cached error.
+        Files.delete(tokenFilePath());
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().plusSeconds(600))));
+        assertNotNull(loginCredentialsProvider.resolveCredentials());
+        assertEquals(0, mockHttpClient.getRequests().size());
+    }
+
+    /**
+     * A recoverable token read failure keeps static stability: the cached credentials are returned and no Sign-In request is
+     * made.
+     */
+    @Test
+    public void resolveCredentials_whenTokenFileUnreadableAfterSuccessfulCache_returnsCachedCredentials() throws IOException {
+        // An expired token on disk, so the first resolve refreshes from the Sign-In service.
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600))));
+        // The refreshed credentials expire in 30 seconds, inside the 1 minute mandatory refresh window, so the next call
+        // refreshes again.
+        mockHttpClient.stubNextResponse(successfulRefreshResponse("new-akid", 30));
+
+        assertEquals("new-akid", loginCredentialsProvider.resolveCredentials().accessKeyId());
+        assertEquals(1, mockHttpClient.getRequests().size());
+
+        // Replace the token file with a directory, so reading it fails with an IOException.
+        Files.delete(tokenFilePath());
+        Files.createDirectory(tokenFilePath());
+
+        assertEquals("new-akid", loginCredentialsProvider.resolveCredentials().accessKeyId());
+        assertEquals(1, mockHttpClient.getRequests().size());
+    }
+
     @Test
     public void resolveCredentials_whenDpopKeyInvalid_preservesParseCause() throws IOException {
         writeTokenFile(tokenJsonWith("dpopKey", quoted(INVALID_DPOP_KEY)));

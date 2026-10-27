@@ -22,6 +22,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileAttribute;
@@ -78,19 +79,33 @@ public final class OnDiskTokenManager implements AccessTokenManager {
         return new OnDiskTokenManager(cacheLocation, loginSession);
     }
 
+    /**
+     * Loads the cached token, or returns an empty {@code Optional} if the token file does not exist.
+     *
+     * <p>Content errors in the file (it is not valid JSON or not a JSON object, or a required member is missing, empty, or
+     * invalid) throw {@link InvalidLoginTokenException}. Failing to read a file that exists throws a plain
+     * {@link SdkClientException}, because the failure may be transient (for example, a concurrent replace of the file by
+     * another process).
+     */
     @Override
     public Optional<LoginAccessToken> loadToken() {
+        return readTokenFile().map(this::unmarshalToken);
+    }
+
+    private Optional<String> readTokenFile() {
         if (!Files.exists(tokenLocation)) {
             return Optional.empty();
         }
 
-        String content;
         try (InputStream cachedTokenStream = Files.newInputStream(tokenLocation)) {
-            content = IoUtils.toUtf8String(cachedTokenStream);
+            return Optional.of(IoUtils.toUtf8String(cachedTokenStream));
+        } catch (NoSuchFileException e) {
+            // The file was deleted after the exists check; treat it the same as a missing file.
+            return Optional.empty();
         } catch (IOException | UncheckedIOException e) {
-            throw invalidToken("the file could not be read", e);
+            throw SdkClientException.create("Unable to read the token cache file for login_session `" + loginSession
+                                            + "` at " + tokenLocation + ".", e);
         }
-        return Optional.of(unmarshalToken(content));
     }
 
     @Override
