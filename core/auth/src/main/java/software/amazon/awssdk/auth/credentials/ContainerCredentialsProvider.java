@@ -450,8 +450,13 @@ public final class ContainerCredentialsProvider
          * the refresh while other callers receive the current cached credentials.
          *
          * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
-         * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking). When set, the
-         * advisory refresh starts exactly this long before expiration, without jitter.
+         * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
+         *
+         * <p>When set, this window is used as-is, without jitter, and is not recomputed from the remaining lifetime of the
+         * credentials. Credentials with less remaining lifetime than this value are already inside the window, so calls keep
+         * starting refresh attempts, one at a time and subject to the backoff described above, until the endpoint returns
+         * credentials with more remaining lifetime. If the endpoint keeps returning the same credentials, a large value can
+         * cause frequent calls to the endpoint.
          *
          * <p>If not explicitly set, the provider proactively refreshes credentials at a random time, so that many clients do
          * not refresh at the same moment. The earliest refresh is 15 minutes before the credentials expire, or 1 hour after
