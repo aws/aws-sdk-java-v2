@@ -19,6 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * Annotation to convert a {@link Boolean} to the DynamoDB {@code S} type.
@@ -47,6 +48,7 @@ import java.lang.annotation.Target;
  *
  * <p>May be used as a meta-annotation.</p>
  */
+@SdkPreviewApi
 @DynamoDB
 @DynamoDBTypeConverted(converter=DynamoDBConvertedBool.Converter.class)
 @DynamoDBTyped(DynamoDBMapperFieldModel.DynamoDBAttributeType.S)

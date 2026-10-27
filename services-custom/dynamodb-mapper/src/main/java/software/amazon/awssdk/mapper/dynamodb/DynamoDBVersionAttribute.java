@@ -19,6 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * Annotation for marking a property as an optimistic locking version attribute.
@@ -42,6 +43,7 @@ import java.lang.annotation.Target;
  *
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBVersioned
  */
+@SdkPreviewApi
 @DynamoDB
 @DynamoDBVersioned
 @Retention(RetentionPolicy.RUNTIME)

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
@@ -42,6 +43,7 @@ import java.util.Random;
  * </pre>
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class DynamoDBMapperConfig {
 
     /**

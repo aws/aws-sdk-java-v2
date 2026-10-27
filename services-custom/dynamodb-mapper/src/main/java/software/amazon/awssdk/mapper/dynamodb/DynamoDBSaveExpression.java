@@ -16,6 +16,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
  * @see DynamoDBMapper#save(Object, DynamoDBSaveExpression)
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class DynamoDBSaveExpression {
 
     /** Optional expected attributes */

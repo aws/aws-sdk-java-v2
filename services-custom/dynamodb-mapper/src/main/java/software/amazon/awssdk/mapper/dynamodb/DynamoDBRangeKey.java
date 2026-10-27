@@ -19,6 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * Annotation for marking a property in a class as the range key for a DynamoDB
@@ -28,6 +29,7 @@ import java.lang.annotation.Target;
  * <p>
  * This annotation is required for tables that use a range key.
  */
+@SdkPreviewApi
 @DynamoDB
 @DynamoDBKeyed(software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE)
 @Retention(RetentionPolicy.RUNTIME)

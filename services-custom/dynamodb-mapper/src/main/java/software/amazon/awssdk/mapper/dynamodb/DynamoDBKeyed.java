@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 
 import java.lang.annotation.ElementType;
@@ -35,6 +36,7 @@ import java.lang.annotation.Target;
  *
  * <p>May be used as a meta-annotation.</p>
  */
+@SdkPreviewApi
 @DynamoDB
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
 
 import java.lang.annotation.ElementType;
@@ -151,6 +152,7 @@ import java.lang.annotation.Target;
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverted
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverterFactory
  */
+@SdkPreviewApi
 @DynamoDB
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)

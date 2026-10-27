@@ -16,6 +16,7 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory;
 import software.amazon.awssdk.mapper.dynamodb.internal.UpdateExpressionGenerator;
@@ -238,6 +239,7 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  * @see DynamoDBMapperConfig
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class DynamoDBMapper extends AbstractDynamoDBMapper {
 
     private final DynamoDbClient db;

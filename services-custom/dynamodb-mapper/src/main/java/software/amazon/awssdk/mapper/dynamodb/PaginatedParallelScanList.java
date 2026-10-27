@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
  * @see PaginatedList
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class PaginatedParallelScanList<T> extends PaginatedList<T> {
 
     /** The current parallel scan task which contains all the information about the scan request */

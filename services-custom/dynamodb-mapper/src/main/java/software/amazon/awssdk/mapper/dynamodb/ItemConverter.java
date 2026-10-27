@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -31,6 +32,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * apply {@link DynamoDBTypeConverted} converters. See {@link ConversionSchemas} for how this affects custom schemas.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public interface ItemConverter {
     /**
      * Returns the metadata (e.g. name, type) of the DynamoDB attribute that the

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.services.dynamodb.model.Select;
  * @see DynamoDBMapper#scan(Class, DynamoDBScanExpression)
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class DynamoDBScanExpression {
 
     /** Optional filter to limit the results of the scan. */

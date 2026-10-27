@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.HASH;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
@@ -43,6 +44,7 @@ import java.util.Map;
  * @param <T> The object type.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<Map<String,AttributeValue>,T>  {
 
     private final Map<String,GlobalSecondaryIndex> globalSecondaryIndexes;

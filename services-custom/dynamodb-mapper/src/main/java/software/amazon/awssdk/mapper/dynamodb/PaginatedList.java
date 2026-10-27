@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.PaginationLoadingStrategy;
@@ -40,6 +41,7 @@ import java.util.NoSuchElementException;
  *            The domain object type stored in this list.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public abstract class PaginatedList<T> implements List<T> {
 
     private static final String UNMODIFIABLE_MESSAGE = "This is an unmodifiable list";

@@ -27,6 +27,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * Annotation to format a timestamp object using Java's standard date and time
@@ -50,6 +51,7 @@ import org.joda.time.format.DateTimeFormatter;
  * @see java.text.SimpleDateFormat
  * @see java.util.TimeZone
  */
+@SdkPreviewApi
 @DynamoDBTypeConverted(converter=DynamoDBTypeConvertedTimestamp.Converter.class)
 @DynamoDBTyped(DynamoDBMapperFieldModel.DynamoDBAttributeType.S)
 @Retention(RetentionPolicy.RUNTIME)

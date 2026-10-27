@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -104,6 +105,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * </pre>
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class S3Link {
     private final S3ClientCache s3cc;
     private final ID id;

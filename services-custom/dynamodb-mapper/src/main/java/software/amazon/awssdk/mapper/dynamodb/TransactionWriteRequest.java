@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionChe
  * Represents objects to write using {@link DynamoDBMapper#transactionWrite(TransactionWriteRequest)} operation.
  */
 @SdkPublicApi
+@SdkPreviewApi
 @NotThreadSafe
 public final class TransactionWriteRequest {
 

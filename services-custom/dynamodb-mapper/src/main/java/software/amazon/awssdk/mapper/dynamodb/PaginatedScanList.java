@@ -17,6 +17,7 @@ package software.amazon.awssdk.mapper.dynamodb;
 
 import static software.amazon.awssdk.mapper.dynamodb.internal.MapperUserAgent.applyUserAgent;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.List;
 
@@ -41,6 +42,7 @@ import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
  * @see PaginatedList
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class PaginatedScanList<T> extends PaginatedList<T> {
 
     /** The current scan request */

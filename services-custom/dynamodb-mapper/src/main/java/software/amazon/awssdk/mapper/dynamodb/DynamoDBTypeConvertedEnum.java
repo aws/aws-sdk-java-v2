@@ -19,6 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * Annotation to convert the enumeration value to a string.
@@ -40,6 +41,7 @@ import java.lang.annotation.Target;
  *
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverted
  */
+@SdkPreviewApi
 @DynamoDBTyped(DynamoDBMapperFieldModel.DynamoDBAttributeType.S)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})

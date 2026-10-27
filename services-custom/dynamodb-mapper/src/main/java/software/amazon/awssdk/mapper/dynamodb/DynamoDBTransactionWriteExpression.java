@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -27,6 +28,7 @@ import java.util.Map;
  * @see DynamoDBMapper#transactionWrite(TransactionWriteRequest)
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class DynamoDBTransactionWriteExpression {
     /**
      * A condition that must be satisfied in order for a conditional write to succeed.

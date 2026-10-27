@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper.FailedBatch;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.PaginationLoadingStrategy;
@@ -39,6 +40,7 @@ import java.util.Map;
  * @see AbstractDynamoDBMapper
  */
 @SdkPublicApi
+@SdkPreviewApi
 public interface IDynamoDBMapper {
     /**
      * Get the table model for the class, using the default configuration.
