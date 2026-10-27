@@ -19,6 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * Annotation for marking a hash key or range key property in a class to
@@ -32,6 +33,7 @@ import java.lang.annotation.Target;
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBGeneratedUuid
  * @see java.util.UUID
  */
+@SdkPreviewApi
 @DynamoDBGeneratedUuid(DynamoDBAutoGenerateStrategy.CREATE)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})

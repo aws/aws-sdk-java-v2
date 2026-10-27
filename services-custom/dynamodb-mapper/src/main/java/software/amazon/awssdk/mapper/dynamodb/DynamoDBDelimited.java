@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.Bean;
 import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.BeanMap;
 
@@ -93,6 +94,7 @@ import java.util.regex.Pattern;
  *
  * <p>May be used as a meta-annotation.</p>
  */
+@SdkPreviewApi
 @DynamoDB
 @DynamoDBTypeConverted(converter=DynamoDBDelimited.Converter.class)
 @DynamoDBTyped(DynamoDBMapperFieldModel.DynamoDBAttributeType.S)

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import static software.amazon.awssdk.mapper.dynamodb.DynamoDBAutoGenerateStrategy.ALWAYS;
 import static software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Vector.LIST;
@@ -52,6 +53,7 @@ import java.util.Map;
  * @param <V> The field model type.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, DynamoDBTypeConverter<AttributeValue,V> {
 
     public static enum DynamoDBAttributeType { B, N, S, BS, NS, SS, BOOL, NULL, L, M; };

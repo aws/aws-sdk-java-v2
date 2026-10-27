@@ -19,6 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * Interface for marking a class property as an attribute in a DynamoDB table.
@@ -39,6 +40,7 @@ import java.lang.annotation.Target;
  * Getter methods not marked with this annotation are assumed to be modeled
  * properties, unless marked with {@link DynamoDBIgnore}.
  */
+@SdkPreviewApi
 @DynamoDB
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})

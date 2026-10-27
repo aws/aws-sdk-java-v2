@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Vector;
 
@@ -43,6 +44,7 @@ import java.util.Map.Entry;
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig
  */
 @SdkPublicApi
+@SdkPreviewApi
 public abstract class DynamoDBTypeConverterFactory {
 
     /**

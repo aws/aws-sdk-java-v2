@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper.FailedBatch;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -33,6 +34,7 @@ import java.util.Map;
  * {@code UnsupportedOperationException}.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public class AbstractDynamoDBMapper implements IDynamoDBMapper {
 
     private final DynamoDBMapperConfig config;

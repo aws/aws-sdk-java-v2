@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -22,6 +23,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * objects or vice versa. Excludes service exceptions.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class DynamoDBMappingException extends RuntimeException {
 
     private static final long serialVersionUID = -4883173289978517967L;

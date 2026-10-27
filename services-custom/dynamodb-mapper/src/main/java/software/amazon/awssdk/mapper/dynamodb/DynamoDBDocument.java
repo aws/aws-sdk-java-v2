@@ -20,12 +20,14 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * An annotation that marks a class which can be serialized to a DynamoDB
  * document or sub-document. Behaves exactly the same as {@link DynamoDBTable},
  * but without requiring you to specify a {@code tableName}.
  */
+@SdkPreviewApi
 @DynamoDB
 @DynamoDBTyped(DynamoDBMapperFieldModel.DynamoDBAttributeType.M)
 @Retention(RetentionPolicy.RUNTIME)

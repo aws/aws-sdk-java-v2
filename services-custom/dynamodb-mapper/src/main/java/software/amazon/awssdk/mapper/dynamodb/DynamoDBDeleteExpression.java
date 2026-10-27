@@ -16,6 +16,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +32,7 @@ import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
  * @see DynamoDBMapper#delete(Object, DynamoDBDeleteExpression)
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class DynamoDBDeleteExpression {
 
     /** Optional expected attributes */

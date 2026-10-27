@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBDeleteExpression;
@@ -121,6 +122,7 @@ import java.util.Map;
  * @see DynamoDbClient
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class DynamoDBTableMapper<T extends Object, H extends Object, R extends Object> {
 
     private final DynamoDBMapperTableModel<T> model;

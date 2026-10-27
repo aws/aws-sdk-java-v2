@@ -21,6 +21,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.TableNameOverride;
 
 
@@ -32,6 +33,7 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.TableNameOver
  * 
  * @see TableNameOverride
  */
+@SdkPreviewApi
 @DynamoDB
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

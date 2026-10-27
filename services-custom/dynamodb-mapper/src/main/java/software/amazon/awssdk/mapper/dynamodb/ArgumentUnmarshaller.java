@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.lang.reflect.Method;
 import java.text.ParseException;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * into an object.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public interface ArgumentUnmarshaller {
 
     /**

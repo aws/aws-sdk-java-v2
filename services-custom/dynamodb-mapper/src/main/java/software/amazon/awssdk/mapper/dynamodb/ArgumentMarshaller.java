@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -23,6 +24,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * behavior.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public interface ArgumentMarshaller {
 
     /**

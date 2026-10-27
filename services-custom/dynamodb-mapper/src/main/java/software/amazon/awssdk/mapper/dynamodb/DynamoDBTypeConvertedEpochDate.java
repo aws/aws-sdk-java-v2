@@ -19,6 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * Annotation to convert a date object ({@link java.util.Date}, {@link java.util.Calendar}, {@link org.joda.time.DateTime})
@@ -32,6 +33,7 @@ import java.lang.annotation.Target;
  *
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverted
  */
+@SdkPreviewApi
 @DynamoDB
 @DynamoDBTyped(DynamoDBMapperFieldModel.DynamoDBAttributeType.N)
 @Retention(RetentionPolicy.RUNTIME)

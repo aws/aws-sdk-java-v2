@@ -19,6 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * Annotation for marking a class property as non-modeled. Applied to the getter
@@ -29,6 +30,7 @@ import java.lang.annotation.Target;
  * All getter methods not marked with this annotation are assumed to be modeled
  * properties and included in any save() requests.
  */
+@SdkPreviewApi
 @DynamoDB
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})

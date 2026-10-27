@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BinaryAttributeMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BinarySetAttributeMarshaller;
@@ -130,6 +131,7 @@ import java.util.UUID;
  * </ul>
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class ConversionSchemas {
 
     private static final Logger LOGGER = Logger.loggerFor(ConversionSchemas.class);

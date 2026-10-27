@@ -19,6 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * Annotation for marking a property in a class as the attribute to be used as
@@ -30,6 +31,7 @@ import java.lang.annotation.Target;
  * This annotation is required if this attribute will be used as index key for
  * item queries.
  */
+@SdkPreviewApi
 @DynamoDB
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})

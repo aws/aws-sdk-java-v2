@@ -19,6 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * Annotation for marking a property as the hash key for a modeled class.
@@ -28,6 +29,7 @@ import java.lang.annotation.Target;
  * <p>
  * This annotation is required.
  */
+@SdkPreviewApi
 @DynamoDB
 @DynamoDBKeyed(software.amazon.awssdk.services.dynamodb.model.KeyType.HASH)
 @Retention(RetentionPolicy.RUNTIME)

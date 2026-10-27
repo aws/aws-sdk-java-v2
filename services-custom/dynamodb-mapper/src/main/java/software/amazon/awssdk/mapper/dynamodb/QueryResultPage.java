@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
  * Container for a page of query results
  */
 @SdkPublicApi
+@SdkPreviewApi
 public final class QueryResultPage<T> {
 
     private List<T> results;

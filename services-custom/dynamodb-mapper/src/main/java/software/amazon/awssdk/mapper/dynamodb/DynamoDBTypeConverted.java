@@ -19,6 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * Annotation to mark a property as using a custom type-converter.
@@ -99,6 +100,7 @@ import java.lang.annotation.Target;
  *
  * <p>May be used as a meta-annotation.</p>
  */
+@SdkPreviewApi
 @DynamoDB
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})

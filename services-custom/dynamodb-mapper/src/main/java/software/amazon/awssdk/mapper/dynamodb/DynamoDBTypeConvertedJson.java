@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
  * A simple JSON converter that uses the Jackson JSON processor.
@@ -56,6 +57,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
  *
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverted
  */
+@SdkPreviewApi
 @DynamoDBTypeConverted(converter=DynamoDBTypeConvertedJson.Converter.class)
 @DynamoDBTyped(DynamoDBMapperFieldModel.DynamoDBAttributeType.S)
 @Retention(RetentionPolicy.RUNTIME)
