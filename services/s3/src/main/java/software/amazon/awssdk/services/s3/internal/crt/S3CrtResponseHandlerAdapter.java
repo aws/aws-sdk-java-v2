@@ -436,7 +436,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             MetricCollection collection = apiCall.collect();
             metricPublisherDispatcher.dispatch(collection, metricPublishers);
         } catch (RuntimeException e) {
-            log.warn(() -> "Failed to collect CRT S3 request metrics", e);
+            log.debug(() -> "Failed to collect CRT S3 request metrics", e);
         }
     }
 

@@ -108,7 +108,7 @@ final class S3CrtMetricPublisherDispatcher implements SdkAutoCloseable {
             try {
                 publisher.publish(collection);
             } catch (RuntimeException e) {
-                log.warn(() -> "Failed to publish CRT S3 metrics through " + publisher.getClass().getName(), e);
+                log.debug(() -> "Failed to publish CRT S3 metrics through " + publisher.getClass().getName(), e);
             }
         }
     }
@@ -116,16 +116,16 @@ final class S3CrtMetricPublisherDispatcher implements SdkAutoCloseable {
     private void recordQueueFullDrop() {
         long dropped = queueFullDropCount.incrementAndGet();
         if (isPowerOfTwo(dropped)) {
-            log.warn(() -> "Dropped CRT S3 metric collections because the metric publisher queue is full. "
-                           + "Queue capacity: " + queueCapacity + ", total dropped: " + dropped + ".");
+            log.debug(() -> "Dropped CRT S3 metric collections because the metric publisher queue is full. "
+                            + "Queue capacity: " + queueCapacity + ", total dropped: " + dropped + ".");
         }
     }
 
     private void recordClosedDispatcherDrop() {
         long dropped = closedDispatcherDropCount.incrementAndGet();
         if (isPowerOfTwo(dropped)) {
-            log.warn(() -> "Dropped CRT S3 metric collections because the metric publisher dispatcher is closed. "
-                           + "Total dropped after close: " + dropped + ".");
+            log.debug(() -> "Dropped CRT S3 metric collections because the metric publisher dispatcher is closed. "
+                            + "Total dropped after close: " + dropped + ".");
         }
     }
 
@@ -151,15 +151,15 @@ final class S3CrtMetricPublisherDispatcher implements SdkAutoCloseable {
         } catch (InterruptedException e) {
             int queuedCollectionCount = forceShutdown();
             Thread.currentThread().interrupt();
-            log.warn(() -> "Interrupted while draining CRT S3 metric publisher queue. Undelivered queued collections: "
-                           + queuedCollectionCount + ".");
+            log.debug(() -> "Interrupted while draining CRT S3 metric publisher queue. Undelivered queued collections: "
+                            + queuedCollectionCount + ".");
             return;
         }
 
         if (!terminated) {
             int queuedCollectionCount = forceShutdown();
-            log.warn(() -> "Timed out draining CRT S3 metric publisher queue. Undelivered queued collections: "
-                           + queuedCollectionCount + ".");
+            log.debug(() -> "Timed out draining CRT S3 metric publisher queue. Undelivered queued collections: "
+                            + queuedCollectionCount + ".");
         }
     }
 
