@@ -616,6 +616,8 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * {@link RefreshResult.Builder} defaults to {@link Instant#MAX}. Credential providers return a {@code null} stale time for
      * credentials without an expiration. Replacing it as each value is fetched means that the prefetch jitter, the
      * {@link #prefetchStrategy}, and the handling of the fetched and cached values never see a {@code null} stale time.
+     * As a result, the {@link NonBlocking} prefetch strategy, which schedules background refreshes only for values with a
+     * stale time, schedules a background refresh shortly after the prefetch time of these values too.
      */
     private static <T> Supplier<RefreshResult<T>> nullStaleTimeAsNeverStaleValueSupplier(Supplier<RefreshResult<T>> supplier) {
         return () -> {

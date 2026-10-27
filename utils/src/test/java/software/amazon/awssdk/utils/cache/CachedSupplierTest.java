@@ -2822,6 +2822,26 @@ public class CachedSupplierTest {
     }
 
     /**
+     * With the {@link NonBlocking} prefetch strategy, a value with a null stale time is refreshed in the background shortly
+     * after its prefetch time, without a caller having to call {@link CachedSupplier#get()}. This is what async credential
+     * providers do for credentials without an expiration.
+     */
+    @Test
+    public void get_whenNonBlockingValueHasNullStaleTime_refreshesInBackgroundAfterPrefetchTime() {
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(() -> null, () -> now().plusSeconds(1));
+             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
+                                                                   .prefetchStrategy(new NonBlocking("test-%s"))
+                                                                   .prefetchJitterEnabled(false)
+                                                                   .build()) {
+            waitingSupplier.permits.release(2);
+            cachedSupplier.get();
+
+            // A second "get" starts even though only one call was made to the cached supplier.
+            waitingSupplier.waitForGetsToHaveStarted(2);
+        }
+    }
+
+    /**
      * A value whose expiration, stale time, and prefetch time are all before {@code now}, shaped like the credentials an STS
      * or container credential provider would cache.
      */
