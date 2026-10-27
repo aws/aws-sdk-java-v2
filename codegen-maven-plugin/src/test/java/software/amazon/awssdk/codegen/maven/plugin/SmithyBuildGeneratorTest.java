@@ -61,8 +61,6 @@ class SmithyBuildGeneratorTest {
         assertTrue(containsFileEndingWith(outputDirectory(), "Client.java"));
     }
 
-    // Real AWS models use these traits. Codegen must bring their definitions: the plugin's classpath has codegen's
-    // runtime dependencies but not its test ones.
     @Test
     void modelUsingAwsEndpointWaiterAndSmokeTestTraits_generates() throws Exception {
         write(moduleDir.resolve("model.smithy"),

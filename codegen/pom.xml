@@ -193,9 +193,6 @@
             <artifactId>smithy-rules-engine</artifactId>
             <version>${smithy.version}</version>
         </dependency>
-        <!-- Trait definitions that real service model.json files use. Without them smithy-build cannot load the
-             model: the endpoint rules fail on the aws.partition function, and @waitable, @rpcv2Cbor and @smokeTests
-             do not resolve. Runtime scope: no codegen class imports them. -->
         <dependency>
             <groupId>software.amazon.smithy</groupId>
             <artifactId>smithy-aws-endpoints</artifactId>
