@@ -86,7 +86,6 @@ public final class InstanceProfileCredentialsProvider
     private static final Duration DEFAULT_PREFETCH_EARLIEST = Duration.ofMinutes(65);
     private static final Duration DEFAULT_PREFETCH_LATEST = Duration.ofMinutes(90);
     private static final Duration DEFAULT_PREFETCH_HALF_LIFETIME_MINIMUM = Duration.ofMinutes(5);
-    private static final Duration DEFAULT_PREFETCH_FLOOR = Duration.ofMinutes(1);
     private static final Duration DEFAULT_PREFETCH_NO_EXPIRATION = Duration.ofMinutes(60);
     private static final Duration DEFAULT_PREFETCH_NO_EXPIRATION_JITTER = Duration.ofMinutes(5);
 
@@ -272,15 +271,13 @@ public final class InstanceProfileCredentialsProvider
      * capped so that at least a quarter of the range is left for the jitter, which spreads out the refreshes of multiple
      * providers on one host.
      *
-     * <p>Both bounds are measured from the fetch rather than from expiration. If IMDS returns the same credentials again, the
-     * next refresh moves out by the same interval instead of happening on every call.
+     * <p>Both bounds are measured from the fetch rather than from expiration. If IMDS returns the same credentials again while
+     * they are still outside their advisory refresh window, the next refresh moves out by the same interval instead of
+     * happening on every call.
      *
-     * <p>The refresh is never sooner than 1 minute after the fetch. The floor only moves the refresh later than
-     * {@code L - W} when {@code L - W} is less than 1 minute, i.e. when IMDS returns credentials that are already in or
-     * near their advisory refresh window. There it keeps the provider from calling IMDS on every request until IMDS
-     * rotates. This is the only case in which the refresh is later than {@code L - W}. When {@code L - W} is at least
-     * 1 minute but less than 4/3 minutes, the floor can also raise the result, but not past {@code L - W}. The mandatory
-     * refresh at the stale time still applies.
+     * <p>If {@code L - W} is zero or negative, the credentials are already inside their advisory refresh window when they are
+     * fetched. The refresh then happens on the next call, as the credential cache specification specifies, and the result is
+     * {@code now}. The mandatory refresh at the stale time still applies.
      *
      * @param now the time of the fetch
      * @param expiration the expiration of the fetched credentials, after {@code now}
@@ -294,8 +291,8 @@ public final class InstanceProfileCredentialsProvider
         Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, now);
 
         Duration latest = minimum(DEFAULT_PREFETCH_LATEST, lifetime.minus(window));
-        if (latest.compareTo(DEFAULT_PREFETCH_FLOOR) < 0) {
-            return now.plus(DEFAULT_PREFETCH_FLOOR);
+        if (latest.isNegative() || latest.isZero()) {
+            return now;
         }
 
         Duration earliest = minimum(DEFAULT_PREFETCH_EARLIEST,
@@ -303,7 +300,7 @@ public final class InstanceProfileCredentialsProvider
                                     latest.minus(latest.dividedBy(4)));
 
         Duration prefetch = earliest.plusMillis(jitterMillis(latest.minus(earliest), randomFraction));
-        return now.plus(maximum(prefetch, DEFAULT_PREFETCH_FLOOR));
+        return now.plus(prefetch);
     }
 
     /**
@@ -504,10 +501,9 @@ public final class InstanceProfileCredentialsProvider
          * the advisory refresh window that the SDK computes from the remaining lifetime of the credentials: 60 minutes before
          * expiration for credentials with 90 minutes or more remaining, 15 minutes before expiration for
          * credentials with more than 20 minutes remaining, and 5 minutes before expiration otherwise. For credentials with less
-         * than 2 hours 30 minutes remaining, the refresh therefore happens sooner than 65 to 90 minutes after retrieval. The
-         * only exception is credentials that are already within about 1 minute of that window when they are retrieved: they
-         * are refreshed 1 minute after retrieval, so that the provider does not call IMDS on every request. If IMDS does not
-         * return an expiration, the credentials are refreshed at a random time 60 to 65 minutes after they were retrieved.
+         * than 2 hours 30 minutes remaining, the refresh therefore happens sooner than 65 to 90 minutes after retrieval.
+         * Credentials that are already inside that window when they are retrieved are refreshed on the next call. If IMDS does
+         * not return an expiration, the credentials are refreshed at a random time 60 to 65 minutes after they were retrieved.
          *
          * @param duration the duration before expiration that triggers advisory (proactive) refresh
          */
