@@ -28,6 +28,7 @@ import static software.amazon.awssdk.core.SdkSystemSetting.AWS_CONTAINER_CREDENT
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.function.DoubleSupplier;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -211,9 +212,8 @@ public class ContainerCredentialsProviderTest {
     }
 
     /**
-     * The prefetch time is 15 minutes before expiration, capped at 1 hour from now, and jittered to a random point no later
-     * than 1 minute before the stale time. For credentials that expire in 90 seconds, the prefetch time and its whole jitter
-     * range are already in the past, while the stale time (1 minute before expiration) is not, so the next call prefetches.
+     * Credentials that expire in 90 seconds are already inside their 5 minute advisory refresh window, so their prefetch time
+     * is the fetch, while the stale time (1 minute before expiration) is not reached yet. The next call prefetches.
      */
     @Test
     public void resolveCredentials_credentialsExpiringWithinFifteenMinutes_refreshedOnNextCall() {
@@ -228,7 +228,7 @@ public class ContainerCredentialsProviderTest {
     }
 
     /**
-     * For credentials that expire in 2 hours, the prefetch time is capped at 1 hour from now, so the next call is served from
+     * For credentials that expire in 2 hours, the prefetch time is 45 to 60 minutes from now, so the next call is served from
      * the cache.
      */
     @Test
@@ -243,39 +243,60 @@ public class ContainerCredentialsProviderTest {
     }
 
     /**
-     * Without a configured prefetch time, the default prefetch time is jittered. For credentials that expire in 10 minutes,
-     * the default prefetch time (15 minutes before expiration) is in the past, and is jittered to a random point up to 2
-     * minutes before expiration, so a provider only refreshes on its next call if the jittered point is also in the past. At
-     * least one of several providers must serve its next call from the cache. Without jitter, every provider would refresh.
+     * Without a configured prefetch time, the provider places the prefetch time at a random point in its range. For
+     * credentials that expire in 10 minutes, that range is from the fetch to 5 minutes before expiration. With the random
+     * fraction pinned to 0, the prefetch time is the fetch, so the next call refreshes.
      */
     @Test
-    public void resolveCredentials_prefetchTimeNotConfigured_defaultPrefetchTimeIsJittered() {
+    public void resolveCredentials_prefetchTimeNotConfiguredAndLowestRandomFraction_refreshesOnNextCall() {
         stubFor200Response(credentialsBody(ACCESS_KEY_ID,
                                            DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofMinutes(10)))));
-        int providersStillCached = 0;
-        for (int i = 0; i < 20; i++) {
-            ContainerCredentialsProvider provider =
-                ContainerCredentialsProvider.builder()
-                                            .endpoint("http://localhost:" + mockServer.port())
-                                            .build();
-            mockServer.resetRequests();
+        ContainerCredentialsProvider provider = providerWithPrefetchJitter(() -> 0, null);
+        mockServer.resetRequests();
 
-            provider.resolveCredentials();
-            provider.resolveCredentials();
-            if (mockServer.findAll(getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH))).size() == 1) {
-                providersStillCached++;
-            }
-        }
+        provider.resolveCredentials();
+        provider.resolveCredentials();
+        mockServer.verify(2, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+    }
 
-        assertThat(providersStillCached).isPositive();
+    /**
+     * With the random fraction pinned to 1, the prefetch time of credentials that expire in 10 minutes is 5 minutes before
+     * expiration, so the next call is served from the cache.
+     */
+    @Test
+    public void resolveCredentials_prefetchTimeNotConfiguredAndHighestRandomFraction_servesNextCallFromCache() {
+        stubFor200Response(credentialsBody(ACCESS_KEY_ID,
+                                           DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofMinutes(10)))));
+        ContainerCredentialsProvider provider = providerWithPrefetchJitter(() -> 1, null);
+        mockServer.resetRequests();
+
+        provider.resolveCredentials();
+        provider.resolveCredentials();
+        mockServer.verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+    }
+
+    /**
+     * A configured prefetch time does not use the provider's random placement. Here the configured window covers the
+     * credentials' entire lifetime, so even with the random fraction pinned to 1 the next call refreshes.
+     */
+    @Test
+    public void resolveCredentials_prefetchTimeConfiguredAndHighestRandomFraction_advisoryWindowIsNotJittered() {
+        Duration lifetime = Duration.ofMinutes(10);
+        stubFor200Response(credentialsBody(ACCESS_KEY_ID, DateUtils.formatIso8601Date(Instant.now().plus(lifetime))));
+        ContainerCredentialsProvider provider = providerWithPrefetchJitter(() -> 1, lifetime);
+        mockServer.resetRequests();
+
+        provider.resolveCredentials();
+        provider.resolveCredentials();
+        mockServer.verify(2, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
     }
 
     /**
      * A configured prefetch time is honored exactly, rather than being jittered to some later point. Here the configured
      * window covers the credentials' entire lifetime, so the advisory window opens the moment the credentials are issued and
-     * the very next call must contact the endpoint. A jittered window would instead open at a random point up to 2 minutes
-     * before expiration, and the next call would usually be served from the cache. Each run uses a new provider so that
-     * jitter, if applied, would be detected.
+     * the very next call must contact the endpoint. A jittered window would instead open at a random later point, and the
+     * next call would usually be served from the cache. Each run uses a new provider so that jitter, if applied, would be
+     * detected.
      */
     @Test
     public void resolveCredentials_prefetchTimeConfigured_advisoryWindowIsNotJittered() {
@@ -299,19 +320,15 @@ public class ContainerCredentialsProviderTest {
 
     /**
      * A configured prefetch time replaces the default prefetch time. For credentials that expire in 10 minutes, the default
-     * (15 minutes before expiration) is already in the past, but a configured 1 minute window does not open for 9 minutes, so
-     * the next call is served from the cache.
+     * with the random fraction pinned to 0 is the fetch, but a configured 1 minute window does not open for 9 minutes, so the
+     * next call is served from the cache.
      */
     @Test
     public void resolveCredentials_prefetchTimeConfigured_replacesDefaultPrefetchTime() {
         stubFor200Response(credentialsBody(ACCESS_KEY_ID,
                                            DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofMinutes(10)))));
         mockServer.resetRequests();
-        ContainerCredentialsProvider provider =
-            ContainerCredentialsProvider.builder()
-                                        .endpoint("http://localhost:" + mockServer.port())
-                                        .prefetchTime(Duration.ofMinutes(1))
-                                        .build();
+        ContainerCredentialsProvider provider = providerWithPrefetchJitter(() -> 0, Duration.ofMinutes(1));
 
         provider.resolveCredentials();
         provider.resolveCredentials();
@@ -438,6 +455,16 @@ public class ContainerCredentialsProviderTest {
 
         stubFor200Response(credentialsBodyWithoutExpiration("second"));
         assertThat(credentialsProvider.resolveCredentials().accessKeyId()).isEqualTo("second");
+    }
+
+    private static ContainerCredentialsProvider providerWithPrefetchJitter(DoubleSupplier prefetchJitterRandom,
+                                                                           Duration prefetchTime) {
+        ContainerCredentialsProvider.BuilderImpl builder =
+            (ContainerCredentialsProvider.BuilderImpl) ContainerCredentialsProvider.builder();
+        builder.prefetchJitterRandom(prefetchJitterRandom);
+        return builder.endpoint("http://localhost:" + mockServer.port())
+                      .prefetchTime(prefetchTime)
+                      .build();
     }
 
     private static String credentialsBodyWithoutExpiration(String accessKeyId) {
