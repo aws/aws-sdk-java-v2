@@ -141,9 +141,7 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
         assertThat(releases).hasValue(1);
         assertThat(credit).hasValue(0);
         assertThat(cancellations).hasValue(1);
-        assertThatThrownBy(stream::read)
-            .isInstanceOf(IOException.class)
-            .hasCause(timeout);
+        assertThatThrownBy(stream::read).isSameAs(timeout);
     }
 
     @Test

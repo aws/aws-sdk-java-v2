@@ -27,8 +27,8 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 /**
  * Transforms a {@link GetObjectResponse} and its borrowed-buffer body on the CRT client into a {@link ResponseInputStream}.
  *
- * <p>Body bytes arrive through {@link #currentAttempt()}. The publisher passed to {@link #onStream} is drained and ignored.
- * The future returned by {@link #prepare()} completes when the first body data or the successful completion arrives.
+ * <p>Body bytes arrive through {@link #currentAttempt()}. The future returned by {@link #prepare()} completes when the
+ * first body data or the successful completion arrives.
  *
  * <p>A cross-region redirect starts a new attempt after the previous attempt fails. Each attempt keeps its callbacks
  * separate so late callbacks cannot affect the replacement attempt.
@@ -61,6 +61,8 @@ public final class S3CrtBorrowedBufferBlockingResponseTransformer
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
+        // Body bytes arrive through the borrowed-buffer callbacks, so this publisher is empty.
+        // It still needs a subscriber, because the execution future completes only after the publisher's completion is delivered.
         publisher.subscribe(new DrainingSubscriber<>());
     }
 

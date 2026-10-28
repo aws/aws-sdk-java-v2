@@ -66,17 +66,14 @@ public final class S3CrtBorrowedBufferStreamHandler {
     }
 
     /**
-     * Delivers a borrowed buffer to the stream.
-     *
-     * @param buffer borrowed buffer to deliver
-     * @return {@code true} if the stream accepted the buffer, or {@code false} if it was discarded
+     * Returns false if the stream has already ended, in which case the buffer is released.
      */
     boolean onBorrowedBuffer(S3CrtBorrowedBufferLease buffer) {
         return inputStream.onBuffer(buffer);
     }
 
     /**
-     * Ends the body. Reads return {@code -1} after accepted buffers are drained.
+     * Ends the body. Reads return -1 after accepted buffers are drained.
      */
     void onBorrowedStreamComplete() {
         inputStream.onComplete();
@@ -84,8 +81,6 @@ public final class S3CrtBorrowedBufferStreamHandler {
 
     /**
      * Reports an error after the reader drains queued buffers.
-     *
-     * @param error failure to report after queued buffers are drained
      */
     void onBorrowedStreamError(Throwable error) {
         inputStream.onError(error);
@@ -100,8 +95,6 @@ public final class S3CrtBorrowedBufferStreamHandler {
 
     /**
      * Discards queued buffers and causes later reads to fail with the error.
-     *
-     * @param error failure to report from later reads
      */
     void onBorrowedStreamAbort(Throwable error) {
         inputStream.abort(error);

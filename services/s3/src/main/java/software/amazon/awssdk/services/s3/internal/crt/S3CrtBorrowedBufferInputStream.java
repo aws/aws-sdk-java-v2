@@ -18,15 +18,11 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
-import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongConsumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
-import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.utils.Logger;
@@ -62,6 +58,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
         }
     }
 
+    // Contains accepted leases and terminal signals in delivery order.
     private final BlockingQueue<Object> events = new LinkedBlockingQueue<>();
     // Lock order: readLock, stateLock
     private final Object readLock = new Object();
@@ -69,12 +66,12 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
     private final Runnable cancellationAction;
     private final LongConsumer readWindowAction;
     private final AtomicReference<CloseReason> closeReason = new AtomicReference<>();
-    private final AtomicBoolean cancellationStarted = new AtomicBoolean();
 
-    private volatile boolean accepting = true;
-    private volatile boolean upstreamTerminal;
-    private volatile boolean complete;
-    private volatile Throwable readFailure;
+    // Guarded by stateLock. Set by completion, failure or close. Buffers that arrive after that are released.
+    private boolean deliveryEnded;
+
+    // Guarded by readLock.
+    private boolean endOfStream;
     private S3CrtBorrowedBufferLease current;
 
     S3CrtBorrowedBufferInputStream(Runnable cancellationAction, LongConsumer readWindowAction) {
@@ -82,10 +79,13 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
         this.readWindowAction = readWindowAction;
     }
 
+    /**
+     * Queues a lease, or releases it when upstream delivery has ended or the stream is closed.
+     */
     boolean onBuffer(S3CrtBorrowedBufferLease buffer) {
         boolean accepted;
         synchronized (stateLock) {
-            accepted = accepting;
+            accepted = !deliveryEnded;
             if (accepted) {
                 enqueue(buffer);
             }
@@ -98,9 +98,8 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
 
     void onError(Throwable error) {
         synchronized (stateLock) {
-            if (accepting) {
-                accepting = false;
-                upstreamTerminal = true;
+            if (!deliveryEnded) {
+                deliveryEnded = true;
                 enqueue(error);
             }
         }
@@ -108,9 +107,8 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
 
     void onComplete() {
         synchronized (stateLock) {
-            if (accepting) {
-                accepting = false;
-                upstreamTerminal = true;
+            if (!deliveryEnded) {
+                deliveryEnded = true;
                 enqueue(Signal.COMPLETE);
             }
         }
@@ -125,7 +123,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
 
     @Override
     public int read(byte[] destination, int offset, int length) throws IOException {
-        Objects.requireNonNull(destination, "destination");
+        Validate.paramNotNull(destination, "destination");
         if (offset < 0 || length < 0 || length > destination.length - offset) {
             throw new IndexOutOfBoundsException();
         }
@@ -134,11 +132,8 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
         }
 
         synchronized (readLock) {
-            ensureReadable();
-            if (complete) {
-                return -1;
-            }
             int copied = 0;
+            // Wait for the first byte only. Once some bytes are copied, return them instead of waiting for more.
             while (copied < length && loadNextLease(copied == 0)) {
                 copied += readCurrent(destination, offset + copied, length - copied);
             }
@@ -150,19 +145,19 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
         }
     }
 
-    // Waits for the next event only when block is true. Returns whether current can be read.
-    private boolean loadNextLease(boolean block) throws IOException {
+    // Waits for the next event only if waitIfEmpty is true. Returns whether current can be read.
+    private boolean loadNextLease(boolean waitIfEmpty) throws IOException {
         if (current == null && !isTerminal()) {
             Object event = events.poll();
-            if (event == null && block) {
+            if (event == null && waitIfEmpty) {
                 event = takeEvent();
             }
             if (event instanceof S3CrtBorrowedBufferLease) {
                 current = (S3CrtBorrowedBufferLease) event;
             } else if (event == Signal.COMPLETE) {
-                complete = true;
+                endOfStream = true;
             } else if (event instanceof Throwable) {
-                readFailure = (Throwable) event;
+                close((Throwable) event);
             } else if (event != null && event != Signal.CLOSED) {
                 IllegalStateException failure = new IllegalStateException(
                     "Unexpected borrowed response stream event type: " + event.getClass().getName());
@@ -170,84 +165,6 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
             }
         }
         return current != null && !isTerminal();
-    }
-
-    private boolean isTerminal() {
-        return complete || readFailure != null || closeReason.get() != null;
-    }
-
-    private int readCurrent(byte[] destination, int offset, int length) {
-        int count = current.copyTo(destination, offset, length);
-        if (!current.hasRemaining()) {
-            S3CrtBorrowedBufferLease consumed = current;
-            current = null;
-            try {
-                consumed.release();
-                readWindowAction.accept(consumed.byteCount());
-            } catch (Throwable t) {
-                close(t);
-            }
-        }
-        return count;
-    }
-
-    @Override
-    public void close() {
-        close(null);
-    }
-
-    @Override
-    public void abort() {
-        close();
-    }
-
-    void abort(Throwable error) {
-        close(Validate.paramNotNull(error, "error"));
-    }
-
-    private void close(Throwable error) {
-        if (!closeReason.compareAndSet(null, new CloseReason(error))) {
-            return;
-        }
-        synchronized (stateLock) {
-            accepting = false;
-            // Wake the reader blocked in take(). Only the readLock holder can block there, and other readers see
-            // closeReason first.
-            enqueue(Signal.CLOSED);
-        }
-
-        Throwable failure = cancelUpstream(null);
-        synchronized (readLock) {
-            failure = release(current, failure);
-            current = null;
-            failure = releaseQueued(failure);
-        }
-        if (failure != null) {
-            if (error != null) {
-                if (error != failure) {
-                    error.addSuppressed(failure);
-                }
-            } else {
-                Throwable cleanupFailure = failure;
-                log.warn(() -> "Failed to clean up borrowed response stream", cleanupFailure);
-            }
-        }
-    }
-
-    private void ensureReadable() throws IOException {
-        CloseReason terminalReason = closeReason.get();
-        if (terminalReason != null) {
-            throwClosed(terminalReason);
-        }
-        if (readFailure != null) {
-            throwFailure(readFailure);
-        }
-    }
-
-    private void enqueue(Object event) {
-        if (!events.offer(event)) {
-            throw new IllegalStateException("Failed to enqueue borrowed response stream event");
-        }
     }
 
     private Object takeEvent() throws IOException {
@@ -262,64 +179,119 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
         }
     }
 
-    private Throwable cancelUpstream(Throwable failure) {
-        if (upstreamTerminal || !cancellationStarted.compareAndSet(false, true)) {
-            return failure;
+    private boolean isTerminal() {
+        return endOfStream || closeReason.get() != null;
+    }
+
+    private int readCurrent(byte[] destination, int offset, int length) {
+        int count = current.copyTo(destination, offset, length);
+        if (!current.hasRemaining()) {
+            S3CrtBorrowedBufferLease consumed = current;
+            current = null;
+            try {
+                consumed.release();
+                readWindowAction.accept(consumed.byteCount());
+            } catch (Throwable t) {
+                // Fail on the next read, so the bytes already copied are still returned.
+                close(t);
+            }
+        }
+        return count;
+    }
+
+    private void ensureReadable() throws IOException {
+        CloseReason terminalReason = closeReason.get();
+        if (terminalReason != null) {
+            throwClosed(terminalReason);
+        }
+    }
+
+    @Override
+    public void close() {
+        close(null);
+    }
+
+    @Override
+    public void abort() {
+        close();
+    }
+
+    /**
+     * Closes the stream and reports the error from later reads.
+     */
+    void abort(Throwable error) {
+        close(Validate.paramNotNull(error, "error"));
+    }
+
+    private void close(Throwable closeCause) {
+        if (!closeReason.compareAndSet(null, new CloseReason(closeCause))) {
+            return;
+        }
+        boolean upstreamRunning;
+        synchronized (stateLock) {
+            // close runs once, so deliveryEnded is still false here only if upstream hasn't completed or failed.
+            upstreamRunning = !deliveryEnded;
+            deliveryEnded = true;
+            // Wake the reader blocked in take(). Only the readLock holder can block there, and other readers see
+            // closeReason first.
+            enqueue(Signal.CLOSED);
         }
 
+        if (upstreamRunning) {
+            cancelUpstream();
+        }
+        synchronized (readLock) {
+            release(current);
+            current = null;
+            releaseQueued();
+        }
+    }
+
+    private void enqueue(Object event) {
+        if (!events.offer(event)) {
+            throw new IllegalStateException("Failed to enqueue borrowed response stream event");
+        }
+    }
+
+    private void cancelUpstream() {
         try {
             cancellationAction.run();
         } catch (Throwable t) {
-            failure = addFailure(failure, t);
+            log.error(() -> "Failed to cancel borrowed response stream", t);
         }
-        return failure;
     }
 
-    private Throwable releaseQueued(Throwable failure) {
+    private void releaseQueued() {
         Object event;
         while ((event = events.poll()) != null) {
             if (event instanceof S3CrtBorrowedBufferLease) {
-                failure = release((S3CrtBorrowedBufferLease) event, failure);
+                release((S3CrtBorrowedBufferLease) event);
             }
         }
-        return failure;
     }
 
-    private static Throwable release(S3CrtBorrowedBufferLease buffer, Throwable failure) {
+    private static void release(S3CrtBorrowedBufferLease buffer) {
         if (buffer != null) {
             try {
                 buffer.release();
             } catch (Throwable t) {
-                failure = addFailure(failure, t);
+                log.error(() -> "Failed to release borrowed response buffer", t);
             }
         }
-        return failure;
     }
 
-    private static Throwable addFailure(Throwable existing, Throwable additional) {
-        if (existing == null) {
-            return additional;
-        }
-        if (existing != additional) {
-            existing.addSuppressed(additional);
-        }
-        return existing;
-    }
-
-    private int throwClosed(CloseReason reason) throws IOException {
+    private void throwClosed(CloseReason reason) throws IOException {
         if (reason != null && reason.cause != null) {
             throwFailure(reason.cause);
         }
         throw new IOException("Stream is closed");
     }
 
-    private int throwFailure(Throwable failure) throws IOException {
+    private void throwFailure(Throwable failure) throws IOException {
         if (failure instanceof IOException) {
             throw (IOException) failure;
         }
-        if (failure instanceof SdkClientException
-            && !(failure instanceof ApiCallTimeoutException)
-            && !(failure instanceof ApiCallAttemptTimeoutException)) {
+        if (failure instanceof SdkClientException) {
             throw (SdkClientException) failure;
         }
         throw new IOException("Failed to read borrowed response data", failure);

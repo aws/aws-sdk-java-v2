@@ -61,7 +61,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
  * Verifies response-content interceptor behavior for borrowed body delivery.
  *
  * <p>Successful borrowed downloads expose no body bytes to content interceptors, while ordinary downloads and error
- * documents use the ordinary response pipeline.</p>
+ * documents use the ordinary response pipeline.
  */
 @WireMockTest
 @Timeout(20)
@@ -101,8 +101,7 @@ class S3CrtBorrowedBufferInterceptorWireMockTest {
         stubSuccessfulObject();
         RecordingInterceptor interceptor = new RecordingInterceptor();
 
-        // Same client configuration, same pool: only the transformer differs. This is what isolates the difference to
-        // borrowed delivery rather than to enabling the pool.
+        // Same client and pool as the borrowed test, so only the transformer differs.
         try (S3AsyncClient client = newClient(wireMock, interceptor)) {
             byte[] bytes = client.getObject(r -> r.bucket("bucket").key("key"),
                                             AsyncResponseTransformer.toBytes())
@@ -139,9 +138,8 @@ class S3CrtBorrowedBufferInterceptorWireMockTest {
         }
 
         assertThat(interceptor.onExecutionFailureCalls).isEqualTo(1);
-        // The error document is not a borrowed body: it comes back through the ordinary response pipeline so that it
-        // can be unmarshalled into an S3Exception. So a content interceptor does see the error payload, and sees only
-        // that. This asymmetry with the success path is deliberate and worth pinning.
+        // The error document goes through the ordinary pipeline so it can be unmarshalled into an S3Exception, so the
+        // interceptor sees the error payload and nothing else.
         assertThat(interceptor.modifyAsyncHttpResponseContentCalls).isEqualTo(1);
         assertThat(interceptor.bodyBytesSeen).isEqualTo(errorBody.length);
     }

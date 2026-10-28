@@ -269,12 +269,16 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                                    httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
                                                    s3MetaRequestFuture);
         }
-        return new S3CrtBorrowedBufferResponseHandlerAdapter(executeFuture,
-                                                             asyncRequest.responseHandler(),
-                                                             httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
-                                                             s3MetaRequestFuture,
-                                                             httpExecutionAttributes.getAttribute(RESPONSE_BYTES_READ),
-                                                             borrowedBufferResponseTransformer.currentAttempt());
+        return S3CrtBorrowedBufferResponseHandlerAdapter.builder()
+                                                         .executeFuture(executeFuture)
+                                                         .responseHandler(asyncRequest.responseHandler())
+                                                         .progressListener(
+                                                             httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER))
+                                                         .metaRequestFuture(s3MetaRequestFuture)
+                                                         .responseBytesRead(
+                                                             httpExecutionAttributes.getAttribute(RESPONSE_BYTES_READ))
+                                                         .streamHandler(borrowedBufferResponseTransformer.currentAttempt())
+                                                         .build();
     }
 
     private static boolean isResponseFileAlreadyExistsError(Throwable throwable, Path responseFilePath) {

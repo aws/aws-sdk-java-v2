@@ -155,6 +155,25 @@ class S3CrtBorrowedBufferInputStreamTest {
     }
 
     @Test
+    void close_afterReaderConsumesRemoteFailure_shouldPreserveRemoteFailure() throws Exception {
+        RuntimeException failure = new RuntimeException("request failed");
+        AtomicInteger cancellations = new AtomicInteger();
+        AtomicLong credited = new AtomicLong();
+        S3CrtBorrowedBufferInputStream stream =
+            new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, NO_CREDIT);
+        stream.onBuffer(buffer("abc", () -> { }, credited));
+        stream.onError(failure);
+
+        assertThat(stream.read(new byte[3])).isEqualTo(3);
+        assertThatThrownBy(stream::read).isInstanceOf(IOException.class).hasCause(failure);
+
+        stream.close();
+
+        assertThat(cancellations).hasValue(0);
+        assertThatThrownBy(stream::read).isInstanceOf(IOException.class).hasCause(failure);
+    }
+
+    @Test
     void sdkClientFailure_isReportedWithoutWrapping() {
         SdkClientException failure = SdkClientException.create("request failed");
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { }, NO_CREDIT);

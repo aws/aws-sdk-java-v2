@@ -32,40 +32,38 @@ import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.ContentRangeParser;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Adapts borrowed-buffer {@link GetObjectResponse} callbacks to a {@link S3CrtBorrowedBufferStreamHandler}.
+ * Adapts CRT borrowed-buffer {@link GetObjectResponse} callbacks to an {@link S3CrtBorrowedBufferStreamHandler}, checking
+ * that each buffer starts where the previous one ended.
  *
  * <p>Headers, progress and request completion go through {@link S3CrtResponseHandlerAdapter}.
  */
 @SdkInternalApi
 public final class S3CrtBorrowedBufferResponseHandlerAdapter
     implements S3MetaRequestResponseHandler, S3BorrowedBufferDelivery {
+    private static final Logger log = Logger.loggerFor(S3CrtBorrowedBufferResponseHandlerAdapter.class);
+
     private final S3CrtResponseHandlerAdapter delegate;
     private final CompletableFuture<Void> executeFuture;
     private final S3CrtBorrowedBufferStreamHandler streamHandler;
     private final CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
     private final AtomicLong responseBytesRead;
     private final AtomicBoolean streamInitiated = new AtomicBoolean();
+    // Guards expectedObjectRangeStart across the headers and body callbacks.
     private final Object rangeLock = new Object();
     private long expectedObjectRangeStart;
-    private boolean rangeStarted;
 
-    S3CrtBorrowedBufferResponseHandlerAdapter(
-        CompletableFuture<Void> executeFuture,
-        SdkAsyncHttpResponseHandler responseHandler,
-        PublisherListener<S3MetaRequestProgress> progressListener,
-        CompletableFuture<S3MetaRequestWrapper> metaRequestFuture,
-        AtomicLong responseBytesRead,
-        S3CrtBorrowedBufferStreamHandler streamHandler) {
-        this.executeFuture = executeFuture;
-        this.delegate = new S3CrtResponseHandlerAdapter(this.executeFuture, responseHandler, progressListener,
-                                                       metaRequestFuture);
-        this.streamHandler = Validate.paramNotNull(streamHandler, "streamHandler");
-        this.metaRequestFuture = metaRequestFuture;
-        this.responseBytesRead = responseBytesRead;
+    private S3CrtBorrowedBufferResponseHandlerAdapter(Builder builder) {
+        this.executeFuture = builder.executeFuture;
+        this.delegate = new S3CrtResponseHandlerAdapter(this.executeFuture, builder.responseHandler, builder.progressListener,
+                                                       builder.metaRequestFuture);
+        this.streamHandler = Validate.paramNotNull(builder.streamHandler, "streamHandler");
+        this.metaRequestFuture = builder.metaRequestFuture;
+        this.responseBytesRead = builder.responseBytesRead;
         executeFuture.whenComplete((ignored, error) -> {
             if (error != null) {
                 try {
@@ -75,18 +73,20 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
                         streamHandler.onBorrowedStreamError(error);
                     }
                 } catch (Throwable notificationFailure) {
-                    addSuppressed(error, notificationFailure);
+                    log.error(() -> "Failed to notify borrowed response stream of request failure", notificationFailure);
                 }
             }
         });
     }
 
+    static Builder builder() {
+        return new Builder();
+    }
+
     @Override
     public void onResponseHeaders(int statusCode, HttpHeader[] headers) {
         synchronized (rangeLock) {
-            if (!rangeStarted) {
-                expectedObjectRangeStart = initialRangeStart(headers);
-            }
+            expectedObjectRangeStart = initialRangeStart(headers);
         }
         delegate.onResponseHeaders(statusCode, headers);
     }
@@ -115,10 +115,10 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
                 try {
                     streamHandler.onBorrowedStreamAbort(t);
                 } catch (Throwable cleanupFailure) {
-                    addSuppressed(t, cleanupFailure);
+                    log.error(() -> "Failed to abort borrowed response stream", cleanupFailure);
                 }
             } else {
-                releaseUnacceptedBuffer(t, sdkBuffer, crtBuffer);
+                releaseUnacceptedBuffer(sdkBuffer, crtBuffer);
             }
             failBorrowedResponse(t);
         }
@@ -188,7 +188,6 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
 
             if (streamHandler.onBorrowedBuffer(buffer)) {
                 expectedObjectRangeStart = objectRangeEnd;
-                rangeStarted = true;
                 responseBytesRead.addAndGet(buffer.byteCount());
                 return true;
             }
@@ -196,10 +195,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         }
     }
 
-    private static void releaseUnacceptedBuffer(
-        Throwable failure,
-        S3CrtBorrowedBufferLease sdkBuffer,
-        S3BorrowedBuffer crtBuffer) {
+    private static void releaseUnacceptedBuffer(S3CrtBorrowedBufferLease sdkBuffer, S3BorrowedBuffer crtBuffer) {
         try {
             if (sdkBuffer != null) {
                 sdkBuffer.release();
@@ -207,7 +203,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
                 crtBuffer.close();
             }
         } catch (Throwable cleanupFailure) {
-            addSuppressed(failure, cleanupFailure);
+            log.error(() -> "Failed to release unaccepted borrowed response buffer", cleanupFailure);
         }
     }
 
@@ -215,13 +211,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         try {
             delegate.failResponseHandlerAndFuture(failure);
         } catch (Throwable notificationFailure) {
-            addSuppressed(failure, notificationFailure);
-        }
-    }
-
-    private static void addSuppressed(Throwable failure, Throwable additional) {
-        if (failure != additional) {
-            failure.addSuppressed(additional);
+            log.error(() -> "Failed to report borrowed response failure", notificationFailure);
         }
     }
 
@@ -248,5 +238,48 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
                 delegate.failResponseHandlerAndFuture(t);
             }
         });
+    }
+
+    static final class Builder {
+        private CompletableFuture<Void> executeFuture;
+        private SdkAsyncHttpResponseHandler responseHandler;
+        private PublisherListener<S3MetaRequestProgress> progressListener;
+        private CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
+        private AtomicLong responseBytesRead;
+        private S3CrtBorrowedBufferStreamHandler streamHandler;
+
+        Builder executeFuture(CompletableFuture<Void> executeFuture) {
+            this.executeFuture = executeFuture;
+            return this;
+        }
+
+        Builder responseHandler(SdkAsyncHttpResponseHandler responseHandler) {
+            this.responseHandler = responseHandler;
+            return this;
+        }
+
+        Builder progressListener(PublisherListener<S3MetaRequestProgress> progressListener) {
+            this.progressListener = progressListener;
+            return this;
+        }
+
+        Builder metaRequestFuture(CompletableFuture<S3MetaRequestWrapper> metaRequestFuture) {
+            this.metaRequestFuture = metaRequestFuture;
+            return this;
+        }
+
+        Builder responseBytesRead(AtomicLong responseBytesRead) {
+            this.responseBytesRead = responseBytesRead;
+            return this;
+        }
+
+        Builder streamHandler(S3CrtBorrowedBufferStreamHandler streamHandler) {
+            this.streamHandler = streamHandler;
+            return this;
+        }
+
+        S3CrtBorrowedBufferResponseHandlerAdapter build() {
+            return new S3CrtBorrowedBufferResponseHandlerAdapter(this);
+        }
     }
 }

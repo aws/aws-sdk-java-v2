@@ -56,13 +56,12 @@ import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
-/** Verifies that borrowed streams coexist with ordinary downloads and uploads on a shared pooled client. */
+/** Verifies that borrowed streams coexist with ordinary downloads and uploads on a client with a direct buffer pool. */
 @WireMockTest
 @Timeout(60)
 class S3CrtBorrowedBufferMixedWorkloadWireMockTest {
-    // S3's multipart minimum. A smaller part size is fine for downloads, but with a direct buffer pool configured an
-    // upload below this minimum is rejected rather than silently resized, so the mixed workload has to use a part size
-    // that is legal for every operation on the client. See S3CrtBorrowedBufferUploadPartSizeWireMockTest.
+    // S3's multipart minimum. With a pool, uploads below it are rejected instead of resized, so the uploads here need at
+    // least this part size.
     private static final int PART_SIZE = 5 * 1024 * 1024;
     private static final int OBJECT_SIZE = 2 * PART_SIZE;
     private static final byte[] DOWNLOAD_CONTENT = payload(0, OBJECT_SIZE);
@@ -75,17 +74,14 @@ class S3CrtBorrowedBufferMixedWorkloadWireMockTest {
         stubDownload();
         stubUpload();
 
-        // Eight parts' worth of pool. Deliberately not tight: this test is about a lease being held across unrelated
-        // traffic, not about exhaustion, and a pool too small to serve all three at once would turn a correctness
-        // assertion into a timing one.
+        // Room for all three requests at once, so the test checks a held lease rather than pool exhaustion.
         try (S3AsyncClient client = newClient(wireMock, 8L * PART_SIZE)) {
             ResponseInputStream<GetObjectResponse> borrowed =
                 client.getObject(r -> r.bucket("bucket").key("download"),
                                  S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
                       .get(20, TimeUnit.SECONDS);
 
-            // Read one byte and then stop. The first borrowed buffer is now leased to this reader and stays leased for
-            // the rest of the test.
+            // Read one byte, so the first buffer stays leased for the rest of the test.
             int firstByte = borrowed.read();
             assertThat(firstByte).isEqualTo(Byte.toUnsignedInt(DOWNLOAD_CONTENT[0]));
 
@@ -107,9 +103,7 @@ class S3CrtBorrowedBufferMixedWorkloadWireMockTest {
             borrowed.close();
         }
 
-        // The upload really transferred its content rather than being short-circuited by a catch-all stub. CRT may send
-        // this as one PUT or as several UploadPart PUTs, so the parts are reassembled in part-number order and compared
-        // against the source bytes.
+        // CRT may send one PUT or several UploadPart PUTs, so reassemble the parts in order before comparing.
         assertThat(reassembleUploadedParts()).containsExactly(UPLOAD_CONTENT);
     }
 
@@ -118,9 +112,7 @@ class S3CrtBorrowedBufferMixedWorkloadWireMockTest {
         throws Exception {
         stubDownload();
 
-        // A single-part pool forces the two downloads to take turns through the same pool slot. The borrowed reader is
-        // fully drained before the ordinary download starts, so this verifies the slot is genuinely returned rather
-        // than verifying that two leases can coexist.
+        // A one-part pool makes both downloads use the same slot, so this checks the borrowed stream returns it.
         try (S3AsyncClient client = newClient(wireMock, (long) PART_SIZE)) {
             for (int round = 0; round < 3; round++) {
                 try (ResponseInputStream<GetObjectResponse> borrowed =
@@ -163,9 +155,7 @@ class S3CrtBorrowedBufferMixedWorkloadWireMockTest {
                             .minimumPartSizeInBytes((long) PART_SIZE)
                             .initialReadBufferSizeInBytes((long) PART_SIZE)
                             .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
-                            // Keeps the uploaded parts as raw bytes on the wire. With checksums on, CRT sends
-                            // aws-chunked frames and the recorded request bodies carry framing, which would make an
-                            // exact byte comparison against the source content meaningless.
+                            // Without this, CRT sends aws-chunked bodies that don't match the source bytes.
                             .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
                             .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.fixed(poolBytes))
                             .build();

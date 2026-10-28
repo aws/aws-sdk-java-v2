@@ -36,20 +36,19 @@ public final class S3CrtResponseTransformerFactory {
      * from the client's direct buffer pool. Unlike {@link AsyncResponseTransformer#toBlockingInputStream()}, the client
      * does not copy each downloaded part into a new heap array. Reading into the caller's array still copies.
      *
-     * <p>The buffers come from the client's direct buffer pool. For {@code GetObject} requests with {@code partNumber}, CRT
-     * delivers the body from a separately allocated buffer outside the pool.
+     * <p>For {@code GetObject} requests with {@code partNumber}, CRT delivers the body from a separately allocated buffer
+     * outside the pool.
      *
-     * <p>This transformer requires an {@link S3AsyncClient} created by {@link S3AsyncClient#crtBuilder()} with a direct
-     * buffer pool configured through {@link S3CrtAsyncClientBuilder#directBufferPoolConfiguration}. Pass it directly to
-     * {@code getObject}. Clients without that configuration fail before request transmission, and transformers that wrap
-     * this one are not supported.
+     * <p>Pass this transformer directly to {@code getObject} on an {@link S3AsyncClient} created by
+     * {@link S3AsyncClient#crtBuilder()} with a direct buffer pool configured through
+     * {@link S3CrtAsyncClientBuilder#directBufferPoolConfiguration}. On any other client, or if it is wrapped in another
+     * transformer, the request fails before it is sent.
      *
      * <p>The future returned by {@code getObject} completes when the response stream is ready. The transformer can be
      * reused across {@code getObject} calls.
      *
-     * <p>Always close the response stream to release unread buffers and cancel remaining download work. For downloads using
-     * a direct buffer pool, unread pool memory remains unavailable to other requests on the client until the stream is
-     * closed.
+     * <p>Always close the response stream. Closing releases unread buffers, which other requests on the client can't use
+     * until then, and cancels any remaining download work.
      *
      * <p>Concurrent downloads that share a direct buffer pool can stall if the pool is too small. See
      * {@link S3CrtDirectBufferPoolConfiguration} for how to size it.
