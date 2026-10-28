@@ -675,10 +675,20 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * {@link CopyObjectRequest.Builder#annotationDirective(AnnotationDirective)} is set to {@code COPY}.
      *
      * <p>
-     * While this API supports {@link TransferListener}s, they will not receive {@code bytesTransferred} callback-updates due to
-     * the way the {@link CopyObjectRequest} API behaves. When copying an object, S3 performs the byte copying on your behalf
-     * while keeping the connection alive. The progress of the copy is not known until it fully completes and S3 sends a response
-     * describing the outcome.
+     * Users can monitor the progress of the copy by attaching a {@link TransferListener}. With every S3 client, the
+     * listener receives {@code transferInitiated} and then {@code transferComplete} or {@code transferFailed}. S3 copies
+     * the bytes on your behalf and reports no progress while a request is in flight, so {@code bytesTransferred} depends
+     * on the client:
+     * <ul>
+     *     <li>The AWS CRT-based S3 client and the Java-based S3 multipart client read the source object's size with a
+     *     {@code HeadObject} request and use it as the total, so the total is not yet known in {@code transferInitiated}.
+     *     {@code bytesTransferred} is called once with the whole object when a single {@link CopyObjectRequest} succeeds,
+     *     or once per part as each {@link UploadPartCopyRequest} succeeds. Parts can succeed in any order, and their
+     *     callbacks can run on different threads.</li>
+     *     <li>Other {@link S3AsyncClient}s, such as {@code S3AsyncClient.create()}, send a single {@link CopyObjectRequest}
+     *     without a {@code HeadObject} request. {@code bytesTransferred} is not called, the total stays unknown, and the
+     *     transferred byte count stays 0.</li>
+     * </ul>
      *
      * <p>
      * If you are copying an object to a bucket in a different region, you need to enable cross region access
