@@ -133,6 +133,38 @@ public class S3CrtMetricPublisherDispatcherTest {
     }
 
     @Test
+    public void flushPendingMetrics_fullQueue_retriesUntilMarkerIsAccepted() throws Exception {
+        S3CrtMetricPublisherDispatcher dispatcher =
+            new S3CrtMetricPublisherDispatcher(1, Duration.ofSeconds(2));
+        BlockingPublisher blockingPublisher = new BlockingPublisher();
+        MetricPublisher queuedPublisher = mock(MetricPublisher.class);
+        AtomicReference<Thread> flushThread = new AtomicReference<>();
+
+        CompletableFuture<Void> flushFuture = null;
+        try {
+            dispatcher.dispatch(collection("one"), Collections.singletonList(blockingPublisher));
+            assertThat(blockingPublisher.started.await(1, TimeUnit.SECONDS)).isTrue();
+            dispatcher.dispatch(collection("two"), Collections.singletonList(queuedPublisher));
+
+            flushFuture = CompletableFuture.runAsync(() -> {
+                flushThread.set(Thread.currentThread());
+                dispatcher.flushPendingMetrics();
+            });
+
+            assertThat(waitForThreadState(flushThread, Thread.State.TIMED_WAITING, Duration.ofSeconds(1))).isTrue();
+            assertThat(flushFuture.isDone()).isFalse();
+
+            blockingPublisher.release.countDown();
+
+            flushFuture.get(1, TimeUnit.SECONDS);
+            verify(queuedPublisher).publish(collectionNamed("two"));
+        } finally {
+            blockingPublisher.release.countDown();
+            dispatcher.close();
+        }
+    }
+
+    @Test
     public void dispatch_publisherThrows_doesNotAffectRemainingPublishersAndWorkerContinues() throws Exception {
         S3CrtMetricPublisherDispatcher dispatcher =
             new S3CrtMetricPublisherDispatcher(4, Duration.ofSeconds(1));
@@ -246,6 +278,20 @@ public class S3CrtMetricPublisherDispatcherTest {
 
     private static MetricCollection collectionNamed(String name) {
         return org.mockito.ArgumentMatchers.argThat(collection -> collection != null && name.equals(collection.name()));
+    }
+
+    private static boolean waitForThreadState(AtomicReference<Thread> threadReference,
+                                              Thread.State state,
+                                              Duration timeout) throws InterruptedException {
+        long deadlineNanos = System.nanoTime() + timeout.toNanos();
+        while (System.nanoTime() < deadlineNanos) {
+            Thread thread = threadReference.get();
+            if (thread != null && thread.getState() == state) {
+                return true;
+            }
+            TimeUnit.MILLISECONDS.sleep(1);
+        }
+        return false;
     }
 
     private static final class BlockingPublisher implements MetricPublisher {

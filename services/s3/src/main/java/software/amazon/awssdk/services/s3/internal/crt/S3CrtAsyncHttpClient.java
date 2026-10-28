@@ -346,9 +346,13 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         CompletableFuture<Void> shutdownCompleteFuture = crtS3Client.getShutdownCompleteFuture();
         shutdownCompleteFuture.whenComplete((ignored, throwable) -> metricPublisherDispatcher.startAsyncClose());
         try {
-            crtS3Client.close();
+            metricPublisherDispatcher.flushPendingMetrics();
         } finally {
-            s3NativeClientConfiguration.close();
+            try {
+                s3NativeClientConfiguration.close();
+            } finally {
+                crtS3Client.close();
+            }
         }
     }
 

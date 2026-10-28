@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -42,22 +42,29 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 @SdkInternalApi
 final class S3CrtMetricPublisherDispatcher implements SdkAutoCloseable {
     private static final Logger log = Logger.loggerFor(S3CrtMetricPublisherDispatcher.class);
+    // Uses CloudWatchMetricPublisher's 128-entry queue as an existing SDK precedent. This limits each client
+    // to retaining at most 128 queued metric collections awaiting publication.
     private static final int DEFAULT_QUEUE_CAPACITY = 128;
+    // Allows time for queued metrics to be published while preventing a slow publisher from delaying shutdown
+    // indefinitely.
     private static final Duration DEFAULT_CLOSE_TIMEOUT = Duration.ofSeconds(5);
+    // Delay between attempts to enqueue a flush marker when the queue is full; retries stop when
+    // DEFAULT_CLOSE_TIMEOUT expires.
+    private static final long FLUSH_RETRY_DELAY_NANOS = TimeUnit.MILLISECONDS.toNanos(10);
     private static final ThreadFactory CLOSE_THREAD_FACTORY =
         new ThreadFactoryBuilder()
             .daemonThreads(true)
             .threadNamePrefix("s3-crt-metric-publisher-cleanup")
             .build();
 
-    private final Object lock = new Object();
     private final ThreadPoolExecutor executor;
     private final int queueCapacity;
     private final Duration closeTimeout;
     private final AtomicLong queueFullDropCount = new AtomicLong();
     private final AtomicLong closedDispatcherDropCount = new AtomicLong();
+    private final AtomicBoolean dispatchAttempted = new AtomicBoolean();
     private final AtomicBoolean asyncCloseStarted = new AtomicBoolean();
-    private boolean closed;
+    private final AtomicBoolean closed = new AtomicBoolean();
 
     S3CrtMetricPublisherDispatcher() {
         this(DEFAULT_QUEUE_CAPACITY, DEFAULT_CLOSE_TIMEOUT);
@@ -80,26 +87,46 @@ final class S3CrtMetricPublisherDispatcher implements SdkAutoCloseable {
             new ThreadFactoryBuilder()
                 .daemonThreads(true)
                 .threadNamePrefix("s3-crt-metric-publisher")
-                .build());
+                .build(),
+            this::handleRejectedTask);
     }
 
     /**
-     * Dispatches one collection to all configured publishers as a single queue task. Synchronization establishes one
-     * acceptance order across concurrent CRT callbacks and coordinates submission with close. Publisher code is never
-     * invoked while holding the lock.
+     * Dispatches one collection to all configured publishers as a single queue task. Queue admission is non-blocking,
+     * and publisher code is only invoked by the executor worker.
      */
     void dispatch(MetricCollection collection, List<MetricPublisher> publishers) {
-        synchronized (lock) {
-            if (closed) {
-                recordClosedDispatcherDrop();
-                return;
-            }
+        dispatchAttempted.set(true);
+        executor.execute(new PublishTask(collection, publishers));
+    }
 
-            try {
-                executor.execute(() -> publish(collection, publishers));
-            } catch (RejectedExecutionException e) {
-                recordQueueFullDrop();
+    /**
+     * Waits for collections accepted before the marker task to be published, up to the configured close timeout.
+     */
+    void flushPendingMetrics() {
+        if (!dispatchAttempted.get() || executor.isShutdown()) {
+            return;
+        }
+
+        long deadlineNanos = System.nanoTime() + closeTimeout.toNanos();
+        FlushMarkerTask flushMarker = submitFlushMarker(deadlineNanos);
+        if (flushMarker == null) {
+            return;
+        }
+
+        long remainingNanos = deadlineNanos - System.nanoTime();
+        if (remainingNanos <= 0) {
+            logFlushTimeout();
+            return;
+        }
+
+        try {
+            if (!flushMarker.await(remainingNanos)) {
+                logFlushTimeout();
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.debug(() -> "Interrupted while waiting for queued CRT S3 metrics to be published.");
         }
     }
 
@@ -111,6 +138,45 @@ final class S3CrtMetricPublisherDispatcher implements SdkAutoCloseable {
                 log.debug(() -> "Failed to publish CRT S3 metrics through " + publisher.getClass().getName(), e);
             }
         }
+    }
+
+    private FlushMarkerTask submitFlushMarker(long deadlineNanos) {
+        while (!executor.isShutdown()) {
+            long remainingNanos = deadlineNanos - System.nanoTime();
+            if (remainingNanos <= 0) {
+                logFlushTimeout();
+                return null;
+            }
+
+            FlushMarkerTask flushMarker = new FlushMarkerTask();
+            executor.execute(flushMarker);
+            if (!flushMarker.rejected()) {
+                return flushMarker;
+            }
+
+            try {
+                TimeUnit.NANOSECONDS.sleep(Math.min(remainingNanos, FLUSH_RETRY_DELAY_NANOS));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.debug(() -> "Interrupted while waiting to flush queued CRT S3 metrics.");
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private void handleRejectedTask(Runnable task, ThreadPoolExecutor pool) {
+        if (task instanceof FlushMarkerTask) {
+            ((FlushMarkerTask) task).reject();
+        } else if (pool.isShutdown()) {
+            recordClosedDispatcherDrop();
+        } else {
+            recordQueueFullDrop();
+        }
+    }
+
+    private void logFlushTimeout() {
+        log.debug(() -> "Timed out waiting for queued CRT S3 metrics to be published.");
     }
 
     private void recordQueueFullDrop() {
@@ -137,13 +203,10 @@ final class S3CrtMetricPublisherDispatcher implements SdkAutoCloseable {
 
     @Override
     public void close() {
-        synchronized (lock) {
-            if (closed) {
-                return;
-            }
-            closed = true;
-            executor.shutdown();
+        if (!closed.compareAndSet(false, true)) {
+            return;
         }
+        executor.shutdown();
 
         boolean terminated = false;
         try {
@@ -164,10 +227,50 @@ final class S3CrtMetricPublisherDispatcher implements SdkAutoCloseable {
     }
 
     private int forceShutdown() {
-        return executor.shutdownNow().size();
+        return (int) executor.shutdownNow()
+                             .stream()
+                             .filter(PublishTask.class::isInstance)
+                             .count();
     }
 
     private static boolean isPowerOfTwo(long value) {
         return (value & (value - 1)) == 0;
+    }
+
+    private final class PublishTask implements Runnable {
+        private final MetricCollection collection;
+        private final List<MetricPublisher> publishers;
+
+        private PublishTask(MetricCollection collection, List<MetricPublisher> publishers) {
+            this.collection = collection;
+            this.publishers = publishers;
+        }
+
+        @Override
+        public void run() {
+            publish(collection, publishers);
+        }
+    }
+
+    private static final class FlushMarkerTask implements Runnable {
+        private final CountDownLatch completion = new CountDownLatch(1);
+        private volatile boolean rejected;
+
+        @Override
+        public void run() {
+            completion.countDown();
+        }
+
+        private void reject() {
+            rejected = true;
+        }
+
+        private boolean rejected() {
+            return rejected;
+        }
+
+        private boolean await(long timeoutNanos) throws InterruptedException {
+            return completion.await(timeoutNanos, TimeUnit.NANOSECONDS);
+        }
     }
 }
