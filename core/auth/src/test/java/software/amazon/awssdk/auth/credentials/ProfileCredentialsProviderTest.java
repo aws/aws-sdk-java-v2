@@ -342,6 +342,25 @@ public class ProfileCredentialsProviderTest {
         assertThat(provider1ToString).isEqualTo(provider2ToString);
     }
 
+    @Test
+    void resolveCredentials_reloadedProfileFileWithoutCredentials_keepsThrowingInsteadOfReturningPreviousCredentials() {
+        AtomicBoolean firstCall = new AtomicBoolean(true);
+        ProfileFile file1 = profileFile("[default]\naws_access_key_id = akid1\n"
+                                        + "aws_secret_access_key = sak1\n");
+        ProfileFile file2 = profileFile("[default]\nregion = us-west-2\n");
+        Supplier<ProfileFile> refreshingSupplier = () -> firstCall.getAndSet(false) ? file1 : file2;
+
+        ProfileCredentialsProvider provider =
+            ProfileCredentialsProvider.builder()
+                                      .profileFile(refreshingSupplier)
+                                      .profileName("default")
+                                      .build();
+
+        assertThat(provider.resolveCredentials().accessKeyId()).isEqualTo("akid1");
+        assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
+        assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
+    }
+
     private ProfileFile profileFile(String string) {
         return ProfileFile.builder().content(new StringInputStream(string)).type(ProfileFile.Type.CONFIGURATION).build();
     }
