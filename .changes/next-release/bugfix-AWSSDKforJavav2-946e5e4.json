@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "description": "Fixed an issue where `ProfileCredentialsProvider` could keep returning credentials from the previous profile file after a reload, either to concurrent callers or after building credentials from the new file failed.",
-    "contributor": "gibkim"
-}

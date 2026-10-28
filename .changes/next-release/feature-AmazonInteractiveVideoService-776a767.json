@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Interactive Video Service",
-    "contributor": "",
-    "description": "InsertAdBreak now allows setting a customized adBreakId on a request and also adds a new field targetStartAt for a delayed ad insertion"
-}

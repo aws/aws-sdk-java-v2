@@ -1,4 +1,58 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.57.6__ __2026-10-28__
+## __AWS Artifact__
+  - ### Features
+    - Update support mode for Assurance Assistance
+
+## __AWS Certificate Manager__
+  - ### Features
+    - AWS Certificate Manager now supports the Automatic Certificate Management Environment (ACME) protocol in the AWS GovCloud (US-East) and AWS GovCloud (US-West) Regions.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports SMPTE 2022-7 seamless protection switching for multicast inputs on MediaLive Anywhere. Support for MulticastSettings sources to add a redundant copy of the stream received on a second network interface.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue where `ProfileCredentialsProvider` could keep returning credentials from the previous profile file after a reload, either to concurrent callers or after building credentials from the new file failed.
+        - Contributed by: [@gibkim](https://github.com/gibkim)
+
+## __AWS Security Agent__
+  - ### Features
+    - Adds support for attaching client certificates for mutual TLS (mTLS) authentication to penetration test target endpoints via the new ClientCertificates field on Assets, enabling pentesting of endpoints that require client certificate authentication.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Amazon Connect Participant Service now supports the optional UrlContentDisposition parameter on GetAttachment, which returns a pre-signed URL that renders a chat attachment inline in the browser instead of forcing a download.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect APIs - CreateTaskTemplate and UpdateTaskTemplate accept a new ContactHooks parameter called WrapUpFlowId to identify the flow module that runs when an agent attempts to disconnect from a task created with the template. Use this to verify an agent's work or update external case repos.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 Capacity Manager adds supportability checks and capacity fulfillment metrics. Use GetCapacityManagerSupportabilityScores to score how well instance types and Availability Zones can support a capacity request, and GetCapacityManagerMetricData to retrieve fulfillment metrics.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - InsertAdBreak now allows setting a customized adBreakId on a request and also adds a new field targetStartAt for a delayed ad insertion
+
+## __Amazon NeptuneData__
+  - ### Features
+    - Get Storage API analyzes storage usage to identify database bloat and your storage footprint. Index Rebuild API triggers on-demand index reconstruction to eliminate bloat and restore query performance.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds APIs to simplify setting up a replication relationship between OpenSearch clusters. The APIs include new Switchover and Failover actions for planned switchovers and unplanned failovers to ensure high availability for OpenSearch in the event of disaster in a single region.
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Amazon MSK Connect now supports updating a connector's custom plugin and worker configuration via the UpdateConnector API. MSK Connect checks connector and task health after the update and rolls back on failure. Each call returns an operation ARN to track with DescribeConnectorOperation.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@gibkim](https://github.com/gibkim)
 # __2.57.5__ __2026-10-27__
 ## __AWS License Manager__
   - ### Features
