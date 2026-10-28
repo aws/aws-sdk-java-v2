@@ -40,12 +40,14 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -54,6 +56,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -74,6 +77,8 @@ import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenRequest;
 import software.amazon.awssdk.services.signin.model.AccessDeniedException;
 import software.amazon.awssdk.services.signin.model.OAuth2ErrorCode;
 import software.amazon.awssdk.services.signin.model.SigninException;
+import software.amazon.awssdk.services.signin.model.ValidationException;
+import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -86,6 +91,8 @@ public class LoginCredentialsProviderTest {
     private static final String SESSION_TOKEN = "SESSION-TOKEN-VALUE";
     private static final String REFRESH_TOKEN = "REFRESH-TOKEN-VALUE";
     private static final String INVALID_DPOP_KEY = "NOT-A-PEM-DPOP-KEY-VALUE";
+
+    private static final String VALIDATION_EXCEPTION_MESSAGE = "The refresh token is malformed.";
 
     private AccessTokenManager tokenManager;
     private SigninClient signinClient;
@@ -384,6 +391,96 @@ public class LoginCredentialsProviderTest {
         // Second call: immediate retry — should re-raise cached error without calling service
         assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
         assertEquals(1, mockHttpClient.getRequests().size()); // Still 1 — service NOT called again
+    }
+
+    /**
+     * A ValidationException from CreateOAuth2Token is non-recoverable: it is raised as returned by the service, and it is
+     * cached briefly, so an immediate retry rethrows the same error without another Sign-In request.
+     */
+    @Test
+    public void resolveCredentials_whenValidationExceptionOnInitialFetch_throwsNonRecoverableAndCachesError() {
+        // An expired token on disk, so the first resolve refreshes from the Sign-In service.
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600))));
+        mockHttpClient.stubNextResponse(validationExceptionResponse());
+
+        ValidationException first = assertThrows(ValidationException.class, loginCredentialsProvider::resolveCredentials);
+        assertEquals(OAuth2ErrorCode.INVALID_REQUEST, first.error());
+        assertTrue(first.getMessage().contains(VALIDATION_EXCEPTION_MESSAGE), first.getMessage());
+        assertEquals(1, mockHttpClient.getRequests().size());
+
+        ValidationException retry = assertThrows(ValidationException.class, loginCredentialsProvider::resolveCredentials);
+        assertSame(first, retry);
+        assertEquals(1, mockHttpClient.getRequests().size());
+    }
+
+    /**
+     * A ValidationException from CreateOAuth2Token bypasses static stability: the cached credentials are not returned, and no
+     * backoff is applied or logged.
+     */
+    @Test
+    public void resolveCredentials_whenValidationExceptionAfterSuccessfulCache_throwsAndBypassesStaticStability() {
+        // An expired token on disk, so the first resolve refreshes from the Sign-In service.
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600))));
+        // The refreshed credentials expire in 30 seconds, inside the 1 minute mandatory refresh window, so the next call
+        // refreshes again.
+        mockHttpClient.stubResponses(successfulRefreshResponse("new-akid", 30), validationExceptionResponse());
+
+        assertEquals("new-akid", loginCredentialsProvider.resolveCredentials().accessKeyId());
+        assertEquals(1, mockHttpClient.getRequests().size());
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            ValidationException first = assertThrows(ValidationException.class, loginCredentialsProvider::resolveCredentials);
+            assertEquals(2, mockHttpClient.getRequests().size());
+
+            // With static stability or a backoff, this retry would return "new-akid". Instead the cached error is rethrown.
+            ValidationException retry = assertThrows(ValidationException.class, loginCredentialsProvider::resolveCredentials);
+            assertSame(first, retry);
+            assertEquals(2, mockHttpClient.getRequests().size());
+
+            assertEquals(Collections.emptyList(), refreshBackoffWarnings(logCaptor));
+        }
+    }
+
+    /**
+     * A TooManyRequestsError is recoverable: after a successful refresh, the cached credentials are returned and a backoff is
+     * applied, so the next call does not contact the Sign-In service.
+     */
+    @Test
+    public void resolveCredentials_whenTooManyRequestsAfterSuccessfulCache_returnsCachedCredentialsAndBacksOff() {
+        // An expired token on disk, so the first resolve refreshes from the Sign-In service.
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600))));
+        // The refreshed credentials expire in 30 seconds, inside the 1 minute mandatory refresh window, so the next call
+        // refreshes again.
+        mockHttpClient.stubResponses(successfulRefreshResponse("new-akid", 30),
+                                     errorResponse("TooManyRequestsError", 429, OAuth2ErrorCode.RATE_EXCEEDED, "Rate exceeded"));
+
+        // Retries are disabled so that each refresh attempt makes exactly one request.
+        try (SigninClient noRetrySigninClient = SigninClient
+                 .builder()
+                 .region(Region.US_EAST_1)
+                 .endpointOverride(URI.create("https://custom-signin-endpoint.com"))
+                 .httpClient(mockHttpClient)
+                 .overrideConfiguration(c -> c.retryStrategy(AwsRetryStrategy.doNotRetry()))
+                 .build();
+             LoginCredentialsProvider provider = LoginCredentialsProvider
+                 .builder()
+                 .loginSession(LOGIN_SESSION_ID)
+                 .signinClient(noRetrySigninClient)
+                 .tokenCacheLocation(tempDir)
+                 .build()) {
+            assertEquals("new-akid", provider.resolveCredentials().accessKeyId());
+            assertEquals(1, mockHttpClient.getRequests().size());
+
+            try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+                assertEquals("new-akid", provider.resolveCredentials().accessKeyId());
+                assertEquals(2, mockHttpClient.getRequests().size());
+                assertEquals(1, refreshBackoffWarnings(logCaptor).size());
+
+                // Inside the backoff, the cached credentials are returned without another Sign-In request.
+                assertEquals("new-akid", provider.resolveCredentials().accessKeyId());
+                assertEquals(2, mockHttpClient.getRequests().size());
+            }
+        }
     }
 
     @Test
@@ -758,19 +855,34 @@ public class LoginCredentialsProviderTest {
     }
 
     private void stubAccessDeniedException(OAuth2ErrorCode errorCode) {
-        String errorBody = "{\"error\":\"" + errorCode + "\",\"message\":\"The refresh token has expired.\"}";
-        mockHttpClient.stubNextResponse(
-            HttpExecuteResponse
-                .builder()
-                .response(
-                    SdkHttpResponse
-                        .builder()
-                        .putHeader("X-Amzn-Errortype", "AccessDeniedException")
-                        .statusCode(401)
-                        .build())
-                .responseBody(AbortableInputStream.create(new StringInputStream(errorBody)))
-                .build()
-        );
+        mockHttpClient.stubNextResponse(errorResponse("AccessDeniedException", 401, errorCode, "The refresh token has expired."));
+    }
+
+    private static HttpExecuteResponse validationExceptionResponse() {
+        return errorResponse("ValidationException", 400, OAuth2ErrorCode.INVALID_REQUEST, VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    private static HttpExecuteResponse errorResponse(String errorType, int statusCode, OAuth2ErrorCode errorCode,
+                                                     String message) {
+        String errorBody = "{\"error\":\"" + errorCode + "\",\"message\":\"" + message + "\"}";
+        return HttpExecuteResponse
+            .builder()
+            .response(
+                SdkHttpResponse
+                    .builder()
+                    .putHeader("X-Amzn-Errortype", errorType)
+                    .statusCode(statusCode)
+                    .build())
+            .responseBody(AbortableInputStream.create(new StringInputStream(errorBody)))
+            .build();
+    }
+
+    private static List<String> refreshBackoffWarnings(LogCaptor logCaptor) {
+        return logCaptor.loggedEvents().stream()
+                        .filter(event -> event.getLevel() == Level.WARN)
+                        .map(event -> event.getMessage().getFormattedMessage())
+                        .filter(message -> message.contains("Credential refresh failed"))
+                        .collect(Collectors.toList());
     }
 
     private AwsSessionCredentials buildCredentials(Instant expirationTime) {

@@ -49,6 +49,7 @@ import software.amazon.awssdk.services.signin.model.AccessDeniedException;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenRequest;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenResponse;
 import software.amazon.awssdk.services.signin.model.OAuth2ErrorCode;
+import software.amazon.awssdk.services.signin.model.ValidationException;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringUtils;
@@ -289,14 +290,22 @@ public final class LoginCredentialsProvider implements
      *       file that exists is recoverable, because it may be transient.</li>
      *   <li>An {@link AccessDeniedException} with error code {@link OAuth2ErrorCode#TOKEN_EXPIRED},
      *       {@link OAuth2ErrorCode#USER_CREDENTIALS_CHANGED}, or {@link OAuth2ErrorCode#INSUFFICIENT_PERMISSIONS}</li>
+     *   <li>A {@link ValidationException} returned by the Sign-In {@code CreateOAuth2Token} operation, with any error
+     *       code</li>
      * </ul>
+     * Each Sign-In exception is matched whether it is thrown directly or as the cause of the thrown exception.
      */
     private static boolean isNonRecoverableError(RuntimeException e) {
         if (e instanceof InvalidLoginTokenException) {
             return true;
         }
 
-        AccessDeniedException ade = extractAccessDeniedException(e);
+        // CreateOAuth2Token is the only Sign-In operation this provider calls, so any ValidationException is from it.
+        if (exceptionOrCause(e, ValidationException.class) != null) {
+            return true;
+        }
+
+        AccessDeniedException ade = exceptionOrCause(e, AccessDeniedException.class);
         if (ade == null) {
             return false;
         }
@@ -305,12 +314,16 @@ public final class LoginCredentialsProvider implements
                || ade.error() == OAuth2ErrorCode.INSUFFICIENT_PERMISSIONS;
     }
 
-    private static AccessDeniedException extractAccessDeniedException(RuntimeException e) {
-        if (e instanceof AccessDeniedException) {
-            return (AccessDeniedException) e;
+    /**
+     * Returns {@code e} if it is an instance of {@code type}, else the cause of {@code e} if that is an instance of
+     * {@code type}, else {@code null}.
+     */
+    private static <T extends Throwable> T exceptionOrCause(RuntimeException e, Class<T> type) {
+        if (type.isInstance(e)) {
+            return type.cast(e);
         }
-        if (e.getCause() instanceof AccessDeniedException) {
-            return (AccessDeniedException) e.getCause();
+        if (type.isInstance(e.getCause())) {
+            return type.cast(e.getCause());
         }
         return null;
     }
