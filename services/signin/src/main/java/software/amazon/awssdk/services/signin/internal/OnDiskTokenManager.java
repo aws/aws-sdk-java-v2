@@ -93,14 +93,10 @@ public final class OnDiskTokenManager implements AccessTokenManager {
     }
 
     private Optional<String> readTokenFile() {
-        if (!Files.exists(tokenLocation)) {
-            return Optional.empty();
-        }
-
         try (InputStream cachedTokenStream = Files.newInputStream(tokenLocation)) {
             return Optional.of(IoUtils.toUtf8String(cachedTokenStream));
         } catch (NoSuchFileException e) {
-            // The file was deleted after the exists check; treat it the same as a missing file.
+            // The token file (or its directory) does not exist: there is no cached token.
             return Optional.empty();
         } catch (IOException | UncheckedIOException e) {
             throw SdkClientException.create("Unable to read the token cache file for login_session `" + loginSession

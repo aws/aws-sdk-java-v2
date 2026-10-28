@@ -115,6 +115,12 @@ public class OnDiskTokenManagerTest {
         assertFalse(manager.loadToken().isPresent());
     }
 
+    @Test
+    void loadToken_whenCacheDirectoryMissing_returnsEmpty() {
+        OnDiskTokenManager manager = OnDiskTokenManager.create(tempDir.resolve("doesnotexist"), LOGIN_SESSION_ID);
+        assertFalse(manager.loadToken().isPresent());
+    }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("invalidTokenFiles")
     void loadToken_whenTokenFileInvalid_throwsInvalidLoginTokenException(String description, String contents,
