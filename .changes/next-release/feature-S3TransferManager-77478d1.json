@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Add support for direct buffer pool downloads to S3 Transfer Manager with the CRT-based S3 client."
+}
