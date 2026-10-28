@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "`InstanceProfileCredentialsProvider` now refreshes credentials from the EC2 Instance Metadata Service (IMDS) at a random time 65 to 90 minutes after retrieving them by default, instead of 3 to 6 hours later for typical 6-hour credentials. IMDS can make new credentials available well before the current ones expire (often about hourly), so the provider picks them up sooner. Credentials with a shorter remaining lifetime are refreshed earlier. This makes more calls to IMDS: about 18 per day per provider instead of about 6 when IMDS rotates credentials hourly, and up to about 31 per day instead of about 13 when it rotates them only shortly before they expire."
-}

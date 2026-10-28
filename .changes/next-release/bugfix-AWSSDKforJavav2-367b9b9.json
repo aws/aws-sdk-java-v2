@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Fixed a `NullPointerException` in `InstanceProfileCredentialsProvider` and `ContainerCredentialsProvider` when the credentials endpoint returns credentials without an expiration."
-}

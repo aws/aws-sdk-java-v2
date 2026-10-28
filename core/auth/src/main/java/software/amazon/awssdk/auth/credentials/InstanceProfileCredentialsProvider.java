@@ -260,25 +260,6 @@ public final class InstanceProfileCredentialsProvider
      * </pre>
      * For the common 6 hour IMDS credentials, that is 65 to 90 minutes after the fetch.
      *
-     * <p>EC2 documents only that new credentials are available at least 5 minutes before the current ones expire, but IMDS
-     * can make new credentials available well before that (often about hourly). Until then it returns the same credentials.
-     * The credentials were issued at or before the fetch, so when IMDS rotates about hourly, a refresh at least an hour
-     * after the fetch gets new ones, and the 65 minute lower bound absorbs drift in the rotation time. Shorter-lived
-     * credentials keep the earlier lower bound of half their remaining lifetime.
-     *
-     * <p>The refresh is never later than {@code L - W}, the point at which the credential cache specification starts the
-     * advisory refresh. A provider may keep its own schedule only when that schedule refreshes earlier. The lower bound is
-     * capped so that at least a quarter of the range is left for the jitter, which spreads out the refreshes of multiple
-     * providers on one host.
-     *
-     * <p>Both bounds are measured from the fetch rather than from expiration. If IMDS returns the same credentials again while
-     * they are still outside their advisory refresh window, the next refresh moves out by the same interval instead of
-     * happening on every call.
-     *
-     * <p>If {@code L - W} is zero or negative, the credentials are already inside their advisory refresh window when they are
-     * fetched. The refresh then happens on the next call, as the credential cache specification specifies, and the result is
-     * {@code now}. The mandatory refresh at the stale time still applies.
-     *
      * @param now the time of the fetch
      * @param expiration the expiration of the fetched credentials, after {@code now}
      * @param randomFraction where to place the refresh between the lower bound (0) and the upper bound (1)
@@ -504,14 +485,9 @@ public final class InstanceProfileCredentialsProvider
          * to IMDS.
          *
          * <p>If not explicitly set, the provider proactively refreshes credentials at a random time 65 to 90 minutes after
-         * retrieving them. IMDS can make new credentials available well before the current ones expire (often about
-         * hourly), so the provider checks for them well before expiration. The refresh happens no later than the start of
-         * the advisory refresh window that the SDK computes from the remaining lifetime of the credentials: 60 minutes before
-         * expiration for credentials with 90 minutes or more remaining, 15 minutes before expiration for
-         * credentials with more than 20 minutes remaining, and 5 minutes before expiration otherwise. For credentials with less
-         * than 2 hours 30 minutes remaining, the refresh therefore happens sooner than 65 to 90 minutes after retrieval.
-         * Credentials that are already inside that window when they are retrieved are refreshed on the next call. If IMDS does
-         * not return an expiration, the credentials are refreshed at a random time 60 to 65 minutes after they were retrieved.
+         * retrieving them, so that it picks up new credentials that IMDS makes available before the current ones expire. The
+         * refresh happens no later than 5 minutes before expiration for credentials with 20 minutes or less remaining, 15
+         * minutes for 20-90 minutes remaining, and 60 minutes for 90+ minutes remaining.
          *
          * @param duration the duration before expiration that triggers advisory (proactive) refresh
          */

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "`ContainerCredentialsProvider` now refreshes credentials no later than the start of their advisory refresh window by default: 60 minutes before expiration for credentials with 90 minutes or more remaining, 15 minutes before expiration for credentials with more than 20 minutes remaining, and 5 minutes before expiration otherwise. For typical 6-hour credentials, the refresh happens at a random time 1 to 5 hours after retrieving them, instead of 1 hour to about 6 hours. Credentials with a shorter remaining lifetime are refreshed earlier than before."
-}

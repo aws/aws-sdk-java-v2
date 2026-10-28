@@ -221,10 +221,8 @@ public final class ContainerCredentialsProvider
      * For the common 6 hour credentials, that is 1 to 5 hours after the fetch.
      *
      * <p>The lower bound is the provider's own schedule: 15 minutes before expiration, but no later than 1 hour after the
-     * fetch. The refresh is never later than {@code L - W}, the point at which the credential cache specification starts the
-     * advisory refresh. A provider may keep its own schedule only when that schedule refreshes earlier. The lower bound is
-     * capped so that at least a quarter of the range is left for the jitter, which spreads out the refreshes of multiple
-     * providers on one host.
+     * fetch. The refresh is never later than {@code L - W}. The lower bound is capped so that at least a quarter of the
+     * range is left for the jitter, which spreads out the refreshes of multiple providers on one host.
      *
      * <p>If {@code L - W} is zero or negative, the credentials are already inside their advisory refresh window when they are
      * fetched. The refresh then happens on the next call, as the credential cache specification specifies, and the result is
@@ -458,15 +456,10 @@ public final class ContainerCredentialsProvider
          * credentials with more remaining lifetime. If the endpoint keeps returning the same credentials, a large value can
          * cause frequent calls to the endpoint.
          *
-         * <p>If not explicitly set, the provider proactively refreshes credentials at a random time, so that many clients do
-         * not refresh at the same moment. The earliest refresh is 15 minutes before the credentials expire, or 1 hour after
-         * they were retrieved if that is sooner. The refresh happens no later than the start of the advisory refresh window
-         * that the SDK computes from the remaining lifetime of the credentials: 60 minutes before expiration for credentials
-         * with 90 minutes or more remaining, 15 minutes before expiration for credentials with more than 20 minutes remaining,
-         * and 5 minutes before expiration otherwise. For 6-hour credentials, the refresh is 1 to 5 hours after retrieval. When
-         * the earliest refresh is close to that limit, it moves earlier to keep a range for the random time. Credentials that
-         * are already inside that window when they are retrieved are refreshed on the next call. If the endpoint does not
-         * return an expiration, the credentials are refreshed at a random time 60 to 65 minutes after they were retrieved.
+         * <p>If not explicitly set, the provider proactively refreshes credentials at a time based on the remaining lifetime
+         * of the credentials with a random jitter so that many clients do not refresh at the same moment. The refresh happens
+         * no later than 5 minutes before expiration for credentials with 20 minutes or less remaining, 15 minutes for 20-90
+         * minutes remaining, and 60 minutes for 90+ minutes remaining.
          *
          * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */
