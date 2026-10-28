@@ -53,8 +53,6 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
     private final CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
     private final AtomicLong responseBytesRead;
     private final AtomicBoolean streamInitiated = new AtomicBoolean();
-    // Guards expectedObjectRangeStart across the headers and body callbacks.
-    private final Object rangeLock = new Object();
     private long expectedObjectRangeStart;
 
     private S3CrtBorrowedBufferResponseHandlerAdapter(Builder builder) {
@@ -85,9 +83,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
 
     @Override
     public void onResponseHeaders(int statusCode, HttpHeader[] headers) {
-        synchronized (rangeLock) {
-            expectedObjectRangeStart = initialRangeStart(headers);
-        }
+        expectedObjectRangeStart = initialRangeStart(headers);
         delegate.onResponseHeaders(statusCode, headers);
     }
 
@@ -166,33 +162,31 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         S3CrtBorrowedBufferLease buffer,
         long objectRangeStart,
         long objectRangeEnd) {
-        synchronized (rangeLock) {
-            Validate.validState(objectRangeStart >= 0,
-                                "CRT borrowed buffer started at object offset %d, but the expected offset was non-negative",
-                                objectRangeStart);
-            Validate.validState(objectRangeStart == expectedObjectRangeStart,
-                                "CRT borrowed buffer started at object offset %d, but the expected offset was %d",
-                                objectRangeStart, expectedObjectRangeStart);
+        Validate.validState(objectRangeStart >= 0,
+                            "CRT borrowed buffer started at object offset %d, but the expected offset was non-negative",
+                            objectRangeStart);
+        Validate.validState(objectRangeStart == expectedObjectRangeStart,
+                            "CRT borrowed buffer started at object offset %d, but the expected offset was %d",
+                            objectRangeStart, expectedObjectRangeStart);
 
-            long expectedEnd;
-            try {
-                expectedEnd = Math.addExact(objectRangeStart, buffer.byteCount());
-            } catch (ArithmeticException e) {
-                throw new IllegalStateException(String.format(
-                    "CRT borrowed buffer range overflowed at object offset %d with byte count %d",
-                    objectRangeStart, buffer.byteCount()), e);
-            }
-            Validate.validState(objectRangeEnd == expectedEnd,
-                                "CRT borrowed buffer ended at object offset %d, but the expected offset was %d",
-                                objectRangeEnd, expectedEnd);
-
-            if (streamHandler.onBorrowedBuffer(buffer)) {
-                expectedObjectRangeStart = objectRangeEnd;
-                responseBytesRead.addAndGet(buffer.byteCount());
-                return true;
-            }
-            return false;
+        long expectedEnd;
+        try {
+            expectedEnd = Math.addExact(objectRangeStart, buffer.byteCount());
+        } catch (ArithmeticException e) {
+            throw new IllegalStateException(String.format(
+                "CRT borrowed buffer range overflowed at object offset %d with byte count %d",
+                objectRangeStart, buffer.byteCount()), e);
         }
+        Validate.validState(objectRangeEnd == expectedEnd,
+                            "CRT borrowed buffer ended at object offset %d, but the expected offset was %d",
+                            objectRangeEnd, expectedEnd);
+
+        if (streamHandler.onBorrowedBuffer(buffer)) {
+            expectedObjectRangeStart = objectRangeEnd;
+            responseBytesRead.addAndGet(buffer.byteCount());
+            return true;
+        }
+        return false;
     }
 
     private static void releaseUnacceptedBuffer(S3CrtBorrowedBufferLease sdkBuffer, S3BorrowedBuffer crtBuffer) {
