@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
+import software.amazon.awssdk.utils.Pair;
 
 class UploadPartCopyRequestIterableTest {
 
@@ -38,7 +39,7 @@ class UploadPartCopyRequestIterableTest {
                                                                                                  copyObjectRequest,
                                                                                                  3000L);
 
-        List<UploadPartCopyRequest> requests = uploadPartCopyRequests.stream().collect(Collectors.toList());
+        List<UploadPartCopyRequest> requests = uploadPartCopyRequests.stream().map(Pair::left).collect(Collectors.toList());
         assertThat(requests.size()).isEqualTo(3);
         assertThat(requests.get(0).copySourceRange()).isEqualTo("bytes=0-1023");
         assertThat(requests.get(1).copySourceRange()).isEqualTo("bytes=1024-2047");
@@ -58,14 +59,14 @@ class UploadPartCopyRequestIterableTest {
                                                                                                  copyObjectRequest,
                                                                                                  1025L);
 
-        List<UploadPartCopyRequest> requests = uploadPartCopyRequests.stream().collect(Collectors.toList());
+        List<UploadPartCopyRequest> requests = uploadPartCopyRequests.stream().map(Pair::left).collect(Collectors.toList());
         assertThat(requests.size()).isEqualTo(2);
         assertThat(requests.get(0).copySourceRange()).isEqualTo("bytes=0-1023");
         assertThat(requests.get(1).copySourceRange()).isEqualTo("bytes=1024-1024");
     }
 
     @Test
-    void partSizeInBytes_shouldMatchEachRequestRange() {
+    void iterator_shouldPairEachRequestWithItsPartSize() {
         CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
                                                                .destinationKey("destination")
                                                                .destinationBucket("destinationBucket")
@@ -77,9 +78,8 @@ class UploadPartCopyRequestIterableTest {
                                                                                                  copyObjectRequest,
                                                                                                  3000L);
 
-        List<Long> partSizes = uploadPartCopyRequests.stream()
-                                                     .map(UploadPartCopyRequestIterable::partSizeInBytes)
-                                                     .collect(Collectors.toList());
-        assertThat(partSizes).containsExactly(1024L, 1024L, 952L);
+        List<Pair<UploadPartCopyRequest, Long>> requestPairs = uploadPartCopyRequests.stream().collect(Collectors.toList());
+        assertThat(requestPairs).extracting(Pair::right).containsExactly(1024L, 1024L, 952L);
+        assertThat(requestPairs).extracting(p -> p.left().partNumber()).containsExactly(1, 2, 3);
     }
 }

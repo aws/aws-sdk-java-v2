@@ -64,6 +64,7 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * An internal helper class that automatically uses multipart copy based on the size of the source object
@@ -478,11 +479,8 @@ public final class CopyObjectHelper {
 
         PublisherListener<Long> progressListener = progressListener(copyObjectRequest);
 
-        uploadPartCopyRequests.forEach(uploadPartCopyRequest -> {
-            long partBytes = UploadPartCopyRequestIterable.partSizeInBytes(uploadPartCopyRequest);
-            sendIndividualUploadPartCopy(uploadId, completedParts, futures, uploadPartCopyRequest, partBytes,
-                                         progressListener);
-        });
+        uploadPartCopyRequests.forEach(requestPair -> sendIndividualUploadPartCopy(uploadId, completedParts, futures,
+                                                                                   requestPair, progressListener));
 
         return futures;
     }
@@ -490,9 +488,10 @@ public final class CopyObjectHelper {
     private void sendIndividualUploadPartCopy(String uploadId,
                                               AtomicReferenceArray<CompletedPart> completedParts,
                                               List<CompletableFuture<CompletedPart>> futures,
-                                              UploadPartCopyRequest uploadPartCopyRequest,
-                                              long partBytes,
+                                              Pair<UploadPartCopyRequest, Long> requestPair,
                                               PublisherListener<Long> progressListener) {
+        UploadPartCopyRequest uploadPartCopyRequest = requestPair.left();
+        long partBytes = requestPair.right();
         Integer partNumber = uploadPartCopyRequest.partNumber();
         log.debug(() -> "Sending uploadPartCopyRequest with range: " + uploadPartCopyRequest.copySourceRange() + " uploadId: "
                         + uploadId);

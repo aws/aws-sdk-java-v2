@@ -22,14 +22,13 @@ import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
+import software.amazon.awssdk.utils.Pair;
 
 /**
- * Iterable class to generate {@link UploadPartCopyRequest}s
+ * Iterable class to generate {@link UploadPartCopyRequest}s, each paired with the number of bytes the request copies.
  */
 @SdkInternalApi
-public final class UploadPartCopyRequestIterable implements SdkIterable<UploadPartCopyRequest> {
-
-    private static final String RANGE_PREFIX = "bytes=";
+public final class UploadPartCopyRequestIterable implements SdkIterable<Pair<UploadPartCopyRequest, Long>> {
 
     private final String uploadId;
     private final long optimalPartSize;
@@ -48,31 +47,19 @@ public final class UploadPartCopyRequestIterable implements SdkIterable<UploadPa
         this.remainingBytes = remainingBytes;
     }
 
-    /**
-     * Returns the number of bytes a request from this iterable copies, read from the {@code copySourceRange} it was built
-     * with ({@code bytes=<first>-<last>}).
-     */
-    public static long partSizeInBytes(UploadPartCopyRequest uploadPartCopyRequest) {
-        String range = uploadPartCopyRequest.copySourceRange();
-        int hyphen = range.indexOf('-');
-        long first = Long.parseLong(range.substring(RANGE_PREFIX.length(), hyphen));
-        long last = Long.parseLong(range.substring(hyphen + 1));
-        return last - first + 1;
-    }
-
     @Override
-    public Iterator<UploadPartCopyRequest> iterator() {
+    public Iterator<Pair<UploadPartCopyRequest, Long>> iterator() {
         return new UploadPartCopyRequestIterator();
     }
 
-    private class UploadPartCopyRequestIterator implements Iterator<UploadPartCopyRequest> {
+    private class UploadPartCopyRequestIterator implements Iterator<Pair<UploadPartCopyRequest, Long>> {
         @Override
         public boolean hasNext() {
             return remainingBytes > 0;
         }
 
         @Override
-        public UploadPartCopyRequest next() {
+        public Pair<UploadPartCopyRequest, Long> next() {
             if (!hasNext()) {
                 throw new NoSuchElementException("No UploadPartCopyRequest available");
             }
@@ -87,11 +74,11 @@ public final class UploadPartCopyRequestIterable implements SdkIterable<UploadPa
             partNumber++;
             offset += partSize;
             remainingBytes -= partSize;
-            return uploadPartCopyRequest;
+            return Pair.of(uploadPartCopyRequest, partSize);
         }
 
         private String range(long partSize) {
-            return RANGE_PREFIX + offset + "-" + (offset + partSize - 1);
+            return "bytes=" + offset + "-" + (offset + partSize - 1);
         }
     }
 }
