@@ -16,8 +16,10 @@
 package software.amazon.awssdk.services.signin.auth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -32,16 +34,29 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -55,17 +70,29 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.signin.SigninClient;
 import software.amazon.awssdk.services.signin.internal.AccessTokenManager;
+import software.amazon.awssdk.services.signin.internal.InvalidLoginTokenException;
 import software.amazon.awssdk.services.signin.internal.LoginAccessToken;
 import software.amazon.awssdk.services.signin.internal.OnDiskTokenManager;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenRequest;
 import software.amazon.awssdk.services.signin.model.AccessDeniedException;
 import software.amazon.awssdk.services.signin.model.OAuth2ErrorCode;
 import software.amazon.awssdk.services.signin.model.SigninException;
+import software.amazon.awssdk.services.signin.model.ValidationException;
+import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class LoginCredentialsProviderTest {
     private static final String LOGIN_SESSION_ID = "loginSessionId";
+
+    // Distinctive values used to verify that error messages never include token contents.
+    private static final String SECRET_ACCESS_KEY = "SECRET-ACCESS-KEY-VALUE";
+    private static final String SESSION_TOKEN = "SESSION-TOKEN-VALUE";
+    private static final String REFRESH_TOKEN = "REFRESH-TOKEN-VALUE";
+    private static final String INVALID_DPOP_KEY = "NOT-A-PEM-DPOP-KEY-VALUE";
+
+    private static final String VALIDATION_EXCEPTION_MESSAGE = "The refresh token is malformed.";
 
     private AccessTokenManager tokenManager;
     private SigninClient signinClient;
@@ -335,7 +362,7 @@ public class LoginCredentialsProviderTest {
 
     @Test
     public void resolveCredentials_tokenMissing_cachedBriefly_immediateRetryDoesNotReadDiskAgain() {
-        // No token on disk — will throw InvalidTokenException (non-recoverable)
+        // No token on disk — will throw InvalidLoginTokenException (non-recoverable)
         // This is a client-side error that doesn't call the service at all
 
         // First call: fails with missing token
@@ -364,6 +391,96 @@ public class LoginCredentialsProviderTest {
         // Second call: immediate retry — should re-raise cached error without calling service
         assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
         assertEquals(1, mockHttpClient.getRequests().size()); // Still 1 — service NOT called again
+    }
+
+    /**
+     * A ValidationException from CreateOAuth2Token is non-recoverable: it is raised as returned by the service, and it is
+     * cached briefly, so an immediate retry rethrows the same error without another Sign-In request.
+     */
+    @Test
+    public void resolveCredentials_whenValidationExceptionOnInitialFetch_throwsNonRecoverableAndCachesError() {
+        // An expired token on disk, so the first resolve refreshes from the Sign-In service.
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600))));
+        mockHttpClient.stubNextResponse(validationExceptionResponse());
+
+        ValidationException first = assertThrows(ValidationException.class, loginCredentialsProvider::resolveCredentials);
+        assertEquals(OAuth2ErrorCode.INVALID_REQUEST, first.error());
+        assertTrue(first.getMessage().contains(VALIDATION_EXCEPTION_MESSAGE), first.getMessage());
+        assertEquals(1, mockHttpClient.getRequests().size());
+
+        ValidationException retry = assertThrows(ValidationException.class, loginCredentialsProvider::resolveCredentials);
+        assertSame(first, retry);
+        assertEquals(1, mockHttpClient.getRequests().size());
+    }
+
+    /**
+     * A ValidationException from CreateOAuth2Token bypasses static stability: the cached credentials are not returned, and no
+     * backoff is applied or logged.
+     */
+    @Test
+    public void resolveCredentials_whenValidationExceptionAfterSuccessfulCache_throwsAndBypassesStaticStability() {
+        // An expired token on disk, so the first resolve refreshes from the Sign-In service.
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600))));
+        // The refreshed credentials expire in 30 seconds, inside the 1 minute mandatory refresh window, so the next call
+        // refreshes again.
+        mockHttpClient.stubResponses(successfulRefreshResponse("new-akid", 30), validationExceptionResponse());
+
+        assertEquals("new-akid", loginCredentialsProvider.resolveCredentials().accessKeyId());
+        assertEquals(1, mockHttpClient.getRequests().size());
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            ValidationException first = assertThrows(ValidationException.class, loginCredentialsProvider::resolveCredentials);
+            assertEquals(2, mockHttpClient.getRequests().size());
+
+            // With static stability or a backoff, this retry would return "new-akid". Instead the cached error is rethrown.
+            ValidationException retry = assertThrows(ValidationException.class, loginCredentialsProvider::resolveCredentials);
+            assertSame(first, retry);
+            assertEquals(2, mockHttpClient.getRequests().size());
+
+            assertEquals(Collections.emptyList(), refreshBackoffWarnings(logCaptor));
+        }
+    }
+
+    /**
+     * A TooManyRequestsError is recoverable: after a successful refresh, the cached credentials are returned and a backoff is
+     * applied, so the next call does not contact the Sign-In service.
+     */
+    @Test
+    public void resolveCredentials_whenTooManyRequestsAfterSuccessfulCache_returnsCachedCredentialsAndBacksOff() {
+        // An expired token on disk, so the first resolve refreshes from the Sign-In service.
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600))));
+        // The refreshed credentials expire in 30 seconds, inside the 1 minute mandatory refresh window, so the next call
+        // refreshes again.
+        mockHttpClient.stubResponses(successfulRefreshResponse("new-akid", 30),
+                                     errorResponse("TooManyRequestsError", 429, OAuth2ErrorCode.RATE_EXCEEDED, "Rate exceeded"));
+
+        // Retries are disabled so that each refresh attempt makes exactly one request.
+        try (SigninClient noRetrySigninClient = SigninClient
+                 .builder()
+                 .region(Region.US_EAST_1)
+                 .endpointOverride(URI.create("https://custom-signin-endpoint.com"))
+                 .httpClient(mockHttpClient)
+                 .overrideConfiguration(c -> c.retryStrategy(AwsRetryStrategy.doNotRetry()))
+                 .build();
+             LoginCredentialsProvider provider = LoginCredentialsProvider
+                 .builder()
+                 .loginSession(LOGIN_SESSION_ID)
+                 .signinClient(noRetrySigninClient)
+                 .tokenCacheLocation(tempDir)
+                 .build()) {
+            assertEquals("new-akid", provider.resolveCredentials().accessKeyId());
+            assertEquals(1, mockHttpClient.getRequests().size());
+
+            try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+                assertEquals("new-akid", provider.resolveCredentials().accessKeyId());
+                assertEquals(2, mockHttpClient.getRequests().size());
+                assertEquals(1, refreshBackoffWarnings(logCaptor).size());
+
+                // Inside the backoff, the cached credentials are returned without another Sign-In request.
+                assertEquals("new-akid", provider.resolveCredentials().accessKeyId());
+                assertEquals(2, mockHttpClient.getRequests().size());
+            }
+        }
     }
 
     @Test
@@ -416,80 +533,267 @@ public class LoginCredentialsProviderTest {
                  }
              });
 
-        // Second call: the cached value is stale (handleFetchedSuccess extended it with jitter, but
-        // we wait for it to expire). Since the stale time was extended 1-10 minutes into the future,
-        // we instead rely on the prefetch window triggering a synchronous OneCallerBlocks refresh.
-        // With OneCallerBlocks, the refresh happens inline and the InvalidTokenException propagates.
-        // Give a brief pause and then call again - the prefetch time should already be in the past
-        // since the credentials expired in 30s and handleFetchedSuccess sets prefetch = stale time.
-        // Actually, with the extended stale time, the value enters prefetch window immediately.
-        // With OneCallerBlocks, the failing refresh throws through to the caller.
+        // Second call: the cached credentials expire in 30s, which is inside the mandatory refresh window, so this
+        // call refreshes inline. The token cache file is gone, so the refresh fails with an InvalidLoginTokenException,
+        // which is non-recoverable and propagates to the caller.
         SdkClientException e = assertThrows(SdkClientException.class,
                                             () -> syncProvider.resolveCredentials());
         assertTrue(e.getMessage().contains("not found"));
+        assertTrue(e.getMessage().contains(tempDir.toString()), e.getMessage());
         syncProvider.close();
     }
 
+    /**
+     * Every client-side failure to use the cached token file is non-recoverable: it is raised before any Sign-In request,
+     * and it is cached briefly, so an immediate retry rethrows the same error even after a valid file is restored.
+     */
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidTokenFiles")
+    public void resolveCredentials_whenTokenFileInvalidOnInitialFetch_throwsNonRecoverableAndCachesError(
+        String description, String fileContents, String expectedFragment) throws IOException {
+        writeTokenFile(fileContents);
+
+        InvalidLoginTokenException first = assertThrows(InvalidLoginTokenException.class,
+                                                        loginCredentialsProvider::resolveCredentials);
+        assertActionableAndNoSecrets(first, expectedFragment);
+        assertEquals(0, mockHttpClient.getRequests().size());
+
+        // A valid, fresh token is restored, but the immediate retry is inside the error cache window.
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().plusSeconds(600))));
+        InvalidLoginTokenException retry = assertThrows(InvalidLoginTokenException.class,
+                                                        loginCredentialsProvider::resolveCredentials);
+        assertSame(first, retry);
+        assertEquals(0, mockHttpClient.getRequests().size());
+    }
+
+    /**
+     * A non-recoverable token failure bypasses static stability: the cached credentials are not returned, no backoff is
+     * applied, and no Sign-In request is made for the invalid file.
+     */
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidTokenFiles")
+    public void resolveCredentials_whenTokenFileInvalidAfterSuccessfulCache_throwsNonRecoverableAndBypassesStaticStability(
+        String description, String fileContents, String expectedFragment) throws IOException {
+        // An expired token on disk, so the first resolve refreshes from the Sign-In service.
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600))));
+        // The refreshed credentials expire in 30 seconds, inside the 1 minute mandatory refresh window, so the next call
+        // refreshes again.
+        mockHttpClient.stubNextResponse(successfulRefreshResponse("new-akid", 30));
+
+        assertEquals("new-akid", loginCredentialsProvider.resolveCredentials().accessKeyId());
+        assertEquals(1, mockHttpClient.getRequests().size());
+
+        writeTokenFile(fileContents);
+
+        InvalidLoginTokenException first = assertThrows(InvalidLoginTokenException.class,
+                                                        loginCredentialsProvider::resolveCredentials);
+        assertActionableAndNoSecrets(first, expectedFragment);
+        assertEquals(1, mockHttpClient.getRequests().size());
+
+        // With static stability or a backoff, this retry would return "new-akid". Instead the cached error is rethrown.
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().plusSeconds(600))));
+        InvalidLoginTokenException retry = assertThrows(InvalidLoginTokenException.class,
+                                                        loginCredentialsProvider::resolveCredentials);
+        assertSame(first, retry);
+        assertEquals(1, mockHttpClient.getRequests().size());
+    }
+
+    /**
+     * A failure to read a token file that exists may be transient, so it is recoverable: it is raised when no credentials
+     * are cached, but it is not cached as a non-recoverable error, so the next call can succeed.
+     */
     @Test
-    public void resolveCredentials_tokenMalformedAfterSuccessfulCache_staticStabilityReturnsCachedCredentials()
-        throws Exception {
-        // First: store token with expired credentials so it triggers refresh from service
-        AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(600));
-        LoginAccessToken token = buildAccessToken(creds);
-        tokenManager.storeToken(token);
+    public void resolveCredentials_whenTokenFileUnreadableOnInitialFetch_throwsRecoverableError() throws IOException {
+        // A directory at the token location exists, but reading it fails with an IOException on every OS.
+        Files.createDirectory(tokenFilePath());
 
-        // First response: successful refresh with short-lived credentials (expires in 30s)
-        String shortLivedJsonBody =
-            "{\"accessToken\":"
-            + "{\"accessKeyId\":\"new-akid\","
-            + "\"secretAccessKey\":\"new-skid\","
-            + "\"sessionToken\":\"new-session-token\"},"
-            + "\"tokenType\":\"aws_sigv4\","
-            + "\"expiresIn\":30,"
-            + "\"refreshToken\":\"new-refresh-token\"}";
+        SdkClientException e = assertThrows(SdkClientException.class, loginCredentialsProvider::resolveCredentials);
+        assertFalse(e instanceof InvalidLoginTokenException, e.getClass().getName());
+        assertTrue(e.getMessage().contains("Unable to read the token cache file"), e.getMessage());
+        assertTrue(e.getMessage().contains(tempDir.toString()), e.getMessage());
+        assertInstanceOf(IOException.class, e.getCause());
+        assertEquals(0, mockHttpClient.getRequests().size());
 
-        HttpExecuteResponse successResponse = HttpExecuteResponse
-            .builder()
-            .response(SdkHttpResponse.builder().statusCode(200).build())
-            .responseBody(AbortableInputStream.create(
-                new ByteArrayInputStream(shortLivedJsonBody.getBytes(StandardCharsets.UTF_8))))
-            .build();
+        // Once the file is readable again, the next call succeeds instead of rethrowing a cached error.
+        Files.delete(tokenFilePath());
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().plusSeconds(600))));
+        assertNotNull(loginCredentialsProvider.resolveCredentials());
+        assertEquals(0, mockHttpClient.getRequests().size());
+    }
 
-        mockHttpClient.stubResponses(successResponse);
+    /**
+     * A recoverable token read failure keeps static stability: the cached credentials are returned and no Sign-In request is
+     * made.
+     */
+    @Test
+    public void resolveCredentials_whenTokenFileUnreadableAfterSuccessfulCache_returnsCachedCredentials() throws IOException {
+        // An expired token on disk, so the first resolve refreshes from the Sign-In service.
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600))));
+        // The refreshed credentials expire in 30 seconds, inside the 1 minute mandatory refresh window, so the next call
+        // refreshes again.
+        mockHttpClient.stubNextResponse(successfulRefreshResponse("new-akid", 30));
 
-        // First call: succeeds and populates the CachedSupplier cache
-        AwsCredentials firstResolve = loginCredentialsProvider.resolveCredentials();
-        assertEquals("new-akid", firstResolve.accessKeyId());
+        assertEquals("new-akid", loginCredentialsProvider.resolveCredentials().accessKeyId());
+        assertEquals(1, mockHttpClient.getRequests().size());
 
-        // Now overwrite the token file with one that is missing the expiresAt field.
-        // This simulates a corrupted or malformed token file on disk.
-        String malformedTokenJson =
-            "{\"accessToken\":"
-            + "{\"accessKeyId\":\"akid\","
-            + "\"secretAccessKey\":\"skid\","
-            + "\"sessionToken\":\"sessionToken\","
-            + "\"accountId\":\"123456789012\"},"
-            + "\"clientId\":\"client-123\","
-            + "\"dpopKey\":\"" + VALID_TEST_PEM.replace("\n", "\\n") + "\","
-            + "\"refreshToken\":\"refresh-token\","
-            + "\"tokenType\":\"aws_sigv4\","
-            + "\"identityToken\":\"id-token\"}";
-        Files.list(tempDir)
-             .filter(p -> p.toString().endsWith(".json"))
-             .forEach(p -> {
-                 try {
-                     Files.write(p, malformedTokenJson.getBytes(StandardCharsets.UTF_8));
-                 } catch (IOException e) {
-                     throw new UncheckedIOException(e);
-                 }
-             });
+        // Replace the token file with a directory, so reading it fails with an IOException.
+        Files.delete(tokenFilePath());
+        Files.createDirectory(tokenFilePath());
 
-        // Second call: the cached value is stale, CachedSupplier refreshes, but token has no expiresAt.
-        // OnDiskTokenManager throws a plain SdkClientException (not InvalidTokenException), so static
-        // stability kicks in and returns the cached credentials rather than throwing.
-        AwsCredentials secondResolve = loginCredentialsProvider.resolveCredentials();
-        assertEquals("new-akid", secondResolve.accessKeyId());
-        assertEquals("new-skid", secondResolve.secretAccessKey());
+        assertEquals("new-akid", loginCredentialsProvider.resolveCredentials().accessKeyId());
+        assertEquals(1, mockHttpClient.getRequests().size());
+    }
+
+    @Test
+    public void resolveCredentials_whenDpopKeyInvalid_preservesParseCause() throws IOException {
+        writeTokenFile(tokenJsonWith("dpopKey", quoted(INVALID_DPOP_KEY)));
+
+        InvalidLoginTokenException e = assertThrows(InvalidLoginTokenException.class,
+                                                    loginCredentialsProvider::resolveCredentials);
+        assertInstanceOf(IllegalArgumentException.class, e.getCause());
+        assertEquals(0, mockHttpClient.getRequests().size());
+    }
+
+    private static Stream<Arguments> invalidTokenFiles() {
+        return Stream.concat(emptyRequiredMemberTokenFiles(), Stream.of(
+            Arguments.of("missing accessToken", tokenJsonWithout("accessToken"),
+                         "required member 'accessToken' not found"),
+            Arguments.of("missing accessToken.accessKeyId", tokenJsonWithout("accessToken.accessKeyId"),
+                         "required member 'accessToken.accessKeyId' not found"),
+            Arguments.of("missing accessToken.secretAccessKey", tokenJsonWithout("accessToken.secretAccessKey"),
+                         "required member 'accessToken.secretAccessKey' not found"),
+            Arguments.of("missing accessToken.sessionToken", tokenJsonWithout("accessToken.sessionToken"),
+                         "required member 'accessToken.sessionToken' not found"),
+            Arguments.of("missing accessToken.expiresAt", tokenJsonWithout("accessToken.expiresAt"),
+                         "required member 'accessToken.expiresAt' not found"),
+            Arguments.of("missing accessToken.accountId", tokenJsonWithout("accessToken.accountId"),
+                         "required member 'accessToken.accountId' not found"),
+            Arguments.of("missing clientId", tokenJsonWithout("clientId"),
+                         "required member 'clientId' not found"),
+            Arguments.of("missing dpopKey", tokenJsonWithout("dpopKey"),
+                         "required member 'dpopKey' not found"),
+            Arguments.of("missing refreshToken", tokenJsonWithout("refreshToken"),
+                         "required member 'refreshToken' not found"),
+            Arguments.of("accessToken not an object", tokenJsonWith("accessToken", quoted("text")),
+                         "required member 'accessToken.accessKeyId' not found"),
+            Arguments.of("malformed JSON", "{\"accessToken\": {",
+                         "the file is not valid JSON"),
+            Arguments.of("empty file", "",
+                         "the file does not contain a JSON object"),
+            Arguments.of("JSON null", "null",
+                         "the file does not contain a JSON object"),
+            Arguments.of("JSON array", "[]",
+                         "the file does not contain a JSON object"),
+            Arguments.of("unparseable expiresAt", tokenJsonWith("accessToken.expiresAt", quoted("yesterday")),
+                         "member 'accessToken.expiresAt' is not a valid ISO-8601 timestamp"),
+            // The token is expired, so a refresh is attempted and the key is validated before the Sign-In call.
+            Arguments.of("invalid dpopKey", tokenJsonWith("dpopKey", quoted(INVALID_DPOP_KEY)),
+                         "member 'dpopKey' is not a valid EC private key")));
+    }
+
+    /**
+     * A token file for each required text member set to an empty string, and to a whitespace-only string.
+     */
+    private static Stream<Arguments> emptyRequiredMemberTokenFiles() {
+        List<String> requiredTextMembers = Arrays.asList("accessToken.accessKeyId", "accessToken.secretAccessKey",
+                                                         "accessToken.sessionToken", "accessToken.expiresAt",
+                                                         "accessToken.accountId", "clientId", "dpopKey", "refreshToken");
+        // The whitespace-only value is a JSON string of a space, a tab, a newline, and a space.
+        return requiredTextMembers.stream().flatMap(member -> Stream.of(
+            Arguments.of("empty " + member, tokenJsonWith(member, quoted("")),
+                         "member '" + member + "' is empty"),
+            Arguments.of("whitespace-only " + member, tokenJsonWith(member, quoted(" \\t\\n ")),
+                         "member '" + member + "' is empty")));
+    }
+
+    /**
+     * The members of a valid, expired token file, keyed by member name (members of {@code accessToken} use a dotted name),
+     * with raw JSON values.
+     */
+    private static Map<String, String> validTokenMembers() {
+        Map<String, String> members = new LinkedHashMap<>();
+        members.put("accessToken.accessKeyId", quoted("akid"));
+        members.put("accessToken.secretAccessKey", quoted(SECRET_ACCESS_KEY));
+        members.put("accessToken.sessionToken", quoted(SESSION_TOKEN));
+        members.put("accessToken.expiresAt", quoted(Instant.now().minusSeconds(600).toString()));
+        members.put("accessToken.accountId", quoted("123456789012"));
+        members.put("clientId", quoted("client-123"));
+        members.put("dpopKey", quoted(VALID_TEST_PEM.replace("\n", "\\n")));
+        members.put("refreshToken", quoted(REFRESH_TOKEN));
+        members.put("tokenType", quoted("aws_sigv4"));
+        return members;
+    }
+
+    /**
+     * A valid, expired token file without {@code member}. Omitting {@code accessToken} omits all of its members.
+     */
+    private static String tokenJsonWithout(String member) {
+        Map<String, String> members = validTokenMembers();
+        members.keySet().removeIf(name -> name.equals(member) || name.startsWith(member + "."));
+        return toJson(members);
+    }
+
+    /**
+     * A valid, expired token file with {@code member} set to {@code rawJsonValue}. Setting {@code accessToken} replaces all
+     * of its members.
+     */
+    private static String tokenJsonWith(String member, String rawJsonValue) {
+        Map<String, String> members = validTokenMembers();
+        members.keySet().removeIf(name -> name.startsWith(member + "."));
+        members.put(member, rawJsonValue);
+        return toJson(members);
+    }
+
+    private static String toJson(Map<String, String> members) {
+        Map<String, String> accessToken = new LinkedHashMap<>();
+        Map<String, String> token = new LinkedHashMap<>();
+        members.forEach((name, value) -> {
+            if (name.startsWith("accessToken.")) {
+                accessToken.put(name.substring("accessToken.".length()), value);
+            } else {
+                token.put(name, value);
+            }
+        });
+        if (!accessToken.isEmpty()) {
+            token.put("accessToken", toJsonObject(accessToken));
+        }
+        return toJsonObject(token);
+    }
+
+    private static String toJsonObject(Map<String, String> members) {
+        return members.entrySet().stream()
+                      .map(e -> quoted(e.getKey()) + ":" + e.getValue())
+                      .collect(Collectors.joining(",", "{", "}"));
+    }
+
+    private static String quoted(String value) {
+        return "\"" + value + "\"";
+    }
+
+    private Path tokenFilePath() {
+        try {
+            MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+            sha256.update(LOGIN_SESSION_ID.getBytes(StandardCharsets.UTF_8));
+            String cacheKey = BinaryUtils.toHex(sha256.digest()).toLowerCase(Locale.ENGLISH);
+            return tempDir.resolve(cacheKey + ".json");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Unable to derive cache key", e);
+        }
+    }
+
+    private void writeTokenFile(String contents) throws IOException {
+        Files.write(tokenFilePath(), contents.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private void assertActionableAndNoSecrets(SdkClientException e, String expectedFragment) {
+        String message = e.getMessage();
+        assertTrue(message.contains(expectedFragment), message);
+        assertTrue(message.contains("You must re-authenticate"), message);
+        assertTrue(message.contains(LOGIN_SESSION_ID), message);
+        assertTrue(message.contains(tempDir.toString()), message);
+        for (String secret : Arrays.asList(SECRET_ACCESS_KEY, SESSION_TOKEN, REFRESH_TOKEN, INVALID_DPOP_KEY, "PRIVATE KEY")) {
+            assertFalse(message.contains(secret), message);
+        }
     }
 
     private static void verifyResolvedCredentialsAreUpdated(AwsCredentials resolvedCredentials) {
@@ -530,13 +834,17 @@ public class LoginCredentialsProviderTest {
     }
 
     private HttpExecuteResponse successfulRefreshResponse(String accessKeyId) {
+        return successfulRefreshResponse(accessKeyId, 600);
+    }
+
+    private HttpExecuteResponse successfulRefreshResponse(String accessKeyId, int expiresInSeconds) {
         String jsonBody =
             "{\"accessToken\":"
             + "{\"accessKeyId\":\"" + accessKeyId + "\","
             + "\"secretAccessKey\":\"new-skid\","
             + "\"sessionToken\":\"new-session-token\"},"
             + "\"tokenType\":\"aws_sigv4\","
-            + "\"expiresIn\":600,"
+            + "\"expiresIn\":" + expiresInSeconds + ","
             + "\"refreshToken\":\"new-refresh-token\"}";
 
         return HttpExecuteResponse
@@ -547,19 +855,34 @@ public class LoginCredentialsProviderTest {
     }
 
     private void stubAccessDeniedException(OAuth2ErrorCode errorCode) {
-        String errorBody = "{\"error\":\"" + errorCode + "\",\"message\":\"The refresh token has expired.\"}";
-        mockHttpClient.stubNextResponse(
-            HttpExecuteResponse
-                .builder()
-                .response(
-                    SdkHttpResponse
-                        .builder()
-                        .putHeader("X-Amzn-Errortype", "AccessDeniedException")
-                        .statusCode(401)
-                        .build())
-                .responseBody(AbortableInputStream.create(new StringInputStream(errorBody)))
-                .build()
-        );
+        mockHttpClient.stubNextResponse(errorResponse("AccessDeniedException", 401, errorCode, "The refresh token has expired."));
+    }
+
+    private static HttpExecuteResponse validationExceptionResponse() {
+        return errorResponse("ValidationException", 400, OAuth2ErrorCode.INVALID_REQUEST, VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    private static HttpExecuteResponse errorResponse(String errorType, int statusCode, OAuth2ErrorCode errorCode,
+                                                     String message) {
+        String errorBody = "{\"error\":\"" + errorCode + "\",\"message\":\"" + message + "\"}";
+        return HttpExecuteResponse
+            .builder()
+            .response(
+                SdkHttpResponse
+                    .builder()
+                    .putHeader("X-Amzn-Errortype", errorType)
+                    .statusCode(statusCode)
+                    .build())
+            .responseBody(AbortableInputStream.create(new StringInputStream(errorBody)))
+            .build();
+    }
+
+    private static List<String> refreshBackoffWarnings(LogCaptor logCaptor) {
+        return logCaptor.loggedEvents().stream()
+                        .filter(event -> event.getLevel() == Level.WARN)
+                        .map(event -> event.getMessage().getFormattedMessage())
+                        .filter(message -> message.contains("Credential refresh failed"))
+                        .collect(Collectors.toList());
     }
 
     private AwsSessionCredentials buildCredentials(Instant expirationTime) {

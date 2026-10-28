@@ -43,7 +43,12 @@ public class AwsRetryPolicyTest {
     @Test
     public void retriesOnAuthenticationErrorCodes() {
         assertTrue(shouldRetry(applyErrorCode("ExpiredToken")));
-        assertTrue(shouldRetry(applyErrorCode("InvalidToken")));
+        assertTrue(shouldRetry(applyErrorCode("ExpiredTokenException")));
+    }
+
+    @Test
+    public void doesNotRetryOnInvalidToken() {
+        assertFalse(shouldRetry(applyErrorCode("InvalidToken")));
     }
 
     @Test

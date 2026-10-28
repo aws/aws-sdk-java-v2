@@ -73,8 +73,9 @@ public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.B
     /**
      * When the value actually expires, or null if not specified. Unlike {@link #staleTime()}, which can be earlier to force a
      * blocking refresh before expiry, this is the true expiration. With {@link CachedSupplier.StaleValueBehavior#ALLOW}, a
-     * fetched value is treated as a failed refresh only if this time is at or before now. If not specified,
-     * {@link #staleTime()} is used instead.
+     * fetched value is treated as a failed refresh only if this time is at or before now and a value is already cached, and
+     * the remaining time until this expiration of the cached value determines the refresh backoff after a failed refresh. If
+     * not specified, {@link #staleTime()} is used instead.
      */
     public Instant expiration() {
         return expiration;
@@ -109,7 +110,7 @@ public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.B
          * Specify the time at which the value in this cache is stale, and all calls to {@link CachedSupplier#get()} should block
          * to try to update the value.
          *
-         * If this isn't specified, all threads will never block to update the value.
+         * If this isn't specified, or is {@code null}, all threads will never block to update the value.
          */
         public Builder<T> staleTime(Instant staleTime) {
             this.staleTime = staleTime;
@@ -135,8 +136,10 @@ public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.B
          * may be set earlier to force a blocking refresh before the value expires.
          *
          * <p>With {@link CachedSupplier.StaleValueBehavior#ALLOW}, a fetched value whose stale time has passed is still used
-         * as long as this expiration has not passed. Only a value whose expiration is at or before now is treated as a failed
-         * refresh. {@link CachedSupplier.StaleValueBehavior#STRICT} ignores this value.
+         * as long as this expiration has not passed. Only a value whose expiration is at or before now, fetched while a value
+         * is already cached, is treated as a failed refresh. The remaining time until the cached value's expiration also
+         * determines how long the supplier waits before trying again after a failed refresh.
+         * {@link CachedSupplier.StaleValueBehavior#STRICT} ignores this value.
          *
          * If this isn't specified, the {@link #staleTime(Instant)} is treated as the expiration.
          */
