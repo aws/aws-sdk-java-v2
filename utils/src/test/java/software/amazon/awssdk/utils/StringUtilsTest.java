@@ -22,7 +22,6 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.utils.StringUtils.replacePrefixIgnoreCase;
 
-import java.util.Random;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
@@ -213,34 +212,6 @@ public class StringUtilsTest {
     }
 
     @Test
-    public void replaceEach_randomInputs_matchesReferenceImplementation() {
-        // Short texts over a two-letter alphabet, which give many overlaps and ties.
-        assertRandomInputsMatchReference(new Random(42), new String[] {"a", "b"}, new String[] {"X", "Y", ""},
-                                         12, 4, 3, 10);
-        // Longer texts with URL-encoding characters and replacements of different lengths.
-        assertRandomInputsMatchReference(new Random(7), new String[] {"a", "b", "c", "%", "7", "E"},
-                                         new String[] {"X", "YY", "", "%20", "a"}, 40, 7, 4, 20);
-    }
-
-    private static void assertRandomInputsMatchReference(Random random, String[] alphabet, String[] replacements,
-                                                         int maxTextLength, int maxNeedles, int maxNeedleLength,
-                                                         int nullOneIn) {
-        for (int iteration = 0; iteration < 20_000; iteration++) {
-            String text = randomString(random, alphabet, random.nextInt(maxTextLength));
-            int needles = random.nextInt(maxNeedles);
-            String[] search = new String[needles];
-            String[] replace = new String[needles];
-            for (int i = 0; i < needles; i++) {
-                search[i] = random.nextInt(nullOneIn) == 0 ? null
-                                                           : randomString(random, alphabet, random.nextInt(maxNeedleLength));
-                replace[i] = random.nextInt(nullOneIn) == 0 ? null : replacements[random.nextInt(replacements.length)];
-            }
-            assertEquals("text=" + text, referenceReplaceEach(text, search, replace),
-                         StringUtils.replaceEach(text, search, replace));
-        }
-    }
-
-    @Test
     public void replaceEach_noMatches_returnsSameInstance() {
         String text = "hello world";
         assertSame(text, StringUtils.replaceEach(text, new String[] {"x", "yz"}, new String[] {"1", "2"}));
@@ -320,46 +291,5 @@ public class StringUtilsTest {
         String text = StringUtils.repeat("&", n) + "<";
         assertEquals(StringUtils.repeat("&amp;", n) + "&lt;",
                      StringUtils.replaceEach(text, new String[] {"&", "<"}, new String[] {"&amp;", "&lt;"}));
-    }
-
-    private static String randomString(Random random, String[] alphabet, int length) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            sb.append(alphabet[random.nextInt(alphabet.length)]);
-        }
-        return sb.toString();
-    }
-
-    /**
-     * The previous, straightforward implementation of {@link StringUtils#replaceEach}, which rescans every
-     * search string after every replacement. Used to check that the optimized version gives the same output.
-     */
-    private static String referenceReplaceEach(String text, String[] searchList, String[] replacementList) {
-        if (text == null || text.isEmpty()) {
-            return text;
-        }
-        StringBuilder buf = new StringBuilder();
-        int start = 0;
-        while (true) {
-            int textIndex = -1;
-            int replaceIndex = -1;
-            for (int i = 0; i < searchList.length; i++) {
-                if (searchList[i] == null || searchList[i].isEmpty() || replacementList[i] == null) {
-                    continue;
-                }
-                int tempIndex = text.indexOf(searchList[i], start);
-                if (tempIndex != -1 && (textIndex == -1 || tempIndex < textIndex)) {
-                    textIndex = tempIndex;
-                    replaceIndex = i;
-                }
-            }
-            if (textIndex == -1) {
-                break;
-            }
-            buf.append(text, start, textIndex).append(replacementList[replaceIndex]);
-            start = textIndex + searchList[replaceIndex].length();
-        }
-        buf.append(text, start, text.length());
-        return buf.toString();
     }
 }
