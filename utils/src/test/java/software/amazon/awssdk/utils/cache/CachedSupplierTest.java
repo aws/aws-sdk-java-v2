@@ -2354,7 +2354,9 @@ public class CachedSupplierTest {
         "1199, 599",
         "1200, 600",
         "1201, 600",
-        "3600, 600"
+        "3600, 600",
+        // A value that never expires: halving Long.MAX_VALUE cannot overflow, and the cap still applies
+        "9223372036854775807, 600"
     })
     public void refreshBackoffSeconds_withRemainingLifetime_isUniformFromSixtySecondsToClampedHalfRemaining(
         long remainingSeconds, long expectedUpperSeconds) {
@@ -2377,8 +2379,8 @@ public class CachedSupplierTest {
         // Expired at or before now: 0
         "0, -60, 0",
         "-600, -660, 0",
-        // Capped at 1200 seconds, which already selects the 600 second cap of the upper bound
-        "5000, 4940, 1200",
+        // Not capped: refreshBackoffSeconds caps the upper bound of the backoff instead
+        "5000, 4940, 5000",
         // No expiration: the stale time is used instead
         ", 1000, 1000",
         ", 0, 0",
@@ -2419,10 +2421,17 @@ public class CachedSupplierTest {
         RefreshResult<String> defaultStaleTime = RefreshResult.builder("value").build();
         RefreshResult<String> nullStaleTime = RefreshResult.builder("value").staleTime(null).build();
 
-        assertThat(CachedSupplier.remainingLifetimeSeconds(defaultStaleTime, now)).isEqualTo(1200);
-        assertThat(CachedSupplier.remainingLifetimeSeconds(nullStaleTime, now)).isEqualTo(1200);
-        assertThat(CachedSupplier.refreshBackoffSeconds(1200, new BoundaryRandom(true)))
-            .isEqualTo(LONG_LIVED_BACKOFF_MAX_SECONDS);
+        long defaultStaleTimeRemaining = CachedSupplier.remainingLifetimeSeconds(defaultStaleTime, now);
+        long nullStaleTimeRemaining = CachedSupplier.remainingLifetimeSeconds(nullStaleTime, now);
+
+        assertThat(defaultStaleTimeRemaining).isEqualTo(Instant.MAX.getEpochSecond() - now.getEpochSecond());
+        assertThat(nullStaleTimeRemaining).isEqualTo(Long.MAX_VALUE);
+        for (long remaining : new long[] {defaultStaleTimeRemaining, nullStaleTimeRemaining}) {
+            assertThat(CachedSupplier.refreshBackoffSeconds(remaining, new BoundaryRandom(false)))
+                .isEqualTo(LONG_LIVED_BACKOFF_MIN_SECONDS);
+            assertThat(CachedSupplier.refreshBackoffSeconds(remaining, new BoundaryRandom(true)))
+                .isEqualTo(LONG_LIVED_BACKOFF_MAX_SECONDS);
+        }
     }
 
     // --- initial fetch returns already-expired value tests ---

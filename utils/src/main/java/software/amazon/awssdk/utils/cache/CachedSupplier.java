@@ -72,13 +72,6 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     private static final long BACKOFF_UPPER_BOUND_CAP_SECONDS = 600;
 
     /**
-     * Upper limit applied to the remaining lifetime used by the refresh backoff. Every remaining lifetime at or above this
-     * already selects {@link #BACKOFF_UPPER_BOUND_CAP_SECONDS}, so limiting it does not change the result. It is also used for
-     * a cached value that never expires.
-     */
-    private static final long BACKOFF_REMAINING_LIFETIME_LIMIT_SECONDS = 2 * BACKOFF_UPPER_BOUND_CAP_SECONDS;
-
-    /**
      * Minimum cache duration for a non-recoverable error (inclusive).
      */
     private static final int NON_RECOVERABLE_ERROR_CACHE_MIN_SECONDS = 1;
@@ -587,11 +580,10 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     }
 
     /**
-     * Returns the remaining lifetime of the given value in whole seconds (rounded down), never negative and at most
-     * {@link #BACKOFF_REMAINING_LIFETIME_LIMIT_SECONDS}. The expiration is {@link RefreshResult#expiration()}, or
-     * {@link RefreshResult#staleTime()} if no expiration is specified. A {@code null} value has a remaining lifetime of 0. A
-     * value with neither an expiration nor a stale time is treated as never expiring, and has the limit as its remaining
-     * lifetime.
+     * Returns the remaining lifetime of the given value in whole seconds (rounded down), never negative. The expiration is
+     * {@link RefreshResult#expiration()}, or {@link RefreshResult#staleTime()} if no expiration is specified. A {@code null}
+     * value has a remaining lifetime of 0. A value with neither an expiration nor a stale time is treated as never expiring,
+     * and has a remaining lifetime of {@link Long#MAX_VALUE}.
      */
     @SdkTestInternalApi
     static long remainingLifetimeSeconds(RefreshResult<?> value, Instant now) {
@@ -600,10 +592,10 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         }
         Instant expiration = value.expiration() != null ? value.expiration() : value.staleTime();
         if (expiration == null) {
-            return BACKOFF_REMAINING_LIFETIME_LIMIT_SECONDS;
+            // Not reached for cached values, whose null stale time is replaced with Instant.MAX when they are fetched.
+            return Long.MAX_VALUE;
         }
-        long remaining = Math.max(0, Duration.between(now, expiration).getSeconds());
-        return Math.min(remaining, BACKOFF_REMAINING_LIFETIME_LIMIT_SECONDS);
+        return Math.max(0, Duration.between(now, expiration).getSeconds());
     }
 
     private static long clamp(long value, long min, long max) {
