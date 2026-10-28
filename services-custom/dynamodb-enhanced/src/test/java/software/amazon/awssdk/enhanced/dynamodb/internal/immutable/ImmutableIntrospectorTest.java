@@ -434,6 +434,51 @@ public class ImmutableIntrospectorTest {
         });
     }
 
+    /**
+     * Reproduces https://github.com/aws/aws-sdk-java-v2/issues/5950: Immutables {@code @Value.Default}
+     * methods keep a builder setter even when the getter is annotated {@code @DynamoDbIgnore}. The
+     * ignored getter must also suppress that unpaired builder setter during introspection.
+     */
+    @DynamoDbImmutable(builder = ImmutableWithIgnoredGetterAndBuilderSetter.Builder.class)
+    private static final class ImmutableWithIgnoredGetterAndBuilderSetter {
+        public String getCustomerId() {
+            throw new UnsupportedOperationException();
+        }
+
+        @DynamoDbIgnore
+        public String getName() {
+            return "";
+        }
+
+        public static final class Builder {
+            public Builder customerId(String customerId) {
+                throw new UnsupportedOperationException();
+            }
+
+            public Builder name(String name) {
+                throw new UnsupportedOperationException();
+            }
+
+            public ImmutableWithIgnoredGetterAndBuilderSetter build() {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
+
+    @Test
+    public void ignoredGetterSuppressesMatchingBuilderSetter() {
+        ImmutableInfo<ImmutableWithIgnoredGetterAndBuilderSetter> immutableInfo =
+            ImmutableIntrospector.getImmutableInfo(ImmutableWithIgnoredGetterAndBuilderSetter.class);
+
+        assertThat(immutableInfo.immutableClass()).isSameAs(ImmutableWithIgnoredGetterAndBuilderSetter.class);
+        assertThat(immutableInfo.builderClass()).isSameAs(ImmutableWithIgnoredGetterAndBuilderSetter.Builder.class);
+        assertThat(immutableInfo.propertyDescriptors()).hasOnlyOneElementSatisfying(p -> {
+            assertThat(p.name()).isEqualTo("customerId");
+            assertThat(p.getter().getName()).isEqualTo("getCustomerId");
+            assertThat(p.setter().getName()).isEqualTo("customerId");
+        });
+    }
+
     @DynamoDbImmutable(builder = SimpleImmutableWithIgnoredSetter.Builder.class)
     private static final class SimpleImmutableWithIgnoredSetter {
         public int attribute() {
