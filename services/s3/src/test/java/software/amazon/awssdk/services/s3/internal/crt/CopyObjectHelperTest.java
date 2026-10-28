@@ -1008,7 +1008,7 @@ class CopyObjectHelperTest {
     }
 
     @Test
-    void singlePartCopy_zeroByteSource_reportsNoBytesButCompletes() {
+    void singlePartCopy_zeroByteSource_reportsZeroBytesAndCompletes() {
         PublisherListener<Long> progressListener = mock(PublisherListener.class);
         Consumer<Long> lengthListener = mock(Consumer.class);
         CopyObjectRequest copyObjectRequest = copyRequestWithListeners(progressListener, lengthListener);
@@ -1019,9 +1019,12 @@ class CopyObjectHelperTest {
 
         copyHelper.copyObject(copyObjectRequest).join();
 
-        verify(lengthListener).accept(0L);
-        verify(progressListener, never()).subscriberOnNext(any());
-        verify(progressListener).subscriberOnComplete();
+        InOrder inOrder = inOrder(lengthListener, progressListener);
+        inOrder.verify(lengthListener).accept(0L);
+        inOrder.verify(progressListener).subscriberOnNext(0L);
+        inOrder.verify(progressListener).subscriberOnComplete();
+        verify(progressListener, times(1)).subscriberOnNext(any());
+        verify(progressListener, never()).subscriberOnError(any());
     }
 
     @Test

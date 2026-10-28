@@ -533,11 +533,8 @@ public final class CopyObjectHelper {
             if (throwable != null) {
                 returnFuture.completeExceptionally(throwable);
             } else {
-                // A 0-byte copy transfers nothing, so it reports no bytesTransferred. This matches the multipart path,
-                // which reports only the bytes of parts that were copied. transferComplete still fires below.
-                if (contentLength > 0) {
-                    notifyListener(() -> progressListener.subscriberOnNext(contentLength));
-                }
+                // Report the whole object, even when it is empty, so a successful copy always calls bytesTransferred.
+                notifyListener(() -> progressListener.subscriberOnNext(contentLength));
                 returnFuture.complete(response);
                 notifyListener(progressListener::subscriberOnComplete);
             }

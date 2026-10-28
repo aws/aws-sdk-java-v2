@@ -428,6 +428,63 @@ public class S3JavaMultipartTransferProgressListenerTest {
     }
 
     @Test
+    void copyWithJavaBasedClient_zeroByteSource_reportsZeroBytesAndCompletion() {
+        String destinationKey = "copiedObj";
+        S3AsyncClient s3Async = s3AsyncClient(true);
+
+        TransferListener transferListenerMock = mock(TransferListener.class);
+
+        stubFor(head(anyUrl()).willReturn(aResponse().withStatus(200).withHeader("Content-Length", "0")));
+        stubFor(put(urlEqualTo("/" + EXAMPLE_BUCKET + "/" + destinationKey))
+                    .willReturn(aResponse().withStatus(200).withBody(COPY_OBJECT_RESULT)));
+
+        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
+                                                            mock(TransferManagerConfiguration.class),
+                                                            mock(DownloadDirectoryHelper.class));
+        CaptureTransferListener transferListener = new CaptureTransferListener();
+
+        Copy copy = tm.copy(u -> u.copyObjectRequest(p -> p
+                                      .sourceBucket(EXAMPLE_BUCKET)
+                                      .sourceKey(TEST_KEY)
+                                      .destinationBucket(EXAMPLE_BUCKET)
+                                      .destinationKey(destinationKey))
+                                  .addTransferListener(LoggingTransferListener.create())
+                                  .addTransferListener(transferListener)
+                                  .addTransferListener(transferListenerMock)
+                                  .build());
+
+        assertTransferListenerCompletion(transferListener);
+        copy.completionFuture().join();
+        assertThat(transferListener.getExceptionCaught()).isNull();
+        assertThat(transferListener.isTransferComplete()).isTrue();
+
+        InOrder inOrder = Mockito.inOrder(transferListenerMock);
+        inOrder.verify(transferListenerMock).transferInitiated(ArgumentMatchers.any());
+        ArgumentCaptor<TransferListener.Context.BytesTransferred> bytesContext =
+            ArgumentCaptor.forClass(TransferListener.Context.BytesTransferred.class);
+        inOrder.verify(transferListenerMock).bytesTransferred(bytesContext.capture());
+        ArgumentCaptor<TransferListener.Context.TransferComplete> completeContext =
+            ArgumentCaptor.forClass(TransferListener.Context.TransferComplete.class);
+        inOrder.verify(transferListenerMock).transferComplete(completeContext.capture());
+        Mockito.verify(transferListenerMock, times(1)).transferInitiated(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, times(1)).bytesTransferred(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, times(1)).transferComplete(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, times(0)).transferFailed(ArgumentMatchers.any());
+
+        TransferProgressSnapshot bytesSnapshot = bytesContext.getValue().progressSnapshot();
+        assertThat(bytesSnapshot.totalBytes()).hasValue(0L);
+        assertThat(bytesSnapshot.transferredBytes()).isEqualTo(0L);
+        assertThat(bytesSnapshot.ratioTransferred()).hasValue(1.0);
+
+        TransferProgressSnapshot finalSnapshot = completeContext.getValue().progressSnapshot();
+        assertThat(finalSnapshot.totalBytes()).hasValue(0L);
+        assertThat(finalSnapshot.transferredBytes()).isEqualTo(0L);
+
+        WireMock.verify(1, WireMock.headRequestedFor(anyUrl()));
+        WireMock.verify(1, WireMock.putRequestedFor(anyUrl()));
+    }
+
+    @Test
     void copyWithPlainClient_listeners_reportCompletion() {
         S3AsyncClient s3Async = s3AsyncClient(false);
 
