@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "EC2 Image Builder",
+    "contributor": "",
+    "description": "This release adds support for on-demand AMI scanning with Amazon Inspector."
+}
