@@ -489,6 +489,11 @@ class GenericS3TransferManager implements S3TransferManager {
         CompletableFuture<TransferProgress> progressFuture = new CompletableFuture<>();
         CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture = new CompletableFuture<>();
         AtomicReference<DownloadFileRequest> requestToSaveOnPauseRef = new AtomicReference<>(originalDownloadRequest);
+        // Created before the HEAD is sent, so it records the destination file before this resume can write to it.
+        DefaultFileDownload fileDownload = new DefaultFileDownload(returnFuture,
+                                                                   new ResumeTransferProgress(progressFuture),
+                                                                   requestToSaveOnPauseRef::get,
+                                                                   resumableFileDownload);
 
         CompletableFuture<HeadObjectResponse> headFuture =
             s3AsyncClient.headObject(b -> b.bucket(getObjectRequest.bucket()).key(getObjectRequest.key()));
@@ -515,10 +520,7 @@ class GenericS3TransferManager implements S3TransferManager {
             return null;
         });
 
-        return new DefaultFileDownload(returnFuture,
-                                       new ResumeTransferProgress(progressFuture),
-                                       requestToSaveOnPauseRef::get,
-                                       resumableFileDownload);
+        return fileDownload;
     }
 
     /**
