@@ -30,10 +30,11 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateSessionRequest;
 import software.amazon.awssdk.services.s3.model.SessionCredentials;
 import software.amazon.awssdk.services.s3.s3express.S3ExpressSessionCredentials;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.cache.lru.LruCache;
 
 @SdkInternalApi
-public class S3ExpressIdentityCache {
+public class S3ExpressIdentityCache implements SdkAutoCloseable {
 
     /**
      * Original specification calls for 100. We'll use 25 for now, pending testing.
@@ -59,6 +60,15 @@ public class S3ExpressIdentityCache {
     public S3ExpressSessionCredentials get(S3ExpressIdentityKey key) {
         CachedS3ExpressCredentials cachedCredentials = cache.get(key);
         return S3ExpressSessionCredentials.fromSessionResponse(cachedCredentials.get());
+    }
+
+    /**
+     * Evicts every cached entry. Eviction closes each {@link CachedS3ExpressCredentials}, which stops its background
+     * refresh.
+     */
+    @Override
+    public void close() {
+        cache.evictAll();
     }
 
     private LruCache<S3ExpressIdentityKey, CachedS3ExpressCredentials> initCache() {
