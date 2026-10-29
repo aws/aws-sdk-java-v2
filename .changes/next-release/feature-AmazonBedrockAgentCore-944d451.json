@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore",
-    "contributor": "",
-    "description": "Adds AgentCore Runtime session endpoint support, including sessionEndpointUrl on the InvokeAgentRuntime response"
-}
