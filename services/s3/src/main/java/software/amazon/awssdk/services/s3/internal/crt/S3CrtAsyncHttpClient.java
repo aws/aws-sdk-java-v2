@@ -24,7 +24,6 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
-import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_BYTES_READ;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_DELETE_ON_FAILURE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION;
@@ -275,8 +274,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                                          .progressListener(
                                                              httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER))
                                                          .metaRequestFuture(s3MetaRequestFuture)
-                                                         .responseBytesRead(
-                                                             httpExecutionAttributes.getAttribute(RESPONSE_BYTES_READ))
                                                          .streamHandler(borrowedBufferResponseTransformer.currentAttempt())
                                                          .build();
     }

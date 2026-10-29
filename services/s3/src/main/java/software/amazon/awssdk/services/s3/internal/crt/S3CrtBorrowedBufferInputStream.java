@@ -18,27 +18,29 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongConsumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.crt.s3.S3BorrowedBuffer;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An {@link InputStream} that reads CRT borrowed buffers, delivered as {@link S3CrtBorrowedBufferLease}s.
+ * An {@link InputStream} that reads CRT borrowed buffers.
  *
- * <p>Fully reading a lease releases its buffer and credits the CRT read window by its byte count.
+ * <p>Fully reading a buffer releases it and credits the CRT read window by its byte count.
  *
  * <p>A read waits only when nothing is queued. It returns the queued bytes, which may be fewer than requested. If the end or
  * a failure arrives partway through a read, that read returns the bytes it copied and the next read reports it. Reads are
  * serialized.
  *
  * <p>{@link #close()} and {@link #abort()} may be called from any thread, including during a blocked read. They release unread
- * leases and cancel the request if it is still running.
+ * buffers and cancel the request if it is still running.
  */
 @SdkInternalApi
 public final class S3CrtBorrowedBufferInputStream extends InputStream implements Abortable {
@@ -58,7 +60,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
         }
     }
 
-    // Contains accepted leases and terminal signals in delivery order.
+    // Contains accepted buffers and terminal signals in delivery order.
     private final BlockingQueue<Object> events = new LinkedBlockingQueue<>();
     // Lock order: readLock, stateLock
     private final Object readLock = new Object();
@@ -72,7 +74,8 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
 
     // Guarded by readLock.
     private boolean endOfStream;
-    private S3CrtBorrowedBufferLease current;
+    private S3BorrowedBuffer current;
+    private long currentByteCount;
 
     S3CrtBorrowedBufferInputStream(Runnable cancellationAction, LongConsumer readWindowAction) {
         this.cancellationAction = cancellationAction;
@@ -80,9 +83,9 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
     }
 
     /**
-     * Queues a lease, or releases it when upstream delivery has ended or the stream is closed.
+     * Queues a buffer, or releases it when upstream delivery has ended or the stream is closed.
      */
-    boolean onBuffer(S3CrtBorrowedBufferLease buffer) {
+    boolean onBuffer(S3BorrowedBuffer buffer) {
         boolean accepted;
         synchronized (stateLock) {
             accepted = !deliveryEnded;
@@ -91,7 +94,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
             }
         }
         if (!accepted) {
-            buffer.release();
+            buffer.close();
         }
         return accepted;
     }
@@ -134,7 +137,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
         synchronized (readLock) {
             int copied = 0;
             // Wait for the first byte only. Once some bytes are copied, return them instead of waiting for more.
-            while (copied < length && loadNextLease(copied == 0)) {
+            while (copied < length && loadNextBuffer(copied == 0)) {
                 copied += readCurrent(destination, offset + copied, length - copied);
             }
             if (copied > 0) {
@@ -146,14 +149,15 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
     }
 
     // Waits for the next event only if waitIfEmpty is true. Returns whether current can be read.
-    private boolean loadNextLease(boolean waitIfEmpty) throws IOException {
+    private boolean loadNextBuffer(boolean waitIfEmpty) throws IOException {
         if (current == null && !isTerminal()) {
             Object event = events.poll();
             if (event == null && waitIfEmpty) {
                 event = takeEvent();
             }
-            if (event instanceof S3CrtBorrowedBufferLease) {
-                current = (S3CrtBorrowedBufferLease) event;
+            if (event instanceof S3BorrowedBuffer) {
+                current = (S3BorrowedBuffer) event;
+                currentByteCount = current.asByteBuffer().remaining();
             } else if (event == Signal.COMPLETE) {
                 endOfStream = true;
             } else if (event instanceof Throwable) {
@@ -184,13 +188,15 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
     }
 
     private int readCurrent(byte[] destination, int offset, int length) {
-        int count = current.copyTo(destination, offset, length);
-        if (!current.hasRemaining()) {
-            S3CrtBorrowedBufferLease consumed = current;
+        ByteBuffer view = current.asByteBuffer();
+        int count = Math.min(view.remaining(), length);
+        view.get(destination, offset, count);
+        if (!view.hasRemaining()) {
+            S3BorrowedBuffer consumed = current;
             current = null;
             try {
-                consumed.release();
-                readWindowAction.accept(consumed.byteCount());
+                consumed.close();
+                readWindowAction.accept(currentByteCount);
             } catch (Throwable t) {
                 // Fail on the next read, so the bytes already copied are still returned.
                 close(t);
@@ -264,16 +270,16 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
     private void releaseQueued() {
         Object event;
         while ((event = events.poll()) != null) {
-            if (event instanceof S3CrtBorrowedBufferLease) {
-                release((S3CrtBorrowedBufferLease) event);
+            if (event instanceof S3BorrowedBuffer) {
+                release((S3BorrowedBuffer) event);
             }
         }
     }
 
-    private static void release(S3CrtBorrowedBufferLease buffer) {
+    private static void release(S3BorrowedBuffer buffer) {
         if (buffer != null) {
             try {
-                buffer.release();
+                buffer.close();
             } catch (Throwable t) {
                 log.error(() -> "Failed to release borrowed response buffer", t);
             }

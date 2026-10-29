@@ -19,7 +19,6 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.crt.CRT;
@@ -37,8 +36,7 @@ import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Adapts CRT borrowed-buffer {@link GetObjectResponse} callbacks to an {@link S3CrtBorrowedBufferStreamHandler}, checking
- * that each buffer starts where the previous one ended.
+ * Adapts CRT borrowed-buffer {@link GetObjectResponse} callbacks to an {@link S3CrtBorrowedBufferStreamHandler}.
  *
  * <p>Headers, progress and request completion go through {@link S3CrtResponseHandlerAdapter}.
  */
@@ -51,9 +49,8 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
     private final CompletableFuture<Void> executeFuture;
     private final S3CrtBorrowedBufferStreamHandler streamHandler;
     private final CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
-    private final AtomicLong responseBytesRead;
     private final AtomicBoolean streamInitiated = new AtomicBoolean();
-    private long expectedObjectRangeStart;
+    private long nextObjectRangeStart;
 
     private S3CrtBorrowedBufferResponseHandlerAdapter(Builder builder) {
         this.executeFuture = builder.executeFuture;
@@ -61,7 +58,6 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
                                                        builder.metaRequestFuture);
         this.streamHandler = Validate.paramNotNull(builder.streamHandler, "streamHandler");
         this.metaRequestFuture = builder.metaRequestFuture;
-        this.responseBytesRead = builder.responseBytesRead;
         executeFuture.whenComplete((ignored, error) -> {
             if (error != null) {
                 try {
@@ -83,7 +79,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
 
     @Override
     public void onResponseHeaders(int statusCode, HttpHeader[] headers) {
-        expectedObjectRangeStart = initialRangeStart(headers);
+        nextObjectRangeStart = initialRangeStart(headers);
         delegate.onResponseHeaders(statusCode, headers);
     }
 
@@ -96,14 +92,16 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
 
     @Override
     public int onResponseBodyBorrowed(S3BorrowedBuffer crtBuffer, long objectRangeStart, long objectRangeEnd) {
-        S3CrtBorrowedBufferLease sdkBuffer = null;
         boolean acceptedByStream = false;
         try {
             Validate.paramNotNull(crtBuffer, "crtBuffer");
             delegate.initiateResponseHandlingForBorrowedResponse();
-            ByteBuffer directView = crtBuffer.asByteBuffer();
-            sdkBuffer = new S3CrtBorrowedBufferLease(directView, crtBuffer::close);
-            acceptedByStream = validateAndAcceptBuffer(sdkBuffer, objectRangeStart, objectRangeEnd);
+            // The stream appends buffers in arrival order, so fail if CRT ever delivers them out of order.
+            Validate.validState(objectRangeStart == nextObjectRangeStart,
+                                "CRT borrowed buffer started at object offset %d, but the expected offset was %d",
+                                objectRangeStart, nextObjectRangeStart);
+            nextObjectRangeStart = objectRangeEnd;
+            acceptedByStream = streamHandler.onBorrowedBuffer(crtBuffer);
             initiateStream();
         } catch (Throwable t) {
             if (acceptedByStream) {
@@ -114,11 +112,11 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
                     log.error(() -> "Failed to abort borrowed response stream", cleanupFailure);
                 }
             } else {
-                releaseUnacceptedBuffer(sdkBuffer, crtBuffer);
+                releaseUnacceptedBuffer(crtBuffer);
             }
             failBorrowedResponse(t);
         }
-        // The read window grows only as the reader consumes leases.
+        // The read window grows only as the reader consumes buffers.
         return 0;
     }
 
@@ -142,6 +140,8 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         delegate.onProgress(progress);
     }
 
+    // TODO: Forward onTelemetry() to the delegate once S3CrtResponseHandlerAdapter publishes metrics from it.
+
     private static long initialRangeStart(HttpHeader[] headers) {
         if (headers == null) {
             return 0;
@@ -158,44 +158,12 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         return 0;
     }
 
-    private boolean validateAndAcceptBuffer(
-        S3CrtBorrowedBufferLease buffer,
-        long objectRangeStart,
-        long objectRangeEnd) {
-        Validate.validState(objectRangeStart >= 0,
-                            "CRT borrowed buffer started at object offset %d, but the expected offset was non-negative",
-                            objectRangeStart);
-        Validate.validState(objectRangeStart == expectedObjectRangeStart,
-                            "CRT borrowed buffer started at object offset %d, but the expected offset was %d",
-                            objectRangeStart, expectedObjectRangeStart);
-
-        long expectedEnd;
-        try {
-            expectedEnd = Math.addExact(objectRangeStart, buffer.byteCount());
-        } catch (ArithmeticException e) {
-            throw new IllegalStateException(String.format(
-                "CRT borrowed buffer range overflowed at object offset %d with byte count %d",
-                objectRangeStart, buffer.byteCount()), e);
+    private static void releaseUnacceptedBuffer(S3BorrowedBuffer crtBuffer) {
+        if (crtBuffer == null) {
+            return;
         }
-        Validate.validState(objectRangeEnd == expectedEnd,
-                            "CRT borrowed buffer ended at object offset %d, but the expected offset was %d",
-                            objectRangeEnd, expectedEnd);
-
-        if (streamHandler.onBorrowedBuffer(buffer)) {
-            expectedObjectRangeStart = objectRangeEnd;
-            responseBytesRead.addAndGet(buffer.byteCount());
-            return true;
-        }
-        return false;
-    }
-
-    private static void releaseUnacceptedBuffer(S3CrtBorrowedBufferLease sdkBuffer, S3BorrowedBuffer crtBuffer) {
         try {
-            if (sdkBuffer != null) {
-                sdkBuffer.release();
-            } else if (crtBuffer != null) {
-                crtBuffer.close();
-            }
+            crtBuffer.close();
         } catch (Throwable cleanupFailure) {
             log.error(() -> "Failed to release unaccepted borrowed response buffer", cleanupFailure);
         }
@@ -239,7 +207,6 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         private SdkAsyncHttpResponseHandler responseHandler;
         private PublisherListener<S3MetaRequestProgress> progressListener;
         private CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
-        private AtomicLong responseBytesRead;
         private S3CrtBorrowedBufferStreamHandler streamHandler;
 
         Builder executeFuture(CompletableFuture<Void> executeFuture) {
@@ -259,11 +226,6 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
 
         Builder metaRequestFuture(CompletableFuture<S3MetaRequestWrapper> metaRequestFuture) {
             this.metaRequestFuture = metaRequestFuture;
-            return this;
-        }
-
-        Builder responseBytesRead(AtomicLong responseBytesRead) {
-            this.responseBytesRead = responseBytesRead;
             return this;
         }
 

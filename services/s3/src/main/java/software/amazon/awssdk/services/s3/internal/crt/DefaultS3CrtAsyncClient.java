@@ -534,8 +534,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                   .put(SIGNING_REGION, executionAttributes.getAttribute(
                                       AwsSignerExecutionAttribute.SIGNING_REGION))
                                   .put(SIGNING_NAME, executionAttributes.getAttribute(SERVICE_SIGNING_NAME))
-                                  .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_BYTES_READ,
-                                       executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ))
                                   .build());
             }
         }

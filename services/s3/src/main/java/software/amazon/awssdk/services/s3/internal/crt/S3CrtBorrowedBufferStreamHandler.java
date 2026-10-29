@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.LongConsumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.crt.s3.S3BorrowedBuffer;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.Validate;
 
@@ -68,7 +69,7 @@ public final class S3CrtBorrowedBufferStreamHandler {
     /**
      * Returns false if the stream has already ended, in which case the buffer is released.
      */
-    boolean onBorrowedBuffer(S3CrtBorrowedBufferLease buffer) {
+    boolean onBorrowedBuffer(S3BorrowedBuffer buffer) {
         return inputStream.onBuffer(buffer);
     }
 

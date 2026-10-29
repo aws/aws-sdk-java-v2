@@ -30,22 +30,19 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
  * <p>Body bytes arrive through {@link #currentAttempt()}. The future returned by {@link #prepare()} completes when the
  * first body data or the successful completion arrives.
  *
- * <p>A cross-region redirect starts a new attempt after the previous attempt fails. Each attempt keeps its callbacks
- * separate so late callbacks cannot affect the replacement attempt.
+ * <p>A cross-region redirect reuses this transformer for a new request after the prior attempt fails. Each attempt has a
+ * separate stream handler because a failed attempt cannot be reused.
  */
 @SdkInternalApi
 public final class S3CrtBorrowedBufferBlockingResponseTransformer
     implements AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> {
 
+    // Preserves cancellation across a cross-region redirect that creates a new request attempt.
     private volatile boolean aborted;
     private volatile S3CrtBorrowedBufferStreamHandler currentAttempt;
 
     @Override
-    public synchronized CompletableFuture<ResponseInputStream<GetObjectResponse>> prepare() {
-        S3CrtBorrowedBufferStreamHandler previousAttempt = currentAttempt;
-        if (previousAttempt != null && !previousAttempt.future().isCompletedExceptionally()) {
-            throw new IllegalStateException("The current borrowed-buffer response attempt has not failed.");
-        }
+    public CompletableFuture<ResponseInputStream<GetObjectResponse>> prepare() {
         S3CrtBorrowedBufferStreamHandler attempt = new S3CrtBorrowedBufferStreamHandler();
         currentAttempt = attempt;
         if (aborted) {

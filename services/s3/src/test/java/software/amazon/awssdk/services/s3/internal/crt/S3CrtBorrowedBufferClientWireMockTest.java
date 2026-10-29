@@ -43,7 +43,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -55,7 +54,6 @@ import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
@@ -118,7 +116,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
     }
 
     @Test
-    void getObjectWithPartNumber_shouldUseResolvedContentRangeStart(WireMockRuntimeInfo wireMock) throws Exception {
+    void getObjectWithPartNumber_shouldReturnPartBodyAndContentRange(WireMockRuntimeInfo wireMock) throws Exception {
         int start = PART_SIZE;
         int end = 2 * PART_SIZE - 1;
         byte[] part = Arrays.copyOfRange(CONTENT, start, end + 1);
@@ -137,25 +135,6 @@ class S3CrtBorrowedBufferClientWireMockTest {
             assertThat(stream.response().contentRange()).isEqualTo("bytes " + start + "-" + end + "/" + CONTENT.length);
             assertThat(readAll(stream)).containsExactly(part);
         }
-    }
-
-    @Test
-    void borrowedDownload_shouldRecordResponseBytes(WireMockRuntimeInfo wireMock) throws Exception {
-        stubMultipartObject(CONTENT);
-        AtomicLong responseBytesRead = new AtomicLong();
-        ExecutionInterceptor metricCaptor = new ExecutionInterceptor() {
-            @Override
-            public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
-                responseBytesRead.set(executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ).get());
-            }
-        };
-
-        try (S3AsyncClient client = newClient(wireMock, null, metricCaptor);
-             ResponseInputStream<GetObjectResponse> stream = getObject(client)) {
-            assertThat(readAll(stream)).containsExactly(CONTENT);
-        }
-
-        assertThat(responseBytesRead).hasValue(PART_SIZE);
     }
 
     @Test

@@ -21,7 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -32,12 +31,8 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.InOrder;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3BorrowedBuffer;
@@ -46,27 +41,6 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 
 class S3CrtBorrowedBufferResponseHandlerAdapterTest {
 
-
-    @Test
-    void borrowedCallback_whenAccepted_shouldCountBeforeStartingStream() {
-        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
-        AtomicLong responseBytesRead = new AtomicLong();
-        AtomicLong bytesObservedAtStreamStart = new AtomicLong(-1);
-        S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
-        when(streamHandler.onBorrowedBuffer(any())).thenReturn(true);
-        doAnswer(invocation -> {
-            bytesObservedAtStreamStart.set(responseBytesRead.get());
-            return null;
-        }).when(streamHandler).onBorrowedStreamStart(any(), any());
-        S3CrtBorrowedBufferResponseHandlerAdapter handler =
-            adapterBuilder(executeFuture, streamHandler)
-                .responseBytesRead(responseBytesRead)
-                .build();
-
-        assertThat(handler.onResponseBodyBorrowed(directCrtBuffer(3), 0, 3)).isZero();
-
-        assertThat(bytesObservedAtStreamStart).hasValue(3);
-    }
 
     @Test
     void successfulFinishWithoutBody_shouldStartAndCompleteStream() {
@@ -84,55 +58,42 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
     }
 
     @Test
-    void borrowedCallbacks_whenContiguousFromZero_shouldAcceptAllBuffers() {
+    void borrowedCallbacks_whenContiguousFromContentRangeStart_shouldAcceptAllBuffers() {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
-        AtomicLong responseBytesRead = new AtomicLong();
         S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
         when(streamHandler.onBorrowedBuffer(any())).thenReturn(true);
-        S3CrtBorrowedBufferResponseHandlerAdapter handler =
-            adapterBuilder(executeFuture, streamHandler)
-                .responseBytesRead(responseBytesRead)
-                .build();
-
-        assertThat(handler.onResponseBodyBorrowed(directCrtBuffer(3), 0, 3)).isZero();
-        assertThat(handler.onResponseBodyBorrowed(directCrtBuffer(2), 3, 5)).isZero();
-
-        verify(streamHandler, times(2)).onBorrowedBuffer(any());
-        assertThat(responseBytesRead).hasValue(5);
-        assertThat(executeFuture).isNotCompletedExceptionally();
-    }
-
-    @Test
-    void borrowedCallback_whenContentRangeHasNonzeroStart_shouldUseHeaderStart() {
-        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
-        AtomicLong responseBytesRead = new AtomicLong();
-        S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
-        when(streamHandler.onBorrowedBuffer(any())).thenReturn(true);
-        S3CrtBorrowedBufferResponseHandlerAdapter handler =
-            adapterBuilder(executeFuture, streamHandler)
-                .responseBytesRead(responseBytesRead)
-                .build();
+        S3CrtBorrowedBufferResponseHandlerAdapter handler = adapterBuilder(executeFuture, streamHandler).build();
         handler.onResponseHeaders(206, new HttpHeader[] {new HttpHeader("Content-Range", "bytes 10-14/20")});
 
-        assertThat(handler.onResponseBodyBorrowed(directCrtBuffer(5), 10, 15)).isZero();
-        assertThat(handler.onResponseBodyBorrowed(directCrtBuffer(2), 15, 17)).isZero();
+        assertThat(handler.onResponseBodyBorrowed(directCrtBuffer(3), 10, 13)).isZero();
+        assertThat(handler.onResponseBodyBorrowed(directCrtBuffer(2), 13, 15)).isZero();
 
         verify(streamHandler, times(2)).onBorrowedBuffer(any());
-        assertThat(responseBytesRead).hasValue(7);
         assertThat(executeFuture).isNotCompletedExceptionally();
     }
 
     @Test
-    void borrowedCallback_whenFirstRangeDoesNotMatchContentRange_shouldRejectBeforeEnqueue() {
+    void borrowedCallback_whenNotContiguous_shouldReleaseAndFailWithoutDelivering() {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
-        S3MetaRequestWrapper metaRequest = mock(S3MetaRequestWrapper.class);
-        AtomicLong responseBytesRead = new AtomicLong();
         S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
-        S3CrtBorrowedBufferResponseHandlerAdapter handler =
-            adapterBuilder(executeFuture, streamHandler)
-                .metaRequestFuture(CompletableFuture.completedFuture(metaRequest))
-                .responseBytesRead(responseBytesRead)
-                .build();
+        when(streamHandler.onBorrowedBuffer(any())).thenReturn(true);
+        S3CrtBorrowedBufferResponseHandlerAdapter handler = adapterBuilder(executeFuture, streamHandler).build();
+        S3BorrowedBuffer outOfOrder = directCrtBuffer(3);
+
+        assertThat(handler.onResponseBodyBorrowed(directCrtBuffer(3), 0, 3)).isZero();
+        assertThat(handler.onResponseBodyBorrowed(outOfOrder, 6, 9)).isZero();
+
+        verify(streamHandler, times(1)).onBorrowedBuffer(any());
+        verify(outOfOrder).close();
+        assertThatThrownBy(executeFuture::join)
+            .hasRootCauseMessage("CRT borrowed buffer started at object offset 6, but the expected offset was 3");
+    }
+
+    @Test
+    void borrowedCallback_whenFirstRangeDoesNotMatchContentRange_shouldReleaseAndFailWithoutDelivering() {
+        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
+        S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
+        S3CrtBorrowedBufferResponseHandlerAdapter handler = adapterBuilder(executeFuture, streamHandler).build();
         handler.onResponseHeaders(206, new HttpHeader[] {new HttpHeader("Content-Range", "bytes 10-14/20")});
         S3BorrowedBuffer mismatched = directCrtBuffer(4);
 
@@ -140,21 +101,31 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
 
         verify(streamHandler, never()).onBorrowedBuffer(any());
         verify(mismatched).close();
-        verify(metaRequest, never()).incrementReadWindow(anyLong());
-        assertThat(responseBytesRead).hasValue(0);
         assertThatThrownBy(executeFuture::join)
             .hasRootCauseMessage("CRT borrowed buffer started at object offset 11, but the expected offset was 10");
     }
 
     @Test
-    void borrowedCallback_whenContentRangeCannotBeParsed_shouldRejectNonzeroStartBeforeEnqueue() {
+    void borrowedCallback_whenNoContentRangeAndFirstRangeIsNonzero_shouldReleaseAndFailWithoutDelivering() {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
-        S3MetaRequestWrapper metaRequest = mock(S3MetaRequestWrapper.class);
         S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
-        S3CrtBorrowedBufferResponseHandlerAdapter handler =
-            adapterBuilder(executeFuture, streamHandler)
-                .metaRequestFuture(CompletableFuture.completedFuture(metaRequest))
-                .build();
+        S3CrtBorrowedBufferResponseHandlerAdapter handler = adapterBuilder(executeFuture, streamHandler).build();
+        handler.onResponseHeaders(200, new HttpHeader[0]);
+        S3BorrowedBuffer mismatched = directCrtBuffer(3);
+
+        assertThat(handler.onResponseBodyBorrowed(mismatched, 10, 13)).isZero();
+
+        verify(streamHandler, never()).onBorrowedBuffer(any());
+        verify(mismatched).close();
+        assertThatThrownBy(executeFuture::join)
+            .hasRootCauseMessage("CRT borrowed buffer started at object offset 10, but the expected offset was 0");
+    }
+
+    @Test
+    void borrowedCallback_whenContentRangeCannotBeParsedAndFirstRangeIsNonzero_shouldReleaseAndFailWithoutDelivering() {
+        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
+        S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
+        S3CrtBorrowedBufferResponseHandlerAdapter handler = adapterBuilder(executeFuture, streamHandler).build();
         handler.onResponseHeaders(206, new HttpHeader[] {new HttpHeader("Content-Range", "invalid")});
         S3BorrowedBuffer mismatched = directCrtBuffer(3);
 
@@ -162,114 +133,26 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
 
         verify(streamHandler, never()).onBorrowedBuffer(any());
         verify(mismatched).close();
-        verify(metaRequest, never()).incrementReadWindow(anyLong());
         assertThatThrownBy(executeFuture::join)
             .hasRootCauseMessage("CRT borrowed buffer started at object offset 10, but the expected offset was 0");
     }
 
-    @ParameterizedTest
-    @ValueSource(longs = {-1, Long.MAX_VALUE})
-    void borrowedCallback_whenFallbackOffsetIsInvalid_shouldRejectBeforeEnqueue(long objectRangeStart) {
-        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
-        S3MetaRequestWrapper metaRequest = mock(S3MetaRequestWrapper.class);
-        AtomicLong responseBytesRead = new AtomicLong();
-        S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
-        S3CrtBorrowedBufferResponseHandlerAdapter handler =
-            adapterBuilder(executeFuture, streamHandler)
-                .metaRequestFuture(CompletableFuture.completedFuture(metaRequest))
-                .responseBytesRead(responseBytesRead)
-                .build();
-        handler.onResponseHeaders(206, new HttpHeader[] {new HttpHeader("Content-Range", "invalid")});
-        S3BorrowedBuffer mismatched = directCrtBuffer(1);
-
-        assertThat(handler.onResponseBodyBorrowed(mismatched, objectRangeStart, objectRangeStart)).isZero();
-
-        verify(streamHandler, never()).onBorrowedBuffer(any());
-        verify(mismatched).close();
-        verify(metaRequest, never()).incrementReadWindow(anyLong());
-        assertThat(responseBytesRead).hasValue(0);
-        if (objectRangeStart < 0) {
-            assertThatThrownBy(executeFuture::join)
-                .hasRootCauseInstanceOf(IllegalStateException.class)
-                .hasRootCauseMessage("CRT borrowed buffer started at object offset -1, but the expected offset was non-negative");
-        } else {
-            assertThat(executeFuture).isCompletedExceptionally();
-        }
-    }
-
-    @ParameterizedTest
-    @ValueSource(longs = {6, 4, 0})
-    void borrowedCallback_whenNextRangeIsNotContiguous_shouldReleaseAndFailWithoutCountingOrCredit(
-        long actualStart) {
-        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
-        S3MetaRequestWrapper metaRequest = mock(S3MetaRequestWrapper.class);
-        AtomicLong responseBytesRead = new AtomicLong();
-        S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
-        when(streamHandler.onBorrowedBuffer(any())).thenReturn(true);
-        S3CrtBorrowedBufferResponseHandlerAdapter handler =
-            adapterBuilder(executeFuture, streamHandler)
-                .metaRequestFuture(CompletableFuture.completedFuture(metaRequest))
-                .responseBytesRead(responseBytesRead)
-                .build();
-        S3BorrowedBuffer first = directCrtBuffer(5);
-        S3BorrowedBuffer mismatched = directCrtBuffer(2);
-        handler.onResponseBodyBorrowed(first, 0, 5);
-
-        assertThat(handler.onResponseBodyBorrowed(mismatched, actualStart, actualStart + 2)).isZero();
-
-        verify(streamHandler).onBorrowedBuffer(any());
-        verify(mismatched).close();
-        verify(metaRequest, never()).incrementReadWindow(anyLong());
-        assertThat(responseBytesRead).hasValue(5);
-        assertThatThrownBy(executeFuture::join)
-            .hasRootCauseMessage("CRT borrowed buffer started at object offset " + actualStart
-                                 + ", but the expected offset was 5");
-    }
-
     @Test
-    void borrowedCallback_whenRangeLengthDoesNotMatchBuffer_shouldReleaseAndFailWithoutCountingOrCredit() {
+    void borrowedCallback_whenRejected_shouldRelease() {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
-        S3MetaRequestWrapper metaRequest = mock(S3MetaRequestWrapper.class);
-        AtomicLong responseBytesRead = new AtomicLong();
-        S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
-        S3CrtBorrowedBufferResponseHandlerAdapter handler =
-            adapterBuilder(executeFuture, streamHandler)
-                .metaRequestFuture(CompletableFuture.completedFuture(metaRequest))
-                .responseBytesRead(responseBytesRead)
-                .build();
-        S3BorrowedBuffer mismatched = directCrtBuffer(3);
-
-        assertThat(handler.onResponseBodyBorrowed(mismatched, 0, 4)).isZero();
-
-        verify(streamHandler, never()).onBorrowedBuffer(any());
-        verify(mismatched).close();
-        verify(metaRequest, never()).incrementReadWindow(anyLong());
-        assertThat(responseBytesRead).hasValue(0);
-        assertThatThrownBy(executeFuture::join)
-            .hasRootCauseMessage("CRT borrowed buffer ended at object offset 4, but the expected offset was 3");
-    }
-
-    @Test
-    void borrowedCallback_whenRejected_shouldReleaseWithoutCountingResponseBytes() {
-        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
-        AtomicLong responseBytesRead = new AtomicLong();
         S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
         when(streamHandler.onBorrowedBuffer(any())).thenAnswer(invocation -> {
-            S3CrtBorrowedBufferLease buffer = invocation.getArgument(0);
-            buffer.release();
+            S3BorrowedBuffer buffer = invocation.getArgument(0);
+            buffer.close();
             return false;
         });
-        S3CrtBorrowedBufferResponseHandlerAdapter handler =
-            adapterBuilder(executeFuture, streamHandler)
-                .responseBytesRead(responseBytesRead)
-                .build();
+        S3CrtBorrowedBufferResponseHandlerAdapter handler = adapterBuilder(executeFuture, streamHandler).build();
         S3BorrowedBuffer crtBuffer = mock(S3BorrowedBuffer.class);
         when(crtBuffer.asByteBuffer()).thenReturn(ByteBuffer.allocateDirect(3));
 
         assertThat(handler.onResponseBodyBorrowed(crtBuffer, 0, 3)).isZero();
 
         verify(crtBuffer).close();
-        assertThat(responseBytesRead).hasValue(0);
     }
 
 
@@ -341,11 +224,9 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
     void borrowedCallback_whenBufferCallbackThrows_shouldReleaseAndFailRequest() {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
         S3MetaRequestWrapper metaRequest = mock(S3MetaRequestWrapper.class);
-        AtomicLong responseBytesRead = new AtomicLong();
         S3CrtBorrowedBufferResponseHandlerAdapter handler =
             adapterBuilder(executeFuture, capturingHandler(new AtomicReference<>(), true))
                 .metaRequestFuture(CompletableFuture.completedFuture(metaRequest))
-                .responseBytesRead(responseBytesRead)
                 .build();
         S3BorrowedBuffer crtBuffer = mock(S3BorrowedBuffer.class);
         when(crtBuffer.asByteBuffer()).thenReturn(ByteBuffer.allocateDirect(1));
@@ -353,7 +234,6 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         assertThat(handler.onResponseBodyBorrowed(crtBuffer, 0, 1)).isZero();
 
         verify(crtBuffer).close();
-        assertThat(responseBytesRead).hasValue(0);
         assertThat(executeFuture).isCompletedExceptionally();
     }
 
@@ -394,7 +274,6 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
                                                          .responseHandler(mock(SdkAsyncHttpResponseHandler.class))
                                                          .metaRequestFuture(
                                                              CompletableFuture.completedFuture(mock(S3MetaRequestWrapper.class)))
-                                                         .responseBytesRead(new AtomicLong())
                                                          .streamHandler(streamHandler);
     }
 
@@ -446,7 +325,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
     }
 
     private static S3CrtBorrowedBufferStreamHandler capturingHandler(
-        AtomicReference<S3CrtBorrowedBufferLease> delivered,
+        AtomicReference<S3BorrowedBuffer> delivered,
         boolean failOnNext) {
         S3CrtBorrowedBufferStreamHandler handler = mock(S3CrtBorrowedBufferStreamHandler.class);
         when(handler.onBorrowedBuffer(any())).thenAnswer(invocation -> {
@@ -463,23 +342,23 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         private final S3CrtBorrowedBufferStreamHandler handler;
         private final CountDownLatch bufferEntered = new CountDownLatch(1);
         private final CountDownLatch continueBuffer = new CountDownLatch(1);
-        private final AtomicReference<S3CrtBorrowedBufferLease> buffer = new AtomicReference<>();
+        private final AtomicReference<S3BorrowedBuffer> buffer = new AtomicReference<>();
 
         private BlockingBufferHandler(S3CrtBorrowedBufferStreamHandler handler) {
             this.handler = handler;
         }
 
         private void discardBuffer() {
-            S3CrtBorrowedBufferLease borrowedBuffer = buffer.getAndSet(null);
+            S3BorrowedBuffer borrowedBuffer = buffer.getAndSet(null);
             if (borrowedBuffer != null) {
-                borrowedBuffer.release();
+                borrowedBuffer.close();
             }
         }
     }
 
     private static final class FailingStreamStartHandler {
         private final S3CrtBorrowedBufferStreamHandler handler;
-        private final AtomicReference<S3CrtBorrowedBufferLease> buffer = new AtomicReference<>();
+        private final AtomicReference<S3BorrowedBuffer> buffer = new AtomicReference<>();
         private Throwable abortError;
 
         private FailingStreamStartHandler(S3CrtBorrowedBufferStreamHandler handler) {
@@ -488,9 +367,9 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
 
         private void release(Throwable error) {
             abortError = error;
-            S3CrtBorrowedBufferLease borrowedBuffer = buffer.getAndSet(null);
+            S3BorrowedBuffer borrowedBuffer = buffer.getAndSet(null);
             if (borrowedBuffer != null) {
-                borrowedBuffer.release();
+                borrowedBuffer.close();
             }
         }
     }

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
@@ -71,9 +70,6 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
     public static final S3InternalSdkHttpExecutionAttribute<S3CrtBorrowedBufferBlockingResponseTransformer>
         BORROWED_BUFFER_RESPONSE_TRANSFORMER =
         new S3InternalSdkHttpExecutionAttribute<>(S3CrtBorrowedBufferBlockingResponseTransformer.class);
-
-    public static final S3InternalSdkHttpExecutionAttribute<AtomicLong> RESPONSE_BYTES_READ =
-        new S3InternalSdkHttpExecutionAttribute<>(AtomicLong.class);
 
     public static final S3InternalSdkHttpExecutionAttribute<CrtCredentialsProviderAdapter> CRT_CREDENTIALS_PROVIDER_ADAPTER =
         new S3InternalSdkHttpExecutionAttribute<>(CrtCredentialsProviderAdapter.class);
