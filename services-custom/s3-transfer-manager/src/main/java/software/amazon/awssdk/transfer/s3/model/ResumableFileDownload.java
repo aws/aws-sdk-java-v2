@@ -38,6 +38,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.internal.serialization.ResumableFileDownloadSerializer;
+import software.amazon.awssdk.transfer.s3.internal.utils.FileUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -51,7 +52,14 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * <ul>
  *     <li>{@link TransferRequestOverrideConfiguration}</li>
  *     <li>{@link AwsRequestOverrideConfiguration} (from {@link GetObjectRequest})</li>
+ *     <li>The SSE-C customer key ({@link GetObjectRequest#sseCustomerKey()})</li>
  * </ul>
+ * If the {@link GetObjectRequest} uses SSE-C, the customer key must be set again on a deserialized token before it is resumed:
+ * <pre>{@code
+ * resumable.copy(b -> b.downloadFileRequest(resumable.downloadFileRequest().copy(
+ *     r -> r.getObjectRequest(resumable.downloadFileRequest().getObjectRequest().copy(p -> p.sseCustomerKey(key))))));
+ * }</pre>
+ * {@link #serializeToFile(Path)} writes the file so that, on a POSIX file system, only its owner can read or write it.
  *
  * @see S3TransferManager#downloadFile(DownloadFileRequest)
  */
@@ -202,7 +210,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
     @Override
     public void serializeToFile(Path path) {
         try {
-            Files.write(path, ResumableFileDownloadSerializer.toJson(this));
+            FileUtils.writeOwnerOnly(path, ResumableFileDownloadSerializer.toJson(this));
         } catch (IOException e) {
             throw SdkClientException.create("Failed to write to " + path, e);
         }
