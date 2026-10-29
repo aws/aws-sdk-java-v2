@@ -22,9 +22,14 @@ import software.amazon.awssdk.utils.Validate;
 
 /**
  * Validates that the signing certificate URL is valid.
+ * <p>
+ * A valid URL uses HTTPS, the expected host and the default HTTPS port, and has no user info or fragment. The path and
+ * query are not constrained, because SNS may use other forms for them in the future.
  */
 @SdkInternalApi
 public class CertificateUrlValidator {
+    private static final int HTTPS_PORT = 443;
+
     private final String certificateHost;
 
     public CertificateUrlValidator(String certificateHost) {
@@ -43,6 +48,19 @@ public class CertificateUrlValidator {
 
         if (!certificateHost.equals(certificateUrl.getHost())) {
             throw SdkClientException.create("Certificate URL does not match expected host: " + certificateHost);
+        }
+
+        if (certificateUrl.getRawUserInfo() != null) {
+            throw SdkClientException.create("Certificate URL must not contain user info");
+        }
+
+        int port = certificateUrl.getPort();
+        if (port != -1 && port != HTTPS_PORT) {
+            throw SdkClientException.create("Certificate URL must use the default HTTPS port");
+        }
+
+        if (certificateUrl.getRawFragment() != null) {
+            throw SdkClientException.create("Certificate URL must not contain a fragment");
         }
     }
 }

@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon SNS Message Manager",
+    "contributor": "",
+    "description": "Improved the robustness of SnsMessageManager message parsing, certificate handling and signature validation."
+}

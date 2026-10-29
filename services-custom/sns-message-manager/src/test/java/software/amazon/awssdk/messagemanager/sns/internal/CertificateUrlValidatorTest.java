@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
 public class CertificateUrlValidatorTest {
@@ -28,7 +30,43 @@ public class CertificateUrlValidatorTest {
     @Test
     void validate_urlValid_succeeds() {
         CertificateUrlValidator validator = new CertificateUrlValidator(CERT_HOST);
-        assertThatNoException().isThrownBy(() -> validator.validate(URI.create("https://" + CERT_HOST)));
+        assertThatNoException().isThrownBy(() -> validator.validate(URI.create("https://" + CERT_HOST
+                                                                                    + "/SimpleNotificationService-abc123.pem")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "https://" + CERT_HOST + ":443/SimpleNotificationService-abc123.pem",
+        "https://" + CERT_HOST + "/cert.pem",
+        "https://" + CERT_HOST + "/cert.pem?x=1",
+        "https://" + CERT_HOST + "/a/b/cert.pem",
+        "https://" + CERT_HOST + "/cert"
+    })
+    void validate_otherValidUrls_succeeds(String url) {
+        CertificateUrlValidator validator = new CertificateUrlValidator(CERT_HOST);
+        assertThatNoException().isThrownBy(() -> validator.validate(URI.create(url)));
+    }
+
+    @Test
+    void validate_urlHasFragment_throws() {
+        assertInvalid("https://" + CERT_HOST + "/cert.pem#x", "Certificate URL must not contain a fragment");
+    }
+
+    @Test
+    void validate_urlHasUserInfo_throws() {
+        assertInvalid("https://***@" + CERT_HOST + "/cert.pem", "Certificate URL must not contain user info");
+    }
+
+    @Test
+    void validate_urlHasNonDefaultPort_throws() {
+        assertInvalid("https://" + CERT_HOST + ":8443/cert.pem", "Certificate URL must use the default HTTPS port");
+    }
+
+    private static void assertInvalid(String url, String message) {
+        CertificateUrlValidator validator = new CertificateUrlValidator(CERT_HOST);
+        assertThatThrownBy(() -> validator.validate(URI.create(url)))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage(message);
     }
 
     @Test

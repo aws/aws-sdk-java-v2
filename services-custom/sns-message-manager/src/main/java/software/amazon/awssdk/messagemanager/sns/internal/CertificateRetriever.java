@@ -26,12 +26,16 @@ import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.net.ssl.SSLException;
 import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
 import org.apache.hc.client5.http.ssl.HttpClientHostnameVerifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -40,6 +44,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.cache.lru.LruCache;
@@ -48,9 +53,18 @@ import software.amazon.awssdk.utils.cache.lru.LruCache;
  * Internal certificate retriever for SNS message validation.
  * <p>
  * This class retrieves the certificate used to sign a message, validates it, and caches them for future use.
+ * <p>
+ * On a cache miss the URL must pass {@link CertificateUrlValidator}, and at most
+ * {@value #DEFAULT_MAX_CONCURRENT_FETCHES} outbound fetches run at the same time. A fetch that cannot get a permit within
+ * {@link #DEFAULT_FETCH_PERMIT_TIMEOUT} is refused. Cache hits never take a permit.
  */
 @SdkInternalApi
 public class CertificateRetriever implements SdkAutoCloseable {
+    static final int DEFAULT_MAX_CONCURRENT_FETCHES = 8;
+    static final Duration DEFAULT_FETCH_PERMIT_TIMEOUT = Duration.ofSeconds(1);
+
+    private static final Logger LOG = Logger.loggerFor(CertificateRetriever.class);
+
     private static final Lazy<Pattern> X509_FORMAT = new Lazy<>(() ->
         Pattern.compile(
             "^[\\s]*-----BEGIN [A-Z]+-----\\n[A-Za-z\\d+\\/\\n]+[=]{0,2}\\n-----END [A-Z]+-----[\\s]*$"));
@@ -60,6 +74,8 @@ public class CertificateRetriever implements SdkAutoCloseable {
     private final SdkHttpClient httpClient;
     private final String certCommonName;
     private final CertificateUrlValidator certUrlValidator;
+    private final Semaphore fetchPermits;
+    private final long fetchPermitTimeoutNanos;
     private final LruCache<URI, PublicKey> certificateCache;
 
     public CertificateRetriever(SdkHttpClient httpClient, String certHost, String certCommonName) {
@@ -67,12 +83,22 @@ public class CertificateRetriever implements SdkAutoCloseable {
     }
 
     CertificateRetriever(SdkHttpClient httpClient, String certCommonName, CertificateUrlValidator certificateUrlValidator) {
+        this(httpClient, certCommonName, certificateUrlValidator, DEFAULT_MAX_CONCURRENT_FETCHES,
+             DEFAULT_FETCH_PERMIT_TIMEOUT);
+    }
+
+    @SdkTestInternalApi
+    CertificateRetriever(SdkHttpClient httpClient, String certCommonName, CertificateUrlValidator certificateUrlValidator,
+                         int maxConcurrentFetches, Duration fetchPermitTimeout) {
         this.httpClient = Validate.paramNotNull(httpClient, "httpClient");
         this.certCommonName = Validate.paramNotNull(certCommonName, "certCommonName");
         this.certificateCache = LruCache.builder(this::fetchCertificate)
                                         .maxSize(10)
                                         .build();
         this.certUrlValidator = Validate.paramNotNull(certificateUrlValidator, "certificateUrlValidator");
+        this.fetchPermits = new Semaphore(Validate.isPositive(maxConcurrentFetches, "maxConcurrentFetches"));
+        this.fetchPermitTimeoutNanos = Validate.isNotNegative(
+            Validate.paramNotNull(fetchPermitTimeout, "fetchPermitTimeout"), "fetchPermitTimeout").toNanos();
     }
 
     public PublicKey retrieveCertificate(URI certificateUrl) {
@@ -87,9 +113,32 @@ public class CertificateRetriever implements SdkAutoCloseable {
     }
 
     private PublicKey fetchCertificate(URI certificateUrl) {
-        byte[] cert = fetchUrl(certificateUrl);
+        byte[] cert = fetchUrlWithPermit(certificateUrl);
         validateCertificateData(cert);
         return createPublicKey(cert);
+    }
+
+    private byte[] fetchUrlWithPermit(URI certificateUrl) {
+        acquireFetchPermit(certificateUrl);
+        try {
+            return fetchUrl(certificateUrl);
+        } finally {
+            fetchPermits.release();
+        }
+    }
+
+    private void acquireFetchPermit(URI certificateUrl) {
+        boolean acquired;
+        try {
+            acquired = fetchPermits.tryAcquire(fetchPermitTimeoutNanos, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw SdkClientException.create("Interrupted while waiting to retrieve certificate: " + certificateUrl, e);
+        }
+        if (!acquired) {
+            throw SdkClientException.create("Too many concurrent certificate retrievals; refusing to fetch " + certificateUrl
+                                            + ". Try again later.");
+        }
     }
 
     private byte[] fetchUrl(URI certificateUrl) {
@@ -106,6 +155,7 @@ public class CertificateRetriever implements SdkAutoCloseable {
             HttpExecuteResponse response = httpClient.prepareRequest(executeRequest).call();
 
             if (!response.httpResponse().isSuccessful()) {
+                response.responseBody().ifPresent(body -> IoUtils.closeQuietlyV2(body, LOG));
                 throw SdkClientException.create("Request was unsuccessful. Status Code: " + response.httpResponse().statusCode());
             }
 
