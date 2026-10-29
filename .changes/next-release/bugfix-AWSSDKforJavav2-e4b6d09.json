@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Improve the performance of StringUtils.replaceEach for inputs with many matches."
-}
