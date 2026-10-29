@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.transfer.s3.internal.model;
 
+import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
+
 import java.io.File;
 import java.time.Instant;
 import java.util.List;
@@ -40,6 +42,8 @@ public final class DefaultFileDownload implements FileDownload {
     private final TransferProgress progress;
     private final Supplier<DownloadFileRequest> requestSupplier;
     private final ResumableFileDownload resumedDownload;
+    private final long destinationLengthAtResume;
+    private final Instant destinationLastModifiedAtResume;
 
     public DefaultFileDownload(CompletableFuture<CompletedFileDownload> completedFileDownloadFuture,
                                TransferProgress progress,
@@ -50,6 +54,9 @@ public final class DefaultFileDownload implements FileDownload {
         this.requestSupplier = Validate.paramNotNull(requestSupplier, "requestSupplier");
         this.resumableFileDownload = new Lazy<>(this::doPause);
         this.resumedDownload = resumedDownload;
+        File destination = resumedDownload == null ? null : resumedDownload.downloadFileRequest().destination().toFile();
+        this.destinationLengthAtResume = destination == null ? 0 : destination.length();
+        this.destinationLastModifiedAtResume = destination == null ? null : Instant.ofEpochMilli(destination.lastModified());
     }
 
     @Override
@@ -64,6 +71,15 @@ public final class DefaultFileDownload implements FileDownload {
 
     private ResumableFileDownload doPause() {
         completionFuture.cancel(true);
+
+        // If the destination file is unchanged since this resume started, nothing has been written to it, so the resumed
+        // token is still accurate for it, including its completed parts. Returning it means the next resume decides from the
+        // same token this resume used.
+        if (resumedDownload != null
+            && fileNotModified(destinationLengthAtResume, destinationLastModifiedAtResume,
+                               resumedDownload.downloadFileRequest().destination())) {
+            return resumedDownload;
+        }
 
         Instant s3objectLastModified = null;
         String s3objectEtag = null;

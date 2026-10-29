@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -130,6 +131,44 @@ class CrtFileDownloadTest {
         assertThat(resumable.s3ObjectEtag()).hasValue(ETAG);
         assertThat(resumable.s3ObjectLastModified()).hasValue(S3_OBJECT_LAST_MODIFIED);
         assertThat(resumable.totalSizeInBytes()).hasValue(OBJECT_SIZE);
+    }
+
+    @Test
+    void pause_pauseReturnsNoTokenBeforeFileWritten_returnsResumedDownload() {
+        when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(null));
+        // The file was touched while the download was paused, so the token no longer matches it and resuming restarts.
+        ResumableFileDownload resumedDownload =
+            resumedDownload().copy(b -> b.completedParts(Arrays.asList(1, 3))
+                                         .fileLastModified(Instant.ofEpochMilli(file.lastModified()).minusSeconds(5)));
+
+        ResumableFileDownload resumable = fileDownload(resumedDownload).pause();
+
+        assertThat(resumable).isSameAs(resumedDownload);
+    }
+
+    @Test
+    void pause_downloadResumeTokenBeforeFileWritten_returnsResumedDownload() {
+        ResumeToken token = downloadResumeToken(0, 0);
+        when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(token));
+        ResumableFileDownload resumedDownload = resumedDownload().copy(b -> b.completedParts(Arrays.asList(1, 3)));
+
+        ResumableFileDownload resumable = fileDownload(resumedDownload).pause();
+
+        assertThat(resumable).isSameAs(resumedDownload);
+    }
+
+    @Test
+    void pause_fileWrittenSinceResume_buildsTokenFromCrtResumeToken() throws IOException {
+        ResumeToken token = downloadResumeToken(0, 1500);
+        when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(token));
+        ResumableFileDownload resumedDownload = resumedDownload().copy(b -> b.completedParts(Arrays.asList(1, 3)));
+        CrtFileDownload fileDownload = fileDownload(resumedDownload);
+        Files.write(file.toPath(), new byte[1500]);
+
+        ResumableFileDownload resumable = fileDownload.pause();
+
+        assertThat(resumable.bytesTransferred()).isEqualTo(1500L);
+        assertThat(resumable.completedParts()).isEmpty();
     }
 
     @Test
