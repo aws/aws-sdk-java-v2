@@ -134,13 +134,41 @@ class CrtFileDownloadTest {
     }
 
     @Test
-    void pause_pauseReturnsNoTokenBeforeFileWritten_keepsCompletedPartsOfResumedDownload() {
+    void pause_pauseReturnsNoTokenBeforeFileWritten_returnsResumedDownload() {
         when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(null));
+        // The file was touched while the download was paused, so the token no longer matches it and resuming restarts.
+        ResumableFileDownload resumedDownload =
+            resumedDownload().copy(b -> b.completedParts(Arrays.asList(1, 3))
+                                         .fileLastModified(Instant.ofEpochMilli(file.lastModified()).minusSeconds(5)));
+
+        ResumableFileDownload resumable = fileDownload(resumedDownload).pause();
+
+        assertThat(resumable).isSameAs(resumedDownload);
+    }
+
+    @Test
+    void pause_downloadResumeTokenBeforeFileWritten_returnsResumedDownload() {
+        ResumeToken token = downloadResumeToken(0, 0);
+        when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(token));
         ResumableFileDownload resumedDownload = resumedDownload().copy(b -> b.completedParts(Arrays.asList(1, 3)));
 
         ResumableFileDownload resumable = fileDownload(resumedDownload).pause();
 
-        assertThat(resumable.completedParts()).containsExactly(1, 3);
+        assertThat(resumable).isSameAs(resumedDownload);
+    }
+
+    @Test
+    void pause_fileWrittenSinceResume_buildsTokenFromCrtResumeToken() throws IOException {
+        ResumeToken token = downloadResumeToken(0, 1500);
+        when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(token));
+        ResumableFileDownload resumedDownload = resumedDownload().copy(b -> b.completedParts(Arrays.asList(1, 3)));
+        CrtFileDownload fileDownload = fileDownload(resumedDownload);
+        Files.write(file.toPath(), new byte[1500]);
+
+        ResumableFileDownload resumable = fileDownload.pause();
+
+        assertThat(resumable.bytesTransferred()).isEqualTo(1500L);
+        assertThat(resumable.completedParts()).isEmpty();
     }
 
     @Test

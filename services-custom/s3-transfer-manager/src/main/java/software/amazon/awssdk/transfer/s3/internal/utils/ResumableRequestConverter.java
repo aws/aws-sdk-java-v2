@@ -20,9 +20,7 @@ import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWrite
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 
-import java.nio.file.Path;
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -65,7 +63,7 @@ public final class ResumableRequestConverter {
         GetObjectRequest getObjectRequest = originalDownloadRequest.getObjectRequest();
         DownloadFileRequest newDownloadFileRequest;
 
-        if (!canResumeDownload(resumableFileDownload, headObjectResponse, getObjectRequest)) {
+        if (shouldRestartDownload(resumableFileDownload, headObjectResponse, getObjectRequest)) {
             newDownloadFileRequest = newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
 
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
@@ -121,17 +119,17 @@ public final class ResumableRequestConverter {
     }
 
     /**
-     * Determines whether a paused download can continue from where it left off, or whether it has to be restarted from the
-     * beginning.
+     * Determines whether a paused download has to be restarted from the beginning rather than continued from where it left
+     * off.
      */
-    private static boolean canResumeDownload(ResumableFileDownload resumableFileDownload,
-                                             HeadObjectResponse headObjectResponse,
-                                             GetObjectRequest getObjectRequest) {
+    private static boolean shouldRestartDownload(ResumableFileDownload resumableFileDownload,
+                                                 HeadObjectResponse headObjectResponse,
+                                                 GetObjectRequest getObjectRequest) {
         // partNumber and Range cannot coexist, S3 rejects with 400 InvalidRequest, so a part download is restarted with
         // CREATE_OR_REPLACE.
-        return getObjectRequest.partNumber() == null
-               && !isObjectOrFileModified(resumableFileDownload, headObjectResponse)
-               && !completedPartsMissingFromResumeContext(resumableFileDownload, getObjectRequest);
+        return getObjectRequest.partNumber() != null
+               || isObjectOrFileModified(resumableFileDownload, headObjectResponse)
+               || completedPartsMissingFromResumeContext(resumableFileDownload, getObjectRequest);
     }
 
     /**
@@ -211,9 +209,8 @@ public final class ResumableRequestConverter {
 
     /**
      * Returns true if the {@link ResumableFileDownload} lists completed parts but the {@link MultipartDownloadResumeContext}
-     * on its request does not record them, because the token was serialized or a restarted download was paused before
-     * completing a part. The paused download fetched parts that are written at their own offsets, so the file may have gaps,
-     * and the download restarts from the beginning.
+     * on its request does not record them, for example because the token was serialized. The paused download fetched parts
+     * that are written at their own offsets, so the file may have gaps, and the download restarts from the beginning.
      */
     private static boolean completedPartsMissingFromResumeContext(ResumableFileDownload resumableFileDownload,
                                                                   GetObjectRequest getObjectRequest) {
@@ -229,26 +226,6 @@ public final class ResumableRequestConverter {
                         + "not available, for example because the ResumableFileDownload was serialized. The SDK will download "
                         + "the S3 object from the beginning.");
         return true;
-    }
-
-    /**
-     * The completed parts to save in the token when a resumed download is paused again. If the resumed download has not
-     * recorded any parts yet and the destination file is unchanged since {@code resumedDownload}, the file still holds what
-     * that token described, including any gaps between its completed parts, so its completed parts are kept. Without them,
-     * the next resume would continue from the end of the file and skip the gaps; with them,
-     * {@link #completedPartsMissingFromResumeContext} turns the next resume into a restart.
-     *
-     * @param recordedCompletedParts the parts the paused download itself recorded
-     * @param resumedDownload the token this download was resumed from, or null if it was not a resumed download
-     */
-    public static List<Integer> completedPartsToSaveOnPause(List<Integer> recordedCompletedParts,
-                                                            ResumableFileDownload resumedDownload,
-                                                            Path destination) {
-        if (!recordedCompletedParts.isEmpty() || resumedDownload == null
-            || !fileNotModified(resumedDownload.bytesTransferred(), resumedDownload.fileLastModified(), destination)) {
-            return recordedCompletedParts;
-        }
-        return resumedDownload.completedParts();
     }
 
     private static boolean hasRemainingParts(GetObjectRequest getObjectRequest) {

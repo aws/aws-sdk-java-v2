@@ -187,6 +187,12 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture = new CompletableFuture<>();
         S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
         AtomicReference<DownloadFileRequest> requestToSaveOnPauseRef = new AtomicReference<>(originalDownloadRequest);
+        // Created before the HEAD is sent, so it records the destination file before this resume can write to it.
+        CrtFileDownload fileDownload = new CrtFileDownload(returnFuture,
+                                                           new ResumeTransferProgress(progressFuture),
+                                                           observable,
+                                                           requestToSaveOnPauseRef::get,
+                                                           resumableFileDownload);
 
         CompletableFuture<HeadObjectResponse> headFuture =
             s3AsyncClient.headObject(b -> b.bucket(getObjectRequest.bucket()).key(getObjectRequest.key()));
@@ -226,11 +232,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
             return null;
         });
 
-        return new CrtFileDownload(returnFuture,
-                                   new ResumeTransferProgress(progressFuture),
-                                   observable,
-                                   requestToSaveOnPauseRef::get,
-                                   resumableFileDownload);
+        return fileDownload;
     }
 
     /**

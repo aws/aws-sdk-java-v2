@@ -83,8 +83,10 @@ import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
  * Verifies that the correct bytes end up on disk after the full resume flow.
  */
 class ResumeDownloadWireMockTest {
-    // Held responses keep a server thread busy for their whole delay after the client gives up on them, so allow more than
-    // WireMock's default number of threads for the tests that hold parts.
+    // Some tests stub a response with a fixed delay (withFixedDelay) so they can pause the download before the response
+    // arrives. WireMock keeps a server thread busy for the full delay, even after the client cancels the request. With
+    // WireMock's default of 10 container threads, a few such delayed responses could use up all the threads and make the
+    // next test's requests wait until a delay ended. Configuring the server with 50 threads avoids that.
     @RegisterExtension
     static WireMockExtension wireMock = WireMockExtension.newInstance()
                                                          .options(wireMockConfig().dynamicPort().containerThreads(50))
@@ -115,7 +117,7 @@ class ResumeDownloadWireMockTest {
     private static final byte[] REPLACEMENT_OBJECT_CONTENT = buildDeterministicContent(OBJECT_SIZE, 13);
 
     private static final int FOUR_PARTS = 4;
-    private static final int HELD_PART_DELAY_MILLIS = 15_000;
+    private static final int RESPONSE_DELAY_MILLIS = 3_000;
 
     private S3AsyncClient s3Client;
     private S3TransferManager tm;
@@ -348,24 +350,26 @@ class ResumeDownloadWireMockTest {
         BEFORE_FIRST_PART_RESPONSE
     }
 
+    // window, fileTouchedWhilePaused
     static Stream<Arguments> rePauseCases() {
-        return Stream.of(Arguments.of(RePauseWindow.BEFORE_HEAD_RESPONSE, true),
-                         Arguments.of(RePauseWindow.BEFORE_HEAD_RESPONSE, false),
-                         Arguments.of(RePauseWindow.BEFORE_FIRST_PART_RESPONSE, true),
-                         Arguments.of(RePauseWindow.BEFORE_FIRST_PART_RESPONSE, false));
+        return Stream.of(Arguments.of(RePauseWindow.BEFORE_HEAD_RESPONSE, false),
+                         Arguments.of(RePauseWindow.BEFORE_FIRST_PART_RESPONSE, false),
+                         Arguments.of(RePauseWindow.BEFORE_FIRST_PART_RESPONSE, true));
     }
 
-    @ParameterizedTest(name = "re-paused {0}, serialized again: {1}")
+    @ParameterizedTest(name = "re-paused {0}, file touched while paused: {1}")
     @MethodSource("rePauseCases")
     void resumeMultipartDownload_restartRePausedBeforeWritingAnything_shouldStillRestartFromFirstPart(
-        RePauseWindow window, boolean serializeAgain) throws Exception {
+        RePauseWindow window, boolean fileTouchedWhilePaused) throws Exception {
         ResumableFileDownload deserialized = serializedTokenWithCompletedParts(Arrays.asList(1, 3));
-        holdResponseFor(window);
+        if (fileTouchedWhilePaused) {
+            destination.toFile().setLastModified(destination.toFile().lastModified() + 5_000);
+        }
+        delayResponseFor(window);
         FileDownload restarted = multipartTm.resumeDownloadFile(deserialized);
-        awaitRequestHeldFor(window);
+        awaitDelayedRequest(window);
         ResumableFileDownload rePaused = restarted.pause();
-        ResumableFileDownload secondToken = serializeAgain ? ResumableFileDownload.fromString(rePaused.serializeToString())
-                                                           : rePaused;
+        ResumableFileDownload secondToken = ResumableFileDownload.fromString(rePaused.serializeToString());
         stubHeadObject();
         stubFourParts(Collections.emptyList());
         stubRangeGetFrom(rePaused.bytesTransferred());
@@ -384,9 +388,9 @@ class ResumeDownloadWireMockTest {
 
     @Test
     void resumeMultipartDownload_inMemoryTokenWithPartsCompletedOutOfOrder_shouldDownloadOnlyRemainingParts() throws Exception {
-        ResumableFileDownload paused = pauseWithPartsCompletedOutOfOrder(Arrays.asList(1, 3), Arrays.asList(2, 4));
+        ResumableFileDownload paused = inMemoryTokenWithCompletedParts(Arrays.asList(1, 3));
+        stubHeadObject();
         stubFourParts(Collections.emptyList());
-        resetAllRequests();
 
         multipartTm.resumeDownloadFile(paused).completionFuture().join();
 
@@ -403,6 +407,41 @@ class ResumeDownloadWireMockTest {
      * their offsets with zeros in between, and the token has no resume context.
      */
     private ResumableFileDownload serializedTokenWithCompletedParts(List<Integer> completedParts) throws IOException {
+        ResumableFileDownload token = tokenWithCompletedParts(completedParts, GetObjectRequest.builder()
+                                                                                              .bucket(BUCKET)
+                                                                                              .key(KEY)
+                                                                                              .build());
+        return ResumableFileDownload.fromString(token.serializeToString());
+    }
+
+    /**
+     * The token the same paused download leaves in memory: like {@link #serializedTokenWithCompletedParts}, but its request
+     * still carries the resume context that records the completed parts.
+     */
+    private ResumableFileDownload inMemoryTokenWithCompletedParts(List<Integer> completedParts) throws IOException {
+        int partSize = OBJECT_SIZE / FOUR_PARTS;
+        MultipartDownloadResumeContext resumeContext =
+            new MultipartDownloadResumeContext(completedParts, (long) partSize * completedParts.size());
+        resumeContext.totalParts(FOUR_PARTS);
+        resumeContext.response(GetObjectResponse.builder()
+                                                .eTag(E_TAG)
+                                                .lastModified(LAST_MODIFIED)
+                                                .partsCount(FOUR_PARTS)
+                                                .contentLength((long) partSize)
+                                                .contentRange("bytes 0-" + (partSize - 1) + "/" + OBJECT_SIZE)
+                                                .build());
+        GetObjectRequest getObjectRequest =
+            GetObjectRequest.builder()
+                            .bucket(BUCKET)
+                            .key(KEY)
+                            .overrideConfiguration(c -> c.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT,
+                                                                                resumeContext))
+                            .build();
+        return tokenWithCompletedParts(completedParts, getObjectRequest);
+    }
+
+    private ResumableFileDownload tokenWithCompletedParts(List<Integer> completedParts, GetObjectRequest getObjectRequest)
+        throws IOException {
         int partSize = OBJECT_SIZE / FOUR_PARTS;
         byte[] fileContent = new byte[Collections.max(completedParts) * partSize];
         for (int part : completedParts) {
@@ -411,50 +450,22 @@ class ResumeDownloadWireMockTest {
         }
         Files.write(destination, fileContent);
 
-        ResumableFileDownload token =
-            ResumableFileDownload.builder()
-                                 .downloadFileRequest(d -> d.getObjectRequest(g -> g.bucket(BUCKET).key(KEY))
-                                                            .destination(destination))
-                                 .bytesTransferred((long) fileContent.length)
-                                 .fileLastModified(Instant.ofEpochMilli(destination.toFile().lastModified()))
-                                 .s3ObjectLastModified(LAST_MODIFIED)
-                                 .s3ObjectEtag(E_TAG)
-                                 .totalSizeInBytes((long) OBJECT_SIZE)
-                                 .completedParts(completedParts)
-                                 .build();
-        return ResumableFileDownload.fromString(token.serializeToString());
+        return ResumableFileDownload.builder()
+                                    .downloadFileRequest(d -> d.getObjectRequest(getObjectRequest).destination(destination))
+                                    .bytesTransferred((long) fileContent.length)
+                                    .fileLastModified(Instant.ofEpochMilli(destination.toFile().lastModified()))
+                                    .s3ObjectLastModified(LAST_MODIFIED)
+                                    .s3ObjectEtag(E_TAG)
+                                    .totalSizeInBytes((long) OBJECT_SIZE)
+                                    .completedParts(completedParts)
+                                    .build();
     }
 
-    /**
-     * Starts a download of a four-part object whose {@code heldParts} are answered only after a long delay, waits until the
-     * other parts are on disk, and pauses it.
-     */
-    private ResumableFileDownload pauseWithPartsCompletedOutOfOrder(List<Integer> completedParts, List<Integer> heldParts)
-        throws InterruptedException {
-        stubHeadObject();
-        stubFourParts(heldParts);
-        FileDownload download = multipartTm.downloadFile(d -> d.getObjectRequest(g -> g.bucket(BUCKET).key(KEY))
-                                                               .destination(destination));
-        long lengthWithCompletedParts = (long) Collections.max(completedParts) * (OBJECT_SIZE / FOUR_PARTS);
-        long deadline = System.currentTimeMillis() + 10_000;
-        while (destination.toFile().length() < lengthWithCompletedParts && System.currentTimeMillis() < deadline) {
-            Thread.sleep(5);
-        }
-        // A part is recorded as completed only after its bytes are written, so give the last one time to be recorded.
-        Thread.sleep(500);
-
-        ResumableFileDownload paused = download.pause();
-
-        assertThat(paused.completedParts()).as("parts completed before the pause")
-                                           .containsExactlyInAnyOrderElementsOf(completedParts);
-        return paused;
-    }
-
-    private void holdResponseFor(RePauseWindow window) {
+    private void delayResponseFor(RePauseWindow window) {
         if (window == RePauseWindow.BEFORE_HEAD_RESPONSE) {
             stubFor(head(urlPathEqualTo(URL_PATH))
                         .willReturn(aResponse().withStatus(200)
-                                               .withFixedDelay(HELD_PART_DELAY_MILLIS)
+                                               .withFixedDelay(RESPONSE_DELAY_MILLIS)
                                                .withHeader("Content-Length", String.valueOf(OBJECT_SIZE))
                                                .withHeader("ETag", E_TAG)
                                                .withHeader("Last-Modified", LAST_MODIFIED_HTTP)));
@@ -464,21 +475,21 @@ class ResumeDownloadWireMockTest {
         stubFourParts(Collections.singletonList(1));
     }
 
-    private void awaitRequestHeldFor(RePauseWindow window) throws InterruptedException {
-        RequestPatternBuilder heldRequest = window == RePauseWindow.BEFORE_HEAD_RESPONSE
+    private void awaitDelayedRequest(RePauseWindow window) throws InterruptedException {
+        RequestPatternBuilder delayedRequest = window == RePauseWindow.BEFORE_HEAD_RESPONSE
                                             ? headRequestedFor(urlPathEqualTo(URL_PATH))
                                             : getRequestedFor(urlEqualTo(partUrl(1)));
         long deadline = System.currentTimeMillis() + 10_000;
-        while (findAll(heldRequest).isEmpty() && System.currentTimeMillis() < deadline) {
+        while (findAll(delayedRequest).isEmpty() && System.currentTimeMillis() < deadline) {
             Thread.sleep(5);
         }
-        assertThat(findAll(heldRequest)).as("request held for %s", window).isNotEmpty();
+        assertThat(findAll(delayedRequest)).as("delayed request received for %s", window).isNotEmpty();
     }
 
-    private void stubFourParts(List<Integer> heldParts) {
+    private void stubFourParts(List<Integer> delayedParts) {
         for (int part = 1; part <= FOUR_PARTS; part++) {
             stubPart(part, FOUR_PARTS, E_TAG, LAST_MODIFIED_HTTP, FULL_OBJECT_CONTENT,
-                     heldParts.contains(part) ? HELD_PART_DELAY_MILLIS : 0);
+                     delayedParts.contains(part) ? RESPONSE_DELAY_MILLIS : 0);
         }
     }
 
