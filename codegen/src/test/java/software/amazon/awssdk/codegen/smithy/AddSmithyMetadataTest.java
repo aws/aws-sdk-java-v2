@@ -188,6 +188,7 @@ class AddSmithyMetadataTest {
             "use aws.protocols#restJson1\n",
             "@restJson1\n@httpBearerAuth\n@auth([httpBearerAuth, sigv4])\n", ""));
         assertThat(metadata.getAuth()).containsExactly(AuthType.BEARER, AuthType.V4);
+        assertThat(metadata.getAuthType()).isEqualTo(AuthType.V4);
     }
 
     // An empty @auth is a different input from no @auth, and takes the other branch.
@@ -198,12 +199,18 @@ class AddSmithyMetadataTest {
         assertThat(metadata.getAuth()).isEmpty();
     }
 
-    // authType only looks for sigv4, so a bearer-only service has none.
     @Test
-    void noSigV4_bearerOnly_fallsBackToBearer() {
+    void noSigV4_bearerOnly_authTypeIsBearer() {
         Metadata metadata = metadataOf(modelWithoutSigV4("@httpBearerAuth\n"));
         assertThat(metadata.getAuth()).containsExactly(AuthType.BEARER);
+        assertThat(metadata.getAuthType()).isEqualTo(AuthType.BEARER);
+    }
+
+    @Test
+    void noAuthSchemeTrait_authTypeIsNull() {
+        Metadata metadata = metadataOf(modelWithoutSigV4(""));
         assertThat(metadata.getAuthType()).isNull();
+        assertThat(metadata.getAuth()).isEmpty();
     }
 
     private static Model modelWithoutSigV4(String serviceTraits) {
