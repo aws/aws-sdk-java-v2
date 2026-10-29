@@ -17,7 +17,6 @@ package software.amazon.awssdk.messagemanager.sns.internal;
 
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -28,39 +27,16 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public class CertificateUrlValidator {
-    private static final int HTTPS_PORT = 443;
+    private static final String URL_NAME = "Certificate URL";
 
-    private final String certificateHost;
+    private final SnsEndpointUrlValidator endpointUrlValidator;
 
     public CertificateUrlValidator(String certificateHost) {
         Validate.notBlank(certificateHost, "Expected certificate host cannot be null or empty");
-        this.certificateHost = certificateHost;
+        this.endpointUrlValidator = new SnsEndpointUrlValidator(certificateHost);
     }
 
     public void validate(URI certificateUrl) {
-        if (certificateUrl == null) {
-            throw SdkClientException.create("Certificate URL cannot be null");
-        }
-
-        if (!"https".equals(certificateUrl.getScheme())) {
-            throw SdkClientException.create("Certificate URL must use HTTPS");
-        }
-
-        if (!certificateHost.equals(certificateUrl.getHost())) {
-            throw SdkClientException.create("Certificate URL does not match expected host: " + certificateHost);
-        }
-
-        if (certificateUrl.getRawUserInfo() != null) {
-            throw SdkClientException.create("Certificate URL must not contain user info");
-        }
-
-        int port = certificateUrl.getPort();
-        if (port != -1 && port != HTTPS_PORT) {
-            throw SdkClientException.create("Certificate URL must use the default HTTPS port");
-        }
-
-        if (certificateUrl.getRawFragment() != null) {
-            throw SdkClientException.create("Certificate URL must not contain a fragment");
-        }
+        endpointUrlValidator.validate(certificateUrl, URL_NAME);
     }
 }

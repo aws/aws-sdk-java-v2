@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.messagemanager.sns.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -47,10 +48,12 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.messagemanager.sns.model.SignatureVersion;
 import software.amazon.awssdk.messagemanager.sns.model.SnsMessage;
 import software.amazon.awssdk.messagemanager.sns.model.SnsNotification;
+import software.amazon.awssdk.messagemanager.sns.model.SnsSubscriptionConfirmation;
 
 class SignatureValidatorTest {
     private static final String RESOURCE_ROOT = "/software/amazon/awssdk/messagemanager/sns/internal/";
     private static final String SIGNING_CERT_RESOURCE = "SimpleNotificationService-7506a1e35b36ef5a444dd1a8e7cc3ed8.pem";
+    private static final String TOPIC_ARN = "arn:aws:sns:us-west-2:123456789012:topic";
     private static final SignatureValidator VALIDATOR = new SignatureValidator();
     private static X509Certificate signingCertificate;
     private static KeyPair signingKeyPair;
@@ -91,6 +94,7 @@ class SignatureValidatorTest {
         SnsNotification notification = SnsNotification.builder()
                                                       .message("hello world")
                                                       .messageId("message-id")
+                                                      .topicArn(TOPIC_ARN)
                                                       .timestamp(Instant.now())
                                                       .signature(SdkBytes.fromByteArray(new byte[256]))
                                                       .signatureVersion(SignatureVersion.VERSION_1)
@@ -159,7 +163,10 @@ class SignatureValidatorTest {
     @Test
     void validateSignature_certInvalid_throws() throws CertificateException {
         SnsNotification notification = SnsNotification.builder()
-                                                      .signature(SdkBytes.fromByteArray(new byte[1]))
+                                                      .message("hello world")
+                                                      .messageId("message-id")
+                                                      .topicArn(TOPIC_ARN)
+                                                      .signature(SdkBytes.fromByteArray(new byte[256]))
                                                       .signatureVersion(SignatureVersion.VERSION_1)
                                                       .timestamp(Instant.now())
                                                       .build();
@@ -180,7 +187,8 @@ class SignatureValidatorTest {
                                                       .subject("hello world")
                                                       .message("hello world")
                                                       .messageId("message-id")
-                                                      .signature(SdkBytes.fromByteArray(new byte[1]))
+                                                      .topicArn(TOPIC_ARN)
+                                                      .signature(SdkBytes.fromByteArray(new byte[128]))
                                                       .signatureVersion(SignatureVersion.VERSION_1)
                                                       .timestamp(Instant.now())
                                                       .unsubscribeUrl(URI.create("https://my-test-service.amazonaws.com"))
@@ -191,6 +199,161 @@ class SignatureValidatorTest {
         assertThatThrownBy(() -> VALIDATOR.validateSignature(notification, signingCertificate.getPublicKey()))
             .isInstanceOf(SdkClientException.class)
             .hasMessage("The signature is invalid");
+    }
+
+    @Test
+    void validateSignedFields_signatureTooShort_throws() {
+        SnsNotification notification = SnsNotification.builder()
+                                                      .message("hello world")
+                                                      .messageId("message-id")
+                                                      .signature(SdkBytes.fromByteArray(new byte[3]))
+                                                      .signatureVersion(SignatureVersion.VERSION_1)
+                                                      .timestamp(Instant.now())
+                                                      .build();
+
+        assertThatThrownBy(() -> VALIDATOR.validateSignedFields(notification))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("too short")
+            .hasMessageContaining("3 bytes");
+    }
+
+    @Test
+    void validateSignedFields_signatureVersionUnknown_throws() {
+        SnsNotification notification = SnsNotification.builder()
+                                                      .message("hello world")
+                                                      .messageId("message-id")
+                                                      .signature(SdkBytes.fromByteArray(new byte[256]))
+                                                      .signatureVersion(SignatureVersion.UNKNOWN)
+                                                      .timestamp(Instant.now())
+                                                      .build();
+
+        assertThatThrownBy(() -> VALIDATOR.validateSignedFields(notification))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Unsupported signature version");
+    }
+
+    @Test
+    void validateSignedFields_allPresent_doesNotThrow() {
+        SnsNotification notification = SnsNotification.builder()
+                                                      .message("hello world")
+                                                      .messageId("message-id")
+                                                      .topicArn(TOPIC_ARN)
+                                                      .signature(SdkBytes.fromByteArray(new byte[256]))
+                                                      .signatureVersion(SignatureVersion.VERSION_2)
+                                                      .timestamp(Instant.now())
+                                                      .build();
+
+        assertThatCode(() -> VALIDATOR.validateSignedFields(notification)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void validateSignedFields_messageIdContainsNewline_throws() {
+        SnsNotification notification = SnsNotification.builder()
+                                                      .message("hello world")
+                                                      .messageId("message-id\nsecond line")
+                                                      .topicArn(TOPIC_ARN)
+                                                      .signature(SdkBytes.fromByteArray(new byte[256]))
+                                                      .signatureVersion(SignatureVersion.VERSION_2)
+                                                      .timestamp(Instant.now())
+                                                      .build();
+
+        assertThatThrownBy(() -> VALIDATOR.validateSignedFields(notification))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Signed field 'MessageId' must not contain line breaks");
+    }
+
+    @Test
+    void validateSignedFields_subjectContainsCarriageReturn_throws() {
+        SnsNotification notification = SnsNotification.builder()
+                                                      .message("hello world")
+                                                      .messageId("message-id")
+                                                      .subject("hello\rworld")
+                                                      .topicArn(TOPIC_ARN)
+                                                      .signature(SdkBytes.fromByteArray(new byte[256]))
+                                                      .signatureVersion(SignatureVersion.VERSION_2)
+                                                      .timestamp(Instant.now())
+                                                      .build();
+
+        assertThatThrownBy(() -> VALIDATOR.validateSignedFields(notification))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Signed field 'Subject' must not contain line breaks");
+    }
+
+    @Test
+    void validateSignedFields_topicArnMissing_throws() {
+        SnsNotification notification = SnsNotification.builder()
+                                                      .message("hello world")
+                                                      .messageId("message-id")
+                                                      .signature(SdkBytes.fromByteArray(new byte[256]))
+                                                      .signatureVersion(SignatureVersion.VERSION_2)
+                                                      .timestamp(Instant.now())
+                                                      .build();
+
+        assertThatThrownBy(() -> VALIDATOR.validateSignedFields(notification))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Signed field 'TopicArn' must be present");
+    }
+
+    @Test
+    void validateSignedFields_confirmationTokenMissing_throws() {
+        SnsSubscriptionConfirmation confirmation =
+            SnsSubscriptionConfirmation.builder()
+                                       .message("You have chosen to subscribe to the topic.")
+                                       .messageId("message-id")
+                                       .topicArn(TOPIC_ARN)
+                                       .subscribeUrl(URI.create("https://sns.us-west-2.amazonaws.com/?Action=Confirm"))
+                                       .signature(SdkBytes.fromByteArray(new byte[256]))
+                                       .signatureVersion(SignatureVersion.VERSION_2)
+                                       .timestamp(Instant.now())
+                                       .build();
+
+        assertThatThrownBy(() -> VALIDATOR.validateSignedFields(confirmation))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Signed field 'Token' must be present");
+    }
+
+    @Test
+    void validateSignedFields_multilineMessage_doesNotThrow() {
+        SnsNotification notification = SnsNotification.builder()
+                                                      .message("line one\nline two\r\nline three")
+                                                      .messageId("message-id")
+                                                      .topicArn(TOPIC_ARN)
+                                                      .signature(SdkBytes.fromByteArray(new byte[256]))
+                                                      .signatureVersion(SignatureVersion.VERSION_2)
+                                                      .timestamp(Instant.now())
+                                                      .build();
+
+        assertThatCode(() -> VALIDATOR.validateSignedFields(notification)).doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("validMessages")
+    void isSignatureValid_validFixture_returnsTrue(TestCase tc) {
+        SnsMessage msg = new SnsMessageUnmarshaller().unmarshall(resourceAsStream(tc.messageJsonResource));
+
+        assertThat(VALIDATOR.isSignatureValid(msg, signingCertificate.getPublicKey())).isTrue();
+    }
+
+    @Test
+    void isSignatureValid_wrongKey_returnsFalse() {
+        SnsMessage msg = new SnsMessageUnmarshaller().unmarshall(resourceAsStream("test-notification-with-subject.json"));
+
+        assertThat(VALIDATOR.isSignatureValid(msg, signingKeyPair.getPublic())).isFalse();
+    }
+
+    @Test
+    void isSignatureValid_signatureLengthMismatch_returnsFalse() {
+        // 128 zero bytes against a 2048-bit key: the JCA throws SignatureException, which is reported as "not valid".
+        SnsNotification notification = SnsNotification.builder()
+                                                      .message("hello world")
+                                                      .messageId("message-id")
+                                                      .topicArn("arn:aws:sns:us-east-1:123456789012:my-topic")
+                                                      .signature(SdkBytes.fromByteArray(new byte[128]))
+                                                      .signatureVersion(SignatureVersion.VERSION_1)
+                                                      .timestamp(Instant.now())
+                                                      .build();
+
+        assertThat(VALIDATOR.isSignatureValid(notification, signingCertificate.getPublicKey())).isFalse();
     }
 
     private static List<TestCase> validMessages() {

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.messagemanager.sns.internal;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -57,12 +58,35 @@ public final class SignatureValidator {
 
     private static final String NEWLINE = "\n";
 
+    /**
+     * The smallest RSA signature any supported key can produce (RSA-1024).
+     */
+    private static final int MIN_RSA_SIGNATURE_LENGTH = 128;
+
     private static final DateTimeFormatter TIMESTAMP_FORMATTER =
         DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ROOT).withZone(ZoneOffset.UTC);
 
     public void validateSignature(SnsMessage message, PublicKey publicKey) {
         Validate.paramNotNull(message, "message");
         Validate.paramNotNull(publicKey, "publicKey");
+
+        validateSignedFields(message);
+
+        String canonicalMessage = buildCanonicalMessage(message);
+        LOG.debug(() -> String.format("Canonical message: %s%n", canonicalMessage));
+
+        Signature signature = getSignature(message.signatureVersion());
+
+        verifySignature(canonicalMessage, message.signature(), publicKey, signature);
+    }
+
+    /**
+     * Checks that the fields needed to verify the signature are present and well-formed, without verifying the signature
+     * itself. Signed fields other than Message must be single-line. These checks need no public key and can run before
+     * the signing certificate is retrieved.
+     */
+    public void validateSignedFields(SnsMessage message) {
+        Validate.paramNotNull(message, "message");
 
         SdkBytes messageSignature = message.signature();
         if (messageSignature == null) {
@@ -78,12 +102,69 @@ public final class SignatureValidator {
             throw SdkClientException.create("Message timestamp cannot be null");
         }
 
-        String canonicalMessage = buildCanonicalMessage(message);
-        LOG.debug(() -> String.format("Canonical message: %s%n", canonicalMessage));
+        if (signatureVersion == SignatureVersion.UNKNOWN) {
+            throw SdkClientException.create("Unsupported signature version");
+        }
 
-        Signature signature = getSignature(signatureVersion);
+        int signatureLength = messageSignature.asByteArrayUnsafe().length;
+        if (signatureLength < MIN_RSA_SIGNATURE_LENGTH) {
+            throw SdkClientException.create("Message signature is too short to be an RSA signature: " + signatureLength
+                                            + " bytes");
+        }
 
-        verifySignature(canonicalMessage, messageSignature, publicKey, signature);
+        requirePresent(message.message(), MESSAGE);
+        requirePresent(message.messageId(), MESSAGE_ID);
+        requirePresent(message.topicArn(), TOPIC_ARN);
+        requireSingleLine(message.messageId(), MESSAGE_ID);
+        requireSingleLine(message.topicArn(), TOPIC_ARN);
+
+        validateTypeSpecificFields(message);
+    }
+
+    private static void validateTypeSpecificFields(SnsMessage message) {
+        switch (message.type()) {
+            case NOTIFICATION:
+                validateTypeSpecificFields((SnsNotification) message);
+                break;
+            case SUBSCRIPTION_CONFIRMATION:
+                validateTypeSpecificFields((SnsSubscriptionConfirmation) message);
+                break;
+            case UNSUBSCRIBE_CONFIRMATION:
+                validateTypeSpecificFields((SnsUnsubscribeConfirmation) message);
+                break;
+            default:
+                throw new IllegalStateException(String.format("Unsupported SNS message type: %s", message.type()));
+        }
+    }
+
+    private static void validateTypeSpecificFields(SnsNotification notification) {
+        requireSingleLine(notification.subject(), SUBJECT);
+    }
+
+    private static void validateTypeSpecificFields(SnsSubscriptionConfirmation confirmation) {
+        validateConfirmationFields(confirmation.token(), confirmation.subscribeUrl());
+    }
+
+    private static void validateTypeSpecificFields(SnsUnsubscribeConfirmation confirmation) {
+        validateConfirmationFields(confirmation.token(), confirmation.subscribeUrl());
+    }
+
+    private static void validateConfirmationFields(String token, URI subscribeUrl) {
+        requirePresent(token, TOKEN);
+        requirePresent(subscribeUrl, SUBSCRIBE_URL);
+        requireSingleLine(token, TOKEN);
+    }
+
+    private static void requirePresent(Object value, String label) {
+        if (value == null) {
+            throw SdkClientException.create("Signed field '" + label + "' must be present");
+        }
+    }
+
+    private static void requireSingleLine(String value, String label) {
+        if (value != null && (value.indexOf('\n') >= 0 || value.indexOf('\r') >= 0)) {
+            throw SdkClientException.create("Signed field '" + label + "' must not contain line breaks");
+        }
     }
 
     private static String buildCanonicalMessage(SnsMessage message) {
@@ -177,6 +258,29 @@ public final class SignatureValidator {
             }
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Unable to create Signature for " + signatureVersion, e);
+        }
+    }
+
+    /**
+     * Returns whether the message signature verifies against {@code publicKey}, without throwing when it does not. A key the
+     * JCA rejects for this signature simply does not verify. Malformed signed fields still fail with
+     * {@link SdkClientException}, exactly as {@link #validateSignature(SnsMessage, PublicKey)} does.
+     */
+    public boolean isSignatureValid(SnsMessage message, PublicKey publicKey) {
+        Validate.paramNotNull(message, "message");
+        Validate.paramNotNull(publicKey, "publicKey");
+
+        validateSignedFields(message);
+
+        String canonicalMessage = buildCanonicalMessage(message);
+        Signature signature = getSignature(message.signatureVersion());
+
+        try {
+            signature.initVerify(publicKey);
+            signature.update(canonicalMessage.getBytes(StandardCharsets.UTF_8));
+            return signature.verify(message.signature().asByteArray());
+        } catch (InvalidKeyException | SignatureException e) {
+            return false;
         }
     }
 }

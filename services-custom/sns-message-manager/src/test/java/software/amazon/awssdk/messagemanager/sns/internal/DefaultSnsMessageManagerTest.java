@@ -25,10 +25,12 @@ import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.Base64;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpService;
@@ -91,6 +93,51 @@ public class DefaultSnsMessageManagerTest {
         msgManager.close();
 
         verify(mockCertRetriever).close();
+    }
+
+    @Test
+    void parseMessage_shortSignature_certificateNotRetrieved() {
+        CertificateRetriever mockRetriever = mock(CertificateRetriever.class);
+        SnsMessageManager msgManager = new DefaultSnsMessageManager.BuilderImpl()
+            .certificateRetriever(mockRetriever)
+            .region(Region.US_WEST_2)
+            .build();
+
+        String message = notification("AAAA", "https://sns.us-west-2.amazonaws.com/cert.pem");
+
+        assertThatThrownBy(() -> msgManager.parseMessage(message))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("too short");
+        verifyNoInteractions(mockRetriever);
+    }
+
+    @Test
+    void parseMessage_missingSigningCertUrl_throwsSdkClientException() {
+        CertificateRetriever mockRetriever = mock(CertificateRetriever.class);
+        SnsMessageManager msgManager = new DefaultSnsMessageManager.BuilderImpl()
+            .certificateRetriever(mockRetriever)
+            .region(Region.US_WEST_2)
+            .build();
+
+        String message = notification(Base64.getEncoder().encodeToString(new byte[256]), null);
+
+        assertThatThrownBy(() -> msgManager.parseMessage(message))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("SigningCertURL must be present");
+        verifyNoInteractions(mockRetriever);
+    }
+
+    private static String notification(String signature, String signingCertUrl) {
+        return "{"
+               + "\"Type\":\"Notification\","
+               + "\"MessageId\":\"id\","
+               + "\"TopicArn\":\"arn:aws:sns:us-west-2:1:t\","
+               + "\"Message\":\"hello\","
+               + "\"Timestamp\":\"2026-08-29T00:00:00.000Z\","
+               + "\"SignatureVersion\":\"1\","
+               + "\"Signature\":\"" + signature + "\""
+               + (signingCertUrl == null ? "" : ",\"SigningCertURL\":\"" + signingCertUrl + "\"")
+               + "}";
     }
 
     @Test
