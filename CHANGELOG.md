@@ -1,4 +1,42 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.57.7__ __2026-10-29__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Adds support for the PySpark 2.0 analysis template format and for choosing the file format (CSV or Parquet) of protected job results written to Amazon S3, including in a membership's default job result configuration.
+
+## __AWS S3 AccessGrants__
+  - ### Bugfixes
+    - Updating S3 AccessGrants plugin version to 2.5.0
+        - Contributed by: [@prime025](https://github.com/prime025)
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Improve the performance of StringUtils.replaceEach for inputs with many matches.
+
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF customers using Targeted Bot Control, ATP, or ACFP managed rule groups can now enable automatic Challenge JavaScript SDK injection. When enabled, Amazon CloudFront injects the script tag into HTML responses on your behalf, removing the need for manual integration.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds AgentCore Runtime session endpoint support, including sessionEndpointUrl on the InvokeAgentRuntime response
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds Session Endpoint Feature on AgentCore Runtime
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for instance health status checks and system status checks.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds support for on-demand AMI scanning with Amazon Inspector.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@prime025](https://github.com/prime025)
 # __2.57.6__ __2026-10-28__
 ## __AWS Artifact__
   - ### Features
