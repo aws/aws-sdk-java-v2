@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Add support for resolving the disable host prefix injection setting from the aws.disableHostPrefixInjection system property, the AWS_DISABLE_HOST_PREFIX_INJECTION environment variable, and the disable_host_prefix_injection profile property."
+}

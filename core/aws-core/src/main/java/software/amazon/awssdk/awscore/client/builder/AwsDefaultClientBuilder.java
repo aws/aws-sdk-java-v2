@@ -48,7 +48,6 @@ import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
-import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.EnableDefaultSocketTimeout2026Resolver;
@@ -146,7 +145,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     protected final SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
         SdkClientConfiguration config = mergeServiceDefaults(configuration);
         config = config.merge(c -> c.option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, true)
-                                    .option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, false)
                                     .option(AwsClientOption.SERVICE_SIGNING_NAME, signingName())
                                     .option(SdkClientOption.SERVICE_NAME, serviceName())
                                     .option(AwsClientOption.ENDPOINT_PREFIX, serviceEndpointPrefix()));

@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.client.builder;
 import static software.amazon.awssdk.core.ClientType.ASYNC;
 import static software.amazon.awssdk.core.ClientType.SYNC;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
@@ -360,7 +361,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
                      .lazyOption(CLIENT_USER_AGENT, this::resolveClientUserAgent)
                      .lazyOption(COMPRESSION_CONFIGURATION, this::resolveCompressionConfiguration)
-                     .lazyOptionIfAbsent(IDENTITY_PROVIDERS, c -> IdentityProviders.builder().build());
+                     .lazyOptionIfAbsent(IDENTITY_PROVIDERS, c -> IdentityProviders.builder().build())
+                     .lazyOptionIfAbsent(DISABLE_HOST_PREFIX_INJECTION, this::resolveDisableHostPrefixInjection);
         builder.computeOptionIfAbsent(HTTP_CLIENT_CONFIG_TYPE, () -> BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
         return builder.build();
     }
@@ -388,6 +390,17 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                           systemSettingConfiguration,
                                           profileFileConfiguration)
                             .orElse(true);
+    }
+
+    private Boolean resolveDisableHostPrefixInjection(LazyValueSource config) {
+        Supplier<Optional<Boolean>> profileFileConfiguration =
+            () -> config.get(PROFILE_FILE_SUPPLIER).get()
+                        .profile(config.get(PROFILE_NAME))
+                        .flatMap(p -> p.booleanProperty(ProfileProperty.DISABLE_HOST_PREFIX_INJECTION));
+
+        return OptionalUtils.firstPresent(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION.getBooleanValue(),
+                                          profileFileConfiguration)
+                            .orElse(false);
     }
 
     private Integer resolveMinCompressionThreshold(LazyValueSource config, CompressionConfiguration compressionConfig) {
