@@ -426,6 +426,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             reportDuration(apiCall, CoreMetric.API_CALL_DURATION, requestMetrics::getApiCallDurationNs);
             reportServiceEndpoint(apiCall, requestMetrics::getServiceEndpoint);
 
+            // TODO: Map CredentialsFetchDuration, ReadThroughput, and WriteThroughput when CRT telemetry exposes them.
             MetricCollector attempt = apiCall.createChild("ApiCallAttempt");
             reportDuration(attempt, CoreMetric.SIGNING_DURATION, requestMetrics::getSigningDurationNs);
             reportDuration(attempt, CoreMetric.SERVICE_CALL_DURATION, requestMetrics::getServiceCallDurationNs);

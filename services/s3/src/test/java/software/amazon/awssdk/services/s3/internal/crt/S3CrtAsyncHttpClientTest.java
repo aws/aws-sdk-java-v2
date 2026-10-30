@@ -40,8 +40,10 @@ import java.net.URI;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -184,6 +186,31 @@ public class S3CrtAsyncHttpClientTest {
             MetricCollection httpClient =
                 attempt.childrenWithName("HttpClient").findFirst().orElseThrow(AssertionError::new);
             assertThat(httpClient.metricValues(HttpMetric.MAX_CONCURRENCY)).containsExactly(expectedMaxConcurrency);
+        } finally {
+            asyncHttpClient.close();
+        }
+    }
+
+    @Test
+    public void metricPublishers_areCopiedWhenClientIsConstructed() {
+        MetricPublisher originalPublisher = Mockito.mock(MetricPublisher.class);
+        MetricPublisher addedAfterConstruction = Mockito.mock(MetricPublisher.class);
+        List<MetricPublisher> configuredPublishers = new ArrayList<>();
+        configuredPublishers.add(originalPublisher);
+        asyncHttpClient = new S3CrtAsyncHttpClient(
+            s3Client,
+            S3CrtAsyncHttpClient.builder()
+                                .s3ClientConfiguration(s3NativeClientConfiguration)
+                                .metricPublishers(configuredPublishers));
+
+        configuredPublishers.add(addedAfterConstruction);
+
+        try {
+            S3MetaRequestOptions requestOptions = makeRequest(getExecuteRequestBuilder().build());
+            requestOptions.getResponseHandler().onTelemetry(Mockito.mock(S3RequestMetrics.class));
+
+            verify(originalPublisher, timeout(1_000)).publish(any());
+            verify(addedAfterConstruction, Mockito.after(100).never()).publish(any());
         } finally {
             asyncHttpClient.close();
         }

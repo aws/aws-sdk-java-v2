@@ -450,6 +450,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public DefaultS3CrtClientBuilder metricPublishers(Collection<MetricPublisher> metricPublishers) {
             Validate.paramNotNull(metricPublishers, "metricPublishers");
+            Validate.noNullElements(metricPublishers, "metricPublishers must not contain null elements");
             this.metricPublishers = new ArrayList<>(metricPublishers);
             return this;
         }

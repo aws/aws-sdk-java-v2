@@ -87,7 +87,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     private S3CrtAsyncHttpClient(Builder builder) {
         s3NativeClientConfiguration = builder.clientConfiguration;
         this.s3ClientOptions = createS3ClientOption();
-        this.metricPublishers = builder.metricPublishers == null ? Collections.emptyList() : builder.metricPublishers;
+        this.metricPublishers = copyMetricPublishers(builder.metricPublishers);
         this.metricPublisherDispatcher = new S3CrtMetricPublisherDispatcher();
 
         this.crtS3Client = new S3Client(s3ClientOptions);
@@ -98,9 +98,15 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                          Builder builder) {
         s3NativeClientConfiguration = builder.clientConfiguration;
         s3ClientOptions = createS3ClientOption();
-        this.metricPublishers = builder.metricPublishers == null ? Collections.emptyList() : builder.metricPublishers;
+        this.metricPublishers = copyMetricPublishers(builder.metricPublishers);
         this.metricPublisherDispatcher = new S3CrtMetricPublisherDispatcher();
         this.crtS3Client = crtS3Client;
+    }
+
+    private static List<MetricPublisher> copyMetricPublishers(List<MetricPublisher> metricPublishers) {
+        return metricPublishers == null
+               ? Collections.emptyList()
+               : Collections.unmodifiableList(new ArrayList<>(metricPublishers));
     }
 
     @SdkTestInternalApi

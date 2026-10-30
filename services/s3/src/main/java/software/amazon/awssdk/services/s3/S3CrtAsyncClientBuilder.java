@@ -28,6 +28,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -400,6 +401,10 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * <p>Each underlying CRT request attempt is published as a separate {@code "ApiCall"} metric collection. A single
      * high-level transfer (for example a multipart {@code getObject}) fans out into several underlying requests, so
      * several collections are published per transfer.
+     *
+     * <p>When migrating from another S3 client, note that the CRT-based client does not publish
+     * {@link CoreMetric#CREDENTIALS_FETCH_DURATION}, {@link CoreMetric#READ_THROUGHPUT}, or
+     * {@link CoreMetric#WRITE_THROUGHPUT}.
      *
      * <p>The SDK does not close these publishers when the client is closed; the caller retains ownership and is
      * responsible for closing them. Metric publication is asynchronous and best effort. Closing the client waits for a
