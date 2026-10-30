@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "description": "Add a compact, single-line format for LoggingMetricPublisher to reduce log volume while retaining metric hierarchy. Resolves [#6840](https://github.com/aws/aws-sdk-java-v2/issues/6840).",
+    "contributor": "Dricmoy"
+}
