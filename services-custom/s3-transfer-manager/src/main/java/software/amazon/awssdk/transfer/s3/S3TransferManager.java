@@ -350,7 +350,9 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * transformer, it completes when the first bytes of the object arrive, and the rest downloads as the application reads the
      * stream. For an empty object, it completes when the request finishes. Progress counts bytes CRT has received, which the
      * application may not have read yet. {@link TransferListener#transferComplete} is called when CRT has received the whole
-     * object, which for a large object depends on the application reading the stream.
+     * object, which for a large object depends on the application reading the stream. Always close the stream. Closing it
+     * before CRT has received the whole object cancels the rest of the download and the transfer fails. Closing it afterward
+     * leaves the transfer complete, even if the application didn't read everything.
      *
      * <p>
      * <b>Usage Example:</b>
