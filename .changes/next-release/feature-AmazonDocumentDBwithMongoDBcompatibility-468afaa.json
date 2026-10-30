@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DocumentDB with MongoDB compatibility",
-    "contributor": "",
-    "description": "Amazon DocumentDB now returns ServerlessV2PlatformVersion in DBCluster API responses and adds the DescribeServerlessV2PlatformVersions API to discover available platform versions and their capabilities."
-}
