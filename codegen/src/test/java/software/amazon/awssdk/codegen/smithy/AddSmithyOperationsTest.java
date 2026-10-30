@@ -441,21 +441,6 @@ class AddSmithyOperationsTest {
         assertThat(op.isAuthenticated()).isTrue();
     }
 
-    // ---- Pagination (deferred to PR 15) -----------------------------------
-
-    @Test
-    void paginatedTrait_doesNotSetPaginated() {
-        Model model = modelOf(
-            "@paginated(inputToken: \"nextToken\", outputToken: \"nextToken\", items: \"items\")\n"
-            + "@http(method: \"POST\", uri: \"/op\")\n"
-            + "operation Op { input: OpRequest, output: OpResponse }\n"
-            + "structure OpRequest { nextToken: String }\n"
-            + "structure OpResponse { nextToken: String, items: StringList }\n"
-            + "list StringList { member: String }\n");
-        // Pagination is deferred to PR 15; isPaginated stays false here.
-        assertThat(op(model, "rest-json").isPaginated()).isFalse();
-    }
-
     // ---- Endpoint discovery -----------------------------------------------
 
     @Test
