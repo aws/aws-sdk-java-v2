@@ -231,6 +231,12 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_DISABLE_REQUEST_COMPRESSION("aws.disableRequestCompression", null),
 
     /**
+     * Whether the SDK should skip prepending the modeled hostPrefix to the endpoint host. The default value is false, i.e.,
+     * the hostPrefix is prepended.
+     */
+    AWS_DISABLE_HOST_PREFIX_INJECTION("aws.disableHostPrefixInjection", null),
+
+    /**
      * Defines the minimum compression size in bytes, inclusive, for a request to be compressed. The default value is 10_240.
      * The value must be non-negative and no greater than 10_485_760.
      */
