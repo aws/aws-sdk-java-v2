@@ -48,8 +48,11 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
     private static final Logger log = Logger.loggerFor(S3CrtBorrowedBufferInputStream.class);
 
     private enum Signal {
-        COMPLETE,
-        CLOSED
+        /**
+         * Enqueued by close() only to wake a reader blocked in take(). The close state is in closeReason.
+         */
+        CLOSED,
+        COMPLETE
     }
 
     private static final class CloseReason {
@@ -230,13 +233,6 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
     @Override
     public void abort() {
         close();
-    }
-
-    /**
-     * Closes the stream and reports the error from later reads.
-     */
-    void abort(Throwable error) {
-        close(Validate.paramNotNull(error, "error"));
     }
 
     private void close(Throwable closeCause) {

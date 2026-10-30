@@ -94,6 +94,21 @@ class S3CrtBorrowedBufferClientWireMockTest {
     }
 
     @Test
+    void emptyObject_shouldReturnStreamAtEndOfStream(WireMockRuntimeInfo wireMock) throws Exception {
+        stubHeadObject(0);
+        stubFor(get(anyUrl()).willReturn(aResponse().withStatus(200)
+                                                   .withHeader("Content-Length", "0")
+                                                   .withHeader("ETag", E_TAG)));
+
+        try (S3AsyncClient client = newClient(wireMock);
+             ResponseInputStream<GetObjectResponse> stream = getObject(client)) {
+            assertThat(stream.response().contentLength()).isZero();
+            assertThat(stream.read()).isEqualTo(-1);
+            assertThat(stream.read(new byte[1])).isEqualTo(-1);
+        }
+    }
+
+    @Test
     void borrowedDownload_shouldReportTransformerTypeInUserAgent(WireMockRuntimeInfo wireMock) throws Exception {
         stubMultipartObject(CONTENT);
 

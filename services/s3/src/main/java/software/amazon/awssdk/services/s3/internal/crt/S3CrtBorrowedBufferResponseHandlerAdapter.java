@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Adapts CRT borrowed-buffer {@link GetObjectResponse} callbacks to an {@link S3CrtBorrowedBufferStreamHandler}.
+ * Adapts CRT borrowed-buffer {@link GetObjectResponse} callbacks to an {@link S3CrtBorrowedBufferBlockingResponseTransformer}.
  *
  * <p>Headers, progress and request completion go through {@link S3CrtResponseHandlerAdapter}.
  */
@@ -47,7 +47,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
 
     private final S3CrtResponseHandlerAdapter delegate;
     private final CompletableFuture<Void> executeFuture;
-    private final S3CrtBorrowedBufferStreamHandler streamHandler;
+    private final S3CrtBorrowedBufferBlockingResponseTransformer transformer;
     private final CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
     private final AtomicBoolean streamInitiated = new AtomicBoolean();
     private long nextObjectRangeStart;
@@ -56,21 +56,8 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         this.executeFuture = builder.executeFuture;
         this.delegate = new S3CrtResponseHandlerAdapter(this.executeFuture, builder.responseHandler, builder.progressListener,
                                                        builder.metaRequestFuture);
-        this.streamHandler = Validate.paramNotNull(builder.streamHandler, "streamHandler");
+        this.transformer = Validate.paramNotNull(builder.transformer, "transformer");
         this.metaRequestFuture = builder.metaRequestFuture;
-        executeFuture.whenComplete((ignored, error) -> {
-            if (error != null) {
-                try {
-                    if (!streamInitiated.get()) {
-                        streamHandler.onBorrowedStreamAbort(error);
-                    } else {
-                        streamHandler.onBorrowedStreamError(error);
-                    }
-                } catch (Throwable notificationFailure) {
-                    log.error(() -> "Failed to notify borrowed response stream of request failure", notificationFailure);
-                }
-            }
-        });
     }
 
     static Builder builder() {
@@ -92,7 +79,6 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
 
     @Override
     public int onResponseBodyBorrowed(S3BorrowedBuffer crtBuffer, long objectRangeStart, long objectRangeEnd) {
-        boolean acceptedByStream = false;
         try {
             Validate.paramNotNull(crtBuffer, "crtBuffer");
             delegate.initiateResponseHandlingForBorrowedResponse();
@@ -101,19 +87,11 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
                                 "CRT borrowed buffer started at object offset %d, but the expected offset was %d",
                                 objectRangeStart, nextObjectRangeStart);
             nextObjectRangeStart = objectRangeEnd;
-            acceptedByStream = streamHandler.onBorrowedBuffer(crtBuffer);
             initiateStream();
+            transformer.onBorrowedBuffer(crtBuffer);
         } catch (Throwable t) {
-            if (acceptedByStream) {
-                // initiateStream() threw before publication, so no reader can hold these bytes.
-                try {
-                    streamHandler.onBorrowedStreamAbort(t);
-                } catch (Throwable cleanupFailure) {
-                    log.error(() -> "Failed to abort borrowed response stream", cleanupFailure);
-                }
-            } else {
-                releaseUnacceptedBuffer(crtBuffer);
-            }
+            // The stream releases a buffer it accepts or rejects, so a throw means the buffer is still ours.
+            releaseUnacceptedBuffer(crtBuffer);
             failBorrowedResponse(t);
         }
         // The read window grows only as the reader consumes buffers.
@@ -126,7 +104,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
             try {
                 delegate.initiateResponseHandlingForBorrowedResponse();
                 initiateStream();
-                streamHandler.onBorrowedStreamComplete();
+                transformer.onBorrowedStreamComplete();
             } catch (Throwable t) {
                 failBorrowedResponse(t);
                 return;
@@ -179,7 +157,17 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
 
     private void initiateStream() {
         if (streamInitiated.compareAndSet(false, true)) {
-            streamHandler.onBorrowedStreamStart(() -> executeFuture.cancel(true), this::incrementReadWindow);
+            transformer.onBorrowedStreamStart(() -> executeFuture.cancel(true), this::incrementReadWindow);
+            // Registered after the stream exists, so a failure that already happened is reported to it right away.
+            executeFuture.whenComplete((ignored, error) -> {
+                if (error != null) {
+                    try {
+                        transformer.onBorrowedStreamError(error);
+                    } catch (Throwable notificationFailure) {
+                        log.error(() -> "Failed to notify borrowed response stream of request failure", notificationFailure);
+                    }
+                }
+            });
         }
     }
 
@@ -207,7 +195,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         private SdkAsyncHttpResponseHandler responseHandler;
         private PublisherListener<S3MetaRequestProgress> progressListener;
         private CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
-        private S3CrtBorrowedBufferStreamHandler streamHandler;
+        private S3CrtBorrowedBufferBlockingResponseTransformer transformer;
 
         Builder executeFuture(CompletableFuture<Void> executeFuture) {
             this.executeFuture = executeFuture;
@@ -229,8 +217,8 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
             return this;
         }
 
-        Builder streamHandler(S3CrtBorrowedBufferStreamHandler streamHandler) {
-            this.streamHandler = streamHandler;
+        Builder transformer(S3CrtBorrowedBufferBlockingResponseTransformer transformer) {
+            this.transformer = transformer;
             return this;
         }
 

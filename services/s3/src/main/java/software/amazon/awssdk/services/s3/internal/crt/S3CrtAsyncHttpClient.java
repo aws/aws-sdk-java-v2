@@ -69,6 +69,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.NumericUtils;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -153,6 +154,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         Optional<Long> minimumSizeInBytes = directBufferPoolConfiguration.minimumSizeInBytes();
         Optional<Long> memoryLimitInBytes = directBufferPoolConfiguration.memoryLimitInBytes();
         if (minimumSizeInBytes.isPresent()) {
+            Validate.validState(memoryLimitInBytes.isPresent(),
+                                "An elastic direct buffer pool must have memoryLimitInBytes");
             return S3DirectBufferPoolOptions.elastic(minimumSizeInBytes.get(), memoryLimitInBytes.get());
         }
 
@@ -273,7 +276,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                                          .progressListener(
                                                              httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER))
                                                          .metaRequestFuture(s3MetaRequestFuture)
-                                                         .streamHandler(borrowedBufferResponseTransformer.currentAttempt())
+                                                         .transformer(borrowedBufferResponseTransformer)
                                                          .build();
     }
 

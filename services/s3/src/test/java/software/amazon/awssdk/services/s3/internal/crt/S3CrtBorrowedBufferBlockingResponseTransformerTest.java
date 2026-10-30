@@ -27,9 +27,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongConsumer;
 import org.junit.jupiter.api.Test;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.crt.s3.S3BorrowedBuffer;
 import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -47,12 +48,11 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
         CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
         GetObjectResponse response = GetObjectResponse.builder().contentLength(3L).build();
         transformer.onResponse(response);
-        S3CrtBorrowedBufferStreamHandler handler = transformer.currentAttempt();
 
-        handler.onBorrowedStreamStart(() -> {
+        transformer.onBorrowedStreamStart(() -> {
         }, credit::addAndGet);
-        handler.onBorrowedBuffer(buffer);
-        handler.onBorrowedStreamComplete();
+        transformer.onBorrowedBuffer(buffer);
+        transformer.onBorrowedStreamComplete();
 
         try (ResponseInputStream<GetObjectResponse> stream = future.join()) {
             byte[] bytes = new byte[3];
@@ -66,47 +66,54 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
     }
 
     @Test
-    void abort_shouldCancelCurrentAndLaterAttempts() {
+    void redirect_shouldStreamTheRedirectedRequest() throws Exception {
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer = newTransformer();
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> firstFuture = transformer.prepare();
+        transformer.exceptionOccurred(new RuntimeException("redirect"));
+
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> secondFuture = transformer.prepare();
+        GetObjectResponse response = GetObjectResponse.builder().contentLength(3L).build();
+        transformer.onResponse(response);
+        transformer.onBorrowedStreamStart(() -> { }, NO_CREDIT);
+        transformer.onBorrowedBuffer(borrowedBuffer(ByteBuffer.wrap("abc".getBytes(UTF_8)), () -> { }));
+        transformer.onBorrowedStreamComplete();
+
+        assertThat(firstFuture).isCompletedExceptionally();
+        try (ResponseInputStream<GetObjectResponse> stream = secondFuture.join()) {
+            byte[] bytes = new byte[3];
+            assertThat(stream.response()).isSameAs(response);
+            assertThat(stream.read(bytes)).isEqualTo(3);
+            assertThat(bytes).isEqualTo("abc".getBytes(UTF_8));
+            assertThat(stream.read()).isEqualTo(-1);
+        }
+    }
+
+    @Test
+    void abortBeforeRedirect_shouldCancelRedirectedRequestWhenItStarts() {
         AtomicInteger cancellations = new AtomicInteger();
         S3CrtBorrowedBufferBlockingResponseTransformer transformer = newTransformer();
         transformer.prepare();
-        transformer.onResponse(GetObjectResponse.builder().build());
-        S3CrtBorrowedBufferStreamHandler firstAttempt = transformer.currentAttempt();
 
         transformer.abort();
         transformer.exceptionOccurred(new IOException("redirect"));
         transformer.prepare();
         transformer.onResponse(GetObjectResponse.builder().build());
-        S3CrtBorrowedBufferStreamHandler secondAttempt = transformer.currentAttempt();
+        transformer.onBorrowedStreamStart(cancellations::incrementAndGet, NO_CREDIT);
 
-        firstAttempt.onBorrowedStreamStart(cancellations::incrementAndGet, NO_CREDIT);
-        secondAttempt.onBorrowedStreamStart(cancellations::incrementAndGet, NO_CREDIT);
-
-        assertThat(cancellations).hasValue(2);
+        assertThat(cancellations).hasValue(1);
     }
 
     @Test
-    void timeout_shouldDiscardWithoutCreditAndRemainVisibleToReader() throws Exception {
+    void abortAfterStreamStart_shouldCancelRequest() {
         AtomicInteger cancellations = new AtomicInteger();
-        AtomicInteger releases = new AtomicInteger();
-        AtomicLong credit = new AtomicLong();
-        S3BorrowedBuffer buffer = borrowedBuffer(ByteBuffer.wrap("abc".getBytes(UTF_8)),
-                                                   releases::incrementAndGet);
         S3CrtBorrowedBufferBlockingResponseTransformer transformer = newTransformer();
-        CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
-        transformer.onResponse(GetObjectResponse.builder().contentLength(3L).build());
-        S3CrtBorrowedBufferStreamHandler handler = transformer.currentAttempt();
-        handler.onBorrowedBuffer(buffer);
-        handler.onBorrowedStreamStart(cancellations::incrementAndGet, NO_CREDIT);
-        ResponseInputStream<GetObjectResponse> stream = future.join();
-        ApiCallTimeoutException timeout = ApiCallTimeoutException.create(1);
+        transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().build());
+        transformer.onBorrowedStreamStart(cancellations::incrementAndGet, NO_CREDIT);
 
-        handler.onBorrowedStreamAbort(timeout);
+        transformer.abort();
 
-        assertThat(releases).hasValue(1);
-        assertThat(credit).hasValue(0);
         assertThat(cancellations).hasValue(1);
-        assertThatThrownBy(stream::read).isSameAs(timeout);
     }
 
     @Test
@@ -115,29 +122,11 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
         S3CrtBorrowedBufferBlockingResponseTransformer transformer = newTransformer();
         CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
         transformer.onResponse(GetObjectResponse.builder().build());
-        S3CrtBorrowedBufferStreamHandler handler = transformer.currentAttempt();
 
         future.cancel(true);
-        handler.onBorrowedStreamStart(cancellations::incrementAndGet, NO_CREDIT);
+        transformer.onBorrowedStreamStart(cancellations::incrementAndGet, NO_CREDIT);
 
         assertThat(cancellations).hasValue(1);
-    }
-
-    @Test
-    void exceptionalFutureBeforeStreamStart_shouldReleaseAcceptedBufferWithoutCredit() {
-        AtomicInteger releases = new AtomicInteger();
-        AtomicLong credit = new AtomicLong();
-        S3CrtBorrowedBufferBlockingResponseTransformer transformer = newTransformer();
-        CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
-        transformer.onResponse(GetObjectResponse.builder().contentLength(3L).build());
-        S3CrtBorrowedBufferStreamHandler handler = transformer.currentAttempt();
-        handler.onBorrowedBuffer(borrowedBuffer(ByteBuffer.wrap("abc".getBytes(UTF_8)),
-                                                 releases::incrementAndGet));
-
-        future.completeExceptionally(new RuntimeException("request failed"));
-
-        assertThat(releases).hasValue(1);
-        assertThat(credit).hasValue(0);
     }
 
     @Test
@@ -148,12 +137,11 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
         S3CrtBorrowedBufferBlockingResponseTransformer transformer = newTransformer();
         CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
         transformer.onResponse(GetObjectResponse.builder().build());
-        S3CrtBorrowedBufferStreamHandler handler = transformer.currentAttempt();
 
         future.completeExceptionally(new RuntimeException("request failed"));
-        handler.onBorrowedStreamStart(cancellations::incrementAndGet, NO_CREDIT);
-        assertThat(handler.onBorrowedBuffer(borrowedBuffer(ByteBuffer.wrap("abc".getBytes(UTF_8)),
-                                                            releases::incrementAndGet))).isFalse();
+        transformer.onBorrowedStreamStart(cancellations::incrementAndGet, NO_CREDIT);
+        assertThat(transformer.onBorrowedBuffer(borrowedBuffer(ByteBuffer.wrap("abc".getBytes(UTF_8)),
+                                                                releases::incrementAndGet))).isFalse();
 
         assertThat(future).isCompletedExceptionally();
         assertThat(cancellations).hasValue(1);
@@ -167,7 +155,7 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
         S3CrtBorrowedBufferBlockingResponseTransformer transformer = newTransformer();
         CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
         transformer.onResponse(GetObjectResponse.builder().build());
-        transformer.currentAttempt().onBorrowedStreamStart(() -> { }, NO_CREDIT);
+        transformer.onBorrowedStreamStart(() -> { }, NO_CREDIT);
 
         try (ResponseInputStream<GetObjectResponse> stream = future.join()) {
             transformer.exceptionOccurred(failure);
@@ -184,11 +172,10 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
         S3CrtBorrowedBufferBlockingResponseTransformer transformer = newTransformer();
         CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
         transformer.onResponse(GetObjectResponse.builder().contentLength(3L).build());
-        S3CrtBorrowedBufferStreamHandler handler = transformer.currentAttempt();
-        handler.onBorrowedStreamStart(() -> { }, credit::addAndGet);
-        handler.onBorrowedBuffer(borrowedBuffer(ByteBuffer.wrap("abc".getBytes(UTF_8)),
-                                                 releases::incrementAndGet));
-        handler.onBorrowedStreamError(failure);
+        transformer.onBorrowedStreamStart(() -> { }, credit::addAndGet);
+        transformer.onBorrowedBuffer(borrowedBuffer(ByteBuffer.wrap("abc".getBytes(UTF_8)),
+                                                     releases::incrementAndGet));
+        transformer.onBorrowedStreamError(failure);
 
         try (ResponseInputStream<GetObjectResponse> stream = future.join()) {
             byte[] bytes = new byte[3];
@@ -201,6 +188,69 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
     }
 
     @Test
+    void exceptionOccurredBeforeStreamStart_shouldKeepFutureFailedAndCloseStreamWhenStarted() {
+        AtomicInteger cancellations = new AtomicInteger();
+        AtomicInteger releases = new AtomicInteger();
+        AtomicLong credit = new AtomicLong();
+        RuntimeException failure = new RuntimeException("request failed");
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer = newTransformer();
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().build());
+
+        transformer.exceptionOccurred(failure);
+        transformer.onBorrowedStreamStart(cancellations::incrementAndGet, credit::addAndGet);
+
+        assertThat(transformer.onBorrowedBuffer(borrowedBuffer(ByteBuffer.wrap("abc".getBytes(UTF_8)),
+                                                                releases::incrementAndGet))).isFalse();
+        assertThatThrownBy(future::join).hasCause(failure);
+        assertThat(cancellations).hasValue(1);
+        assertThat(releases).hasValue(1);
+        assertThat(credit).hasValue(0);
+    }
+
+    @Test
+    void streamStart_calledTwice_shouldFail() {
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer = newTransformer();
+        transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().build());
+        transformer.onBorrowedStreamStart(() -> { }, NO_CREDIT);
+
+        assertThatThrownBy(() -> transformer.onBorrowedStreamStart(() -> { }, NO_CREDIT))
+            .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void bodyDeliveredThroughResponsePublisher_shouldCancelSubscriptionAndFailRequest() {
+        AtomicInteger cancellations = new AtomicInteger();
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer = newTransformer();
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().build());
+
+        transformer.onStream(subscriber -> {
+            subscribe(subscriber, cancellations::incrementAndGet);
+            subscriber.onNext(ByteBuffer.allocate(1));
+        });
+
+        assertThat(cancellations).hasValue(1);
+        assertThatThrownBy(future::join).hasCauseInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void responsePublisherError_shouldFailRequest() {
+        RuntimeException failure = new RuntimeException("publisher failed");
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer = newTransformer();
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().build());
+
+        transformer.onStream(subscriber -> {
+            subscribe(subscriber, () -> { });
+            subscriber.onError(failure);
+        });
+
+        assertThatThrownBy(future::join).hasCause(failure);
+    }
+
+    @Test
     void factory_shouldReturnDirectBufferPoolMarker() {
         AsyncResponseTransformer<GetObjectResponse, ?> transformer =
             S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool();
@@ -210,20 +260,20 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
             .isEqualTo(AsyncResponseTransformer.TransformerType.DIRECT_BUFFER_POOL_STREAM.getName());
     }
 
-    @Test
-    void prepare_afterCurrentAttemptFailed_shouldStartNewAttempt() {
-        S3CrtBorrowedBufferBlockingResponseTransformer transformer = newTransformer();
-        transformer.prepare();
-        S3CrtBorrowedBufferStreamHandler firstAttempt = transformer.currentAttempt();
-        transformer.exceptionOccurred(new RuntimeException("redirect"));
-
-        CompletableFuture<ResponseInputStream<GetObjectResponse>> secondFuture = transformer.prepare();
-
-        assertThat(secondFuture).isNotDone();
-        assertThat(transformer.currentAttempt()).isNotSameAs(firstAttempt);
-    }
-
     private static S3CrtBorrowedBufferBlockingResponseTransformer newTransformer() {
         return new S3CrtBorrowedBufferBlockingResponseTransformer();
+    }
+
+    private static void subscribe(Subscriber<? super ByteBuffer> subscriber, Runnable onCancel) {
+        subscriber.onSubscribe(new Subscription() {
+            @Override
+            public void request(long n) {
+            }
+
+            @Override
+            public void cancel() {
+                onCancel.run();
+            }
+        });
     }
 }
