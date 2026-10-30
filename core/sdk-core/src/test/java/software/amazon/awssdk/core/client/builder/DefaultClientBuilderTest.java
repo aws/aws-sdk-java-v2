@@ -23,6 +23,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
@@ -59,6 +61,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
@@ -72,7 +76,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.ExecutionAwareExecutor;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -518,6 +524,66 @@ public class DefaultClientBuilderTest {
         ProfileFile secondGet = defaultProfileFileSupplier.get();
 
         assertThat(secondGet).isSameAs(firstGet);
+    }
+
+    @Test
+    public void asyncClientConfiguration_withFutureCompletionExecutor_executionAwareExecutorDelegatesToIt() {
+        Executor executor = mock(Executor.class);
+        SdkClientConfiguration config =
+            testAsyncClientBuilder().asyncConfiguration(ClientAsyncConfiguration.builder()
+                                                                .advancedOption(FUTURE_COMPLETION_EXECUTOR, executor)
+                                                                .build())
+                                    .build().clientConfiguration;
+
+        Runnable command = () -> { };
+        config.option(EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR).execute(command, new ExecutionAttributes());
+
+        verify(executor).execute(command);
+    }
+
+    @Test
+    public void asyncClientConfiguration_withExecutionAwareFutureCompletionExecutor_usesIt() {
+        ExecutionAwareExecutor executor = mock(ExecutionAwareExecutor.class);
+        SdkClientConfiguration config =
+            testAsyncClientBuilder().asyncConfiguration(ClientAsyncConfiguration.builder()
+                                                                .advancedOption(EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR, executor)
+                                                                .build())
+                                    .build().clientConfiguration;
+
+        Runnable command = () -> { };
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        config.option(EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR).execute(command, executionAttributes);
+
+        verify(executor).execute(command, executionAttributes);
+    }
+
+    @Test
+    public void asyncClientConfiguration_withoutFutureCompletionExecutor_executionAwareExecutorDelegatesToDefaultExecutor() {
+        SdkClientConfiguration config = testAsyncClientBuilder().build().clientConfiguration;
+
+        CompletableFuture<String> threadName = new CompletableFuture<>();
+        config.option(EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR)
+              .execute(() -> threadName.complete(Thread.currentThread().getName()), new ExecutionAttributes());
+
+        assertThat(threadName.join()).startsWith("sdk-async-response");
+        config.close();
+    }
+
+    @Test
+    public void close_withAutoCloseableExecutionAwareFutureCompletionExecutor_doesNotCloseIt() throws Exception {
+        CloseableExecutionAwareExecutor executor = mock(CloseableExecutionAwareExecutor.class);
+        SdkClientConfiguration config =
+            testAsyncClientBuilder().asyncConfiguration(ClientAsyncConfiguration.builder()
+                                                                .advancedOption(EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR, executor)
+                                                                .build())
+                                    .build().clientConfiguration;
+
+        config.close();
+
+        verify(executor, never()).close();
+    }
+
+    private interface CloseableExecutionAwareExecutor extends ExecutionAwareExecutor, AutoCloseable {
     }
 
     private SdkDefaultClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {
