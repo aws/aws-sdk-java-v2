@@ -97,6 +97,8 @@
         <module>test/crt-unavailable-tests</module>
         <module>test/architecture-tests</module>
         <module>test/s3-tests</module>
+        <module>test/s3-wiretap-test-core</module>
+        <module>test/s3-wiretap-download-tests</module>
     </modules>
     <scm>
         <url>${scm.github.url}</url>
