@@ -55,7 +55,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>json-utils</artifactId>
+            <artifactId>third-party-jackson-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

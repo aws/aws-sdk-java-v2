@@ -17,32 +17,26 @@ package software.amazon.awssdk.messagemanager.sns.internal;
 
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * Validates that the signing certificate URL is valid.
+ * <p>
+ * A valid URL uses HTTPS, the expected host and the default HTTPS port, and has no user info or fragment. The path and
+ * query are not constrained, because SNS may use other forms for them in the future.
  */
 @SdkInternalApi
 public class CertificateUrlValidator {
-    private final String certificateHost;
+    private static final String URL_NAME = "Certificate URL";
+
+    private final SnsEndpointUrlValidator endpointUrlValidator;
 
     public CertificateUrlValidator(String certificateHost) {
         Validate.notBlank(certificateHost, "Expected certificate host cannot be null or empty");
-        this.certificateHost = certificateHost;
+        this.endpointUrlValidator = new SnsEndpointUrlValidator(certificateHost);
     }
 
     public void validate(URI certificateUrl) {
-        if (certificateUrl == null) {
-            throw SdkClientException.create("Certificate URL cannot be null");
-        }
-
-        if (!"https".equals(certificateUrl.getScheme())) {
-            throw SdkClientException.create("Certificate URL must use HTTPS");
-        }
-
-        if (!certificateHost.equals(certificateUrl.getHost())) {
-            throw SdkClientException.create("Certificate URL does not match expected host: " + certificateHost);
-        }
+        endpointUrlValidator.validate(certificateUrl, URL_NAME);
     }
 }

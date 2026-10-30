@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -26,11 +27,21 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.security.PublicKey;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -325,6 +336,264 @@ class CertificateRetrieverTest {
             verify(mockHttpClient, times(2)).prepareRequest(any(HttpExecuteRequest.class));
             reset(mockHttpClient);
         }
+    }
+
+    @Test
+    void retrieveCertificate_httpError_closesResponseBody() throws IOException {
+        AtomicBoolean closed = new AtomicBoolean();
+        InputStream body = new ByteArrayInputStream("not found".getBytes(StandardCharsets.UTF_8)) {
+            @Override
+            public void close() throws IOException {
+                closed.set(true);
+                super.close();
+            }
+        };
+        ExecutableHttpRequest mockExecRequest = mock(ExecutableHttpRequest.class);
+        when(mockExecRequest.call()).thenReturn(HttpExecuteResponse.builder()
+                                                                   .response(SdkHttpFullResponse.builder().statusCode(404).build())
+                                                                   .responseBody(AbortableInputStream.create(body))
+                                                                   .build());
+        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class))).thenReturn(mockExecRequest);
+
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
+
+        assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Request was unsuccessful. Status Code: 404");
+        assertThat(closed).isTrue();
+    }
+
+    @Test
+    void retrieveCertificate_sequentialFailures_releasePermits() throws IOException {
+        mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), "not a cert".getBytes(StandardCharsets.UTF_8));
+        CertificateRetriever certificateRetriever = retrieverWithPermits(1, Duration.ZERO);
+
+        for (int i = 0; i < 20; i++) {
+            URI uri = URI.create("https://" + CERT_COMMON_NAME + "/cert-" + i + ".pem");
+            assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(uri))
+                .isInstanceOf(SdkClientException.class)
+                .hasMessage("Certificate does not match expected X509 PEM format.");
+        }
+
+        verify(mockHttpClient, times(20)).prepareRequest(any(HttpExecuteRequest.class));
+    }
+
+    @Test
+    void retrieveCertificate_concurrentFetchesOverLimit_refusedWithoutRequest() throws Exception {
+        int permits = 3;
+        CountDownLatch inFlight = new CountDownLatch(permits);
+        CountDownLatch releaseFetches = new CountDownLatch(1);
+        AtomicInteger maxConcurrent = new AtomicInteger();
+        AtomicInteger concurrent = new AtomicInteger();
+
+        ExecutableHttpRequest mockExecRequest = mock(ExecutableHttpRequest.class);
+        when(mockExecRequest.call()).thenAnswer(i -> {
+            maxConcurrent.accumulateAndGet(concurrent.incrementAndGet(), Math::max);
+            inFlight.countDown();
+            releaseFetches.await();
+            concurrent.decrementAndGet();
+            return HttpExecuteResponse.builder()
+                                      .response(SdkHttpFullResponse.builder().statusCode(200).build())
+                                      .responseBody(asStream(validCert))
+                                      .build();
+        });
+        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class))).thenReturn(mockExecRequest);
+
+        CertificateRetriever certificateRetriever = retrieverWithPermits(permits, Duration.ofMillis(100));
+        ExecutorService exec = Executors.newFixedThreadPool(permits);
+        try {
+            List<Future<PublicKey>> blocked = new ArrayList<>();
+            for (int i = 0; i < permits; i++) {
+                URI uri = URI.create("https://" + CERT_COMMON_NAME + "/blocked-" + i + ".pem");
+                blocked.add(exec.submit(() -> certificateRetriever.retrieveCertificate(uri)));
+            }
+            assertThat(inFlight.await(10, TimeUnit.SECONDS)).isTrue();
+
+            assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI))
+                .isInstanceOf(SdkClientException.class)
+                .hasMessage("Too many concurrent certificate retrievals; refusing to fetch " + TEST_CERT_URI
+                            + ". Try again later.");
+            verify(mockHttpClient, times(permits)).prepareRequest(any(HttpExecuteRequest.class));
+
+            releaseFetches.countDown();
+            for (Future<PublicKey> f : blocked) {
+                assertThat(f.get(10, TimeUnit.SECONDS)).isNotNull();
+            }
+            assertThat(maxConcurrent).hasValue(permits);
+
+            // Permits are free again, so the refused URL is fetched now.
+            assertThat(certificateRetriever.retrieveCertificate(TEST_CERT_URI)).isNotNull();
+            verify(mockHttpClient, times(permits + 1)).prepareRequest(any(HttpExecuteRequest.class));
+        } finally {
+            releaseFetches.countDown();
+            exec.shutdownNow();
+        }
+    }
+
+    @Test
+    void retrieveCertificate_cacheHit_needsNoPermit() throws Exception {
+        mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), validCert);
+        CertificateRetriever certificateRetriever = retrieverWithPermits(1, Duration.ZERO);
+
+        PublicKey first = certificateRetriever.retrieveCertificate(TEST_CERT_URI);
+        for (int i = 0; i < 100; i++) {
+            assertThat(certificateRetriever.retrieveCertificate(TEST_CERT_URI)).isSameAs(first);
+        }
+
+        verify(mockHttpClient, times(1)).prepareRequest(any(HttpExecuteRequest.class));
+    }
+
+    @Test
+    void retrieveCertificate_invalidUrlShape_rejectedWithoutFetch() throws IOException {
+        mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), validCert);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
+
+        assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(URI.create(TEST_CERT_URI + "#x")))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Certificate URL must not contain a fragment");
+        assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(
+            URI.create("https://" + TEST_CERT_URI.getHost() + ":8443" + TEST_CERT_URI.getRawPath())))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Certificate URL must use the default HTTPS port");
+
+        verify(mockHttpClient, never()).prepareRequest(any(HttpExecuteRequest.class));
+    }
+
+    @Test
+    void retrieveCertificate_differentUrlsSameCertificate_cachedOnce() throws IOException {
+        mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), validCert);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
+
+        PublicKey fromCanonicalUrl = certificateRetriever.retrieveCertificate(TEST_CERT_URI);
+        PublicKey fromQueryUrl = certificateRetriever.retrieveCertificate(URI.create(TEST_CERT_URI + "?nonce=1"));
+
+        // Each URL is fetched once, but the certificate occupies a single cache slot.
+        verify(mockHttpClient, times(2)).prepareRequest(any(HttpExecuteRequest.class));
+        assertThat(fromQueryUrl).isSameAs(fromCanonicalUrl);
+        assertThat(certificateRetriever.cachedCertificateCount()).isEqualTo(1);
+    }
+
+    @Test
+    void cachedCertificates_afterFetch_containsCertificate() throws IOException {
+        mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), validCert);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
+
+        assertThat(certificateRetriever.cachedCertificates(TEST_CERT_URI)).isEmpty();
+        PublicKey fetched = certificateRetriever.retrieveCertificate(TEST_CERT_URI);
+
+        assertThat(certificateRetriever.cachedCertificates(TEST_CERT_URI)).containsExactly(fetched);
+        assertThat(certificateRetriever.cachedCertificates(URI.create("https://" + CERT_COMMON_NAME + "/other.pem")))
+            .containsExactly(fetched);
+        verify(mockHttpClient, times(1)).prepareRequest(any(HttpExecuteRequest.class));
+    }
+
+    @Test
+    void cachedCertificates_invalidUrl_throwsWithoutFetch() throws IOException {
+        mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), validCert);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
+
+        assertThatThrownBy(() -> certificateRetriever.cachedCertificates(URI.create(TEST_CERT_URI + "#x")))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Certificate URL must not contain a fragment");
+        assertThatThrownBy(() -> certificateRetriever.cachedCertificates(null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("certificateUrl must not be null.");
+
+        verify(mockHttpClient, never()).prepareRequest(any(HttpExecuteRequest.class));
+    }
+
+    @Test
+    void cachedCertificates_queryUrl_allowed() throws IOException {
+        mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), validCert);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
+        PublicKey fetched = certificateRetriever.retrieveCertificate(TEST_CERT_URI);
+
+        assertThat(certificateRetriever.cachedCertificates(URI.create(TEST_CERT_URI + "?x=1"))).containsExactly(fetched);
+        assertThat(certificateRetriever.cachedCertificates(URI.create("https://" + TEST_CERT_URI.getHost() + "/./cert.pem")))
+            .containsExactly(fetched);
+        verify(mockHttpClient, times(1)).prepareRequest(any(HttpExecuteRequest.class));
+    }
+
+    @Test
+    void retrieveCertificate_fetchFails_notCachedAndNoHint() throws IOException {
+        ExecutableHttpRequest mockExecRequest = mock(ExecutableHttpRequest.class);
+        AtomicInteger calls = new AtomicInteger();
+        when(mockExecRequest.call()).thenAnswer(i -> {
+            if (calls.getAndIncrement() == 0) {
+                return HttpExecuteResponse.builder()
+                                          .response(SdkHttpFullResponse.builder().statusCode(400).build())
+                                          .build();
+            }
+            return HttpExecuteResponse.builder()
+                                      .response(SdkHttpFullResponse.builder().statusCode(200).build())
+                                      .responseBody(asStream(validCert))
+                                      .build();
+        });
+        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class))).thenReturn(mockExecRequest);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
+
+        assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Request was unsuccessful. Status Code: 400");
+        assertThat(certificateRetriever.cachedCertificateCount()).isZero();
+        assertThat(certificateRetriever.cachedCertificates(TEST_CERT_URI)).isEmpty();
+
+        // The failure left no hint behind, so the next call for the same URL fetches again and succeeds.
+        assertThat(certificateRetriever.retrieveCertificate(TEST_CERT_URI)).isNotNull();
+        verify(mockHttpClient, times(2)).prepareRequest(any(HttpExecuteRequest.class));
+        assertThat(certificateRetriever.cachedCertificateCount()).isEqualTo(1);
+    }
+
+    @Test
+    void retrieveCertificate_concurrentSameUrlFailure_allCallersSeeException() throws Exception {
+        int threads = 4;
+        CountDownLatch inFetch = new CountDownLatch(1);
+        CountDownLatch releaseFetch = new CountDownLatch(1);
+        ExecutableHttpRequest mockExecRequest = mock(ExecutableHttpRequest.class);
+        when(mockExecRequest.call()).thenAnswer(i -> {
+            inFetch.countDown();
+            releaseFetch.await();
+            return HttpExecuteResponse.builder()
+                                      .response(SdkHttpFullResponse.builder().statusCode(500).build())
+                                      .build();
+        });
+        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class))).thenReturn(mockExecRequest);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
+
+        ExecutorService exec = Executors.newFixedThreadPool(threads);
+        try {
+            List<Future<PublicKey>> results = new ArrayList<>();
+            results.add(exec.submit(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI)));
+            assertThat(inFetch.await(10, TimeUnit.SECONDS)).isTrue();
+            for (int i = 1; i < threads; i++) {
+                results.add(exec.submit(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI)));
+            }
+            releaseFetch.countDown();
+
+            for (Future<PublicKey> result : results) {
+                assertThatThrownBy(() -> result.get(10, TimeUnit.SECONDS))
+                    .isInstanceOf(ExecutionException.class)
+                    .hasCauseInstanceOf(SdkClientException.class)
+                    .hasMessageContaining("Request was unsuccessful. Status Code: 500");
+            }
+            assertThat(certificateRetriever.cachedCertificateCount()).isZero();
+        } finally {
+            releaseFetch.countDown();
+            exec.shutdownNow();
+        }
+    }
+
+    private CertificateRetriever retrieverWithPermits(int permits, Duration permitTimeout) {
+        return new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME, new CertificateUrlValidator(TEST_CERT_URI.getHost()),
+                                        permits, permitTimeout);
     }
 
     private static byte[] getResourceBytes(String resourcePath) throws IOException {
