@@ -197,6 +197,10 @@ final class S3CrtMetricPublisherDispatcher implements SdkAutoCloseable {
 
     void startAsyncClose() {
         if (asyncCloseStarted.compareAndSet(false, true)) {
+            if (!dispatchAttempted.get()) {
+                close();
+                return;
+            }
             CLOSE_THREAD_FACTORY.newThread(this::close).start();
         }
     }
