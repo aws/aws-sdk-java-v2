@@ -248,6 +248,12 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * will download the object from the beginning as if it is a new {@link DownloadFileRequest}.
      *
      * <p>
+     * The SSE-C customer key ({@link GetObjectRequest#sseCustomerKey()}) is not persisted when a
+     * {@link ResumableFileDownload} is serialized. If the download uses SSE-C, set the key on the request again before
+     * resuming a deserialized {@link ResumableFileDownload}, otherwise this method throws an
+     * {@link IllegalArgumentException}. See {@link ResumableFileDownload}.
+     *
+     * <p>
      * <b>Usage Example:</b>
      * {@snippet :
      *         S3TransferManager transferManager = S3TransferManager.create();
@@ -382,6 +388,12 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * <p>
      * If it is determined that the source file has be modified since the last pause, the SDK will upload the object from the
      * beginning as if it is a new {@link UploadFileRequest}.
+     *
+     * <p>
+     * The SSE-C customer key ({@link PutObjectRequest#sseCustomerKey()}) is not persisted when a
+     * {@link ResumableFileUpload} is serialized. If the upload uses SSE-C, set the key on the request again before
+     * resuming a deserialized {@link ResumableFileUpload}, otherwise this method throws an
+     * {@link IllegalArgumentException}. See {@link ResumableFileUpload}.
      *
      * <p>
      * <b>Usage Example:</b>
