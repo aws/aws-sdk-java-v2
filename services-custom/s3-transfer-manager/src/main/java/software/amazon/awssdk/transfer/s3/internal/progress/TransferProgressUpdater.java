@@ -342,6 +342,14 @@ public class TransferProgressUpdater {
     }
 
     /**
+     * Records the total size of a transfer whose size is learned after it started, such as a copy, whose size comes from the
+     * HeadObject call the S3 client makes. The total is never set below the bytes already transferred.
+     */
+    public void updateTotalBytes(long totalBytes) {
+        updateTotalBytes(totalBytes, null);
+    }
+
+    /**
      * Records the total size of a transfer, and the response it came from, without breaking the
      * {@link DefaultTransferProgressSnapshot} invariant that the transferred byte count must not exceed the total.
      * <p>
@@ -381,6 +389,21 @@ public class TransferProgressUpdater {
                         transferFailed(t2);
                     }
                 });
+            } else {
+                transferFailed(t);
+            }
+        });
+    }
+
+    /**
+     * Invokes {@code transferComplete} when the future succeeds and {@code transferFailed} when it fails, without waiting for
+     * an end-of-stream signal. Use this for a transfer that has no byte stream, such as a copy, where every byte is reported
+     * before the future completes.
+     */
+    public void registerCompletionWithoutEndOfStream(CompletableFuture<? extends CompletedObjectTransfer> future) {
+        future.whenComplete((r, t) -> {
+            if (t == null) {
+                transferComplete(r);
             } else {
                 transferFailed(t);
             }
