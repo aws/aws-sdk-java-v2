@@ -30,7 +30,9 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -142,6 +144,26 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      */
     S3CrtAsyncClientBuilder maxNativeMemoryLimitInBytes(Long maxNativeMemoryLimitInBytes
 );
+
+    /**
+     * Configures a client-wide direct buffer pool for the CRT-based S3 client. By default, no pool is configured.
+     *
+     * <p>Configure a pool to use {@link S3CrtResponseTransformerFactory} which reads {@code GetObject} body data directly from
+     * pool memory instead of copying each part into a new heap array. This can reduce heap allocation and garbage collection
+     * pressure for high-throughput downloads. Leave the pool unset unless the application uses that transformer or needs
+     * explicit control of pool memory.
+     *
+     * <p>Once configured, the pool is also used by multipart uploads and by all downloads except {@code GetObject} requests
+     * that set {@link GetObjectRequest#partNumber()}. Single-part uploads don't use it. Pool memory counts against
+     * {@code -XX:MaxDirectMemorySize}. See {@link S3CrtDirectBufferPoolConfiguration} for sizing guidance.
+     *
+     * @param configuration the direct buffer pool configuration, or null to remove it
+     * @return this builder for method chaining
+     */
+    default S3CrtAsyncClientBuilder directBufferPoolConfiguration(
+        S3CrtDirectBufferPoolConfiguration configuration) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * The target throughput for transfer requests. Higher value means more connections will be established with S3.
