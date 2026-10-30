@@ -21,10 +21,12 @@ import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttrib
 import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.RESPONSE_FILE_OPTION;
 import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.RESPONSE_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
-import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.canResumeDownload;
+import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.hasUnresumableRange;
+import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.isObjectOrFileModified;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toCrtDownloadFileRequest;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -184,6 +186,13 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         CompletableFuture<TransferProgress> progressFuture = new CompletableFuture<>();
         CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture = new CompletableFuture<>();
         S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
+        AtomicReference<DownloadFileRequest> requestToSaveOnPauseRef = new AtomicReference<>(originalDownloadRequest);
+        // Created before the HEAD is sent, so it records the destination file before this resume can write to it.
+        CrtFileDownload fileDownload = new CrtFileDownload(returnFuture,
+                                                           new ResumeTransferProgress(progressFuture),
+                                                           observable,
+                                                           requestToSaveOnPauseRef::get,
+                                                           resumableFileDownload);
 
         CompletableFuture<HeadObjectResponse> headFuture =
             s3AsyncClient.headObject(b -> b.bucket(getObjectRequest.bucket()).key(getObjectRequest.key()));
@@ -192,12 +201,17 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         CompletableFutureUtils.forwardExceptionTo(returnFuture, headFuture);
 
         headFuture.thenAccept(headObjectResponse -> {
-            boolean restartFromBeginning = !canResumeDownload(resumableFileDownload, headObjectResponse)
-                                           || hasCompletedParts(resumableFileDownload);
+            boolean restartFromBeginning = isObjectOrFileModified(resumableFileDownload, headObjectResponse)
+                                           || hasCompletedParts(resumableFileDownload)
+                                           || hasUnresumableRange(originalDownloadRequest,
+                                                                  resumableFileDownload.bytesTransferred(),
+                                                                  headObjectResponse.contentLength())
+                                           || getObjectRequest.partNumber() != null;
 
             DownloadFileRequest newDownloadFileRequest = toCrtDownloadFileRequest(resumableFileDownload, headObjectResponse,
                                                                                  originalDownloadRequest,
                                                                                  restartFromBeginning);
+            requestToSaveOnPauseRef.set(requestToSaveOnPause(originalDownloadRequest, newDownloadFileRequest));
 
             // CRT appends to whatever the destination file already holds, so appending is only correct when the download is
             // genuinely being continued. Otherwise the file has to be replaced.
@@ -218,26 +232,23 @@ class CrtS3TransferManager extends GenericS3TransferManager {
             return null;
         });
 
-        return new CrtFileDownload(returnFuture,
-                                   new ResumeTransferProgress(progressFuture),
-                                   observable,
-                                   () -> newOrOriginalRequestForPause(newDownloadFileRequestFuture,
-                                                                      originalDownloadRequest),
-                                   resumableFileDownload);
+        return fileDownload;
     }
 
     /**
      * A download that was paused while fetching individual parts can leave gaps in the destination file, because parts are
      * written at their own offsets rather than in order. The CRT-based client only ever appends to the end of the file, so
-     * such a download cannot be continued and has to start over. This only arises when a {@link ResumableFileDownload}
-     * produced by the Java-based transfer manager is resumed with the CRT-based one.
+     * such a download cannot be continued and has to start over. Completed parts come from the Java-based transfer manager,
+     * either directly or carried over by a CRT pause that has not yet written to the file. The Java-based transfer manager
+     * restarts in the same way when the token no longer has the state needed to continue the parts, for example after the
+     * token was serialized.
      */
     private static boolean hasCompletedParts(ResumableFileDownload resumableFileDownload) {
         if (resumableFileDownload.completedParts().isEmpty()) {
             return false;
         }
-        log.debug(() -> "The paused download had completed individual parts, which the CRT-based S3 client cannot continue "
-                        + "from. The SDK will download the S3 object from the beginning.");
+        log.debug(() -> "The paused download had completed individual parts, so the destination file may have gaps between "
+                        + "them. The SDK will download the S3 object from the beginning.");
         return true;
     }
 

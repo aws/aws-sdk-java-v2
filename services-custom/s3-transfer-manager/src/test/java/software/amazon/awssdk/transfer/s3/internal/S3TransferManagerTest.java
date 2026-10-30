@@ -19,9 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.COPY_SOURCE_CONTENT_LENGTH_LISTENER;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
@@ -30,9 +33,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
@@ -52,6 +57,8 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 class S3TransferManagerTest {
     private S3CrtAsyncClient mockS3Crt;
@@ -124,6 +131,53 @@ class S3TransferManagerTest {
                                         .join();
 
         assertThat(completedCopy.response()).isEqualTo(response);
+    }
+
+    @Test
+    void copy_withTransferListener_reportsInitiatedAndComplete() {
+        CopyObjectResponse response = CopyObjectResponse.builder().build();
+        when(mockS3Crt.copyObject(any(CopyObjectRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+        TransferListener listener = mock(TransferListener.class);
+
+        CompletedCopy completedCopy = tm.copy(u -> u.copyObjectRequest(p -> p.sourceBucket("bucket")
+                                                                             .sourceKey("sourceKey")
+                                                                             .destinationBucket("bucket")
+                                                                             .destinationKey("destKey"))
+                                                    .addTransferListener(listener))
+                                        .completionFuture()
+                                        .join();
+
+        assertThat(completedCopy.response()).isEqualTo(response);
+        verify(listener, times(1)).transferInitiated(any());
+        verify(listener, times(1)).transferComplete(any());
+        verify(listener, never()).transferFailed(any());
+
+        ArgumentCaptor<CopyObjectRequest> requestCaptor = ArgumentCaptor.forClass(CopyObjectRequest.class);
+        verify(mockS3Crt).copyObject(requestCaptor.capture());
+        ExecutionAttributes attributes = requestCaptor.getValue().overrideConfiguration().get().executionAttributes();
+        assertThat(attributes.getAttribute(JAVA_PROGRESS_LISTENER)).isNotNull();
+        assertThat(attributes.getAttribute(COPY_SOURCE_CONTENT_LENGTH_LISTENER)).isNotNull();
+    }
+
+    @Test
+    void copy_withTransferListener_failedCopy_reportsTransferFailed() {
+        RuntimeException exception = new RuntimeException("copy failed");
+        when(mockS3Crt.copyObject(any(CopyObjectRequest.class)))
+            .thenReturn(CompletableFutureUtils.failedFuture(exception));
+        TransferListener listener = mock(TransferListener.class);
+
+        CompletableFuture<CompletedCopy> future = tm.copy(u -> u.copyObjectRequest(p -> p.sourceBucket("bucket")
+                                                                                         .sourceKey("sourceKey")
+                                                                                         .destinationBucket("bucket")
+                                                                                         .destinationKey("destKey"))
+                                                                .addTransferListener(listener))
+                                                    .completionFuture();
+
+        assertThatThrownBy(future::join).hasCause(exception);
+        verify(listener, times(1)).transferInitiated(any());
+        verify(listener, times(1)).transferFailed(any());
+        verify(listener, never()).transferComplete(any());
     }
 
     @Test

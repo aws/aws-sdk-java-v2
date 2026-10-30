@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -44,6 +45,7 @@ import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgr
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -100,15 +102,22 @@ class CrtFileDownloadTest {
     }
 
     @Test
-    void pause_withDownloadResumeTokenForRangedDownload_bytesTransferredIsAbsoluteObjectOffset() {
-        // A resumed download issues a ranged GET, so CRT reports the gap-free prefix relative to the range start rather than
-        // to the start of the object.
-        ResumeToken token = downloadResumeToken(2000, 1500);
+    void pause_withDownloadResumeTokenForRangedDownload_bytesTransferredMatchesFileSize() {
+        // For bytes=2000- resumed from 3500: getObjectRangeStart()=3500, getContinuesDownloadedBytes()=1000.
+        // bytesTransferred = 3500 + 1000 - 2000 = 2500 (total file size on disk).
+        DownloadFileRequest rangedRequest = DownloadFileRequest.builder()
+                                                               .getObjectRequest(r -> r.bucket("bucket").key("key")
+                                                                                        .range("bytes=2000-"))
+                                                               .destination(file)
+                                                               .build();
+        ResumeToken token = downloadResumeToken(3500, 1000);
         when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(token));
 
-        ResumableFileDownload resumable = fileDownload(null).pause();
+        FileDownload download = new CrtFileDownload(completionFuture, progress(), observable,
+                                                    () -> rangedRequest, null);
+        ResumableFileDownload resumable = download.pause();
 
-        assertThat(resumable.bytesTransferred()).isEqualTo(3500L);
+        assertThat(resumable.bytesTransferred()).isEqualTo(2500L);
     }
 
     @Test
@@ -122,6 +131,44 @@ class CrtFileDownloadTest {
         assertThat(resumable.s3ObjectEtag()).hasValue(ETAG);
         assertThat(resumable.s3ObjectLastModified()).hasValue(S3_OBJECT_LAST_MODIFIED);
         assertThat(resumable.totalSizeInBytes()).hasValue(OBJECT_SIZE);
+    }
+
+    @Test
+    void pause_pauseReturnsNoTokenBeforeFileWritten_returnsResumedDownload() {
+        when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(null));
+        // The file was touched while the download was paused, so the token no longer matches it and resuming restarts.
+        ResumableFileDownload resumedDownload =
+            resumedDownload().copy(b -> b.completedParts(Arrays.asList(1, 3))
+                                         .fileLastModified(Instant.ofEpochMilli(file.lastModified()).minusSeconds(5)));
+
+        ResumableFileDownload resumable = fileDownload(resumedDownload).pause();
+
+        assertThat(resumable).isSameAs(resumedDownload);
+    }
+
+    @Test
+    void pause_downloadResumeTokenBeforeFileWritten_returnsResumedDownload() {
+        ResumeToken token = downloadResumeToken(0, 0);
+        when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(token));
+        ResumableFileDownload resumedDownload = resumedDownload().copy(b -> b.completedParts(Arrays.asList(1, 3)));
+
+        ResumableFileDownload resumable = fileDownload(resumedDownload).pause();
+
+        assertThat(resumable).isSameAs(resumedDownload);
+    }
+
+    @Test
+    void pause_fileWrittenSinceResume_buildsTokenFromCrtResumeToken() throws IOException {
+        ResumeToken token = downloadResumeToken(0, 1500);
+        when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(token));
+        ResumableFileDownload resumedDownload = resumedDownload().copy(b -> b.completedParts(Arrays.asList(1, 3)));
+        CrtFileDownload fileDownload = fileDownload(resumedDownload);
+        Files.write(file.toPath(), new byte[1500]);
+
+        ResumableFileDownload resumable = fileDownload.pause();
+
+        assertThat(resumable.bytesTransferred()).isEqualTo(1500L);
+        assertThat(resumable.completedParts()).isEmpty();
     }
 
     @Test

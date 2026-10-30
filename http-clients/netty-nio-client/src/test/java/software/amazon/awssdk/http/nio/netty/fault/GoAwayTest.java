@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -29,6 +28,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.http2.DefaultHttp2FrameReader;
 import io.netty.handler.codec.http2.DefaultHttp2FrameWriter;
 import io.netty.handler.codec.http2.DefaultHttp2Headers;
@@ -43,12 +43,12 @@ import io.reactivex.Flowable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -246,12 +246,19 @@ public class GoAwayTest {
 
         CompletableFuture<Void> stream3Cf = sendGetRequest();// stream ID 3
 
-        // Wait for the request to be received just to ensure that it is given ID 3
-        stream3Received.join();
+        // Wait for the request to be received just to ensure that it is given ID 3. Bounded so that a regression fails
+        // this test rather than hanging the build until it times out.
+        try {
+            stream3Received.get(10, TimeUnit.SECONDS);
+        } catch (ExecutionException | TimeoutException e) {
+            throw new AssertionError("Server did not receive a request with stream ID 3 within 10 seconds.", e);
+        }
 
         CompletableFuture<Void> stream5Cf = sendGetRequest();// stream ID 5
 
-        allRequestsReceived.await(10, TimeUnit.SECONDS);
+        assertThat(allRequestsReceived.await(10, TimeUnit.SECONDS))
+            .withFailMessage("Server did not receive both requests within 10 seconds.")
+            .isTrue();
 
         // send the GOAWAY first, specifying that everything after 3 is not processed
         endpointDriver.channels.forEach(ch -> {
@@ -272,12 +279,13 @@ public class GoAwayTest {
         waitForFuture(stream3Cf);
         waitForFuture(stream5Cf);
 
-        assertThat(stream3Cf.isCompletedExceptionally()).isFalse();
-        assertThat(stream5Cf.isCompletedExceptionally()).isTrue();
-        stream5Cf.exceptionally(e -> {
-            assertThat(e).isInstanceOf(IOException.class);
-            return null;
-        });
+        // Note: asserting on the future itself rather than isCompletedExceptionally() so that the failure message carries
+        // the cause if stream 3 is unexpectedly closed.
+        assertThat(stream3Cf).isCompleted()
+                             .isNotCompletedExceptionally();
+
+        assertThat(stream5Cf).isCompletedExceptionally();
+        assertThatThrownBy(stream5Cf::join).hasCauseInstanceOf(IOException.class);
     }
 
     private CompletableFuture<Void> sendGetRequest() {
@@ -323,7 +331,8 @@ public class GoAwayTest {
 
     // Minimal class to simulate an H2 endpoint
     private static class SimpleEndpointDriver extends ChannelInitializer<SocketChannel> {
-        private List<SocketChannel> channels = new ArrayList<>();
+        // Written from the server's event loops, read from the test thread.
+        private List<SocketChannel> channels = new CopyOnWriteArrayList<>();
         private final NioEventLoopGroup group = new NioEventLoopGroup();
         private final Supplier<Http2FrameListener> frameListenerSupplier;
         private ServerBootstrap bootstrap;
@@ -337,7 +346,7 @@ public class GoAwayTest {
         public void init() throws InterruptedException {
             bootstrap = new ServerBootstrap()
                     .channel(NioServerSocketChannel.class)
-                    .group(new NioEventLoopGroup())
+                    .group(group)
                     .childHandler(this)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
 
@@ -345,6 +354,7 @@ public class GoAwayTest {
         }
 
         public void shutdown() throws InterruptedException {
+            serverSock.close().await();
             group.shutdownGracefully().await();
         }
 
@@ -415,9 +425,19 @@ public class GoAwayTest {
             frameWriter().writeSettingsAck(ctx, ctx.newPromise());
             ctx.flush();
         }
+
+        // The client sends periodic PINGs to health check the connection and closes every stream on it if an ACK doesn't
+        // come back within the ping period (5 seconds by default). Acknowledge them so that a slow test run doesn't get
+        // its streams closed out from under it.
+        @Override
+        public void onPingRead(ChannelHandlerContext ctx, long data) {
+            frameWriter().writePing(ctx, true, data, ctx.newPromise());
+            ctx.flush();
+        }
     }
 
-    private static class Http2ConnHandler extends ChannelDuplexHandler {
+    // Note: this must be a ByteToMessageDecoder so we can handle partial frames.
+    private static class Http2ConnHandler extends ByteToMessageDecoder {
         // Prior knowledge preface
         private static final String PREFACE = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n";
         private static final AttributeKey<Boolean> H2_ESTABLISHED = AttributeKey.newInstance("h2-etablished");
@@ -432,15 +452,17 @@ public class GoAwayTest {
         }
 
         @Override
-        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            ByteBuf bb = (ByteBuf) msg;
+        protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
             if (!isH2Established(ctx.channel())) {
-                String prefaceString = bb.readCharSequence(24, StandardCharsets.UTF_8).toString();
+                if (in.readableBytes() < PREFACE.length()) {
+                    return;
+                }
+                String prefaceString = in.readCharSequence(PREFACE.length(), StandardCharsets.UTF_8).toString();
                 if (PREFACE.equals(prefaceString)) {
                     ctx.channel().attr(H2_ESTABLISHED).set(true);
                 }
             }
-            frameReader.readFrame(ctx, bb, frameListener);
+            frameReader.readFrame(ctx, in, frameListener);
         }
 
         private boolean isH2Established(Channel ch) {

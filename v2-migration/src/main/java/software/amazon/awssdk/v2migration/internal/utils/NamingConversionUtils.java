@@ -95,7 +95,6 @@ public final class NamingConversionUtils {
         CLIENT_MAPPING.put("DynamoDBStreams", "DynamoDbStreams");
         CLIENT_MAPPING.put("ElasticFileSystem", "Efs");
         CLIENT_MAPPING.put("ElasticMapReduce", "Emr");
-        CLIENT_MAPPING.put("FinSpaceData", "FinspaceData");
         CLIENT_MAPPING.put("ForecastQuery", "Forecastquery");
         CLIENT_MAPPING.put("GlueDataBrew", "DataBrew");
         CLIENT_MAPPING.put("IAMRolesAnywhere", "RolesAnywhere");

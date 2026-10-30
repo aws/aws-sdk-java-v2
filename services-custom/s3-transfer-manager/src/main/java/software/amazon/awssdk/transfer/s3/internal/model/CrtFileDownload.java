@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.transfer.s3.internal.model;
 
+import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
+
 import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
@@ -67,6 +69,8 @@ public final class CrtFileDownload implements FileDownload {
     private final S3MetaRequestPauseObservable observable;
     private final Supplier<DownloadFileRequest> requestSupplier;
     private final ResumableFileDownload resumedDownload;
+    private final long destinationLengthAtResume;
+    private final Instant destinationLastModifiedAtResume;
     private final Duration pauseTimeout;
 
     public CrtFileDownload(CompletableFuture<CompletedFileDownload> completionFuture,
@@ -89,6 +93,9 @@ public final class CrtFileDownload implements FileDownload {
         this.observable = Validate.paramNotNull(observable, "observable");
         this.requestSupplier = Validate.paramNotNull(requestSupplier, "requestSupplier");
         this.resumedDownload = resumedDownload;
+        File destination = resumedDownload == null ? null : resumedDownload.downloadFileRequest().destination().toFile();
+        this.destinationLengthAtResume = destination == null ? 0 : destination.length();
+        this.destinationLastModifiedAtResume = destination == null ? null : Instant.ofEpochMilli(destination.lastModified());
         this.pauseTimeout = Validate.paramNotNull(pauseTimeout, "pauseTimeout");
         this.resumableFileDownload = new Lazy<>(this::doPause);
     }
@@ -144,6 +151,15 @@ public final class CrtFileDownload implements FileDownload {
     }
 
     private ResumableFileDownload resumableFileDownload(ResumeToken token) {
+        // If the destination file is unchanged since this resume started, nothing has been written to it, so the resumed
+        // token is still accurate for it, including its completed parts. Returning it means the next resume decides from the
+        // same token this resume used.
+        if (resumedDownload != null
+            && fileNotModified(destinationLengthAtResume, destinationLastModifiedAtResume,
+                               resumedDownload.downloadFileRequest().destination())) {
+            return resumedDownload;
+        }
+
         DownloadFileRequest request = requestSupplier.get();
         File destination = request.destination().toFile();
 
@@ -153,12 +169,12 @@ public final class CrtFileDownload implements FileDownload {
                                  .fileLastModified(Instant.ofEpochMilli(destination.lastModified()));
 
         if (isDownloadResumeToken(token)) {
-            // getContinuesDownloadedBytes() is the length of the gap-free prefix that CRT has downloaded, relative to the
-            // start of this request's range, so offsetting it by the range start gives the absolute offset in the object,
-            // which is also the number of bytes that should be in the destination file. If parts landed out of order the
-            // file may be longer than that, in which case the file-modified check on resume fails and the download
-            // correctly starts over rather than appending onto a gap.
-            builder.bytesTransferred(token.getObjectRangeStart() + token.getContinuesDownloadedBytes())
+            // bytesTransferred must equal the total bytes on disk.
+            // getObjectRangeStart() is where this request starts in the object, which for a resumed
+            // ranged download may be past the user's original range start. Subtracting userStart
+            // converts from object offset to file offset.
+            long userStart = userRangeStart(request, token.getObjectSize());
+            builder.bytesTransferred(token.getObjectRangeStart() + token.getContinuesDownloadedBytes() - userStart)
                    .s3ObjectEtag(emptyToNull(token.getEtag()))
                    .s3ObjectLastModified(s3ObjectLastModified(token))
                    .totalSizeInBytes(positiveOrNull(token.getObjectSize()));
@@ -218,6 +234,33 @@ public final class CrtFileDownload implements FileDownload {
 
     private static String emptyToNull(String value) {
         return value == null || value.isEmpty() ? null : value;
+    }
+
+    /**
+     * Returns the absolute byte offset where the user's requested range begins.
+     * For "bytes=N-...", returns N. For "bytes=-N" (suffix), returns objectSize - N.
+     * For no range, returns 0.
+     */
+    private static long userRangeStart(DownloadFileRequest request, long objectSize) {
+        String range = request.getObjectRequest().range();
+        if (range == null || !range.startsWith("bytes=")) {
+            return 0;
+        }
+        String spec = range.substring("bytes=".length());
+        int dash = spec.indexOf('-');
+        if (dash == 0) {
+            try {
+                long suffix = Long.parseLong(spec.substring(1));
+                return Math.max(0, objectSize - suffix);
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        }
+        try {
+            return Long.parseLong(spec.substring(0, dash));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private static Long positiveOrNull(long value) {

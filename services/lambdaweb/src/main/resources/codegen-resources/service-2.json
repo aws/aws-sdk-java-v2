@@ -279,7 +279,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists endpoints for a web function. We recommend using pagination to ensure that the operation returns quickly and successfully.</p>",
+      "documentation":"<p>Lists endpoints for a web function. Use pagination to ensure that the operation returns quickly and successfully.</p>",
       "readonly":true
     },
     "ListWebFunctionRevisions":{
@@ -298,7 +298,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists revisions for a web function. We recommend using pagination to ensure that the operation returns quickly and successfully.</p>",
+      "documentation":"<p>Lists revisions for a web function. Use pagination to ensure that the operation returns quickly and successfully.</p>",
       "readonly":true
     },
     "ListWebFunctions":{
@@ -316,7 +316,7 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists web functions in your account. We recommend using pagination to ensure that the operation returns quickly and successfully.</p>",
+      "documentation":"<p>Lists web functions in your account. Use pagination to ensure that the operation returns quickly and successfully.</p>",
       "readonly":true
     },
     "PutResourcePolicy":{
@@ -411,7 +411,7 @@
           "documentation":"<p>A message describing the access denied error.</p>"
         }
       },
-      "documentation":"<p>You do not have sufficient permissions to perform this operation.</p>",
+      "documentation":"<p>You don't have permission to perform this operation. Check the IAM policies for your identity and any resource-based policy on the web function.</p>",
       "error":{
         "httpStatusCode":403,
         "senderFault":true
@@ -472,7 +472,7 @@
       "members":{
         "functionCount":{
           "shape":"AccountUsageFunctionCountInteger",
-          "documentation":"<p>The number of web functions in your account in the current AWS Region.</p>"
+          "documentation":"<p>The number of web functions in your account in the current AWS Region. This count includes web functions in all states, not only functions in the <code>Active</code> state.</p>"
         }
       },
       "documentation":"<p>Contains your current web function usage for the current AWS Region.</p>"
@@ -484,7 +484,7 @@
     },
     "ApplicationLogLevel":{
       "type":"string",
-      "documentation":"<p>The log level for application logs. Possible values: <code>TRACE</code>, <code>DEBUG</code>, <code>INFO</code>, <code>WARN</code>, <code>ERROR</code>, <code>FATAL</code>.</p>",
+      "documentation":"<p>The log level for application logs. Lambda sends logs at the selected level and at all more severe levels. Possible values, from least to most severe:</p> <ul> <li> <p> <code>TRACE</code> – The most detailed information, for tracing code paths.</p> </li> <li> <p> <code>DEBUG</code> – Detailed information for debugging.</p> </li> <li> <p> <code>INFO</code> – General information about application progress.</p> </li> <li> <p> <code>WARN</code> – Potential issues that don't prevent the application from running.</p> </li> <li> <p> <code>ERROR</code> – Errors that prevent an operation from completing.</p> </li> <li> <p> <code>FATAL</code> – Severe errors that cause the application to stop.</p> </li> </ul>",
       "enum":[
         "TRACE",
         "DEBUG",
@@ -496,7 +496,7 @@
     },
     "AuthType":{
       "type":"string",
-      "documentation":"<p>The authorization type for a web function endpoint. Possible values: <code>ApplicationManaged</code> (the function handles authorization), <code>IamAuth</code> (Lambda authorizes requests with AWS SigV4 and IAM).</p>",
+      "documentation":"<p>The authorization type for a web function endpoint.</p> <p>Valid values:</p> <ul> <li> <p> <code>ApplicationManaged</code> – Your application handles authorization.</p> </li> <li> <p> <code>IamAuth</code> – Lambda uses IAM to authorize requests, which must be signed with Signature Version 4 (SigV4).</p> </li> </ul>",
       "enum":[
         "ApplicationManaged",
         "IamAuth"
@@ -504,7 +504,7 @@
     },
     "AutoDeploymentMode":{
       "type":"string",
-      "documentation":"<p>The auto-deployment mode for a web function endpoint. Possible values: <code>LatestRevision</code> (endpoint automatically serves the newest revision), <code>Disabled</code> (revision routing is fixed until explicitly changed).</p>",
+      "documentation":"<p>The auto-deployment mode for a web function endpoint.</p> <p>Valid values:</p> <ul> <li> <p> <code>LatestRevision</code> – The endpoint automatically serves the newest revision.</p> </li> <li> <p> <code>Disabled</code> – Revision routing stays fixed until you change it.</p> </li> </ul>",
       "enum":[
         "LatestRevision",
         "Disabled"
@@ -556,7 +556,7 @@
           "documentation":"<p>The type of the resource in conflict.</p>"
         }
       },
-      "documentation":"<p>The request conflicts with the current state of the resource. Resolve the conflict and try again.</p>",
+      "documentation":"<p>The request conflicts with the current state of the resource. For example, the resource is being modified by another request, you tried to delete a revision that is serving traffic on an endpoint, or the policy revision ID that you specified doesn't match the current policy. Resolve the conflict and try again.</p>",
       "error":{
         "httpStatusCode":409,
         "senderFault":true
@@ -574,13 +574,13 @@
       "members":{
         "functionName":{
           "shape":"FunctionName",
-          "documentation":"<p>The name of the web function to create the endpoint for. You can specify the function name or the function ARN. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The web function to create the endpoint for.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The function name, for example <code>my-function</code>.</p> </li> <li> <p>The function ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"functionName"
         },
         "endpointName":{
           "shape":"EndpointName",
-          "documentation":"<p>The name of the endpoint to create. The name can contain letters, numbers, hyphens (-), and underscores (_), and can't begin or end with a hyphen or an underscore. The length constraint applies only to the full ARN. If you specify only the endpoint name, it is limited to 64 characters in length.</p>"
+          "documentation":"<p>The name of the endpoint to create. The name can contain letters, numbers, hyphens (-), and underscores (_), and can't begin or end with a hyphen or an underscore. The name is limited to 64 characters in length.</p>"
         },
         "description":{
           "shape":"Description",
@@ -588,19 +588,19 @@
         },
         "endpointType":{
           "shape":"EndpointType",
-          "documentation":"<p>The type of endpoint to create. Determines how traffic is served and routed across Regions.</p>"
+          "documentation":"<p>The type of endpoint to create. Determines how traffic is served and routed across Regions.</p> <p>Valid values:</p> <ul> <li> <p> <code>HomeRegion</code> – Serves traffic from the Region where you created the web function.</p> </li> <li> <p> <code>MultiRegion</code> – Replicates across the Regions that you choose and routes each request to the nearest one.</p> </li> <li> <p> <code>PerRegion</code> – Creates a separate endpoint in each Region that you choose.</p> </li> </ul>"
         },
         "authType":{
           "shape":"AuthType",
-          "documentation":"<p>The authorization type for the endpoint.</p>"
+          "documentation":"<p>The authorization type for the endpoint.</p> <p>Valid values:</p> <ul> <li> <p> <code>ApplicationManaged</code> – Your application handles authorization.</p> </li> <li> <p> <code>IamAuth</code> – Lambda uses IAM to authorize requests, which must be signed with Signature Version 4 (SigV4).</p> </li> </ul>"
         },
         "autoDeploymentMode":{
           "shape":"AutoDeploymentMode",
-          "documentation":"<p>The auto-deployment mode for the endpoint. Controls whether the endpoint automatically serves the newest revision. If you don't specify a value, the default is <code>Disabled</code>, and this default is returned in the response.</p>"
+          "documentation":"<p>The auto-deployment mode for the endpoint. Controls whether the endpoint automatically serves the newest revision. If you don't specify a value, the default is <code>Disabled</code>, and this default is returned in the response.</p> <p>Valid values:</p> <ul> <li> <p> <code>LatestRevision</code> – The endpoint automatically serves the newest revision.</p> </li> <li> <p> <code>Disabled</code> – Revision routing stays fixed until you change it.</p> </li> </ul>"
         },
         "revisionWeights":{
           "shape":"RevisionWeightList",
-          "documentation":"<p>A list of revision weights that determine how traffic is distributed across revisions. Up to two revisions can be specified for canary or blue-green deployments.</p>"
+          "documentation":"<p>A list of revision weights that determine how traffic is distributed across revisions. You can specify up to two revisions for canary or blue-green deployments.</p>"
         },
         "regions":{
           "shape":"RegionList",
@@ -703,7 +703,7 @@
       "members":{
         "functionName":{
           "shape":"FunctionName",
-          "documentation":"<p>The name of the web function. The name can contain letters, numbers, hyphens (-), and underscores (_), and can't begin or end with a hyphen or an underscore. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>"
+          "documentation":"<p>The name of the web function. The name can contain letters, numbers, hyphens (-), and underscores (_), and can't begin or end with a hyphen or an underscore. The name is limited to 64 characters in length.</p>"
         },
         "revisionConfig":{
           "shape":"RevisionConfig",
@@ -780,7 +780,7 @@
       "members":{
         "functionName":{
           "shape":"FunctionName",
-          "documentation":"<p>The name of the web function. You can specify the function name or the function ARN. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The web function.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The function name, for example <code>my-function</code>.</p> </li> <li> <p>The function ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"functionName"
         },
@@ -889,13 +889,13 @@
       "members":{
         "functionName":{
           "shape":"FunctionName",
-          "documentation":"<p>The name of the web function. You can specify the function name or the function ARN. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The web function.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The function name, for example <code>my-function</code>.</p> </li> <li> <p>The function ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"functionName"
         },
         "endpointName":{
           "shape":"EndpointName",
-          "documentation":"<p>The name of the endpoint to delete. You can specify the endpoint name or the endpoint ARN. The length constraint applies only to the full ARN. If you specify only the endpoint name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The endpoint to delete.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The endpoint name, for example <code>my-endpoint</code>.</p> </li> <li> <p>The endpoint ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the endpoint name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"endpointName"
         }
@@ -908,7 +908,7 @@
       "members":{
         "functionName":{
           "shape":"FunctionName",
-          "documentation":"<p>The name of the web function to delete. You can specify the function name or the function ARN. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The web function to delete.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The function name, for example <code>my-function</code>.</p> </li> <li> <p>The function ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"functionName"
         }
@@ -924,13 +924,13 @@
       "members":{
         "functionName":{
           "shape":"FunctionName",
-          "documentation":"<p>The name of the web function. You can specify the function name or the function ARN. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The web function.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The function name, for example <code>my-function</code>.</p> </li> <li> <p>The function ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"functionName"
         },
         "revisionId":{
           "shape":"RevisionId",
-          "documentation":"<p>The identifier of the revision to delete. You can specify the revision identifier or the revision ARN. The length constraint applies only to the full ARN.</p>",
+          "documentation":"<p>The revision to delete.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The revision identifier.</p> </li> <li> <p>The revision ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN.</p>",
           "location":"uri",
           "locationName":"revisionId"
         }
@@ -963,7 +963,7 @@
       "members":{
         "endpointName":{
           "shape":"EndpointName",
-          "documentation":"<p>The name of the endpoint. The name can contain letters, numbers, hyphens (-), and underscores (_), and can't begin or end with a hyphen or an underscore. The length constraint applies only to the full ARN. If you specify only the endpoint name, it is limited to 64 characters in length.</p>"
+          "documentation":"<p>The name of the endpoint. The name can contain letters, numbers, hyphens (-), and underscores (_), and can't begin or end with a hyphen or an underscore. The name is limited to 64 characters in length.</p>"
         },
         "description":{
           "shape":"Description",
@@ -971,15 +971,15 @@
         },
         "endpointType":{
           "shape":"EndpointType",
-          "documentation":"<p>The type of endpoint. Determines how traffic is served and routed across Regions.</p>"
+          "documentation":"<p>The type of endpoint. Determines how traffic is served and routed across Regions.</p> <p>Valid values:</p> <ul> <li> <p> <code>HomeRegion</code> – Serves traffic from the Region where you created the web function.</p> </li> <li> <p> <code>MultiRegion</code> – Replicates across the Regions that you choose and routes each request to the nearest one.</p> </li> <li> <p> <code>PerRegion</code> – Creates a separate endpoint in each Region that you choose.</p> </li> </ul>"
         },
         "authType":{
           "shape":"AuthType",
-          "documentation":"<p>The authorization type for the endpoint.</p>"
+          "documentation":"<p>The authorization type for the endpoint.</p> <p>Valid values:</p> <ul> <li> <p> <code>ApplicationManaged</code> – Your application handles authorization.</p> </li> <li> <p> <code>IamAuth</code> – Lambda uses IAM to authorize requests, which must be signed with Signature Version 4 (SigV4).</p> </li> </ul>"
         },
         "autoDeploymentMode":{
           "shape":"AutoDeploymentMode",
-          "documentation":"<p>The auto-deployment mode for the endpoint. If you don't specify a value, the default is <code>Disabled</code>, and this default is returned in the response.</p>"
+          "documentation":"<p>The auto-deployment mode for the endpoint. If you don't specify a value, the default is <code>Disabled</code>, and this default is returned in the response.</p> <p>Valid values:</p> <ul> <li> <p> <code>LatestRevision</code> – The endpoint automatically serves the newest revision.</p> </li> <li> <p> <code>Disabled</code> – Revision routing stays fixed until you change it.</p> </li> </ul>"
         },
         "regions":{
           "shape":"RegionList",
@@ -1003,7 +1003,7 @@
     },
     "EndpointState":{
       "type":"string",
-      "documentation":"<p>The state of a web function endpoint. Possible values: <code>Pending</code> (endpoint is being created), <code>Active</code> (endpoint is ready to receive traffic), <code>Failed</code> (endpoint creation or update failed), <code>Deleting</code> (endpoint is being deleted).</p>",
+      "documentation":"<p>The state of a web function endpoint. Possible values:</p> <ul> <li> <p> <code>Pending</code> – The endpoint is being created.</p> </li> <li> <p> <code>Active</code> – The endpoint is ready to receive traffic.</p> </li> <li> <p> <code>Failed</code> – Endpoint creation or update failed.</p> </li> <li> <p> <code>Deleting</code> – The endpoint is being deleted.</p> </li> </ul>",
       "enum":[
         "Pending",
         "Active",
@@ -1013,7 +1013,7 @@
     },
     "EndpointType":{
       "type":"string",
-      "documentation":"<p>The type of a web function endpoint. Possible values: <code>HomeRegion</code> (serves from the Region where the function was created), <code>MultiRegion</code> (replicates across chosen Regions and routes to the nearest), <code>PerRegion</code> (separate endpoint per Region).</p>",
+      "documentation":"<p>The type of a web function endpoint.</p> <p>Valid values:</p> <ul> <li> <p> <code>HomeRegion</code> – Serves traffic from the Region where you created the web function.</p> </li> <li> <p> <code>MultiRegion</code> – Replicates across the Regions that you choose and routes each request to the nearest one.</p> </li> <li> <p> <code>PerRegion</code> – Creates a separate endpoint in each Region that you choose.</p> </li> </ul>",
       "enum":[
         "HomeRegion",
         "MultiRegion",
@@ -1022,7 +1022,7 @@
     },
     "EndpointUpdateStatus":{
       "type":"string",
-      "documentation":"<p>The status of the most recent update to an endpoint. Possible values: <code>InProgress</code> (update is in progress), <code>Successful</code> (update completed successfully), <code>Failed</code> (update failed).</p>",
+      "documentation":"<p>The status of the most recent update to an endpoint. Possible values:</p> <ul> <li> <p> <code>InProgress</code> – The update is in progress.</p> </li> <li> <p> <code>Successful</code> – The update completed successfully.</p> </li> <li> <p> <code>Failed</code> – The update failed.</p> </li> </ul>",
       "enum":[
         "InProgress",
         "Successful",
@@ -1231,7 +1231,7 @@
     },
     "FunctionState":{
       "type":"string",
-      "documentation":"<p>The state of a web function. Possible values: <code>Pending</code> (function is being created), <code>Active</code> (function is ready to use), <code>Failed</code> (function creation or update failed), <code>Deleting</code> (function is being deleted).</p>",
+      "documentation":"<p>The state of a web function. Possible values:</p> <ul> <li> <p> <code>Pending</code> – The function is being created.</p> </li> <li> <p> <code>Active</code> – The function is ready to use.</p> </li> <li> <p> <code>Failed</code> – Function creation or update failed.</p> </li> <li> <p> <code>Deleting</code> – The function is being deleted.</p> </li> </ul>",
       "enum":[
         "Pending",
         "Active",
@@ -1345,13 +1345,13 @@
       "members":{
         "functionName":{
           "shape":"FunctionName",
-          "documentation":"<p>The name of the web function. You can specify the function name or the function ARN. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The web function.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The function name, for example <code>my-function</code>.</p> </li> <li> <p>The function ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"functionName"
         },
         "endpointName":{
           "shape":"EndpointName",
-          "documentation":"<p>The name of the endpoint to retrieve. You can specify the endpoint name or the endpoint ARN. The length constraint applies only to the full ARN. If you specify only the endpoint name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The endpoint to retrieve.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The endpoint name, for example <code>my-endpoint</code>.</p> </li> <li> <p>The endpoint ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the endpoint name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"endpointName"
         }
@@ -1444,7 +1444,7 @@
       "members":{
         "functionName":{
           "shape":"FunctionName",
-          "documentation":"<p>The name of the web function to retrieve. You can specify the function name or the function ARN. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The web function to retrieve.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The function name, for example <code>my-function</code>.</p> </li> <li> <p>The function ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"functionName"
         }
@@ -1498,13 +1498,13 @@
       "members":{
         "functionName":{
           "shape":"FunctionName",
-          "documentation":"<p>The name of the web function. You can specify the function name or the function ARN. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The web function.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The function name, for example <code>my-function</code>.</p> </li> <li> <p>The function ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"functionName"
         },
         "revisionId":{
           "shape":"RevisionId",
-          "documentation":"<p>The identifier of the revision to retrieve. You can specify the revision identifier or the revision ARN. The length constraint applies only to the full ARN.</p>",
+          "documentation":"<p>The revision to retrieve.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The revision identifier.</p> </li> <li> <p>The revision ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN.</p>",
           "location":"uri",
           "locationName":"revisionId"
         }
@@ -1577,7 +1577,7 @@
           "documentation":"<p>A message describing the internal error.</p>"
         }
       },
-      "documentation":"<p>An internal server error occurred. Try again later.</p>",
+      "documentation":"<p>The request failed because of an internal error in the service. Retry the request. If the error persists, open a support case.</p>",
       "error":{"httpStatusCode":500},
       "exception":true,
       "fault":true,
@@ -1619,13 +1619,13 @@
       "members":{
         "functionName":{
           "shape":"FunctionName",
-          "documentation":"<p>The name of the web function. You can specify the function name or the function ARN. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The web function.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The function name, for example <code>my-function</code>.</p> </li> <li> <p>The function ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"functionName"
         },
         "filters":{
           "shape":"FilterList",
-          "documentation":"<p>A list of filters to apply to the results. Supported filter names: <code>authType</code>, <code>autoDeploymentMode</code>, <code>endpointType</code>, <code>state</code>, and <code>updateStatus</code>.</p>"
+          "documentation":"<p>A list of filters to apply to the results. Supported filter names: <code>authType</code>, <code>autoDeploymentMode</code>, <code>endpointType</code>, <code>state</code>, and <code>updateStatus</code>. If you don't specify a filter, the operation returns all endpoints for the web function.</p>"
         },
         "maxResults":{
           "shape":"MaxResults",
@@ -1648,7 +1648,7 @@
         },
         "nextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The pagination token that's included if more results are available.</p>"
+          "documentation":"<p>The pagination token that's included if more results are available. Use this value as the <code>nextToken</code> request parameter in a subsequent call to retrieve the next page of results.</p>"
         }
       },
       "documentation":"<p>Contains the list of web function endpoints.</p>"
@@ -1659,13 +1659,13 @@
       "members":{
         "functionName":{
           "shape":"FunctionName",
-          "documentation":"<p>The name of the web function. You can specify the function name or the function ARN. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The web function.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The function name, for example <code>my-function</code>.</p> </li> <li> <p>The function ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"functionName"
         },
         "filters":{
           "shape":"FilterList",
-          "documentation":"<p>A list of filters to apply to the results. The only supported filter name is <code>state</code>.</p>"
+          "documentation":"<p>A list of filters to apply to the results. The only supported filter name is <code>state</code>. If you don't specify a filter, the operation returns all revisions for the web function.</p>"
         },
         "maxResults":{
           "shape":"MaxResults",
@@ -1688,7 +1688,7 @@
         },
         "nextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The pagination token that's included if more results are available.</p>"
+          "documentation":"<p>The pagination token that's included if more results are available. Use this value as the <code>nextToken</code> request parameter in a subsequent call to retrieve the next page of results.</p>"
         }
       },
       "documentation":"<p>Contains the list of web function revisions.</p>"
@@ -1698,7 +1698,7 @@
       "members":{
         "filters":{
           "shape":"FilterList",
-          "documentation":"<p>A list of filters to apply to the results. The only supported filter name is <code>state</code>.</p>"
+          "documentation":"<p>A list of filters to apply to the results. The only supported filter name is <code>state</code>. If you don't specify a filter, the operation returns all web functions.</p>"
         },
         "maxResults":{
           "shape":"MaxResults",
@@ -1721,7 +1721,7 @@
         },
         "nextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The pagination token that's included if more results are available.</p>"
+          "documentation":"<p>The pagination token that's included if more results are available. Use this value as the <code>nextToken</code> request parameter in a subsequent call to retrieve the next page of results.</p>"
         }
       },
       "documentation":"<p>Contains the list of web functions.</p>"
@@ -1898,7 +1898,7 @@
           "documentation":"<p>The type of the resource that was not found.</p>"
         }
       },
-      "documentation":"<p>The specified resource was not found. Verify the resource identifier and try again.</p>",
+      "documentation":"<p>The specified web function, revision, endpoint, or resource-based policy doesn't exist. Verify the resource identifier and try again.</p>",
       "error":{
         "httpStatusCode":404,
         "senderFault":true
@@ -1951,15 +1951,15 @@
       "members":{
         "attribute":{
           "shape":"RevisionErrorAttributeString",
-          "documentation":"<p>The name of the revision attribute that the error applies to. Must be between 1 and 64 characters.</p>"
+          "documentation":"<p>The name of the revision attribute that the error applies to.</p>"
         },
         "errorCode":{
           "shape":"RevisionErrorErrorCodeString",
-          "documentation":"<p>A short, machine-readable code that identifies the error. Must be between 1 and 64 characters.</p>"
+          "documentation":"<p>A short, machine-readable code that identifies the error.</p>"
         },
         "errorMessage":{
           "shape":"RevisionErrorErrorMessageString",
-          "documentation":"<p>A human-readable message describing the error. Must be between 1 and 2048 characters.</p>"
+          "documentation":"<p>A human-readable message describing the error.</p>"
         }
       },
       "documentation":"<p>A single error encountered while creating or reading a web function revision. The error describes the affected attribute, an error code, and a human-readable message. This structure is present only when the revision has errors.</p>"
@@ -1992,7 +1992,7 @@
     },
     "RevisionState":{
       "type":"string",
-      "documentation":"<p>The state of a web function revision. Possible values: <code>Pending</code> (revision is being built), <code>Active</code> (revision is ready to serve traffic), <code>Failed</code> (revision build failed).</p>",
+      "documentation":"<p>The state of a web function revision. Possible values:</p> <ul> <li> <p> <code>Pending</code> – The revision is being built.</p> </li> <li> <p> <code>Active</code> – The revision is ready to serve traffic.</p> </li> <li> <p> <code>Failed</code> – The revision build failed.</p> </li> </ul>",
       "enum":[
         "Pending",
         "Active",
@@ -2015,7 +2015,7 @@
           "documentation":"<p>The percentage of traffic to route to this revision. Minimum value of 1, maximum value of 100.</p>"
         }
       },
-      "documentation":"<p>Specifies a revision and its traffic weight for an endpoint. Up to two revisions can be assigned weights to split traffic for canary or blue-green deployments.</p>"
+      "documentation":"<p>Specifies a revision and its traffic weight for an endpoint. You can assign weights to up to two revisions to split traffic for canary or blue-green deployments.</p>"
     },
     "RevisionWeightList":{
       "type":"list",
@@ -2061,11 +2061,11 @@
       "members":{
         "bucket":{
           "shape":"S3ObjectBucketString",
-          "documentation":"<p>The name of the Amazon S3 bucket. Must be between 3 and 63 characters.</p>"
+          "documentation":"<p>The name of the Amazon S3 bucket.</p>"
         },
         "key":{
           "shape":"S3ObjectKeyString",
-          "documentation":"<p>The Amazon S3 object key. Must be between 1 and 1024 characters.</p>"
+          "documentation":"<p>The Amazon S3 object key.</p>"
         },
         "versionId":{
           "shape":"S3ObjectVersionIdString",
@@ -2118,6 +2118,10 @@
           "shape":"ServiceConfigTimeoutSecondsInteger",
           "documentation":"<p>The amount of time (in seconds) that Lambda allows the web function to run before stopping it. Minimum value of 3, maximum value of 900. If you don't specify a value, the default is 30, and this default is returned in the response.</p>"
         },
+        "egressNetworkConnectorArn":{
+          "shape":"ServiceConfigEgressNetworkConnectorArnString",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Lambda network connector that gives the web function access to resources in your VPC. You must specify the fully qualified ARN, including the connector version, which pins the revision to that version. If the network connector is deleted, invocations of revisions that reference it fail. Revisions that specify a network connector support only <code>HomeRegion</code> endpoints, not <code>MultiRegion</code> or <code>PerRegion</code>.</p>"
+        },
         "maxConcurrencyPerEnvironment":{
           "shape":"ServiceConfigMaxConcurrencyPerEnvironmentInteger",
           "documentation":"<p>The maximum number of concurrent requests handled per execution environment. Minimum value of 1, maximum value of 128. If you don't specify a value, the default is 64, and this default is returned in the response.</p>"
@@ -2131,7 +2135,13 @@
           "documentation":"<p>The telemetry configuration for the web function, including logging settings.</p>"
         }
       },
-      "documentation":"<p>The service configuration for a web function revision, including execution role, timeout, concurrency, and telemetry settings.</p>"
+      "documentation":"<p>The service configuration for a web function revision, including execution role, timeout, VPC network access, concurrency, and telemetry settings.</p>"
+    },
+    "ServiceConfigEgressNetworkConnectorArnString":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"arn:(aws[a-z-]*):lambda:[a-z0-9-]+:[0-9]{12}:network-connector:[a-zA-Z0-9_-]+:[0-9]+"
     },
     "ServiceConfigMaxConcurrencyPerEnvironmentInteger":{
       "type":"integer",
@@ -2170,7 +2180,7 @@
           "documentation":"<p>The quota code of the exceeded quota.</p>"
         }
       },
-      "documentation":"<p>A service quota was exceeded. Request a quota increase or reduce usage and try again.</p>",
+      "documentation":"<p>The request would exceed a service quota, such as the maximum number of web functions in your account or the maximum number of revisions or endpoints per web function. Request a quota increase or reduce usage and try again.</p>",
       "error":{
         "httpStatusCode":402,
         "senderFault":true
@@ -2180,7 +2190,7 @@
     "String":{"type":"string"},
     "SystemLogLevel":{
       "type":"string",
-      "documentation":"<p>The log level for system logs from the Lambda runtime. Possible values: <code>DEBUG</code>, <code>INFO</code>, <code>WARN</code>.</p>",
+      "documentation":"<p>The log level for system logs from the Lambda runtime. Lambda sends logs at the selected level and at all more severe levels. Possible values, from least to most severe:</p> <ul> <li> <p> <code>DEBUG</code> – Detailed information about the runtime, for debugging.</p> </li> <li> <p> <code>INFO</code> – General information about the runtime, such as the start and end of execution.</p> </li> <li> <p> <code>WARN</code> – Potential issues detected by the runtime.</p> </li> </ul>",
       "enum":[
         "DEBUG",
         "INFO",
@@ -2281,7 +2291,7 @@
           "documentation":"<p>The quota code that was exceeded, if applicable.</p>"
         }
       },
-      "documentation":"<p>The request was throttled. Reduce the frequency of requests and try again.</p>",
+      "documentation":"<p>The request was denied because it exceeded the request rate that Lambda allows for your account. Reduce the frequency of requests and retry with exponential backoff.</p>",
       "error":{
         "httpStatusCode":429,
         "senderFault":true
@@ -2320,27 +2330,27 @@
       "members":{
         "functionName":{
           "shape":"FunctionName",
-          "documentation":"<p>The name of the web function. You can specify the function name or the function ARN. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The web function.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The function name, for example <code>my-function</code>.</p> </li> <li> <p>The function ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"functionName"
         },
         "endpointName":{
           "shape":"EndpointName",
-          "documentation":"<p>The name of the endpoint to update. You can specify the endpoint name or the endpoint ARN. The length constraint applies only to the full ARN. If you specify only the endpoint name, it is limited to 64 characters in length.</p>",
+          "documentation":"<p>The endpoint to update.</p> <p>You can specify either of the following:</p> <ul> <li> <p>The endpoint name, for example <code>my-endpoint</code>.</p> </li> <li> <p>The endpoint ARN.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the endpoint name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"endpointName"
         },
         "description":{
           "shape":"Description",
-          "documentation":"<p>A description of the endpoint.</p>"
+          "documentation":"<p>A description of the endpoint. Omit this field to keep the current description.</p>"
         },
         "authType":{
           "shape":"AuthType",
-          "documentation":"<p>The authorization type for the endpoint.</p>"
+          "documentation":"<p>The authorization type for the endpoint. Omit this field to keep the current authorization type.</p> <p>Valid values:</p> <ul> <li> <p> <code>ApplicationManaged</code> – Your application handles authorization.</p> </li> <li> <p> <code>IamAuth</code> – Lambda uses IAM to authorize requests, which must be signed with Signature Version 4 (SigV4).</p> </li> </ul>"
         },
         "autoDeploymentMode":{
           "shape":"AutoDeploymentMode",
-          "documentation":"<p>The auto-deployment mode for the endpoint.</p>"
+          "documentation":"<p>The auto-deployment mode for the endpoint. Omit this field to keep the current auto-deployment mode.</p> <p>Valid values:</p> <ul> <li> <p> <code>LatestRevision</code> – The endpoint automatically serves the newest revision.</p> </li> <li> <p> <code>Disabled</code> – Revision routing stays fixed until you change it.</p> </li> </ul>"
         },
         "revisionWeights":{
           "shape":"RevisionWeightList",
@@ -2446,7 +2456,7 @@
           "documentation":"<p>A message describing the validation error.</p>"
         }
       },
-      "documentation":"<p>The request failed validation. Check the request parameters and try again.</p>",
+      "documentation":"<p>The request failed validation because a parameter was missing, malformed, or outside the allowed range. Check the request parameters and try again.</p>",
       "error":{
         "httpStatusCode":400,
         "senderFault":true
@@ -2454,5 +2464,5 @@
       "exception":true
     }
   },
-  "documentation":"<p>AWS Lambda Web Functions let you run web applications and APIs as HTTP servers on Lambda. A web function has one or more immutable revisions (code and configuration) and one or more endpoints that expose it over HTTPS.</p>"
+  "documentation":"<p>AWS Lambda Web Functions is a capability of AWS Lambda that you can use to run web applications and API backends as serverless HTTP servers. Your code listens on a network port and handles requests directly. You can use familiar Node.js web frameworks such as Express, Hono, or React Router with no Lambda-specific adapters or wrappers. You develop and run your server locally like any other Node.js web app.</p> <p>Lambda creates an HTTPS endpoint, manages the execution environments, and scales your application with traffic, including to zero when it's idle. To reduce latency for globally distributed users, you can deploy across multiple AWS Regions behind a single endpoint.</p> <p>A Web Function has one or more immutable revisions (code and configuration) and one or more endpoints that expose it over HTTPS.</p> <p>Use Web Functions for workloads that receive and respond to HTTP traffic directly. Common use cases include:</p> <ul> <li> <p>Web applications – Deploy full-stack or front-end applications that serve HTML, assets, and API routes from a single deployment.</p> </li> <li> <p>REST and GraphQL APIs – Build API backends that serve high request volumes.</p> </li> <li> <p>Microservices – Run HTTP services that scale independently with traffic, including to zero when idle.</p> </li> <li> <p>Server-side rendering (SSR) – Serve pages that are rendered on the server at request time rather than pre-built. A Web Function runs your framework's production server directly. This suits applications that render personalized or frequently changing content on each request.</p> </li> <li> <p>Streaming responses – Stream output to the client as it is produced, such as responses from a large language model.</p> </li> </ul> <p>For event-driven processing, such as handling queue messages or file uploads, use <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/lambda-functions-chapter.html\">Lambda Event Functions</a> instead. For more information about Web Functions, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/web-functions.html\">Lambda Web Functions</a> in the <i>AWS Lambda Developer Guide</i>.</p>"
 }
