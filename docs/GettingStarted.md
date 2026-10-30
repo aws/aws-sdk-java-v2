@@ -36,16 +36,49 @@ comes earlier such as `compile` or `test` so that the build uses the
 correct code generator JAR (i.e. the one including your changes). When in
 doubt, just use `mvn package`.
 
-#### Disabling Checkstyle/FindBugs
-Normally Checkstyle and FindBugs scans run as part of the build process.
+#### Disabling Checkstyle/SpotBugs
+Normally Checkstyle and SpotBugs scans run as part of the build process.
 However, this slows down the build significantly so if you need to be able to
 iterate quickly locally, you can turn either of them off by setting the
 appropriate properties:
 
 ```sh
-# skips both Checkstyle and FindBugs
-$ mvn install -Dfindbugs.skip=true -Dcheckstyle.skip=true
+# skips both Checkstyle and SpotBugs
+$ mvn install -Dspotbugs.skip=true -Dcheckstyle.skip=true
 ```
+
+#### Fast iteration on a single module
+To check a change to one module quickly, build its dependencies once and then
+verify only that module with the `dev` profile:
+
+```sh
+# once, and again after pulling or after changing a module it depends on
+# (for example test/service-test-utils or the code generator)
+mvn install -pl :<module> -am -P quick -T 1C -Dmaven.test.skip=true
+
+# then, while iterating
+mvn verify -pl :<module> -P dev
+
+# or run one test class
+mvn test -pl :<module> -P dev -Dtest=MyClassTest
+```
+
+The `dev` profile keeps Checkstyle and the unit tests, and runs test classes in
+parallel JVM forks (`forkCount=1C`). It skips SpotBugs, dependency analysis,
+japicmp, Javadoc, and JaCoCo. CI still runs all of these, so run
+`mvn clean verify -pl :<module>` (the default profile) as the final check
+before you open a pull request.
+
+Leaving out `clean` lets Checkstyle and the compiler reuse earlier work. Run
+`clean` after changing the code generator or a service model: the generator
+refuses to overwrite a generated file from an earlier build when its content
+changes ("Attempted to clobber existing file").
+
+Optionally, [mvnd](https://github.com/apache/maven-mvnd) (the Maven Daemon) can
+run the same command with a warm JVM: `mvnd verify -pl :<module> -P dev`.
+
+See [Building and Testing](guidelines/building-and-testing.md) for changing an
+upstream module, changing the code generator, and working in several checkouts.
 
 ### Testing
 #### Unit Tests
@@ -57,6 +90,9 @@ tests are run.
 # runs the unit tests
 mvn install
 ```
+
+This builds and tests the whole repository (about an hour in CI). To test
+one module, see [Fast iteration on a single module](#fast-iteration-on-a-single-module).
 
 ### Integration Tests
 __Before running the integration tests, be aware that they require active AWS
