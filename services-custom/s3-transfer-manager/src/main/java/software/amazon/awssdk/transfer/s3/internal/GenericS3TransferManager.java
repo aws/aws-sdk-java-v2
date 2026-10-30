@@ -37,6 +37,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtDirectBufferPoolStreamMarker;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
@@ -68,6 +69,7 @@ import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.model.Copy;
 import software.amazon.awssdk.transfer.s3.model.CopyRequest;
+import software.amazon.awssdk.transfer.s3.model.DirectBufferPoolDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.Download;
@@ -372,6 +374,10 @@ class GenericS3TransferManager implements S3TransferManager {
 
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
         progressUpdater.transferInitiated();
+        if (responseTransformer instanceof S3CrtDirectBufferPoolStreamMarker) {
+            return failedDownload(progressUpdater, new IllegalArgumentException(
+                "Direct buffer pool transformers are not supported by download(). Use downloadWithDirectBufferPool instead."));
+        }
         if (isS3ClientMultipartEnabled()) {
             if (responseTransformer.split(b -> b.bufferSizeInBytes(1L)).parallelSplitSupported()) {
                 responseTransformer =
@@ -402,6 +408,30 @@ class GenericS3TransferManager implements S3TransferManager {
             returnFuture.completeExceptionally(throwable);
         }
 
+        return new DefaultDownload<>(returnFuture, progressUpdater.progress());
+    }
+
+    @Override
+    public final <ResultT> Download<ResultT> downloadWithDirectBufferPool(
+        DirectBufferPoolDownloadRequest<ResultT> downloadRequest) {
+        Validate.paramNotNull(downloadRequest, "downloadRequest");
+        return doDownloadWithDirectBufferPool(downloadRequest);
+    }
+
+    /**
+     * May be overridden by subclasses to provide customized behavior
+     */
+    <ResultT> Download<ResultT> doDownloadWithDirectBufferPool(DirectBufferPoolDownloadRequest<ResultT> downloadRequest) {
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
+        progressUpdater.transferInitiated();
+        return failedDownload(progressUpdater, new UnsupportedOperationException(
+            "Direct buffer pool downloads require an S3 CRT async client with a configured direct buffer pool"));
+    }
+
+    static <ResultT> Download<ResultT> failedDownload(TransferProgressUpdater progressUpdater, Throwable error) {
+        CompletableFuture<CompletedDownload<ResultT>> returnFuture = new CompletableFuture<>();
+        progressUpdater.registerCompletion(returnFuture);
+        returnFuture.completeExceptionally(error);
         return new DefaultDownload<>(returnFuture, progressUpdater.progress());
     }
 

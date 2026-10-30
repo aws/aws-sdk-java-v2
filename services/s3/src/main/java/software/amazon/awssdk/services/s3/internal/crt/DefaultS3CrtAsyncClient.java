@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -95,6 +96,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         new ExecutionAttribute<>("responseFileOption");
     public static final ExecutionAttribute<Boolean> RESPONSE_FILE_DELETE_ON_FAILURE =
         new ExecutionAttribute<>("responseFileDeleteOnFailure");
+    public static final ExecutionAttribute<Consumer<GetObjectResponse>> BORROWED_BUFFER_RESPONSE_LISTENER =
+        new ExecutionAttribute<>("borrowedBufferResponseListener");
     static final ExecutionAttribute<S3CrtBorrowedBufferBlockingResponseTransformer> BORROWED_BUFFER_RESPONSE_TRANSFORMER =
         new ExecutionAttribute<>("borrowedBufferResponseTransformer");
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
@@ -155,12 +158,17 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         if (!directBufferPoolConfigured) {
             return CompletableFutureUtils.failedFuture(
                 new IllegalStateException(
-                    "A direct buffer pool must be configured on S3CrtAsyncClientBuilder before using the borrowed "
-                    + "buffer response transformer"));
+                    "A direct buffer pool must be configured on S3CrtAsyncClientBuilder before using direct buffer pool "
+                    + "downloads"));
         }
 
+        // Listener set by CrtS3TransferManager for direct buffer pool downloads.
+        Consumer<GetObjectResponse> responseListener =
+            getObjectRequest.overrideConfiguration()
+                            .map(o -> o.executionAttributes().getAttribute(BORROWED_BUFFER_RESPONSE_LISTENER))
+                            .orElse(null);
         S3CrtBorrowedBufferBlockingResponseTransformer borrowedBufferResponseTransformer =
-            new S3CrtBorrowedBufferBlockingResponseTransformer();
+            new S3CrtBorrowedBufferBlockingResponseTransformer(responseListener);
         AwsRequestOverrideConfiguration overrideConfig =
             getObjectRequest.overrideConfiguration()
                             .map(AwsRequestOverrideConfiguration::toBuilder)

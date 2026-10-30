@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
+import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.BORROWED_BUFFER_RESPONSE_LISTENER;
 import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.RESPONSE_FILE_OPTION;
 import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.RESPONSE_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.crt.s3.S3MetaRequestOptions.ResponseFileOption;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtDirectBufferPoolStreamMarker;
 import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -45,12 +47,16 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.internal.model.CrtFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.CrtFileUpload;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.ResumeTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
+import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.model.DirectBufferPoolDownloadRequest;
+import software.amazon.awssdk.transfer.s3.model.Download;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
@@ -156,6 +162,48 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         return uploadFile(uploadFileRequest.toBuilder()
                                            .putObjectRequest(modifiedPutObjectRequest)
                                            .build());
+    }
+
+    /**
+     * Passes the direct buffer pool transformer unwrapped so the CRT client can use borrowed-buffer delivery. Borrowed buffers
+     * bypass the transformer's {@code onStream} publisher, so the usual progress wrapper cannot observe body delivery. This path
+     * receives the response, progress and completion through listeners attached to the request.
+     */
+    @Override
+    <ResultT> Download<ResultT> doDownloadWithDirectBufferPool(DirectBufferPoolDownloadRequest<ResultT> downloadRequest) {
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
+        progressUpdater.transferInitiated();
+
+        AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer = downloadRequest.responseTransformer();
+        if (!(responseTransformer instanceof S3CrtDirectBufferPoolStreamMarker)) {
+            return failedDownload(progressUpdater, new IllegalArgumentException(
+                "downloadWithDirectBufferPool() requires an unwrapped direct buffer pool transformer, such as "
+                + "S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()"));
+        }
+
+        CompletableFuture<CompletedDownload<ResultT>> returnFuture = new CompletableFuture<>();
+        progressUpdater.registerCompletion(returnFuture);
+
+        try {
+            assertNotUnsupportedArn(downloadRequest.getObjectRequest().bucket(), "download");
+
+            Consumer<GetObjectResponse> responseListener = progressUpdater::downloadResponseReceived;
+            GetObjectRequest getObjectRequest = attachSdkAttribute(
+                downloadRequest.getObjectRequest(),
+                b -> b.putExecutionAttribute(BORROWED_BUFFER_RESPONSE_LISTENER, responseListener));
+            getObjectRequest = attachCrtSdkAttribute(
+                getObjectRequest,
+                b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtStreamProgressListener()));
+            CompletableFuture<ResultT> future = s3AsyncClient.getObject(getObjectRequest, responseTransformer);
+
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+                                                              r -> CompletedDownload.builder().result(r).build());
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
+        }
+
+        return new DefaultDownload<>(returnFuture, progressUpdater.progress());
     }
 
     /**

@@ -25,12 +25,14 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongConsumer;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.crt.s3.S3BorrowedBuffer;
 import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -63,6 +65,38 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
         }
         assertThat(releases).hasValue(1);
         assertThat(credit).hasValue(3);
+    }
+
+    @Test
+    void responseListener_shouldBeNotifiedBeforeStreamFuture() {
+        AtomicReference<GetObjectResponse> notified = new AtomicReference<>();
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer =
+            new S3CrtBorrowedBufferBlockingResponseTransformer(notified::set);
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
+        GetObjectResponse response = GetObjectResponse.builder().contentLength(3L).build();
+        transformer.onResponse(response);
+        AtomicReference<GetObjectResponse> notifiedWhenStreamReady = new AtomicReference<>();
+        future.thenRun(() -> notifiedWhenStreamReady.set(notified.get()));
+
+        transformer.onBorrowedStreamStart(() -> { }, NO_CREDIT);
+
+        assertThat(notified).hasValue(response);
+        assertThat(notifiedWhenStreamReady).hasValue(response);
+    }
+
+    @Test
+    void responseListener_whenStreamStartsAfterFailure_shouldNotBeNotified() {
+        AtomicReference<GetObjectResponse> notified = new AtomicReference<>();
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer =
+            new S3CrtBorrowedBufferBlockingResponseTransformer(notified::set);
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().contentLength(3L).build());
+        transformer.exceptionOccurred(ApiCallTimeoutException.create(1));
+
+        transformer.onBorrowedStreamStart(() -> { }, NO_CREDIT);
+
+        assertThat(notified).hasValue(null);
+        assertThat(future).isCompletedExceptionally();
     }
 
     @Test

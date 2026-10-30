@@ -43,11 +43,24 @@ import software.amazon.awssdk.utils.Validate;
 public final class S3CrtBorrowedBufferBlockingResponseTransformer
     implements AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> {
 
+    private final Consumer<GetObjectResponse> responseListener;
     // Lets abort() take effect when it runs before onBorrowedStreamStart() creates the stream.
     private volatile boolean aborted;
     private volatile CompletableFuture<ResponseInputStream<GetObjectResponse>> future;
     private volatile GetObjectResponse response;
     private volatile S3CrtBorrowedBufferInputStream inputStream;
+
+    S3CrtBorrowedBufferBlockingResponseTransformer() {
+        this(null);
+    }
+
+    /**
+     * Creates a transformer whose {@code responseListener}, if not {@code null}, is notified with the response of the attempt
+     * that starts the stream, before the future returned by {@link #prepare()} completes.
+     */
+    S3CrtBorrowedBufferBlockingResponseTransformer(Consumer<GetObjectResponse> responseListener) {
+        this.responseListener = responseListener;
+    }
 
     @Override
     public CompletableFuture<ResponseInputStream<GetObjectResponse>> prepare() {
@@ -106,6 +119,10 @@ public final class S3CrtBorrowedBufferBlockingResponseTransformer
         });
         if (aborted) {
             stream.abort();
+        }
+        // Don't report a response for a download that already failed or was cancelled.
+        if (responseListener != null && !future.isDone()) {
+            responseListener.accept(response);
         }
         future.complete(new ResponseInputStream<>(response, stream));
     }
