@@ -169,6 +169,13 @@ public final class ApacheHttpClient implements SdkHttpClient {
                .setKeepAliveStrategy(buildKeepAliveStrategy(standardOptions))
                .disableRedirectHandling()
                .disableAutomaticRetries()
+               // One SdkHttpClient presents a single TlsKeyManagersProvider identity. Apache's
+               // connection-state / user-token tracking then keys the pool on the TLS client
+               // principal, but every request gets a fresh HttpClientContext with a null token
+               // (see ApacheUtils.newClientContext), so leased mTLS connections never match and
+               // are never reused. Disable state tracking so pooled connections can be reused.
+               // See https://github.com/aws/aws-sdk-java-v2/issues/7405
+               .disableConnectionState()
                .setUserAgent("") // SDK will set the user agent header in the pipeline. Don't let Apache waste time
                .setConnectionManager(ClientConnectionManagerFactory.wrap(cm));
 
