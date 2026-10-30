@@ -1,4 +1,53 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.57.8__ __2026-10-30__
+## __AWS Lambda__
+  - ### Features
+    - Adds ConsumptionMode to SelfManagedKafkaEventSourceConfig, letting Lambda event source mappings consume self-managed Apache Kafka topics as a queue. Set ConsumptionMode to Queue when creating an event source mapping.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Adds the CodeExecution step and codeExecution action to AgenticRetrieveStream trace events, showing when the agent runs code and which documents it reads.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Adds support for account-level retention policies in Amazon CloudWatch Logs. Customers can now use PutAccountPolicy with the new RETENTION POLICY type to set default log retention across all log groups in an account. Includes dry-run mode to preview the impact of policy changes before applying them.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Adds support for template ingestion controls in the GetProfileObjectTypeTemplate API response.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect adds tag-based access control for Contact Lens rules. ListRealtimeContactAnalysisSegmentsV2 adds a ListFilter to return only category segments whose rules match given tags. PreEvaluationFilter now supports contact evaluation resources for OnContactEvaluationSubmit rules.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Amazon DocumentDB now returns ServerlessV2PlatformVersion in DBCluster API responses and adds the DescribeServerlessV2PlatformVersions API to discover available platform versions and their capabilities.
+
+## __Amazon Omics__
+  - ### Features
+    - Adds the outputUriPrefixMode parameter to StartRun and GetRun. You can now write run outputs directly under outputUri, without the prefixes the service adds by default. When you opt in, outputs overwrite existing objects at the same keys.
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Managed Prometheus collectors now support Amazon MSK consumer-group metrics for Amazon Managed Service for Prometheus and CloudWatch.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Create endpoints with AcceleratorPartitionLayouts on ProductionVariant and deploy inference components with AcceleratorPartitionType in ComputeResourceRequirements to divide accelerators into hardware-isolated NVIDIA MIG partitions, running multiple models per GPU. P4d, P5, G7, G7e.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fixed `S3TransferManager#resumeDownloadFile` so that a download paused with the Java-based multipart S3 async client and resumed from a serialized `ResumableFileDownload` restarts from the beginning if any parts had completed.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Add DeploymentConfiguration field to CreateDbCluster and UpdateDbCluster APIs to support creation of heterogenous InfluxDB v3 Enterprise clusters.
+
 # __2.57.7__ __2026-10-29__
 ## __AWS Clean Rooms Service__
   - ### Features

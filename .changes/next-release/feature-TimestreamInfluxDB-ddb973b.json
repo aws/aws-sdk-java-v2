@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Timestream InfluxDB",
-    "contributor": "",
-    "description": "Add DeploymentConfiguration field to CreateDbCluster and UpdateDbCluster APIs to support creation of heterogenous InfluxDB v3 Enterprise clusters."
-}

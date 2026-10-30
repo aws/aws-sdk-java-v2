@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "S3 Transfer Manager",
-    "contributor": "",
-    "description": "Fixed `S3TransferManager#resumeDownloadFile` so that a download paused with the Java-based multipart S3 async client and resumed from a serialized `ResumableFileDownload` restarts from the beginning if any parts had completed."
-}
