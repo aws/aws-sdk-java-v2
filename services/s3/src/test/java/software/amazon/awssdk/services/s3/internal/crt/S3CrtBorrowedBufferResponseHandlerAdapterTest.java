@@ -32,6 +32,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.LongConsumer;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpHeader;
@@ -177,6 +178,55 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         verify(metaRequest, never()).incrementReadWindow(anyLong());
         streamHandler.continueBuffer.countDown();
         callback.get(5, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void creditBeforeMetaRequestIsAvailable_shouldBeSentOnceItIs() {
+        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
+        CompletableFuture<S3MetaRequestWrapper> metaRequestFuture = new CompletableFuture<>();
+        S3MetaRequestWrapper metaRequest = mock(S3MetaRequestWrapper.class);
+        S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
+        when(streamHandler.onBorrowedBuffer(any())).thenReturn(true);
+        AtomicReference<LongConsumer> readWindowAction = new AtomicReference<>();
+        doAnswer(invocation -> {
+            readWindowAction.set(invocation.getArgument(1));
+            return null;
+        }).when(streamHandler).onBorrowedStreamStart(any(), any());
+        S3CrtBorrowedBufferResponseHandlerAdapter handler =
+            adapterBuilder(executeFuture, streamHandler).metaRequestFuture(metaRequestFuture).build();
+        handler.onResponseBodyBorrowed(directCrtBuffer(3), 0, 3);
+
+        readWindowAction.get().accept(3);
+        verify(metaRequest, never()).incrementReadWindow(anyLong());
+
+        metaRequestFuture.complete(metaRequest);
+        verify(metaRequest).incrementReadWindow(3);
+    }
+
+    @Test
+    void nativeCreditFailure_shouldFailRequestAndReportToStream() {
+        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
+        S3MetaRequestWrapper metaRequest = mock(S3MetaRequestWrapper.class);
+        RuntimeException failure = new RuntimeException("credit failed");
+        doThrow(failure).when(metaRequest).incrementReadWindow(3);
+        S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
+        when(streamHandler.onBorrowedBuffer(any())).thenReturn(true);
+        AtomicReference<LongConsumer> readWindowAction = new AtomicReference<>();
+        doAnswer(invocation -> {
+            readWindowAction.set(invocation.getArgument(1));
+            return null;
+        }).when(streamHandler).onBorrowedStreamStart(any(), any());
+        S3CrtBorrowedBufferResponseHandlerAdapter handler =
+            adapterBuilder(executeFuture, streamHandler)
+                .metaRequestFuture(CompletableFuture.completedFuture(metaRequest))
+                .build();
+        handler.onResponseBodyBorrowed(directCrtBuffer(3), 0, 3);
+
+        readWindowAction.get().accept(3);
+
+        assertThatThrownBy(executeFuture::join).hasCause(failure);
+        verify(streamHandler).onBorrowedStreamError(failure);
+        verify(metaRequest, times(1)).incrementReadWindow(3);
     }
 
     @Test

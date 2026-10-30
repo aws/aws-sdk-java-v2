@@ -141,7 +141,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         S3CrtDirectBufferPoolConfiguration directBufferPoolConfiguration =
             s3NativeClientConfiguration.directBufferPoolConfiguration();
-        // S3DirectBufferPoolOptions is absent from older CRT runtimes, so it is only referenced when a pool is configured.
         if (directBufferPoolConfiguration != null) {
             options.withDirectBufferPoolOptions(toCrtDirectBufferPoolOptions(directBufferPoolConfiguration));
         }

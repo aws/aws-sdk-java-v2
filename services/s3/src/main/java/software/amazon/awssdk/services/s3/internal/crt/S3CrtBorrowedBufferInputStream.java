@@ -60,19 +60,29 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
         }
     }
 
-    // Contains accepted buffers and terminal signals in delivery order.
+    /**
+     * Accepted buffers and terminal signals in delivery order.
+     */
     private final BlockingQueue<Object> events = new LinkedBlockingQueue<>();
-    // Lock order: readLock, stateLock
+
+    /**
+     * Serializes reads and guards {@link #endOfStream}, {@link #current} and {@link #currentByteCount}.
+     */
     private final Object readLock = new Object();
+
+    /**
+     * Guards {@link #deliveryEnded}, so no buffer is queued after completion, failure or close.
+     */
     private final Object stateLock = new Object();
     private final Runnable cancellationAction;
     private final LongConsumer readWindowAction;
     private final AtomicReference<CloseReason> closeReason = new AtomicReference<>();
 
-    // Guarded by stateLock. Set by completion, failure or close. Buffers that arrive after that are released.
+    /**
+     * Set by completion, failure or close. Buffers that arrive after that are released.
+     */
     private boolean deliveryEnded;
 
-    // Guarded by readLock.
     private boolean endOfStream;
     private S3BorrowedBuffer current;
     private long currentByteCount;
@@ -85,12 +95,12 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
     /**
      * Queues a buffer, or releases it when upstream delivery has ended or the stream is closed.
      */
-    boolean onBuffer(S3BorrowedBuffer buffer) {
+    boolean onNextBuffer(S3BorrowedBuffer buffer) {
         boolean accepted;
         synchronized (stateLock) {
             accepted = !deliveryEnded;
             if (accepted) {
-                enqueue(buffer);
+                events.add(buffer);
             }
         }
         if (!accepted) {
@@ -103,7 +113,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
         synchronized (stateLock) {
             if (!deliveryEnded) {
                 deliveryEnded = true;
-                enqueue(error);
+                events.add(error);
             }
         }
     }
@@ -112,7 +122,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
         synchronized (stateLock) {
             if (!deliveryEnded) {
                 deliveryEnded = true;
-                enqueue(Signal.COMPLETE);
+                events.add(Signal.COMPLETE);
             }
         }
     }
@@ -240,7 +250,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
             deliveryEnded = true;
             // Wake the reader blocked in take(). Only the readLock holder can block there, and other readers see
             // closeReason first.
-            enqueue(Signal.CLOSED);
+            events.add(Signal.CLOSED);
         }
 
         if (upstreamRunning) {
@@ -250,12 +260,6 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
             release(current);
             current = null;
             releaseQueued();
-        }
-    }
-
-    private void enqueue(Object event) {
-        if (!events.offer(event)) {
-            throw new IllegalStateException("Failed to enqueue borrowed response stream event");
         }
     }
 

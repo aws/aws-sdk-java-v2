@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -96,7 +98,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
-        stream.onBuffer(buffer("a", releases::incrementAndGet, credited));
+        stream.onNextBuffer(buffer("a", releases::incrementAndGet, credited));
         stream.onComplete();
 
         Thread.currentThread().interrupt();
@@ -118,8 +120,8 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
-        stream.onBuffer(buffer("abc", releases::incrementAndGet, credited));
-        stream.onBuffer(buffer("def", releases::incrementAndGet, credited));
+        stream.onNextBuffer(buffer("abc", releases::incrementAndGet, credited));
+        stream.onNextBuffer(buffer("def", releases::incrementAndGet, credited));
         stream.onComplete();
 
         assertThat(stream.read(new byte[0])).isZero();
@@ -143,7 +145,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { }, credited::addAndGet);
-        stream.onBuffer(buffer("abc", releases::incrementAndGet, credited));
+        stream.onNextBuffer(buffer("abc", releases::incrementAndGet, credited));
         stream.onError(failure);
 
         byte[] destination = new byte[8];
@@ -163,7 +165,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicLong credited = new AtomicLong();
         S3CrtBorrowedBufferInputStream stream =
             new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, NO_CREDIT);
-        stream.onBuffer(buffer("abc", () -> { }, credited));
+        stream.onNextBuffer(buffer("abc", () -> { }, credited));
         stream.onError(failure);
 
         assertThat(stream.read(new byte[3])).isEqualTo(3);
@@ -190,8 +192,8 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
-        stream.onBuffer(buffer("abc", releases::incrementAndGet, credited));
-        stream.onBuffer(buffer("def", releases::incrementAndGet, credited));
+        stream.onNextBuffer(buffer("abc", releases::incrementAndGet, credited));
+        stream.onNextBuffer(buffer("def", releases::incrementAndGet, credited));
 
         assertThat(stream.read()).isEqualTo('a');
         stream.close();
@@ -215,12 +217,12 @@ class S3CrtBorrowedBufferInputStreamTest {
         CountDownLatch continueFirstRelease = new CountDownLatch(1);
         AtomicReference<Thread> closeThread = new AtomicReference<>();
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
-        stream.onBuffer(buffer("a", () -> {
+        stream.onNextBuffer(buffer("a", () -> {
             releases.incrementAndGet();
             firstReleaseStarted.countDown();
             await(continueFirstRelease);
         }, credited));
-        stream.onBuffer(buffer("b", releases::incrementAndGet, credited));
+        stream.onNextBuffer(buffer("b", releases::incrementAndGet, credited));
         ExecutorService executor = Executors.newFixedThreadPool(2);
         try {
             Future<Integer> readResult = executor.submit(() -> stream.read(new byte[2]));
@@ -319,11 +321,11 @@ class S3CrtBorrowedBufferInputStreamTest {
             streamReference.get().abort();
         }, NO_CREDIT);
         streamReference.set(stream);
-        stream.onBuffer(buffer("a", () -> {
+        stream.onNextBuffer(buffer("a", () -> {
             firstReleases.incrementAndGet();
             throw failure;
         }, credited));
-        stream.onBuffer(buffer("b", secondReleases::incrementAndGet, credited));
+        stream.onNextBuffer(buffer("b", secondReleases::incrementAndGet, credited));
 
         assertThat(stream.read()).isEqualTo('a');
         assertThatThrownBy(stream::read)
@@ -336,6 +338,45 @@ class S3CrtBorrowedBufferInputStreamTest {
     }
 
     @Test
+    void fullyReadBuffer_shouldBeReleasedBeforeCredit() throws Exception {
+        List<String> events = new ArrayList<>();
+        S3CrtBorrowedBufferInputStream stream =
+            new S3CrtBorrowedBufferInputStream(() -> { }, bytes -> events.add("credit " + bytes));
+        stream.onNextBuffer(buffer("abc", () -> events.add("release"), new AtomicLong()));
+
+        assertThat(stream.read(new byte[3])).isEqualTo(3);
+
+        assertThat(events).containsExactly("release", "credit 3");
+    }
+
+    @Test
+    void creditFailure_failsStreamCancelsUpstreamAndIsNotRetried() throws Exception {
+        RuntimeException failure = new RuntimeException("credit failed");
+        AtomicInteger cancellations = new AtomicInteger();
+        AtomicInteger credits = new AtomicInteger();
+        AtomicInteger firstReleases = new AtomicInteger();
+        AtomicInteger secondReleases = new AtomicInteger();
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, bytes -> {
+            credits.incrementAndGet();
+            throw failure;
+        });
+        stream.onNextBuffer(buffer("a", firstReleases::incrementAndGet, new AtomicLong()));
+        stream.onNextBuffer(buffer("b", secondReleases::incrementAndGet, new AtomicLong()));
+
+        assertThat(stream.read()).isEqualTo('a');
+        assertThatThrownBy(stream::read)
+            .isInstanceOf(IOException.class)
+            .hasCause(failure);
+        assertThatThrownBy(stream::read)
+            .isInstanceOf(IOException.class)
+            .hasCause(failure);
+        assertThat(firstReleases).hasValue(1);
+        assertThat(secondReleases).hasValue(1);
+        assertThat(credits).hasValue(1);
+        assertThat(cancellations).hasValue(1);
+    }
+
+    @Test
     void close_attemptsAllCleanupActionsWithoutThrowing() throws Exception {
         AtomicInteger cancellations = new AtomicInteger();
         AtomicInteger releases = new AtomicInteger();
@@ -344,11 +385,11 @@ class S3CrtBorrowedBufferInputStreamTest {
             cancellations.incrementAndGet();
             throw new RuntimeException("request cancel failed");
         }, credited::addAndGet);
-        stream.onBuffer(buffer("abc", () -> {
+        stream.onNextBuffer(buffer("abc", () -> {
             releases.incrementAndGet();
             throw new RuntimeException("first release failed");
         }, credited));
-        stream.onBuffer(buffer("def", () -> {
+        stream.onNextBuffer(buffer("def", () -> {
             releases.incrementAndGet();
             throw new RuntimeException("second release failed");
         }, credited));
@@ -367,7 +408,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
-        stream.onBuffer(buffer("abc", releases::incrementAndGet, credited));
+        stream.onNextBuffer(buffer("abc", releases::incrementAndGet, credited));
 
         stream.abort();
         stream.abort();
@@ -386,7 +427,7 @@ class S3CrtBorrowedBufferInputStreamTest {
             cancellations.incrementAndGet();
             throw new RuntimeException("request cancel failed");
         }, credited::addAndGet);
-        stream.onBuffer(buffer("abc", () -> {
+        stream.onNextBuffer(buffer("abc", () -> {
             releases.incrementAndGet();
             throw new RuntimeException("release failed");
         }, credited));
@@ -406,7 +447,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
 
         stream.close();
-        assertThat(stream.onBuffer(buffer("abc", releases::incrementAndGet, credited))).isFalse();
+        assertThat(stream.onNextBuffer(buffer("abc", releases::incrementAndGet, credited))).isFalse();
 
         assertThat(cancellations).hasValue(1);
         assertThat(releases).hasValue(1);
@@ -422,8 +463,8 @@ class S3CrtBorrowedBufferInputStreamTest {
         completed.onComplete();
         failed.onError(new RuntimeException("failed"));
 
-        assertThat(completed.onBuffer(buffer("a", releases::incrementAndGet, credited))).isFalse();
-        assertThat(failed.onBuffer(buffer("b", releases::incrementAndGet, credited))).isFalse();
+        assertThat(completed.onNextBuffer(buffer("a", releases::incrementAndGet, credited))).isFalse();
+        assertThat(failed.onNextBuffer(buffer("b", releases::incrementAndGet, credited))).isFalse();
 
         assertThat(releases).hasValue(2);
         assertThat(credited).hasValue(0);
@@ -434,7 +475,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger releases = new AtomicInteger();
         AtomicInteger creditCalls = new AtomicInteger();
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { }, bytes -> creditCalls.incrementAndGet());
-        stream.onBuffer(borrowedBuffer(ByteBuffer.allocateDirect(0), releases::incrementAndGet));
+        stream.onNextBuffer(borrowedBuffer(ByteBuffer.allocateDirect(0), releases::incrementAndGet));
         stream.onComplete();
 
         assertThat(stream.read()).isEqualTo(-1);
@@ -448,7 +489,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
-        stream.onBuffer(buffer("abc", releases::incrementAndGet, credited));
+        stream.onNextBuffer(buffer("abc", releases::incrementAndGet, credited));
         stream.onComplete();
 
         stream.close();

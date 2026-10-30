@@ -70,7 +70,7 @@ public final class S3CrtBorrowedBufferStreamHandler {
      * Returns false if the stream has already ended, in which case the buffer is released.
      */
     boolean onBorrowedBuffer(S3BorrowedBuffer buffer) {
-        return inputStream.onBuffer(buffer);
+        return inputStream.onNextBuffer(buffer);
     }
 
     /**

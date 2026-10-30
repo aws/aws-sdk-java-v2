@@ -18,8 +18,10 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.setGlobalFixedDelay;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -89,6 +91,18 @@ class S3CrtBorrowedBufferClientWireMockTest {
              ResponseInputStream<GetObjectResponse> stream = getObject(client)) {
             assertThat(readAll(stream)).containsExactly(CONTENT);
         }
+    }
+
+    @Test
+    void borrowedDownload_shouldReportTransformerTypeInUserAgent(WireMockRuntimeInfo wireMock) throws Exception {
+        stubMultipartObject(CONTENT);
+
+        try (S3AsyncClient client = newClient(wireMock);
+             ResponseInputStream<GetObjectResponse> stream = getObject(client)) {
+            readAll(stream);
+        }
+
+        verify(getRequestedFor(anyUrl()).withHeader("User-Agent", containing("md/rt#ds")));
     }
 
     @Test

@@ -77,10 +77,9 @@ public final class S3CrtBorrowedBufferBlockingResponseTransformer
 
     @Override
     public void exceptionOccurred(Throwable error) {
-        S3CrtBorrowedBufferStreamHandler attempt = currentAttempt;
-        if (attempt != null) {
-            attempt.future().completeExceptionally(error);
-            attempt.onBorrowedStreamError(error);
+        if (currentAttempt != null) {
+            currentAttempt.future().completeExceptionally(error);
+            currentAttempt.onBorrowedStreamError(error);
         }
     }
 
