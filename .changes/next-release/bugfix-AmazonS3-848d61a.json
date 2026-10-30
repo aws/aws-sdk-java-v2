@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Share one S3 Express session credentials cache across the presign calls of an S3Presigner, and close it in S3Presigner.close()."
+}
