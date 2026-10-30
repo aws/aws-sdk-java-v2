@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,11 +65,13 @@ public class S3CrtResponseHandlerAdapterTest {
     @Mock
     private S3MetaRequestWrapper s3MetaRequest;
     private CompletableFuture<Void> future;
+    private S3CrtMetricPublisherDispatcher metricPublisherDispatcher;
 
     @Before
     public void setup() {
         future = new CompletableFuture<>();
         sdkResponseHandler = spy(new TestResponseHandler());
+        metricPublisherDispatcher = new S3CrtMetricPublisherDispatcher();
         responseHandlerAdapter = S3CrtResponseHandlerAdapter.builder()
                                                             .executeFuture(future)
                                                             .responseHandler(sdkResponseHandler)
@@ -76,7 +79,13 @@ public class S3CrtResponseHandlerAdapterTest {
                                                                 SdkHttpExecutionAttributes.builder().build())
                                                             .metaRequestFuture(
                                                                 CompletableFuture.completedFuture(s3MetaRequest))
+                                                            .metricPublisherDispatcher(metricPublisherDispatcher)
                                                             .build();
+    }
+
+    @After
+    public void teardown() {
+        metricPublisherDispatcher.close();
     }
 
     @Test
@@ -113,6 +122,7 @@ public class S3CrtResponseHandlerAdapterTest {
                                        .httpExecutionAttributes(SdkHttpExecutionAttributes.builder().build())
                                        .metaRequestFuture(new CompletableFuture<>())
                                        .s3MetaRequestTimeout(Duration.ofMillis(10))
+                                       .metricPublisherDispatcher(metricPublisherDispatcher)
                                        .build();
         int statusCode = 200;
         responseHandlerAdapter.onResponseHeaders(statusCode, new HttpHeader[0]);

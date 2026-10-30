@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.CRT_MEMORY_BUFFER_DISABLED;
@@ -43,6 +44,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,6 +102,7 @@ public class S3CrtAsyncHttpClientTest {
     @BeforeEach
     public void methodSetup() {
         s3Client = Mockito.mock(S3Client.class);
+        when(s3Client.getShutdownCompleteFuture()).thenReturn(CompletableFuture.completedFuture(null));
         responseHandler = Mockito.mock(SdkAsyncHttpResponseHandler.class);
         contentPublisher = Mockito.mock(SdkHttpContentPublisher.class);
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
@@ -166,16 +172,21 @@ public class S3CrtAsyncHttpClientTest {
                                 .s3ClientConfiguration(s3NativeClientConfiguration)
                                 .metricPublishers(Collections.singletonList(publisher)));
 
-        S3MetaRequestOptions requestOptions = makeRequest(getExecuteRequestBuilder().build());
-        requestOptions.getResponseHandler().onTelemetry(Mockito.mock(S3RequestMetrics.class));
+        try {
+            S3MetaRequestOptions requestOptions = makeRequest(getExecuteRequestBuilder().build());
+            requestOptions.getResponseHandler().onTelemetry(Mockito.mock(S3RequestMetrics.class));
 
-        ArgumentCaptor<MetricCollection> metricCollectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
-        verify(publisher).publish(metricCollectionCaptor.capture());
-        MetricCollection attempt =
-            metricCollectionCaptor.getValue().childrenWithName("ApiCallAttempt").findFirst().orElseThrow(AssertionError::new);
-        MetricCollection httpClient =
-            attempt.childrenWithName("HttpClient").findFirst().orElseThrow(AssertionError::new);
-        assertThat(httpClient.metricValues(HttpMetric.MAX_CONCURRENCY)).containsExactly(expectedMaxConcurrency);
+            ArgumentCaptor<MetricCollection> metricCollectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+            verify(publisher, timeout(1_000)).publish(metricCollectionCaptor.capture());
+            MetricCollection attempt =
+                metricCollectionCaptor.getValue().childrenWithName("ApiCallAttempt").findFirst()
+                                      .orElseThrow(AssertionError::new);
+            MetricCollection httpClient =
+                attempt.childrenWithName("HttpClient").findFirst().orElseThrow(AssertionError::new);
+            assertThat(httpClient.metricValues(HttpMetric.MAX_CONCURRENCY)).containsExactly(expectedMaxConcurrency);
+        } finally {
+            asyncHttpClient.close();
+        }
     }
 
     @Test
@@ -459,6 +470,82 @@ public class S3CrtAsyncHttpClientTest {
     }
 
     @Test
+    public void close_withQueuedMetrics_waitsBeforeClosingCrtClient() throws Exception {
+        CompletableFuture<Void> shutdownCompleteFuture = new CompletableFuture<>();
+        when(s3Client.getShutdownCompleteFuture()).thenReturn(shutdownCompleteFuture);
+        BlockingMetricPublisher publisher = new BlockingMetricPublisher();
+        asyncHttpClient = new S3CrtAsyncHttpClient(
+            s3Client,
+            S3CrtAsyncHttpClient.builder()
+                                .s3ClientConfiguration(s3NativeClientConfiguration)
+                                .metricPublishers(Collections.singletonList(publisher)));
+        S3MetaRequestOptions requestOptions = makeRequest(getExecuteRequestBuilder().build());
+        requestOptions.getResponseHandler().onTelemetry(Mockito.mock(S3RequestMetrics.class));
+        assertThat(publisher.started.await(1, TimeUnit.SECONDS)).isTrue();
+        requestOptions.getResponseHandler().onTelemetry(Mockito.mock(S3RequestMetrics.class));
+
+        CompletableFuture<Void> closeFuture = CompletableFuture.runAsync(asyncHttpClient::close);
+        try {
+            verify(s3Client, timeout(1_000)).getShutdownCompleteFuture();
+            assertThat(closeFuture.isDone()).isFalse();
+            verify(s3Client, Mockito.never()).close();
+
+            publisher.release.countDown();
+            closeFuture.get(1, TimeUnit.SECONDS);
+            assertThat(publisher.publishCount).hasValue(2);
+            verify(s3Client).close();
+        } finally {
+            publisher.release.countDown();
+            shutdownCompleteFuture.complete(null);
+        }
+    }
+
+    @Test
+    public void close_metricDispatcherClosesOnlyAfterCrtShutdownCompletes() throws Exception {
+        CompletableFuture<Void> shutdownCompleteFuture = new CompletableFuture<>();
+        when(s3Client.getShutdownCompleteFuture()).thenReturn(shutdownCompleteFuture);
+        AtomicInteger publishCount = new AtomicInteger();
+        AtomicReference<Thread> publishThread = new AtomicReference<>();
+        CountDownLatch published = new CountDownLatch(1);
+        MetricPublisher publisher = new MetricPublisher() {
+            @Override
+            public void publish(MetricCollection metricCollection) {
+                publishThread.set(Thread.currentThread());
+                publishCount.incrementAndGet();
+                published.countDown();
+            }
+
+            @Override
+            public void close() {
+            }
+        };
+        asyncHttpClient = new S3CrtAsyncHttpClient(
+            s3Client,
+            S3CrtAsyncHttpClient.builder()
+                                .s3ClientConfiguration(s3NativeClientConfiguration)
+                                .metricPublishers(Collections.singletonList(publisher)));
+        S3MetaRequestOptions requestOptions = makeRequest(getExecuteRequestBuilder().build());
+
+        try {
+            asyncHttpClient.close();
+
+            requestOptions.getResponseHandler().onTelemetry(Mockito.mock(S3RequestMetrics.class));
+            assertThat(published.await(1, TimeUnit.SECONDS)).isTrue();
+            assertThat(publishCount).hasValue(1);
+            assertThat(publishThread.get().isAlive()).isTrue();
+
+            shutdownCompleteFuture.complete(null);
+            publishThread.get().join(1_000);
+            assertThat(publishThread.get().isAlive()).isFalse();
+
+            requestOptions.getResponseHandler().onTelemetry(Mockito.mock(S3RequestMetrics.class));
+            assertThat(publishCount).hasValue(1);
+        } finally {
+            shutdownCompleteFuture.complete(null);
+        }
+    }
+
+    @Test
     void build_shouldPassThroughParameters() {
         String signingRegion = "us-west-2";
         S3NativeClientConfiguration configuration =
@@ -732,6 +819,27 @@ public class S3CrtAsyncHttpClientTest {
             .isInstanceOf(RuntimeException.class);
 
         Mockito.verify(adapter).close();
+    }
+
+    private static final class BlockingMetricPublisher implements MetricPublisher {
+        private final CountDownLatch started = new CountDownLatch(1);
+        private final CountDownLatch release = new CountDownLatch(1);
+        private final AtomicInteger publishCount = new AtomicInteger();
+
+        @Override
+        public void publish(MetricCollection metricCollection) {
+            started.countDown();
+            try {
+                release.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            publishCount.incrementAndGet();
+        }
+
+        @Override
+        public void close() {
+        }
     }
 
     private AsyncExecuteRequest.Builder getExecuteRequestBuilder() {

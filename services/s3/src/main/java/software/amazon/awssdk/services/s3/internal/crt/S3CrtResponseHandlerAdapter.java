@@ -83,6 +83,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     private final Duration s3MetaRequestTimeout;
     private final List<MetricPublisher> metricPublishers;
     private final Integer maxConcurrency;
+    private final S3CrtMetricPublisherDispatcher metricPublisherDispatcher;
 
     private volatile boolean responseHandlingInitiated;
 
@@ -100,6 +101,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         this.metricPublishers = builder.metricPublishers;
         this.maxConcurrency = builder.maxConcurrency;
         this.s3MetaRequestTimeout = builder.s3MetaRequestTimeout;
+        this.metricPublisherDispatcher = builder.metricPublisherDispatcher;
 
         // Registered last: the callback reads responseHandler and s3MetaRequestTimeout, so all fields must be assigned
         // first in case resultFuture is already complete and the callback runs synchronously here.
@@ -132,6 +134,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         private Duration s3MetaRequestTimeout = META_REQUEST_TIMEOUT;
         private List<MetricPublisher> metricPublishers = Collections.emptyList();
         private Integer maxConcurrency;
+        private S3CrtMetricPublisherDispatcher metricPublisherDispatcher;
 
         private Builder() {
         }
@@ -168,6 +171,11 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
 
         public Builder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        Builder metricPublisherDispatcher(S3CrtMetricPublisherDispatcher metricPublisherDispatcher) {
+            this.metricPublisherDispatcher = metricPublisherDispatcher;
             return this;
         }
 
@@ -389,7 +397,8 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
      * Invoked by CRT once per underlying HTTP request (e.g. each ranged part GET / upload part) with that request's
      * telemetry. We publish each as its own nested ApiCall -> ApiCallAttempt -> HttpClient MetricCollection, mirroring
      * the node placement of the standard client so all metric publishers render it consistently. Runs on a CRT native
-     * thread; it only reads the metrics object and publishes, and never throws back into the native callback.
+     * thread; it reads and copies the metrics object before dispatching the completed collection to the client-scoped
+     * bounded queue and single worker, and never throws back into the native callback.
      */
     @Override
     public void onTelemetry(S3RequestMetrics requestMetrics) {
@@ -425,9 +434,9 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             reportHttpManagerMetrics(httpClient, requestMetrics.getHttpManagerMetrics());
 
             MetricCollection collection = apiCall.collect();
-            metricPublishers.forEach(p -> p.publish(collection));
+            metricPublisherDispatcher.dispatch(collection, metricPublishers);
         } catch (RuntimeException e) {
-            log.warn(() -> "Failed to publish CRT S3 request metrics", e);
+            log.debug(() -> "Failed to collect CRT S3 request metrics", e);
         }
     }
 
