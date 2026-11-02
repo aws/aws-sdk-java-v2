@@ -218,6 +218,23 @@ class SignatureValidatorTest {
     }
 
     @Test
+    void validateSignedFields_signatureTooLong_throws() {
+        SnsNotification notification = SnsNotification.builder()
+                                                      .message("hello world")
+                                                      .messageId("message-id")
+                                                      .topicArn(TOPIC_ARN)
+                                                      .signature(SdkBytes.fromByteArray(new byte[1025]))
+                                                      .signatureVersion(SignatureVersion.VERSION_2)
+                                                      .timestamp(Instant.now())
+                                                      .build();
+
+        assertThatThrownBy(() -> VALIDATOR.validateSignedFields(notification))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("too long")
+            .hasMessageContaining("1025 bytes");
+    }
+
+    @Test
     void validateSignedFields_signatureVersionUnknown_throws() {
         SnsNotification notification = SnsNotification.builder()
                                                       .message("hello world")
@@ -354,6 +371,32 @@ class SignatureValidatorTest {
                                                       .build();
 
         assertThat(VALIDATOR.isSignatureValid(notification, signingCertificate.getPublicKey())).isFalse();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("validMessages")
+    void prepare_validFixture_verifiesWithSigningKeyOnly(TestCase tc) {
+        SnsMessage msg = new SnsMessageUnmarshaller().unmarshall(resourceAsStream(tc.messageJsonResource));
+
+        PreparedSignature prepared = VALIDATOR.prepare(msg);
+
+        assertThat(prepared.verifies(signingCertificate.getPublicKey())).isTrue();
+        assertThat(prepared.verifies(signingKeyPair.getPublic())).isFalse();
+    }
+
+    @Test
+    void prepare_signatureMissing_throws() {
+        SnsNotification notification = SnsNotification.builder()
+                                                      .message("hello world")
+                                                      .messageId("message-id")
+                                                      .topicArn(TOPIC_ARN)
+                                                      .timestamp(Instant.now())
+                                                      .signatureVersion(SignatureVersion.VERSION_1)
+                                                      .build();
+
+        assertThatThrownBy(() -> VALIDATOR.prepare(notification))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Message signature cannot be null");
     }
 
     private static List<TestCase> validMessages() {

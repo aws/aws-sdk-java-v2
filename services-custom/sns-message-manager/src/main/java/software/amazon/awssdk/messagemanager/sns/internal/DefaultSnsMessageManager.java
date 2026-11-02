@@ -27,15 +27,14 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.messagemanager.sns.SnsMessageManager;
 import software.amazon.awssdk.messagemanager.sns.model.SnsMessage;
-import software.amazon.awssdk.messagemanager.sns.model.SnsNotification;
-import software.amazon.awssdk.messagemanager.sns.model.SnsSubscriptionConfirmation;
-import software.amazon.awssdk.messagemanager.sns.model.SnsUnsubscribeConfirmation;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultSnsMessageManager implements SnsMessageManager {
+    private static final String SIGNING_CERT_URL = "SigningCertURL";
+
     private static final AttributeMap HTTP_CLIENT_DEFAULTS =
         AttributeMap.builder()
                     .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofSeconds(10))
@@ -76,23 +75,21 @@ public final class DefaultSnsMessageManager implements SnsMessageManager {
     }
 
     private SnsMessage validate(SnsMessage snsMessage) {
-        if (snsMessage.signingCertUrl() == null) {
-            throw SdkClientException.create("SigningCertURL must be present");
-        }
-        validateUrls(snsMessage);
-        signatureValidator.validateSignedFields(snsMessage);
-
         URI certificateUrl = snsMessage.signingCertUrl();
+        endpointUrlValidator.validate(certificateUrl, SIGNING_CERT_URL);
+
+        PreparedSignature prepared = signatureValidator.prepare(snsMessage);
+
         // Try the cached certificates first; the URL is only fetched if none of them verifies the signature.
         for (PublicKey cached : certRetriever.cachedCertificates(certificateUrl)) {
-            if (signatureValidator.isSignatureValid(snsMessage, cached)) {
+            if (prepared.verifies(cached)) {
                 return snsMessage;
             }
         }
 
-        PublicKey certificate = certRetriever.retrieveCertificate(certificateUrl);
-
-        signatureValidator.validateSignature(snsMessage, certificate);
+        if (!prepared.verifies(certRetriever.retrieveCertificate(certificateUrl))) {
+            throw SdkClientException.create("The computed signature did not match the expected signature");
+        }
 
         return snsMessage;
     }
@@ -100,28 +97,6 @@ public final class DefaultSnsMessageManager implements SnsMessageManager {
     @Override
     public void close() {
         certRetriever.close();
-    }
-
-    /**
-     * UnsubscribeURL and SubscribeURL must point at the regional SNS endpoint.
-     */
-    private void validateUrls(SnsMessage message) {
-        if (message instanceof SnsNotification) {
-            URI unsubscribeUrl = ((SnsNotification) message).unsubscribeUrl();
-            if (unsubscribeUrl != null) {
-                endpointUrlValidator.validate(unsubscribeUrl, "UnsubscribeURL");
-            }
-        } else if (message instanceof SnsSubscriptionConfirmation) {
-            URI subscribeUrl = ((SnsSubscriptionConfirmation) message).subscribeUrl();
-            if (subscribeUrl != null) {
-                endpointUrlValidator.validate(subscribeUrl, "SubscribeURL");
-            }
-        } else if (message instanceof SnsUnsubscribeConfirmation) {
-            URI subscribeUrl = ((SnsUnsubscribeConfirmation) message).subscribeUrl();
-            if (subscribeUrl != null) {
-                endpointUrlValidator.validate(subscribeUrl, "SubscribeURL");
-            }
-        }
     }
 
     public static Builder builder() {

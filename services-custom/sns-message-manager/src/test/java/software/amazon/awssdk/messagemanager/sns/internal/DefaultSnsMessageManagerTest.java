@@ -127,6 +127,23 @@ public class DefaultSnsMessageManagerTest {
         verifyNoInteractions(mockRetriever);
     }
 
+    @Test
+    void parseMessage_signingCertUrlOnOtherHost_certificateNotRetrieved() {
+        CertificateRetriever mockRetriever = mock(CertificateRetriever.class);
+        SnsMessageManager msgManager = new DefaultSnsMessageManager.BuilderImpl()
+            .certificateRetriever(mockRetriever)
+            .region(Region.US_WEST_2)
+            .build();
+
+        String message = notification(Base64.getEncoder().encodeToString(new byte[256]),
+                                      "https://sns.us-east-1.amazonaws.com/cert.pem");
+
+        assertThatThrownBy(() -> msgManager.parseMessage(message))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("SigningCertURL does not match expected host: sns.us-west-2.amazonaws.com");
+        verifyNoInteractions(mockRetriever);
+    }
+
     private static String notification(String signature, String signingCertUrl) {
         return "{"
                + "\"Type\":\"Notification\","

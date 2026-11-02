@@ -162,9 +162,32 @@ final class TestSigningCertificates {
         return sb.toString();
     }
 
+    /**
+     * The string SNS signs for a SubscriptionConfirmation: {@code Label\nValue\n} pairs in the order Message, MessageId,
+     * SubscribeURL, Timestamp, Token, TopicArn, Type.
+     */
+    static String confirmationCanonical(String message, String messageId, String subscribeUrl, String timestamp,
+                                        String token, String topicArn) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Message\n").append(message).append('\n');
+        sb.append("MessageId\n").append(messageId).append('\n');
+        sb.append("SubscribeURL\n").append(subscribeUrl).append('\n');
+        sb.append("Timestamp\n").append(timestamp).append('\n');
+        sb.append("Token\n").append(token).append('\n');
+        sb.append("TopicArn\n").append(topicArn).append('\n');
+        sb.append("Type\nSubscriptionConfirmation\n");
+        return sb.toString();
+    }
+
     /** A SignatureVersion 2 (SHA256withRSA) Notification envelope with the given signature and {@code SigningCertURL}. */
     static String notificationJson(String message, String messageId, String subject, String timestamp, String topicArn,
                                    String signatureB64, String signingCertUrl) {
+        return notificationJson(message, messageId, subject, timestamp, topicArn, signatureB64, signingCertUrl, null);
+    }
+
+    /** As {@link #notificationJson(String, String, String, String, String, String, String)}, plus {@code UnsubscribeURL}. */
+    static String notificationJson(String message, String messageId, String subject, String timestamp, String topicArn,
+                                   String signatureB64, String signingCertUrl, String unsubscribeUrl) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
         sb.append("  \"Type\" : \"Notification\",\n");
@@ -174,6 +197,29 @@ final class TestSigningCertificates {
             sb.append("  \"Subject\" : \"").append(esc(subject)).append("\",\n");
         }
         sb.append("  \"Message\" : \"").append(esc(message)).append("\",\n");
+        sb.append("  \"Timestamp\" : \"").append(esc(timestamp)).append("\",\n");
+        sb.append("  \"SignatureVersion\" : \"2\",\n");
+        sb.append("  \"Signature\" : \"").append(signatureB64).append("\",\n");
+        sb.append("  \"SigningCertURL\" : \"").append(esc(signingCertUrl)).append("\"");
+        if (unsubscribeUrl != null) {
+            sb.append(",\n  \"UnsubscribeURL\" : \"").append(esc(unsubscribeUrl)).append("\"");
+        }
+        sb.append("\n}");
+        return sb.toString();
+    }
+
+    /** A SignatureVersion 2 (SHA256withRSA) SubscriptionConfirmation envelope with the given signature. */
+    static String subscriptionConfirmationJson(String message, String messageId, String token, String topicArn,
+                                               String subscribeUrl, String timestamp, String signatureB64,
+                                               String signingCertUrl) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\n");
+        sb.append("  \"Type\" : \"SubscriptionConfirmation\",\n");
+        sb.append("  \"MessageId\" : \"").append(esc(messageId)).append("\",\n");
+        sb.append("  \"Token\" : \"").append(esc(token)).append("\",\n");
+        sb.append("  \"TopicArn\" : \"").append(esc(topicArn)).append("\",\n");
+        sb.append("  \"Message\" : \"").append(esc(message)).append("\",\n");
+        sb.append("  \"SubscribeURL\" : \"").append(esc(subscribeUrl)).append("\",\n");
         sb.append("  \"Timestamp\" : \"").append(esc(timestamp)).append("\",\n");
         sb.append("  \"SignatureVersion\" : \"2\",\n");
         sb.append("  \"Signature\" : \"").append(signatureB64).append("\",\n");

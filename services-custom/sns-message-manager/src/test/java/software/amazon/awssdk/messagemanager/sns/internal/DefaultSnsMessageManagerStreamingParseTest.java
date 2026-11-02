@@ -35,9 +35,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.http.ExecutableHttpRequest;
-import software.amazon.awssdk.http.HttpExecuteRequest;
-import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.messagemanager.sns.SnsMessageManager;
 import software.amazon.awssdk.messagemanager.sns.model.SnsMessage;
 import software.amazon.awssdk.messagemanager.sns.model.SnsNotification;
@@ -58,7 +55,7 @@ class DefaultSnsMessageManagerStreamingParseTest {
 
     @BeforeEach
     void setUp() {
-        httpClient = new RecordingHttpClient();
+        httpClient = new RecordingHttpClient(new byte[0]);
         manager = SnsMessageManager.builder()
                                    .region(Region.US_EAST_1)
                                    .httpClient(httpClient)
@@ -78,7 +75,7 @@ class DefaultSnsMessageManagerStreamingParseTest {
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("Expected a JSON object");
 
-        assertThat(httpClient.invoked).isFalse();
+        assertThat(httpClient.fetched()).isEmpty();
         // Jackson fills one 8000-byte buffer before producing the first token; nothing beyond that is read.
         assertThat(stream.bytesRead()).isLessThanOrEqualTo(16 * 1024);
     }
@@ -94,7 +91,7 @@ class DefaultSnsMessageManagerStreamingParseTest {
                 .isInstanceOf(SdkClientException.class)
                 .hasMessageContaining("too short"));
 
-        assertThat(httpClient.invoked).isFalse();
+        assertThat(httpClient.fetched()).isEmpty();
         assertThat(stream.bytesRead()).isEqualTo(stream.totalSize());
     }
 
@@ -126,7 +123,7 @@ class DefaultSnsMessageManagerStreamingParseTest {
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("Expected a JSON object but the message was empty");
 
-        assertThat(httpClient.invoked).isFalse();
+        assertThat(httpClient.fetched()).isEmpty();
     }
 
     @Test
@@ -135,7 +132,7 @@ class DefaultSnsMessageManagerStreamingParseTest {
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("Unable to parse SNS message as JSON");
 
-        assertThat(httpClient.invoked).isFalse();
+        assertThat(httpClient.fetched()).isEmpty();
     }
 
     @Test
@@ -144,7 +141,7 @@ class DefaultSnsMessageManagerStreamingParseTest {
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("Expected a JSON object");
 
-        assertThat(httpClient.invoked).isFalse();
+        assertThat(httpClient.fetched()).isEmpty();
     }
 
     /**
@@ -186,28 +183,6 @@ class DefaultSnsMessageManagerStreamingParseTest {
 
     private static InputStream asStream(String s) {
         return new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
-    }
-
-    /**
-     * HTTP client stub that never touches the network. It only records whether it was asked to fetch anything.
-     */
-    private static final class RecordingHttpClient implements SdkHttpClient {
-        private volatile boolean invoked;
-
-        @Override
-        public ExecutableHttpRequest prepareRequest(HttpExecuteRequest request) {
-            invoked = true;
-            throw new IllegalStateException("network disabled in test");
-        }
-
-        @Override
-        public void close() {
-        }
-
-        @Override
-        public String clientName() {
-            return "RecordingHttpClient";
-        }
     }
 
     /**

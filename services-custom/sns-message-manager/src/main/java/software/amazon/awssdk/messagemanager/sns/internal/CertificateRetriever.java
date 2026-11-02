@@ -64,7 +64,7 @@ import software.amazon.awssdk.utils.Validate;
  * hint. Callers check {@link #cachedCertificates(URI)} first and call {@link #retrieveCertificate(URI)} when no cached
  * certificate verifies the message.
  * <p>
- * A fetch requires the URL to pass {@link CertificateUrlValidator}, and at most {@value #DEFAULT_MAX_CONCURRENT_FETCHES}
+ * A fetch requires the URL to pass {@link SnsEndpointUrlValidator}, and at most {@value #DEFAULT_MAX_CONCURRENT_FETCHES}
  * outbound fetches run at the same time. A fetch that cannot get a permit within {@link #DEFAULT_FETCH_PERMIT_TIMEOUT} is
  * refused. Concurrent fetches of the same URL are collapsed into one request; cache hits and waiters never take a permit.
  */
@@ -74,6 +74,8 @@ public class CertificateRetriever implements SdkAutoCloseable {
     static final Duration DEFAULT_FETCH_PERMIT_TIMEOUT = Duration.ofSeconds(1);
     static final int MAX_CACHED_CERTIFICATES = 10;
     static final int MAX_URL_HINTS = 16;
+
+    private static final String CERT_URL_NAME = "SigningCertURL";
 
     private static final Logger LOG = Logger.loggerFor(CertificateRetriever.class);
 
@@ -85,23 +87,19 @@ public class CertificateRetriever implements SdkAutoCloseable {
 
     private final SdkHttpClient httpClient;
     private final String certCommonName;
-    private final CertificateUrlValidator certUrlValidator;
+    private final SnsEndpointUrlValidator certUrlValidator;
     private final Semaphore fetchPermits;
     private final long fetchPermitTimeoutNanos;
     private final CertificateCache cache = new CertificateCache(MAX_CACHED_CERTIFICATES, MAX_URL_HINTS);
     private final ConcurrentHashMap<URI, FutureTask<PublicKey>> inFlight = new ConcurrentHashMap<>();
 
     public CertificateRetriever(SdkHttpClient httpClient, String certHost, String certCommonName) {
-        this(httpClient, certCommonName, new CertificateUrlValidator(certHost));
-    }
-
-    CertificateRetriever(SdkHttpClient httpClient, String certCommonName, CertificateUrlValidator certificateUrlValidator) {
-        this(httpClient, certCommonName, certificateUrlValidator, DEFAULT_MAX_CONCURRENT_FETCHES,
+        this(httpClient, certCommonName, new SnsEndpointUrlValidator(certHost), DEFAULT_MAX_CONCURRENT_FETCHES,
              DEFAULT_FETCH_PERMIT_TIMEOUT);
     }
 
     @SdkTestInternalApi
-    CertificateRetriever(SdkHttpClient httpClient, String certCommonName, CertificateUrlValidator certificateUrlValidator,
+    CertificateRetriever(SdkHttpClient httpClient, String certCommonName, SnsEndpointUrlValidator certificateUrlValidator,
                          int maxConcurrentFetches, Duration fetchPermitTimeout) {
         this.httpClient = Validate.paramNotNull(httpClient, "httpClient");
         this.certCommonName = Validate.paramNotNull(certCommonName, "certCommonName");
@@ -113,12 +111,10 @@ public class CertificateRetriever implements SdkAutoCloseable {
 
     /**
      * The validated certificates currently cached, ordered so that the one last fetched from {@code certificateUrl} comes
-     * first. Makes no network request and takes no fetch permit. The URL is validated so that an invalid URL is rejected
-     * with the same error whether or not the cache is empty.
+     * first. Makes no network request and takes no fetch permit.
      */
     public List<PublicKey> cachedCertificates(URI certificateUrl) {
         Validate.paramNotNull(certificateUrl, "certificateUrl");
-        certUrlValidator.validate(certificateUrl);
         return cache.candidates(certificateUrl);
     }
 
@@ -127,7 +123,7 @@ public class CertificateRetriever implements SdkAutoCloseable {
      */
     public PublicKey retrieveCertificate(URI certificateUrl) {
         Validate.paramNotNull(certificateUrl, "certificateUrl");
-        certUrlValidator.validate(certificateUrl);
+        certUrlValidator.validate(certificateUrl, CERT_URL_NAME);
 
         PublicKey known = cache.lookup(certificateUrl);
         if (known != null) {
@@ -152,17 +148,17 @@ public class CertificateRetriever implements SdkAutoCloseable {
      * take a fetch permit.
      */
     private PublicKey fetchOnce(URI certificateUrl) {
-        FutureTask<PublicKey> mine = new FutureTask<>(() -> fetchAndCache(certificateUrl));
-        FutureTask<PublicKey> task = inFlight.putIfAbsent(certificateUrl, mine);
-        if (task == null) {
-            task = mine;
-            try {
-                task.run();
-            } finally {
-                inFlight.remove(certificateUrl, mine);
-            }
+        FutureTask<PublicKey> newFetch = new FutureTask<>(() -> fetchAndCache(certificateUrl));
+        FutureTask<PublicKey> existingFetch = inFlight.putIfAbsent(certificateUrl, newFetch);
+        if (existingFetch != null) {
+            return awaitFetch(existingFetch, certificateUrl);
         }
-        return awaitFetch(task, certificateUrl);
+        try {
+            newFetch.run();
+        } finally {
+            inFlight.remove(certificateUrl, newFetch);
+        }
+        return awaitFetch(newFetch, certificateUrl);
     }
 
     private static PublicKey awaitFetch(FutureTask<PublicKey> task, URI certificateUrl) {

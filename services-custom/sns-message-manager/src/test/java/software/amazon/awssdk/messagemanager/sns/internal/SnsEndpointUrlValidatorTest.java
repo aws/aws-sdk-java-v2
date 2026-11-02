@@ -20,11 +20,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
 class SnsEndpointUrlValidatorTest {
     private static final String HOST = "sns.us-east-1.amazonaws.com";
-    private static final String URL_NAME = "UnsubscribeURL";
+    private static final String URL_NAME = "SigningCertURL";
     private static final SnsEndpointUrlValidator VALIDATOR = new SnsEndpointUrlValidator(HOST);
 
     @Test
@@ -39,38 +41,50 @@ class SnsEndpointUrlValidatorTest {
         assertThatNoException().isThrownBy(() -> VALIDATOR.validate(url, URL_NAME));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "https://" + HOST + "/SimpleNotificationService-abc123.pem",
+        "https://" + HOST + ":443/SimpleNotificationService-abc123.pem",
+        "https://" + HOST + "/cert.pem?x=1",
+        "https://" + HOST + "/a/b/cert.pem",
+        "https://" + HOST + "/cert"
+    })
+    void validate_pathAndQueryVariants_succeeds(String url) {
+        assertThatNoException().isThrownBy(() -> VALIDATOR.validate(URI.create(url), URL_NAME));
+    }
+
     @Test
     void validate_urlNull_throws() {
-        assertInvalid(null, "UnsubscribeURL cannot be null");
+        assertInvalid(null, "SigningCertURL must be present");
     }
 
     @Test
     void validate_schemeNotHttps_throws() {
-        assertInvalid(URI.create("http://" + HOST + "/?Action=Unsubscribe"), "UnsubscribeURL must use HTTPS");
+        assertInvalid(URI.create("http://" + HOST + "/?Action=Unsubscribe"), "SigningCertURL must use HTTPS");
     }
 
     @Test
     void validate_hostMismatch_throws() {
         assertInvalid(URI.create("https://other.example.com/?Action=Unsubscribe"),
-                      "UnsubscribeURL does not match expected host: " + HOST);
+                      "SigningCertURL does not match expected host: " + HOST);
     }
 
     @Test
     void validate_userInfo_throws() {
         assertInvalid(URI.create("https://user@" + HOST + "/?Action=Unsubscribe"),
-                      "UnsubscribeURL must not contain user info");
+                      "SigningCertURL must not contain user info");
     }
 
     @Test
     void validate_nonDefaultPort_throws() {
         assertInvalid(URI.create("https://" + HOST + ":8443/?Action=Unsubscribe"),
-                      "UnsubscribeURL must use the default HTTPS port");
+                      "SigningCertURL must use the default HTTPS port");
     }
 
     @Test
     void validate_fragment_throws() {
         assertInvalid(URI.create("https://" + HOST + "/?Action=Unsubscribe#frag"),
-                      "UnsubscribeURL must not contain a fragment");
+                      "SigningCertURL must not contain a fragment");
     }
 
     @Test

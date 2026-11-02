@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.Validate;
  * Validates that a URL carried in an SNS message points at the expected regional SNS endpoint.
  * <p>
  * A valid URL uses HTTPS, the expected host and the default HTTPS port, and has no user info or fragment. The path and
- * query are not constrained, because URLs such as {@code UnsubscribeURL} and {@code SubscribeURL} carry a query string.
+ * query are not constrained.
  */
 @SdkInternalApi
 public final class SnsEndpointUrlValidator {
@@ -41,11 +41,11 @@ public final class SnsEndpointUrlValidator {
      * Validates the URL, throwing {@link SdkClientException} when it does not point at the expected SNS endpoint.
      *
      * @param url the URL to validate
-     * @param urlName the name of the URL used in error messages, for example {@code "Certificate URL"}
+     * @param urlName the name of the URL used in error messages, for example {@code "SigningCertURL"}
      */
     public void validate(URI url, String urlName) {
         if (url == null) {
-            throw SdkClientException.create(urlName + " cannot be null");
+            throw SdkClientException.create(urlName + " must be present");
         }
 
         if (!"https".equals(url.getScheme())) {

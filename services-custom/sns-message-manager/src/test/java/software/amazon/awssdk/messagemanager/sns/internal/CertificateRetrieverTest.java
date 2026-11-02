@@ -100,7 +100,7 @@ class CertificateRetrieverTest {
     void constructor_nullCertHost_throwsException() {
         assertThatThrownBy(() -> new CertificateRetriever(mockHttpClient, null, CERT_COMMON_NAME))
             .isInstanceOf(NullPointerException.class)
-            .hasMessage("Expected certificate host cannot be null or empty");
+            .hasMessage("Expected host cannot be null or empty");
     }
 
     @Test
@@ -116,7 +116,7 @@ class CertificateRetrieverTest {
         assertThatThrownBy(() -> new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),CERT_COMMON_NAME)
             .retrieveCertificate(URI.create("http://my-service.amazonaws.com/cert.pem")))
             .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("Certificate URL must use HTTPS");
+            .hasMessageContaining("SigningCertURL must use HTTPS");
     }
 
     @Test
@@ -452,11 +452,11 @@ class CertificateRetrieverTest {
 
         assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(URI.create(TEST_CERT_URI + "#x")))
             .isInstanceOf(SdkClientException.class)
-            .hasMessage("Certificate URL must not contain a fragment");
+            .hasMessage("SigningCertURL must not contain a fragment");
         assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(
             URI.create("https://" + TEST_CERT_URI.getHost() + ":8443" + TEST_CERT_URI.getRawPath())))
             .isInstanceOf(SdkClientException.class)
-            .hasMessage("Certificate URL must use the default HTTPS port");
+            .hasMessage("SigningCertURL must use the default HTTPS port");
 
         verify(mockHttpClient, never()).prepareRequest(any(HttpExecuteRequest.class));
     }
@@ -492,14 +492,11 @@ class CertificateRetrieverTest {
     }
 
     @Test
-    void cachedCertificates_invalidUrl_throwsWithoutFetch() throws IOException {
+    void cachedCertificates_nullUrl_throws() throws IOException {
         mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), validCert);
         CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
                                                                              CERT_COMMON_NAME);
 
-        assertThatThrownBy(() -> certificateRetriever.cachedCertificates(URI.create(TEST_CERT_URI + "#x")))
-            .isInstanceOf(SdkClientException.class)
-            .hasMessage("Certificate URL must not contain a fragment");
         assertThatThrownBy(() -> certificateRetriever.cachedCertificates(null))
             .isInstanceOf(NullPointerException.class)
             .hasMessage("certificateUrl must not be null.");
@@ -584,6 +581,7 @@ class CertificateRetrieverTest {
                     .hasCauseInstanceOf(SdkClientException.class)
                     .hasMessageContaining("Request was unsuccessful. Status Code: 500");
             }
+            verify(mockHttpClient, times(1)).prepareRequest(any(HttpExecuteRequest.class));
             assertThat(certificateRetriever.cachedCertificateCount()).isZero();
         } finally {
             releaseFetch.countDown();
@@ -592,8 +590,8 @@ class CertificateRetrieverTest {
     }
 
     private CertificateRetriever retrieverWithPermits(int permits, Duration permitTimeout) {
-        return new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME, new CertificateUrlValidator(TEST_CERT_URI.getHost()),
-                                        permits, permitTimeout);
+        return new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME,
+                                        new SnsEndpointUrlValidator(TEST_CERT_URI.getHost()), permits, permitTimeout);
     }
 
     private static byte[] getResourceBytes(String resourcePath) throws IOException {
