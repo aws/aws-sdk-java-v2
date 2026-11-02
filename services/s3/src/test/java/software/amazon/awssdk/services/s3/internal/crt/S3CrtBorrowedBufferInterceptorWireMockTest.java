@@ -56,6 +56,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 /**
  * Verifies response-content interceptor behavior for borrowed body delivery.
@@ -134,7 +135,14 @@ class S3CrtBorrowedBufferInterceptorWireMockTest {
             assertThatThrownBy(() -> client.getObject(
                 r -> r.bucket("bucket").key("key"),
                 S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()).get(10, TimeUnit.SECONDS))
-                .isNotNull();
+                .satisfies(throwable -> {
+                    Throwable rootCause = throwable;
+                    while (rootCause.getCause() != null) {
+                        rootCause = rootCause.getCause();
+                    }
+                    assertThat(rootCause).isInstanceOf(S3Exception.class);
+                    assertThat(((S3Exception) rootCause).statusCode()).isEqualTo(404);
+                });
         }
 
         assertThat(interceptor.onExecutionFailureCalls).isEqualTo(1);

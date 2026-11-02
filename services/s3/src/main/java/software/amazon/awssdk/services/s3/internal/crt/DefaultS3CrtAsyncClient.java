@@ -158,8 +158,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         if (!directBufferPoolConfigured) {
             return CompletableFutureUtils.failedFuture(
                 new IllegalStateException(
-                    "A direct buffer pool must be configured on S3CrtAsyncClientBuilder before using direct buffer pool "
-                    + "downloads"));
+                    "A direct buffer pool must be configured with S3CrtAsyncClientBuilder.directBufferPoolConfiguration("
+                    + "S3CrtDirectBufferPoolConfiguration) when using "
+                    + "S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()"));
         }
 
         // Listener set by CrtS3TransferManager for direct buffer pool downloads.

@@ -34,8 +34,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongConsumer;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3BorrowedBuffer;
@@ -109,12 +113,14 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
             .hasRootCauseMessage("CRT borrowed buffer started at object offset 11, but the expected offset was 10");
     }
 
-    @Test
-    void borrowedCallback_whenNoContentRangeAndFirstRangeIsNonzero_shouldReleaseAndFailWithoutDelivering() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("headersWithoutUsableContentRange")
+    void borrowedCallback_whenContentRangeIsMissingOrInvalidAndFirstRangeIsNonzero_shouldReleaseAndFailWithoutDelivering(
+        String description, int statusCode, HttpHeader[] headers) {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
         S3CrtBorrowedBufferBlockingResponseTransformer transformer = mock(S3CrtBorrowedBufferBlockingResponseTransformer.class);
         S3CrtBorrowedBufferResponseHandlerAdapter handler = adapterBuilder(executeFuture, transformer).build();
-        handler.onResponseHeaders(200, new HttpHeader[0]);
+        handler.onResponseHeaders(statusCode, headers);
         S3BorrowedBuffer mismatched = directCrtBuffer(3);
 
         assertThat(handler.onResponseBodyBorrowed(mismatched, 10, 13)).isZero();
@@ -125,24 +131,14 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
             .hasRootCauseMessage("CRT borrowed buffer started at object offset 10, but the expected offset was 0");
     }
 
-    @Test
-    void borrowedCallback_whenContentRangeCannotBeParsedAndFirstRangeIsNonzero_shouldReleaseAndFailWithoutDelivering() {
-        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
-        S3CrtBorrowedBufferBlockingResponseTransformer transformer = mock(S3CrtBorrowedBufferBlockingResponseTransformer.class);
-        S3CrtBorrowedBufferResponseHandlerAdapter handler = adapterBuilder(executeFuture, transformer).build();
-        handler.onResponseHeaders(206, new HttpHeader[] {new HttpHeader("Content-Range", "invalid")});
-        S3BorrowedBuffer mismatched = directCrtBuffer(3);
-
-        assertThat(handler.onResponseBodyBorrowed(mismatched, 10, 13)).isZero();
-
-        verify(transformer, never()).onBorrowedBuffer(any());
-        verify(mismatched).close();
-        assertThatThrownBy(executeFuture::join)
-            .hasRootCauseMessage("CRT borrowed buffer started at object offset 10, but the expected offset was 0");
+    private static Stream<Arguments> headersWithoutUsableContentRange() {
+        return Stream.of(Arguments.of("no Content-Range", 200, new HttpHeader[0]),
+                         Arguments.of("unparseable Content-Range", 206,
+                                      new HttpHeader[] {new HttpHeader("Content-Range", "invalid")}));
     }
 
     @Test
-    void borrowedCallback_whenRejected_shouldRelease() {
+    void borrowedCallback_whenRejected_shouldNotReleaseAgain() {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
         S3CrtBorrowedBufferBlockingResponseTransformer transformer = mock(S3CrtBorrowedBufferBlockingResponseTransformer.class);
         when(transformer.onBorrowedBuffer(any())).thenAnswer(invocation -> {

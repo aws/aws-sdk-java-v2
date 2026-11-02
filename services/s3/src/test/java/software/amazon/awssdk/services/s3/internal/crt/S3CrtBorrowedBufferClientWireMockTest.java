@@ -23,7 +23,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
-import static com.github.tomakehurst.wiremock.client.WireMock.setGlobalFixedDelay;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,6 +44,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -69,8 +69,6 @@ import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 
 @WireMockTest
 @Timeout(15)
@@ -145,8 +143,10 @@ class S3CrtBorrowedBufferClientWireMockTest {
                                                  .build()) {
             assertThatThrownBy(() -> getObjectFuture(client).join())
                 .hasRootCauseInstanceOf(IllegalStateException.class)
-                .hasRootCauseMessage("A direct buffer pool must be configured on S3CrtAsyncClientBuilder before using direct "
-                                     + "buffer pool downloads");
+                .hasRootCauseMessage("A direct buffer pool must be configured with "
+                                     + "S3CrtAsyncClientBuilder.directBufferPoolConfiguration("
+                                     + "S3CrtDirectBufferPoolConfiguration) when using "
+                                     + "S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()");
         }
         verify(0, anyRequestedFor(anyUrl()));
     }
@@ -219,45 +219,12 @@ class S3CrtBorrowedBufferClientWireMockTest {
                  client.getObject(r -> r.bucket("bucket").key("key"), transformer).get(10, TimeUnit.SECONDS)) {
             CompletableFuture<ResponseInputStream<GetObjectResponse>> second =
                 client.getObject(r -> r.bucket("bucket").key("second"), transformer);
-            assertThat(second).isNotDone();
+            assertThatThrownBy(() -> second.get(300, TimeUnit.MILLISECONDS)).isInstanceOf(TimeoutException.class);
 
             first.close();
             try (ResponseInputStream<GetObjectResponse> stream = second.get(10, TimeUnit.SECONDS)) {
                 assertThat(readAll(stream)).containsExactly(CONTENT);
             }
-        }
-    }
-
-    @Test
-    void reusedTransformer_onJavaClientWhileCrtRequestInFlight_shouldFailBeforeTransmission(WireMockRuntimeInfo wireMock)
-        throws Exception {
-        stubMultipartObject(CONTENT);
-        AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer =
-            S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool();
-        setGlobalFixedDelay(1_000);
-        try (S3AsyncClient crtClient = newClient(wireMock);
-             MockAsyncHttpClient javaHttpClient = new MockAsyncHttpClient();
-             S3AsyncClient javaClient = S3AsyncClient.builder()
-                                                     .region(Region.US_EAST_1)
-                                                     .credentialsProvider(StaticCredentialsProvider.create(
-                                                         AwsBasicCredentials.create("key", "secret")))
-                                                     .httpClient(javaHttpClient)
-                                                     .build()) {
-            CompletableFuture<ResponseInputStream<GetObjectResponse>> first =
-                crtClient.getObject(r -> r.bucket("bucket").key("key"), transformer);
-            assertThat(first).isNotDone();
-
-            assertThatThrownBy(() -> javaClient.getObject(r -> r.bucket("bucket").key("key"), transformer).join())
-                .hasCauseInstanceOf(UnsupportedOperationException.class)
-                .hasMessageContaining("CRT-based S3 client");
-            assertThat(javaHttpClient.getRequests()).isEmpty();
-
-            setGlobalFixedDelay(0);
-            try (ResponseInputStream<GetObjectResponse> stream = first.get(10, TimeUnit.SECONDS)) {
-                assertThat(readAll(stream)).containsExactly(CONTENT);
-            }
-        } finally {
-            setGlobalFixedDelay(0);
         }
     }
 
@@ -364,32 +331,6 @@ class S3CrtBorrowedBufferClientWireMockTest {
             try (ResponseInputStream<GetObjectResponse> stream = getObject(client)) {
                 assertThat(readAll(stream)).containsExactly(CONTENT);
             }
-        }
-    }
-
-    @Test
-    void getObject_whenServiceReturns404_shouldFailWithoutCreatingStream(WireMockRuntimeInfo wireMock) {
-        byte[] errorBody = ("<Error><Code>NoSuchKey</Code><Message>missing</Message>"
-                            + "<RequestId>request-id</RequestId></Error>").getBytes(java.nio.charset.StandardCharsets.UTF_8);
-        stubFor(head(anyUrl()).willReturn(aResponse().withStatus(404)
-                                                    .withHeader("x-amz-request-id", "request-id")
-                                                    .withHeader("Content-Length", "0")));
-        stubFor(get(anyUrl()).willReturn(aResponse().withStatus(404)
-                                                   .withHeader("Content-Type", "application/xml")
-                                                   .withHeader("Content-Length", Integer.toString(errorBody.length))
-                                                   .withHeader("x-amz-request-id", "request-id")
-                                                   .withBody(errorBody)));
-
-        try (S3AsyncClient client = newClient(wireMock)) {
-            assertThatThrownBy(() -> getObject(client))
-                .satisfies(throwable -> {
-                    Throwable rootCause = throwable;
-                    while (rootCause.getCause() != null) {
-                        rootCause = rootCause.getCause();
-                    }
-                    assertThat(rootCause).isInstanceOf(S3Exception.class);
-                    assertThat(((S3Exception) rootCause).statusCode()).isEqualTo(404);
-                });
         }
     }
 

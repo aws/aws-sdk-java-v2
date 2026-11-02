@@ -132,17 +132,6 @@ class DefaultS3CrtAsyncClientTest {
     }
 
     @Test
-    void borrowedTransformer_withoutPool_shouldFailBeforeDelegation() {
-        try (S3AsyncClient client = S3AsyncClient.crtBuilder().build()) {
-            assertThatThrownBy(() -> client.getObject(
-                r -> r.bucket("bucket").key("key"),
-                S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()).join())
-                .hasCauseInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("direct buffer pool");
-        }
-    }
-
-    @Test
     void borrowedTransformer_withPool_shouldCopyRequestAndPropagateHandler() {
         AtomicReference<SdkHttpExecutionAttributes> capturedAttributes = new AtomicReference<>();
         AtomicReference<String> capturedCallerAttribute = new AtomicReference<>();
