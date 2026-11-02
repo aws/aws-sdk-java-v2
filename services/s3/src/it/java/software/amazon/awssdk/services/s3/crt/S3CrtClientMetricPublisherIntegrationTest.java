@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.time.Duration;
@@ -25,7 +26,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -37,6 +37,7 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.TaggingDirective;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -58,21 +59,10 @@ public class S3CrtClientMetricPublisherIntegrationTest extends S3IntegrationTest
     // Comfortably above the threshold -> the meta-request fans out into multiple underlying part requests.
     private static final int LARGE_SIZE = 17 * 1024 * 1024;
 
-    private static final CapturingMetricPublisher CLIENT_PUBLISHER = new CapturingMetricPublisher();
-    private static S3AsyncClient crtClient;
-
     @BeforeAll
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
         S3IntegrationTestBase.createBucket(BUCKET);
-
-        crtClient = S3AsyncClient.crtBuilder()
-                                 .region(S3IntegrationTestBase.DEFAULT_REGION)
-                                 .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
-                                 .minimumPartSizeInBytes(PART_SIZE)
-                                 .thresholdInBytes(PART_SIZE)
-                                 .addMetricPublisher(CLIENT_PUBLISHER)
-                                 .build();
 
         S3IntegrationTestBase.s3.putObject(PutObjectRequest.builder().bucket(BUCKET).key(SMALL_KEY).build(),
                                            new RandomTempFile(SMALL_SIZE).toPath());
@@ -82,54 +72,59 @@ public class S3CrtClientMetricPublisherIntegrationTest extends S3IntegrationTest
 
     @AfterAll
     public static void cleanup() {
-        crtClient.close();
         S3IntegrationTestBase.deleteBucketAndAllContents(BUCKET);
-    }
-
-    @BeforeEach
-    public void resetPublisher() {
-        CLIENT_PUBLISHER.clear();
     }
 
     @Test
     void singlePartGetObject_publishesApiCallMetrics() throws InterruptedException {
-        crtClient.getObject(b -> b.bucket(BUCKET).key(SMALL_KEY), AsyncResponseTransformer.toBytes()).join();
+        CapturingMetricPublisher publisher = new CapturingMetricPublisher();
+        try (S3AsyncClient client = crtClientWith(publisher)) {
+            client.getObject(b -> b.bucket(BUCKET).key(SMALL_KEY), AsyncResponseTransformer.toBytes()).join();
+        }
 
-        List<MetricCollection> collections = CLIENT_PUBLISHER.awaitAtLeast(1, Duration.ofSeconds(30));
+        List<MetricCollection> collections = publisher.awaitAtLeast(1, Duration.ofSeconds(30));
         assertThat(collections).isNotEmpty();
         collections.forEach(S3CrtClientMetricPublisherIntegrationTest::assertIsCrtApiCallCollection);
     }
 
     @Test
     void multipartGetObject_publishesOneCollectionPerUnderlyingRequest() throws InterruptedException {
-        crtClient.getObject(b -> b.bucket(BUCKET).key(LARGE_KEY), AsyncResponseTransformer.toBytes()).join();
+        CapturingMetricPublisher publisher = new CapturingMetricPublisher();
+        try (S3AsyncClient client = crtClientWith(publisher)) {
+            client.getObject(b -> b.bucket(BUCKET).key(LARGE_KEY), AsyncResponseTransformer.toBytes()).join();
+        }
 
         // A multipart download fans out into several underlying requests, so we expect more than one collection.
-        List<MetricCollection> collections = CLIENT_PUBLISHER.awaitAtLeast(2, Duration.ofSeconds(60));
+        List<MetricCollection> collections = publisher.awaitAtLeast(2, Duration.ofSeconds(60));
         assertThat(collections).hasSizeGreaterThanOrEqualTo(2);
         collections.forEach(S3CrtClientMetricPublisherIntegrationTest::assertIsCrtApiCallCollection);
     }
 
     @Test
     void putObject_publishesApiCallMetrics() throws InterruptedException {
-        crtClient.putObject(b -> b.bucket(BUCKET).key("put-metrics-key"),
-                            AsyncRequestBody.fromBytes(new byte[SMALL_SIZE])).join();
+        CapturingMetricPublisher publisher = new CapturingMetricPublisher();
+        try (S3AsyncClient client = crtClientWith(publisher)) {
+            client.putObject(b -> b.bucket(BUCKET).key("put-metrics-key"),
+                             AsyncRequestBody.fromBytes(new byte[SMALL_SIZE])).join();
+        }
 
-        List<MetricCollection> collections = CLIENT_PUBLISHER.awaitAtLeast(1, Duration.ofSeconds(30));
+        List<MetricCollection> collections = publisher.awaitAtLeast(1, Duration.ofSeconds(30));
         assertThat(collections).isNotEmpty();
         collections.forEach(S3CrtClientMetricPublisherIntegrationTest::assertIsCrtApiCallCollection);
     }
 
     @Test
     void failedGetObject_publishesUnsuccessfulApiCallMetrics() throws InterruptedException {
-        try {
-            crtClient.getObject(b -> b.bucket(BUCKET).key("does-not-exist-" + System.nanoTime()),
-                                AsyncResponseTransformer.toBytes()).join();
-        } catch (RuntimeException expected) {
-            // 404 - the metrics for the failed attempt should still be published below.
+        CapturingMetricPublisher publisher = new CapturingMetricPublisher();
+        try (S3AsyncClient client = crtClientWith(publisher)) {
+            assertThatThrownBy(() ->
+                                   client.getObject(b -> b.bucket(BUCKET).key("does-not-exist-" + System.nanoTime()),
+                                                    AsyncResponseTransformer.toBytes()).join())
+                .hasCauseInstanceOf(S3Exception.class)
+                .satisfies(e -> assertThat(((S3Exception) e.getCause()).statusCode()).isEqualTo(404));
         }
 
-        List<MetricCollection> collections = CLIENT_PUBLISHER.awaitAtLeast(1, Duration.ofSeconds(30));
+        List<MetricCollection> collections = publisher.awaitAtLeast(1, Duration.ofSeconds(30));
         assertThat(collections).isNotEmpty();
         collections.forEach(S3CrtClientMetricPublisherIntegrationTest::assertIsCrtApiCallCollection);
         assertThat(collections).anySatisfy(
@@ -246,10 +241,6 @@ public class S3CrtClientMetricPublisherIntegrationTest extends S3IntegrationTest
 
         @Override
         public void close() {
-        }
-
-        void clear() {
-            collections.clear();
         }
 
         List<MetricCollection> awaitAtLeast(int min, Duration timeout) throws InterruptedException {
