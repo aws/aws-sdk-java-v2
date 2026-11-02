@@ -22,6 +22,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -102,6 +103,28 @@ class S3CrtBorrowedBufferChecksumWireMockTest {
                                    .hasMessageContaining("checksum");
         assertThat(borrowedFailure).isExactlyInstanceOf(ordinaryFailure.getClass())
                                    .hasMessage(ordinaryFailure.getMessage());
+    }
+
+    @Test
+    void fullObjectChecksumMismatch_closeAfterReadingContentLength_shouldNotThrowLikeOrdinaryStream(
+        WireMockRuntimeInfo wireMock) throws Exception {
+        stubHead(WRONG_FULL_OBJECT_CRC32);
+        stubRange(0, FIRST_PART, null);
+        stubRange(1, SECOND_PART, null);
+
+        try (S3AsyncClient client = newClient(wireMock);
+             ResponseInputStream<GetObjectResponse> stream = borrowedStream(client)) {
+            byte[] delivered = new byte[OBJECT_SIZE];
+            readExactly(stream, delivered);
+            assertThat(delivered).containsExactly(CONTENT);
+            assertThatCode(stream::close).doesNotThrowAnyException();
+        }
+
+        try (S3AsyncClient client = newClient(wireMock);
+             ResponseInputStream<GetObjectResponse> stream = ordinaryStream(client)) {
+            readExactly(stream, new byte[OBJECT_SIZE]);
+            assertThatCode(stream::close).doesNotThrowAnyException();
+        }
     }
 
     private static S3AsyncClient newClient(WireMockRuntimeInfo wireMock) {

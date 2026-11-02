@@ -69,7 +69,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
     private final BlockingQueue<Object> events = new LinkedBlockingQueue<>();
 
     /**
-     * Serializes reads and guards {@link #endOfStream}, {@link #current} and {@link #currentByteCount}.
+     * Serializes reads and guards singleByte, endOfStream, current and currentByteCount.
      */
     private final Object readLock = new Object();
 
@@ -77,6 +77,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
      * Guards {@link #deliveryEnded}, so no buffer is queued after completion, failure or close.
      */
     private final Object stateLock = new Object();
+    private final byte[] singleByte = new byte[1];
     private final Runnable cancellationAction;
     private final LongConsumer readWindowAction;
     private final AtomicReference<CloseReason> closeReason = new AtomicReference<>();
@@ -132,9 +133,10 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
 
     @Override
     public int read() throws IOException {
-        byte[] singleByte = new byte[1];
-        int result = read(singleByte, 0, 1);
-        return result < 0 ? result : singleByte[0] & 0xff;
+        synchronized (readLock) {
+            int result = read(singleByte, 0, 1);
+            return result < 0 ? result : singleByte[0] & 0xff;
+        }
     }
 
     @Override
@@ -150,7 +152,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
         synchronized (readLock) {
             int copied = 0;
             // Wait for the first byte only. Once some bytes are copied, return them instead of waiting for more.
-            while (copied < length && loadNextBuffer(copied == 0)) {
+            while (copied < length && processNextEvent(copied == 0)) {
                 copied += readCurrent(destination, offset + copied, length - copied);
             }
             if (copied > 0) {
@@ -162,7 +164,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
     }
 
     // Waits for the next event only if waitIfEmpty is true. Returns whether current can be read.
-    private boolean loadNextBuffer(boolean waitIfEmpty) throws IOException {
+    private boolean processNextEvent(boolean waitIfEmpty) throws IOException {
         if (current == null && !isTerminal()) {
             Object event = events.poll();
             if (event == null && waitIfEmpty) {

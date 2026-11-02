@@ -138,8 +138,10 @@ class S3CrtBorrowedBufferClientWireMockTest {
                                                  .build()) {
             assertThatThrownBy(() -> getObjectFuture(client).join())
                 .hasRootCauseInstanceOf(IllegalStateException.class)
-                .hasRootCauseMessage("A direct buffer pool must be configured on S3CrtAsyncClientBuilder before using the "
-                                     + "borrowed buffer response transformer");
+                .hasRootCauseMessage("A direct buffer pool must be configured with "
+                                     + "S3CrtAsyncClientBuilder.directBufferPoolConfiguration("
+                                     + "S3CrtDirectBufferPoolConfiguration) when using "
+                                     + "S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()");
         }
         verify(0, anyRequestedFor(anyUrl()));
     }
