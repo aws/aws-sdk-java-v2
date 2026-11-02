@@ -20,6 +20,7 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.transfer.s3.util.ChecksumUtils.computeCheckSum;
 
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
@@ -111,9 +112,13 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
     private static void assertListenerForSuccessfulTransferComplete(CaptureTransferListener transferListener) {
         assertThat(transferListener.isTransferInitiated()).isTrue();
         assertThat(transferListener.isTransferComplete()).isTrue();
-        assertThat(transferListener.getRatioTransferredList()).isNotEmpty();
-        assertThat(transferListener.getRatioTransferredList()).contains(0.0);
-        assertThat(transferListener.getRatioTransferredList()).contains(1.0);
+        // transferInitiated fires before HeadObject returns the source size, so it records no ratio. Each later ratio comes
+        // from a completed UploadPartCopy or CopyObject, and the ratio from transferComplete is 1.0 only when the transferred
+        // bytes equal the source size.
+        List<Double> ratios = transferListener.getRatioTransferredList();
+        assertThat(ratios).isNotEmpty();
+        assertThat(ratios).allSatisfy(ratio -> assertThat(ratio).isGreaterThan(0.0).isLessThanOrEqualTo(1.0));
+        assertThat(ratios).endsWith(1.0);
         assertThat(transferListener.getExceptionCaught()).isNull();
     }
 

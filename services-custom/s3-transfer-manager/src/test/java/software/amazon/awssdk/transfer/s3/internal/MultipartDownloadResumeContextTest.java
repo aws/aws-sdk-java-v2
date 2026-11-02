@@ -91,7 +91,7 @@ public class MultipartDownloadResumeContextTest {
     }
 
     @Test
-    void resumeAfterObjectReplaced_thenPause_shouldNotKeepPausedDownloadContext() throws IOException {
+    void resumeAfterObjectReplaced_thenPauseAfterWriting_shouldNotKeepPausedDownloadContext() throws IOException {
         File file = RandomTempFile.createTempFile("test", UUID.randomUUID().toString());
         try {
             Files.write(file.toPath(), RandomStringUtils.randomAlphanumeric(1024).getBytes(StandardCharsets.UTF_8));
@@ -129,7 +129,9 @@ public class MultipartDownloadResumeContextTest {
             when(s3.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
                 .thenReturn(new CompletableFuture<>());
 
-            ResumableFileDownload secondToken = tm.resumeDownloadFile(token).pause();
+            FileDownload restarted = tm.resumeDownloadFile(token);
+            Files.write(file.toPath(), new byte[100]);
+            ResumableFileDownload secondToken = restarted.pause();
 
             GetObjectRequest pausedRequest = secondToken.downloadFileRequest().getObjectRequest();
             assertThat(pausedRequest.overrideConfiguration().get().executionAttributes()
