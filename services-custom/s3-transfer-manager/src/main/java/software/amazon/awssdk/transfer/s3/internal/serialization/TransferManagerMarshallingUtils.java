@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal.serialization;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -46,6 +47,12 @@ public final class TransferManagerMarshallingUtils {
     private static final Map<MarshallingType<?>, TransferManagerJsonUnmarshaller<?>> UNMARSHALLERS;
     private static final Map<String, SdkField<?>> GET_OBJECT_SDK_FIELDS;
     private static final Map<String, SdkField<?>> PUT_OBJECT_SDK_FIELDS;
+
+    /**
+     * Member names of request fields that are never written when a resumable transfer is serialized. They can still be
+     * read from tokens written by older versions.
+     */
+    private static final Set<String> NON_PERSISTED_MEMBER_NAMES = Collections.singleton("SSECustomerKey");
 
     static {
         Map<MarshallingType<?>, TransferManagerJsonMarshaller<?>> marshallers = new HashMap<>();
@@ -91,6 +98,13 @@ public final class TransferManagerMarshallingUtils {
     }
 
     private TransferManagerMarshallingUtils() {
+    }
+
+    /**
+     * Whether the given request field should be written when serializing a resumable transfer.
+     */
+    public static boolean isPersisted(SdkField<?> field) {
+        return !NON_PERSISTED_MEMBER_NAMES.contains(field.memberName());
     }
 
     @SuppressWarnings("unchecked")

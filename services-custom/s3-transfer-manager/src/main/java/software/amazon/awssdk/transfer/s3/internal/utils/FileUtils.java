@@ -15,15 +15,63 @@
 
 package software.amazon.awssdk.transfer.s3.internal.utils;
 
+import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
+
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public final class FileUtils {
 
+    private static final Set<PosixFilePermission> OWNER_ONLY =
+        Collections.unmodifiableSet(EnumSet.of(OWNER_READ, OWNER_WRITE));
+
     private FileUtils() {
+    }
+
+    /**
+     * Writes the given bytes to the given path. On a file system that supports POSIX permissions, a new file is created
+     * readable and writable by its owner only, and an existing regular file is restricted to its owner before the new
+     * content is written. Symbolic links are followed, and a missing link target is created owner-only. On other file
+     * systems, this behaves like {@link Files#write(Path, byte[], java.nio.file.OpenOption...)}.
+     */
+    public static void writeOwnerOnly(Path path, byte[] bytes) throws IOException {
+        if (path.getFileSystem().supportedFileAttributeViews().contains("posix")) {
+            createOwnerOnly(path);
+        }
+        Files.write(path, bytes);
+    }
+
+    private static void createOwnerOnly(Path path) throws IOException {
+        try {
+            Files.createFile(path, PosixFilePermissions.asFileAttribute(OWNER_ONLY));
+        } catch (FileAlreadyExistsException e) {
+            if (Files.isRegularFile(path)) {
+                restrictToOwner(path);
+            } else if (Files.isSymbolicLink(path) && Files.notExists(path)) {
+                createOwnerOnly(path.resolveSibling(Files.readSymbolicLink(path)));
+            }
+        }
+    }
+
+    private static void restrictToOwner(Path path) throws IOException {
+        try {
+            Files.setPosixFilePermissions(path, OWNER_ONLY);
+        } catch (IOException e) {
+            throw new IOException("Unable to restrict the permissions of " + path + " to its owner. The file must be "
+                                  + "owned by the current user, or a different path must be used.", e);
+        }
     }
 
     // On certain platforms, File.lastModified() does not contain milliseconds precision, so we need to check the

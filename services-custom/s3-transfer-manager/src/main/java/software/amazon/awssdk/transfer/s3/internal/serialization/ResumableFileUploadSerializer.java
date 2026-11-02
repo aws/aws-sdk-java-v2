@@ -110,7 +110,10 @@ public final class ResumableFileUploadSerializer {
         jsonGenerator.writeFieldName(PUT_OBJECT_REQUEST);
         jsonGenerator.writeStartObject();
         validateNoRequestOverrideConfiguration(putObjectRequest);
-        putObjectRequest.sdkFields().forEach(field -> marshallPojoField(field, putObjectRequest, jsonGenerator));
+        putObjectRequest.sdkFields()
+                        .stream()
+                        .filter(TransferManagerMarshallingUtils::isPersisted)
+                        .forEach(field -> marshallPojoField(field, putObjectRequest, jsonGenerator));
         jsonGenerator.writeEndObject();
     }
 
