@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -565,7 +566,12 @@ class CertificateRetrieverTest {
         CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
                                                                              CERT_COMMON_NAME);
 
-        ExecutorService exec = Executors.newFixedThreadPool(threads);
+        List<Thread> workers = Collections.synchronizedList(new ArrayList<>());
+        ExecutorService exec = Executors.newFixedThreadPool(threads, runnable -> {
+            Thread worker = new Thread(runnable);
+            workers.add(worker);
+            return worker;
+        });
         try {
             List<Future<PublicKey>> results = new ArrayList<>();
             results.add(exec.submit(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI)));
@@ -573,6 +579,7 @@ class CertificateRetrieverTest {
             for (int i = 1; i < threads; i++) {
                 results.add(exec.submit(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI)));
             }
+            awaitAllWaiting(workers, threads);
             releaseFetch.countDown();
 
             for (Future<PublicKey> result : results) {
@@ -587,6 +594,20 @@ class CertificateRetrieverTest {
             releaseFetch.countDown();
             exec.shutdownNow();
         }
+    }
+
+    private static void awaitAllWaiting(List<Thread> workers, int expected) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (System.nanoTime() < deadline) {
+            synchronized (workers) {
+                if (workers.size() == expected
+                    && workers.stream().allMatch(t -> t.getState() == Thread.State.WAITING)) {
+                    return;
+                }
+            }
+            Thread.sleep(5);
+        }
+        throw new AssertionError("Worker threads did not all reach a waiting state within 10 seconds");
     }
 
     private CertificateRetriever retrieverWithPermits(int permits, Duration permitTimeout) {
