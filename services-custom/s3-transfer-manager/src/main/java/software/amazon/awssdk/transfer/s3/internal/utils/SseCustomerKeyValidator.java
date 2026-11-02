@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.transfer.s3.internal.utils;
 
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -39,7 +38,7 @@ public final class SseCustomerKeyValidator {
         }
         validate(putObjectRequest.sseCustomerAlgorithm(),
                  putObjectRequest.sseCustomerKey(),
-                 putObjectRequest.overrideConfiguration(),
+                 putObjectRequest.overrideConfiguration().map(SseCustomerKeyValidator::hasKeyHeader).orElse(false),
                  "PutObjectRequest",
                  "ResumableFileUpload");
     }
@@ -50,17 +49,17 @@ public final class SseCustomerKeyValidator {
         }
         validate(getObjectRequest.sseCustomerAlgorithm(),
                  getObjectRequest.sseCustomerKey(),
-                 getObjectRequest.overrideConfiguration(),
+                 getObjectRequest.overrideConfiguration().map(SseCustomerKeyValidator::hasKeyHeader).orElse(false),
                  "GetObjectRequest",
                  "ResumableFileDownload");
     }
 
     private static void validate(String sseCustomerAlgorithm,
                                  String sseCustomerKey,
-                                 Optional<AwsRequestOverrideConfiguration> overrideConfiguration,
+                                 boolean hasKeyHeader,
                                  String requestName,
                                  String resumableName) {
-        if (sseCustomerAlgorithm == null || sseCustomerKey != null || hasKeyHeader(overrideConfiguration)) {
+        if (sseCustomerAlgorithm == null || sseCustomerKey != null || hasKeyHeader) {
             return;
         }
         throw new IllegalArgumentException(
@@ -69,11 +68,10 @@ public final class SseCustomerKeyValidator {
                           requestName, resumableName, resumableName));
     }
 
-    private static boolean hasKeyHeader(Optional<AwsRequestOverrideConfiguration> overrideConfiguration) {
-        return overrideConfiguration.map(c -> c.headers()
-                                               .keySet()
-                                               .stream()
-                                               .anyMatch(SSE_CUSTOMER_KEY_HEADER::equalsIgnoreCase))
-                                    .orElse(false);
+    private static boolean hasKeyHeader(AwsRequestOverrideConfiguration overrideConfiguration) {
+        return overrideConfiguration.headers()
+                                    .keySet()
+                                    .stream()
+                                    .anyMatch(SSE_CUSTOMER_KEY_HEADER::equalsIgnoreCase);
     }
 }

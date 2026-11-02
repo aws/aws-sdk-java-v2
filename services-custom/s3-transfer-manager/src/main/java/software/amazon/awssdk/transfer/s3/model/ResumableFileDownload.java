@@ -55,10 +55,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *     <li>The SSE-C customer key ({@link GetObjectRequest#sseCustomerKey()})</li>
  * </ul>
  * If the {@link GetObjectRequest} uses SSE-C, the customer key must be set again on a deserialized token before it is resumed:
- * <pre>{@code
+ * {@snippet :
  * resumable.copy(b -> b.downloadFileRequest(resumable.downloadFileRequest().copy(
  *     r -> r.getObjectRequest(resumable.downloadFileRequest().getObjectRequest().copy(p -> p.sseCustomerKey(key))))));
- * }</pre>
+ * }
  * {@link #serializeToFile(Path)} writes the file so that, on a POSIX file system, only its owner can read or write it.
  *
  * @see S3TransferManager#downloadFile(DownloadFileRequest)
