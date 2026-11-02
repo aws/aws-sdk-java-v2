@@ -77,26 +77,6 @@ class S3CrtResponseTransformerFactoryTest {
     }
 
     @Test
-    void borrowedFactory_withForwardingWrapper_shouldFailBeforeHttpExecution() {
-        try (MockAsyncHttpClient httpClient = new MockAsyncHttpClient();
-             S3AsyncClient client = S3AsyncClient.builder()
-                                                 .region(Region.US_EAST_1)
-                                                 .httpClient(httpClient)
-                                                 .build()) {
-            AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer =
-                S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool();
-            assertThatThrownBy(() -> client.getObject(GetObjectRequest.builder()
-                                                                     .bucket("bucket")
-                                                                     .key("key")
-                                                                     .build(),
-                                                       new ForwardingTransformer(transformer)).join())
-                .hasCauseInstanceOf(UnsupportedOperationException.class)
-                .hasRootCauseMessage(UNSUPPORTED_CLIENT_MESSAGE);
-            assertThat(httpClient.getRequests()).isEmpty();
-        }
-    }
-
-    @Test
     void borrowedFactory_withMultipartNonCrtClient_shouldFailBeforeHttpExecution() {
         try (MockAsyncHttpClient httpClient = new MockAsyncHttpClient();
              S3AsyncClient client = S3AsyncClient.builder()

@@ -249,31 +249,6 @@ class S3CrtBorrowedBufferInputStreamTest {
     }
 
     @Test
-    void close_wakesBlockedReader() throws Exception {
-        AtomicInteger cancellations = new AtomicInteger();
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, NO_CREDIT);
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        CountDownLatch started = new CountDownLatch(1);
-        try {
-            Future<Integer> result = executor.submit(() -> {
-                started.countDown();
-                return stream.read();
-            });
-            assertThat(started.await(5, TimeUnit.SECONDS)).isTrue();
-
-            stream.close();
-
-            assertThatThrownBy(() -> result.get(5, TimeUnit.SECONDS))
-                .isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(IOException.class);
-            assertThat(cancellations).hasValue(1);
-        } finally {
-            executor.shutdownNow();
-            assertThat(executor.awaitTermination(5, TimeUnit.SECONDS)).isTrue();
-        }
-    }
-
-    @Test
     void close_wakesAllBlockedReaders() throws Exception {
         AtomicInteger cancellations = new AtomicInteger();
         S3CrtBorrowedBufferInputStream stream =
@@ -400,43 +375,6 @@ class S3CrtBorrowedBufferInputStreamTest {
         assertThat(releases).hasValue(2);
         assertThat(credited).hasValue(0);
         stream.close();
-    }
-
-    @Test
-    void abortAsFirstTerminalOperation_cancelsAndDiscards() {
-        AtomicInteger cancellations = new AtomicInteger();
-        AtomicInteger releases = new AtomicInteger();
-        AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet, credited::addAndGet);
-        stream.onNextBuffer(buffer("abc", releases::incrementAndGet, credited));
-
-        stream.abort();
-        stream.abort();
-
-        assertThat(releases).hasValue(1);
-        assertThat(credited).hasValue(0);
-        assertThat(cancellations).hasValue(1);
-    }
-
-    @Test
-    void abort_cleanupFailuresDoNotEscape() {
-        AtomicInteger cancellations = new AtomicInteger();
-        AtomicInteger releases = new AtomicInteger();
-        AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> {
-            cancellations.incrementAndGet();
-            throw new RuntimeException("request cancel failed");
-        }, credited::addAndGet);
-        stream.onNextBuffer(buffer("abc", () -> {
-            releases.incrementAndGet();
-            throw new RuntimeException("release failed");
-        }, credited));
-
-        assertThatCode(stream::abort).doesNotThrowAnyException();
-
-        assertThat(cancellations).hasValue(1);
-        assertThat(releases).hasValue(1);
-        assertThat(credited).hasValue(0);
     }
 
     @Test

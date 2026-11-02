@@ -508,7 +508,7 @@ public class S3CrtAsyncHttpClientTest {
 
     @ParameterizedTest
     @MethodSource("directBufferPoolConfigurations")
-    void build_withDirectBufferPoolConfiguration_shouldConfigureCrtPool(
+    void build_withDirectBufferPoolConfiguration_shouldAttachCrtPoolOptions(
         S3CrtDirectBufferPoolConfiguration poolConfiguration) {
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()
