@@ -22,10 +22,9 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.services.s3.s3express.S3ExpressAuthScheme;
 import software.amazon.awssdk.services.s3.s3express.S3ExpressSessionCredentials;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @SdkInternalApi
-public final class DefaultS3ExpressAuthScheme implements S3ExpressAuthScheme, SdkAutoCloseable {
+public final class DefaultS3ExpressAuthScheme implements S3ExpressAuthScheme {
     private volatile S3ExpressIdentityCache cache;
     private final Object cacheLock = new Object();
 
@@ -53,17 +52,6 @@ public final class DefaultS3ExpressAuthScheme implements S3ExpressAuthScheme, Sd
     @Override
     public HttpSigner<S3ExpressSessionCredentials> signer() {
         return DefaultS3ExpressHttpSigner.create();
-    }
-
-    /**
-     * Closes the identity cache, if one was created, which stops the background refresh of its cached credentials.
-     */
-    @Override
-    public void close() {
-        S3ExpressIdentityCache identityCache = cache;
-        if (identityCache != null) {
-            identityCache.close();
-        }
     }
 
     private S3ExpressIdentityCache getOrCreateCache() {

@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3.internal.signing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -25,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,25 +39,23 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 /**
- * Verifies that an {@link S3Presigner} shares one S3 Express session cache across presign calls and that closing the
- * presigner stops the background refresh of the cached session credentials.
+ * Verifies that {@link S3Presigner} calls CreateSession for each S3 Express presign and starts no background refresh.
  */
-class DefaultS3PresignerS3ExpressCacheTest {
-    private static final String PRESIGN_EXPRESS_SESSION_HEADER = "X-Amz-S3session-Token";
+class DefaultS3PresignerS3ExpressSessionTest {
     private static final String BUCKET = "b--use1-az1--x-s3";
-    private static final String OTHER_BUCKET = "other--use1-az1--x-s3";
 
     /**
-     * The credentials expire 62 seconds after they are fetched. The prefetch time is 60 seconds before expiration,
-     * so a background refresh runs about 3 seconds after each fetch.
+     * The credentials expire 62 seconds after they are fetched. A cached session would prefetch 60 seconds before
+     * expiration, so a background refresh would run within a few seconds.
      */
     private static final Duration CREDENTIAL_LIFETIME = Duration.ofSeconds(62);
 
     /**
-     * Long enough to cover at least one background refresh.
+     * Long enough to cover a background refresh, if one were scheduled.
      */
     private static final Duration OBSERVATION_WINDOW = Duration.ofSeconds(6);
 
+    private final AtomicInteger sessionCount = new AtomicInteger();
     private S3Client s3Client;
     private S3Presigner presigner;
 
@@ -65,7 +63,7 @@ class DefaultS3PresignerS3ExpressCacheTest {
     void setup() {
         s3Client = mock(S3Client.class);
         when(s3Client.createSession(any(CreateSessionRequest.class)))
-            .thenAnswer(invocation -> createSessionResponse());
+            .thenAnswer(invocation -> createSessionResponse("token" + sessionCount.incrementAndGet()));
 
         presigner = S3Presigner.builder()
                                .region(Region.US_EAST_1)
@@ -82,55 +80,35 @@ class DefaultS3PresignerS3ExpressCacheTest {
     }
 
     @Test
-    void repeatedPresignSameBucket_callsCreateSessionOnce() {
-        for (int i = 0; i < 4; i++) {
-            PresignedGetObjectRequest presigned = presign(BUCKET);
-            assertThat(presigned.url().toString()).contains(PRESIGN_EXPRESS_SESSION_HEADER);
+    void presignGetObject_repeatedForSameBucket_callsCreateSessionEachTime() {
+        for (int i = 1; i <= 3; i++) {
+            PresignedGetObjectRequest presigned = presign();
+            assertThat(presigned.url().toString()).contains("X-Amz-S3session-Token=token" + i);
         }
 
-        verify(s3Client, times(1)).createSession(any(CreateSessionRequest.class));
+        verify(s3Client, times(3)).createSession(any(CreateSessionRequest.class));
     }
 
     @Test
-    void distinctBuckets_eachCreateSessionOnce() {
-        presign(BUCKET);
-        presign(BUCKET);
-        presign(OTHER_BUCKET);
-        presign(OTHER_BUCKET);
-
-        verify(s3Client, times(2)).createSession(any(CreateSessionRequest.class));
-    }
-
-    @Test
-    void withoutClose_backgroundRefreshCallsCreateSession() throws InterruptedException {
-        presign(BUCKET);
-
-        Thread.sleep(OBSERVATION_WINDOW.toMillis());
-
-        verify(s3Client, atLeast(2)).createSession(any(CreateSessionRequest.class));
-    }
-
-    @Test
-    void close_stopsBackgroundRefresh() throws InterruptedException {
-        presign(BUCKET);
-        presigner.close();
+    void presignGetObject_afterPresign_doesNotRefreshInBackground() throws InterruptedException {
+        presign();
 
         Thread.sleep(OBSERVATION_WINDOW.toMillis());
 
         verify(s3Client, times(1)).createSession(any(CreateSessionRequest.class));
     }
 
-    private PresignedGetObjectRequest presign(String bucket) {
+    private PresignedGetObjectRequest presign() {
         return presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
-                                                .getObjectRequest(go -> go.bucket(bucket).key("key")));
+                                                .getObjectRequest(go -> go.bucket(BUCKET).key("key")));
     }
 
-    private static CreateSessionResponse createSessionResponse() {
+    private static CreateSessionResponse createSessionResponse(String sessionToken) {
         return CreateSessionResponse.builder()
                                     .credentials(SessionCredentials.builder()
                                                                    .accessKeyId("AccessKeyId")
                                                                    .secretAccessKey("SecretAccessKey")
-                                                                   .sessionToken("s3expressSessionToken")
+                                                                   .sessionToken(sessionToken)
                                                                    .expiration(Instant.now().plus(CREDENTIAL_LIFETIME))
                                                                    .build())
                                     .build();

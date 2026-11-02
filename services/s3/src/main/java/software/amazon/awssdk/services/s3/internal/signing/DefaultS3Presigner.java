@@ -106,8 +106,8 @@ import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.S3EndpointResolverUtils;
 import software.amazon.awssdk.services.s3.internal.endpoints.UseGlobalEndpointResolver;
-import software.amazon.awssdk.services.s3.internal.s3express.DefaultS3ExpressAuthScheme;
 import software.amazon.awssdk.services.s3.internal.s3express.S3ExpressAuthSchemeProvider;
+import software.amazon.awssdk.services.s3.internal.s3express.UncachedS3ExpressAuthScheme;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
@@ -136,6 +136,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignRequest;
+import software.amazon.awssdk.services.s3.s3express.S3ExpressAuthScheme;
 import software.amazon.awssdk.services.s3.transform.AbortMultipartUploadRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.CompleteMultipartUploadRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.CreateMultipartUploadRequestMarshaller;
@@ -177,14 +178,9 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private final UseGlobalEndpointResolver useGlobalEndpointResolver;
     private final Boolean disableS3ExpressSessionAuth;
     private final S3Client s3Client;
-    private final DefaultS3ExpressAuthScheme s3ExpressAuthScheme;
-    private final Map<String, AuthScheme<?>> authSchemes;
 
     private DefaultS3Presigner(Builder b) {
         super(b);
-
-        this.s3ExpressAuthScheme = DefaultS3ExpressAuthScheme.create();
-        this.authSchemes = createAuthSchemes(s3ExpressAuthScheme);
 
         S3Configuration serviceConfiguration = b.serviceConfiguration != null ? b.serviceConfiguration :
                                                 S3Configuration.builder()
@@ -251,15 +247,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
     public static S3Presigner.Builder builder() {
         return new Builder();
-    }
-
-    @Override
-    public void close() {
-        try {
-            super.close();
-        } finally {
-            IoUtils.closeQuietlyV2(s3ExpressAuthScheme, log);
-        }
     }
 
     /**
@@ -478,7 +465,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT, useGlobalEndpointResolver.resolve(region()))
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER,
                           S3ExpressAuthSchemeProvider.create(S3AuthSchemeProvider.defaultProvider()))
-            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes)
+            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
             .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, resolveIdentityProviders(sdkRequest));
 
         Boolean resolvedDisableS3ExpressSessionAuth = disableS3ExpressSessionAuth;
@@ -522,12 +509,13 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     }
 
 
-    private static Map<String, AuthScheme<?>> createAuthSchemes(DefaultS3ExpressAuthScheme s3ExpressAuthScheme) {
+    private Map<String, AuthScheme<?>> authSchemes() {
         Map<String, AuthScheme<?>> schemes = new HashMap<>(3);
         AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
         schemes.put(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
         AwsV4aAuthScheme awsV4aAuthScheme = AwsV4aAuthScheme.create();
         schemes.put(awsV4aAuthScheme.schemeId(), awsV4aAuthScheme);
+        S3ExpressAuthScheme s3ExpressAuthScheme = UncachedS3ExpressAuthScheme.create();
         schemes.put(s3ExpressAuthScheme.schemeId(), s3ExpressAuthScheme);
         return Collections.unmodifiableMap(schemes);
     }

@@ -30,11 +30,10 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateSessionRequest;
 import software.amazon.awssdk.services.s3.model.SessionCredentials;
 import software.amazon.awssdk.services.s3.s3express.S3ExpressSessionCredentials;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.cache.lru.LruCache;
 
 @SdkInternalApi
-public class S3ExpressIdentityCache implements SdkAutoCloseable {
+public class S3ExpressIdentityCache {
 
     /**
      * Original specification calls for 100. We'll use 25 for now, pending testing.
@@ -62,30 +61,32 @@ public class S3ExpressIdentityCache implements SdkAutoCloseable {
         return S3ExpressSessionCredentials.fromSessionResponse(cachedCredentials.get());
     }
 
-    /**
-     * Evicts every cached entry. Eviction closes each {@link CachedS3ExpressCredentials}, which stops its background
-     * refresh.
-     */
-    @Override
-    public void close() {
-        cache.evictAll();
-    }
-
     private LruCache<S3ExpressIdentityKey, CachedS3ExpressCredentials> initCache() {
         return LruCache.builder(this::getCachedCredentials)
                        .maxSize(DEFAULT_LRU_CACHE_SIZE)
                        .build();
     }
 
+    /**
+     * Calls CreateSession for the given key, without caching the result.
+     */
+    static SessionCredentials createSession(S3ExpressIdentityKey key) {
+        return getCredentials(key, staticProvider(key));
+    }
+
     private CachedS3ExpressCredentials getCachedCredentials(S3ExpressIdentityKey key) {
-        AwsCredentials credentialsIdentity = CredentialUtils.toCredentials(key.identity());
-        StaticCredentialsProvider resolvedCredentialsProvider = StaticCredentialsProvider.create(credentialsIdentity);
+        StaticCredentialsProvider resolvedCredentialsProvider = staticProvider(key);
         return CachedS3ExpressCredentials.builder(k -> getCredentials(k, resolvedCredentialsProvider))
                                          .key(key)
                                          .build();
     }
 
-    SessionCredentials getCredentials(S3ExpressIdentityKey key, IdentityProvider<AwsCredentialsIdentity> provider) {
+    private static StaticCredentialsProvider staticProvider(S3ExpressIdentityKey key) {
+        AwsCredentials credentialsIdentity = CredentialUtils.toCredentials(key.identity());
+        return StaticCredentialsProvider.create(credentialsIdentity);
+    }
+
+    static SessionCredentials getCredentials(S3ExpressIdentityKey key, IdentityProvider<AwsCredentialsIdentity> provider) {
         SdkClient client = key.client();
         String bucket = key.bucket();
         SdkServiceClientConfiguration serviceClientConfiguration = client.serviceClientConfiguration();
