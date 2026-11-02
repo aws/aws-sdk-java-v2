@@ -52,11 +52,15 @@ final class CertificateCache {
     /**
      * The cached certificates a signature naming {@code url} should be verified against: the one last fetched from this URL
      * first, if it is still cached, followed by every other cached certificate. Returns a snapshot that is never null.
+     * 
      */
     List<PublicKey> candidates(URI url) {
         synchronized (lock) {
             List<PublicKey> result = new ArrayList<>(fingerprintToKey.size());
             PublicKey hinted = lookupLocked(url);
+            // hinted gives a first key to try (as an optimization), but we need to try the rest of the keys as well
+            // so that for a url we haven't seen before can still verify against a certificate that we have 
+            // (eg, for the case where multiple uris end up mapping to identical certificates)
             if (hinted != null) {
                 result.add(hinted);
             }
