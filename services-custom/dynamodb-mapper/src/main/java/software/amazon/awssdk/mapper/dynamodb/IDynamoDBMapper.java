@@ -773,17 +773,17 @@ public interface IDynamoDBMapper {
      * ({@link software.amazon.awssdk.services.dynamodb.model.BillingMode#PAY_PER_REQUEST}), which needs no
      * throughput for the table or its global secondary indexes:
      *
-     * <pre>{@code
+     * {@snippet :
      * CreateTableRequest request = mapper.generateCreateTableRequest(MyPojo.class)
      *                                    .toBuilder()
      *                                    .billingMode(BillingMode.PAY_PER_REQUEST)
      *                                    .build();
      * dynamoDbClient.createTable(request);
-     * }</pre>
+     * }
      *
      * <p>For provisioned capacity, set throughput on the table and on each global secondary index:
      *
-     * <pre>{@code
+     * {@snippet :
      * ProvisionedThroughput throughput = ProvisionedThroughput.builder()
      *                                                         .readCapacityUnits(5L)
      *                                                         .writeCapacityUnits(5L)
@@ -797,7 +797,7 @@ public interface IDynamoDBMapper {
      *                                             .collect(Collectors.toList()));
      * }
      * dynamoDbClient.createTable(request.build());
-     * }</pre>
+     * }
      *
      * @param clazz The annotated POJO class.
      * @return The create-table request derived from the class's annotations.

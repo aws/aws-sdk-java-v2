@@ -31,13 +31,13 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
  * <p>It shares all limitations of that library. For more information about
  * Jackson, see: http://wiki.fasterxml.com/JacksonHome</p>
  *
- * <pre class="brush: java">
- * &#064;DynamoDBTypeConvertedJson
- * public Currency getCurrency()
- * </pre>
+ * {@snippet :
+ * @DynamoDBTypeConvertedJson
+ * public Currency getCurrency() { return currency; }
+ * }
  *
  * <p>Where,</p>
- * <pre class="brush: java">
+ * {@snippet :
  * public class Currency {
  *     private Double amount;
  *     private String unit;
@@ -48,7 +48,7 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
  *     public String getUnit() { return unit; }
  *     public void setUnit(String unit) { this.unit = unit; }
  * }
- * </pre>
+ * }
  *
  * <p>Would write the following value to DynamoDB given,</p>
  * <ul>

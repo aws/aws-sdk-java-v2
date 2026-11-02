@@ -24,22 +24,22 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 /**
  * Annotation for flattening a complex type.
  *
- * <pre class="brush: java">
- * &#064;DynamoDBFlattened(attributes={
- *     &#064;DynamoDBAttribute(mappedBy=&quot;start&quot;, attributeName=&quot;effectiveStartDate&quot;),
- *     &#064;DynamoDBAttribute(mappedBy=&quot;end&quot;, attributeName=&quot;effectiveEndDate&quot;)})
+ * {@snippet :
+ * @DynamoDBFlattened(attributes={
+ *     @DynamoDBAttribute(mappedBy="start", attributeName="effectiveStartDate"),
+ *     @DynamoDBAttribute(mappedBy="end", attributeName="effectiveEndDate")})
  * public DateRange getEffectiveRange() { return effectiveRange; }
  * public void setEffectiveRange(DateRange effectiveRange) { this.effectiveRange = effectiveRange; }
  *
- * &#064;DynamoDBFlattened(attributes={
- *     &#064;DynamoDBAttribute(mappedBy=&quot;start&quot;, attributeName=&quot;extensionStartDate&quot;),
- *     &#064;DynamoDBAttribute(mappedBy=&quot;end&quot;, attributeName=&quot;extensionEndDate&quot;)})
+ * @DynamoDBFlattened(attributes={
+ *     @DynamoDBAttribute(mappedBy="start", attributeName="extensionStartDate"),
+ *     @DynamoDBAttribute(mappedBy="end", attributeName="extensionEndDate")})
  * public DateRange getExtensionRange() { return extensionRange; }
  * public void setExtensionRange(DateRange extensionRange) { this.extensionRange = extensionRange; }
- * </pre>
+ * }
  *
  * <p>Where,</p>
- * <pre class="brush: java">
+ * {@snippet :
  * public class DateRange {
  *     private Date start;
  *     private Date end;
@@ -50,7 +50,7 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
  *     public Date getEnd() { return end; }
  *     public void setEnd(Date end) { this.end = end; }
  * }
- * </pre>
+ * }
  *
  * <p>Attributes defined within the complex type may also be annotated.</p>
  *

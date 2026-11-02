@@ -113,17 +113,17 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  * annotation should be either applied to the getter method or the class field.
  * A minimal example using getter annotations:
  *
- * <pre class="brush: java">
- * &#064;DynamoDBTable(tableName = &quot;TestTable&quot;)
+ * {@snippet :
+ * @DynamoDBTable(tableName = "TestTable")
  * public class TestClass {
  *
  *     private Long key;
  *     private double rangeKey;
  *     private Long version;
  *
- *     private Set&lt;Integer&gt; integerSetAttribute;
+ *     private Set<Integer> integerSetAttribute;
  *
- *     &#064;DynamoDBHashKey
+ *     @DynamoDBHashKey
  *     public Long getKey() {
  *         return key;
  *     }
@@ -132,7 +132,7 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  *         this.key = key;
  *     }
  *
- *     &#064;DynamoDBRangeKey
+ *     @DynamoDBRangeKey
  *     public double getRangeKey() {
  *         return rangeKey;
  *     }
@@ -141,16 +141,16 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  *         this.rangeKey = rangeKey;
  *     }
  *
- *     &#064;DynamoDBAttribute(attributeName = &quot;integerSetAttribute&quot;)
- *     public Set&lt;Integer&gt; getIntegerAttribute() {
+ *     @DynamoDBAttribute(attributeName = "integerSetAttribute")
+ *     public Set<Integer> getIntegerAttribute() {
  *         return integerSetAttribute;
  *     }
  *
- *     public void setIntegerAttribute(Set&lt;Integer&gt; integerAttribute) {
+ *     public void setIntegerAttribute(Set<Integer> integerAttribute) {
  *         this.integerSetAttribute = integerAttribute;
  *     }
  *
- *     &#064;DynamoDBVersionAttribute
+ *     @DynamoDBVersionAttribute
  *     public Long getVersion() {
  *         return version;
  *     }
@@ -159,12 +159,12 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  *         this.version = version;
  *     }
  * }
- * </pre>
+ * }
  * <p>
  * Save instances of annotated classes to DynamoDB, retrieve them, and delete
  * them using the {@link DynamoDBMapper} class, as in the following example.
  *
- * <pre class="brush: java">
+ * {@snippet :
  * DynamoDBMapper mapper = DynamoDBMapper.builder()
  *                                       .dynamoDbClient(dynamoDBClient)
  *                                       .build();
@@ -174,13 +174,13 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  * obj.getIntegerAttribute().add(42);
  * mapper.save(obj);
  * mapper.delete(obj);
- * </pre>
+ * }
  * <p>
  * If you don't have your DynamoDB table set up yet, you can use
  * {@link DynamoDBMapper#generateCreateTableRequest(Class)} to construct the
  * {@link CreateTableRequest} for the table represented by your annotated class.
  *
- * <pre class="brush: java">
+ * {@snippet :
  * DynamoDbClient dynamoDBClient = DynamoDbClient.create();
  * DynamoDBMapper mapper = DynamoDBMapper.builder().dynamoDbClient(dynamoDBClient).build();
  * CreateTableRequest req = mapper.generateCreateTableRequest(TestClass.class)
@@ -193,7 +193,7 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  *                                .build();
  * // Fire off the CreateTableRequest using the low-level client
  * dynamoDBClient.createTable(req);
- * </pre>
+ * }
  * <p>
  * When using the save, load, and delete methods, {@link DynamoDBMapper} will
  * throw {@link DynamoDBMappingException}s to indicate that domain classes are
@@ -206,16 +206,16 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  * constructors are kept so that code ported from the v1 mapper compiles
  * unchanged; each one has an equivalent builder form:
  *
- * <pre class="brush: java">
+ * {@snippet :
  * // v1-style constructor
- * DynamoDBMapper mapper = new DynamoDBMapper(dynamoDBClient, config, transformer);
+ * DynamoDBMapper fromConstructor = new DynamoDBMapper(dynamoDBClient, config, transformer);
  * // equivalent builder
- * DynamoDBMapper mapper = DynamoDBMapper.builder()
- *                                       .dynamoDbClient(dynamoDBClient)
- *                                       .mapperConfig(config)
- *                                       .attributeTransformer(transformer)
- *                                       .build();
- * </pre>
+ * DynamoDBMapper fromBuilder = DynamoDBMapper.builder()
+ *                                            .dynamoDbClient(dynamoDBClient)
+ *                                            .mapperConfig(config)
+ *                                            .attributeTransformer(transformer)
+ *                                            .build();
+ * }
  * <p>
  * The constructors that take an S3 credentials provider have no builder
  * equivalent yet; S3Link support has not been ported to the v2 SDK.
@@ -269,12 +269,12 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
      * Creates a builder for a {@link DynamoDBMapper}. This is the recommended
      * way to create a mapper.
      *
-     * <pre class="brush: java">
+     * {@snippet :
      * DynamoDBMapper mapper = DynamoDBMapper.builder()
      *                                       .dynamoDbClient(DynamoDbClient.create())
-     *                                       .mapperConfig(c -&gt; c.withSaveBehavior(SaveBehavior.CLOBBER))
+     *                                       .mapperConfig(c -> c.withSaveBehavior(SaveBehavior.CLOBBER))
      *                                       .build();
-     * </pre>
+     * }
      *
      * @return a new builder
      */
@@ -2715,13 +2715,13 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
          * and applies the given consumer to it, avoiding the need to build it
          * manually.
          *
-         * <pre class="brush: java">
+         * {@snippet :
          * DynamoDBMapper.builder()
          *               .dynamoDbClient(client)
-         *               .mapperConfig(c -&gt; c.withSaveBehavior(SaveBehavior.CLOBBER)
+         *               .mapperConfig(c -> c.withSaveBehavior(SaveBehavior.CLOBBER)
          *                                   .withConsistentReads(ConsistentReads.CONSISTENT))
          *               .build();
-         * </pre>
+         * }
          *
          * @param mapperConfig a consumer that configures a new
          *                     {@link DynamoDBMapperConfig.Builder}

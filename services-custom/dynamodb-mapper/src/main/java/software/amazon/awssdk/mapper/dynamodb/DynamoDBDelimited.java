@@ -29,16 +29,16 @@ import java.util.regex.Pattern;
  * Annotation to convert an object into a single delimited {@link String}
  * attribute.
  *
- * <pre class="brush: java">
- * &#064;DynamoDBDelimited(
- *     attributeNames={&quot;areaCode&quot;,&quot;exchange&quot;,&quot;subscriber&quot;},
+ * {@snippet :
+ * @DynamoDBDelimited(
+ *     attributeNames={"areaCode","exchange","subscriber"},
  *     delimiter='-'
  * )
- * public PhoneNumber getPhoneNumber()
- * </pre>
+ * public PhoneNumber getPhoneNumber() { return phoneNumber; }
+ * }
  *
  * <p>Where,</p>
- * <pre class="brush: java">
+ * {@snippet :
  * public class PhoneNumber {
  *     private String areaCode;
  *     private String exchange;
@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
  *     public String getSubscriber() { return subscriber; }
  *     public void setSubscriber(String subscriber) { this.subscriber = subscriber; }
  * }
- * </pre>
+ * }
  *
  * <p>Would write,</p>
  * <ul>

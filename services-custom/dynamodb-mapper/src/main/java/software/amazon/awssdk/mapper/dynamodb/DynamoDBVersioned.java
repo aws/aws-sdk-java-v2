@@ -28,10 +28,10 @@ import java.util.Arrays;
 /**
  * Annotation for marking a property as an optimistic locking version attribute.
  *
- * <pre class="brush: java">
- * &#064;DynamoDBVersioned
- * public Long getRecordVersionNumber()
- * </pre>
+ * {@snippet :
+ * @DynamoDBVersioned
+ * public Long getRecordVersionNumber() { return recordVersionNumber; }
+ * }
  *
  * <p>Alternately, the convinience annotation {@link DynamoDBVersionAttribute}
  * may be used if combining with an attribute name on a field/getter.</p>

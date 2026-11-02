@@ -53,9 +53,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * provide full access API to S3.
  * <p>
  * For example:
- * <pre class="brush: java">
- * AWSCredentialsProvider s3CredentialProvider = ...;
- * DynamoDBMapper mapper = new DynamoDBMapper(..., s3CredentialProvider);
+ * {@snippet :
+ * // S3Link uses the AWS SDK for Java v1 S3 client, so it takes v1 credentials
+ * AWSCredentialsProvider s3CredentialProvider = DefaultAWSCredentialsProviderChain.getInstance();
+ * DynamoDBMapper mapper = new DynamoDBMapper(DynamoDbClient.create(), s3CredentialProvider);
  * String username = "jamestkirk";
  *
  * User user = new User();
@@ -74,18 +75,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * // Download file from S3 via an S3Link
  * s3link.downloadTo(new File("/path/to/downloads/" + username + ".jpg"));
  *
- * // Full S3 API is available via the canonical AmazonS3Client and TransferManager API.
- * // For example:
- * AmazonS3Client s3 = s3link.getAmazonS3Client();
+ * // The full S3 API is available through the v1 AmazonS3 client and TransferManager
+ * AmazonS3 s3 = s3link.getAmazonS3Client();
  * TransferManager s3m = s3link.getTransferManager();
- * // etc.
- * </pre>The User pojo class used above:<pre class="brush: java">
- * &commat;DynamoDBTable(tableName = "user-table")
+ * }
+ *
+ * <p>The User pojo class used above:
+ * {@snippet :
+ * @DynamoDBTable(tableName = "user-table")
  * public class User {
  *     private String username;
  *     private S3Link avatar;
  *
- *     &commat;DynamoDBHashKey
+ *     @DynamoDBHashKey
  *     public String getUsername() {
  *         return username;
  *     }
@@ -102,7 +104,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *         this.avatar = avatar;
  *     }
  * }
- * </pre>
+ * }
  */
 @SdkPublicApi
 @SdkPreviewApi
@@ -393,10 +395,10 @@ public final class S3Link {
      * JSON wrapper of an {@link S3Link} identifier,
      * which consists of the S3 region id, bucket name and key.
      * Sample JSON serialized form:
-     * <pre>
+     * {@snippet lang="json" :
      * {"s3":{"bucket":"mybucket","key":"mykey","region":"us-west-2"}}
      * {"s3":{"bucket":"mybucket","key":"mykey","region":null}}
-     * </pre>
+     * }
      * Note for S3 a null region means US standard.
      * <p>
      *  @see Region#US_Standard

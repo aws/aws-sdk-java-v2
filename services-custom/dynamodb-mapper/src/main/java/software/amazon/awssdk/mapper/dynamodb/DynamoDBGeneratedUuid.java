@@ -26,10 +26,10 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 /**
  * Annotation for auto-generating a {@link UUID}.
  *
- * <pre class="brush: java">
- * &#064;DynamoDBGeneratedUuid(DynamoDBAutoGenerateStrategy.CREATE)
- * public UUID getKey()
- * </pre>
+ * {@snippet :
+ * @DynamoDBGeneratedUuid(DynamoDBAutoGenerateStrategy.CREATE)
+ * public UUID getKey() { return key; }
+ * }
  *
  * <p>When applied to a key field, only the strategy
  * {@link DynamoDBAutoGenerateStrategy#CREATE} is supported.</p>

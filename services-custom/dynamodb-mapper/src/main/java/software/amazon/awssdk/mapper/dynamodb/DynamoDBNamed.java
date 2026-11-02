@@ -24,10 +24,10 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 /**
  * Annotation for overriding a property's DynamoDB attribute name.
  *
- * <pre class="brush: java">
- * &#064;DynamoDBNamed(&quot;InternalStatus&quot;)
- * public String getStatus()
- * </pre>
+ * {@snippet :
+ * @DynamoDBNamed("InternalStatus")
+ * public String getStatus() { return status; }
+ * }
  *
  * <p>This annotation has the lowest precedence among other property/field
  * annotations where {@code attributeName} may be specified.</p>

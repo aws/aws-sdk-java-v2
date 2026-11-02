@@ -27,13 +27,13 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
  * <p>May be annotated on a user-defined annotation to pass additional
  * properties to the {@link DynamoDBTypeConverter}.</p>
  *
- * <pre class="brush: java">
- * &#064;CurrencyFormat(separator=&quot; &quot;) //&lt;- user-defined annotation
- * public Currency getCurrency()
- * </pre>
+ * {@snippet :
+ * @CurrencyFormat(separator=" ") //<- user-defined annotation
+ * public Currency getCurrency() { return currency; }
+ * }
  *
  * <p>Where,</p>
- * <pre class="brush: java">
+ * {@snippet :
  * public class Currency {
  *     private Double amount;
  *     private String unit;
@@ -44,32 +44,32 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
  *     public String getUnit() { return unit; }
  *     public void setUnit(String unit) { this.unit = unit; }
  * }
- * </pre>
+ * }
  *
  * <p>And user-defined annotation,</p>
- * <pre class="brush: java">
- * &#064;Target({ElementType.METHOD})
- * &#064;Retention(RetentionPolicy.RUNTIME)
- * &#064;DynamoDBTypeConverted(converter=CurrencyFormat.Converter.class)
- * public &#064;interface CurrencyFormat {
+ * {@snippet :
+ * @Target({ElementType.METHOD})
+ * @Retention(RetentionPolicy.RUNTIME)
+ * @DynamoDBTypeConverted(converter=CurrencyFormat.Converter.class)
+ * public @interface CurrencyFormat {
  *
- *     String separator() default &quot; &quot;;
+ *     String separator() default " ";
  *
- *     public static class Converter implements DynamoDBTypeConverter&lt;String,Currency&gt; {
+ *     public static class Converter implements DynamoDBTypeConverter<String,Currency> {
  *         private final String separator;
- *         public Converter(final Class&lt;Currency&gt; targetType, final CurrencyFormat annotation) {
+ *         public Converter(final Class<Currency> targetType, final CurrencyFormat annotation) {
  *             this.separator = annotation.separator();
  *         }
  *         public Converter() {
- *             this.separator = &quot;|&quot;;
+ *             this.separator = "|";
  *         }
- *         &#064;Override
+ *         @Override
  *         public String convert(final Currency o) {
  *             return String.valueOf(o.getAmount()) + separator + o.getUnit();
  *         }
- *         &#064;Override
+ *         @Override
  *         public Currency unconvert(final String o) {
- *             final String[] strings = o.split(separator);
+ *             final String[] strings = o.split(Pattern.quote(separator));
  *             final Currency currency = new Currency();
  *             currency.setAmount(Double.valueOf(strings[0]));
  *             currency.setUnit(strings[1]);
@@ -77,15 +77,15 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
  *         }
  *     }
  * }
- * </pre>
+ * }
  *
  * <p>Alternately, the property/field may be annotated directly (which
  * requires the converter to provide a default constructor or a constructor
  * with only the {@code targetType}),</p>
- * <pre class="brush: java">
- * &#064;DynamoDBTypeConverted(converter=CurrencyFormat.Converter.class)
+ * {@snippet :
+ * @DynamoDBTypeConverted(converter=CurrencyFormat.Converter.class)
  * public Currency getCurrency() { return currency; }
- * </pre>
+ * }
  *
  * <p>All converters are null-safe, a {@code null} value will never be passed
  * to {@link DynamoDBTypeConverter#convert}

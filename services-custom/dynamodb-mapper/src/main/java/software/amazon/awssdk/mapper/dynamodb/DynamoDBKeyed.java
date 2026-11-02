@@ -26,10 +26,10 @@ import java.lang.annotation.Target;
 /**
  * Annotation for marking a property a key for a modeled class.
  *
- * <pre class="brush: java">
- * &#064;DynamoDBKeyed(KeyType.HASH)
- * public UUID getKey()
- * </pre>
+ * {@snippet :
+ * @DynamoDBKeyed(KeyType.HASH)
+ * public UUID getKey() { return key; }
+ * }
  *
  * <p>Alternately, the short-formed {@link DynamoDBHashKey}, and
  * {@link DynamoDBRangeKey} may be used directly on the field/getter.</p>

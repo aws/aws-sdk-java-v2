@@ -33,86 +33,88 @@ import java.util.Map;
  * {@code DynamoDBMapper} which was used to create this table mapper.
  *
  * A minimal example using get annotations,
- * <pre class="brush: java">
- * &#064;DynamoDBTable(tableName=&quot;TestTable&quot;)
+ * {@snippet :
+ * @DynamoDBTable(tableName="TestTable")
  * public class TestClass {
  *     private Long key;
  *     private String rangeKey;
  *     private Double amount;
  *     private Long version;
  *
- *     &#064;DynamoDBHashKey
+ *     @DynamoDBHashKey
  *     public Long getKey() { return key; }
  *     public void setKey(Long key) { this.key = key; }
  *
- *     &#064;DynamoDBRangeKey
+ *     @DynamoDBRangeKey
  *     public String getRangeKey() { return rangeKey; }
  *     public void setRangeKey(String rangeKey) { this.rangeKey = rangeKey; }
  *
- *     &#064;DynamoDBAttribute(attributeName=&quot;amount&quot;)
+ *     @DynamoDBAttribute(attributeName="amount")
  *     public Double getAmount() { return amount; }
  *     public void setAmount(Double amount) { this.amount = amount; }
  *
- *     &#064;DynamoDBVersionAttribute
+ *     @DynamoDBVersionAttribute
  *     public Long getVersion() { return version; }
  *     public void setVersion(Long version) { this.version = version; }
  * }
- * </pre>
+ * }
  *
  * Initialize the DynamoDB mapper,
- * <pre class="brush: java">
+ * {@snippet :
  * DynamoDbClient dbClient = DynamoDbClient.create();
- * DynamoDBMapper dbMapper = new DynamoDBMapper(dbClient);
- * </pre>
+ * DynamoDBMapper dbMapper = DynamoDBMapper.builder().dynamoDbClient(dbClient).build();
+ * }
  *
  * Then, create a new table mapper with hash and range key,
- * <pre class="brush: java">
- * DynamoDBTableMapper&lt;TestClass,Long,String&gt; mapper = dbMapper.newTableMapper(TestClass.class);
- * </pre>
+ * {@snippet :
+ * DynamoDBTableMapper<TestClass,Long,String> mapper = dbMapper.newTableMapper(TestClass.class);
+ * }
  *
  * Or, if the table does not have a range key,
- * <pre class="brush: java">
- * DynamoDBTableMapper&lt;TestClass,Long,?&gt; table = dbMapper.newTableMapper(TestClass.class);
- * </pre>
+ * {@snippet :
+ * DynamoDBTableMapper<TestClass,Long,?> table = dbMapper.newTableMapper(TestClass.class);
+ * }
  *
  * Save instances of annotated classes and retrieve them,
- * <pre class="brush: java">
+ * {@snippet :
  * TestClass object = new TestClass();
  * object.setKey(1234L);
- * object.setRangeKey(&quot;ABCD&quot;);
+ * object.setRangeKey("ABCD");
  * object.setAmount(101D);
  *
  * try {
- *     table.saveIfNotExists(object);
+ *     mapper.saveIfNotExists(object);
  * } catch (ConditionalCheckFailedException e) {
  *     // handle already existing
  * }
- * </pre>
+ * }
  *
  * Execute a query operation,
- * <pre class="brush: java">
+ * {@snippet :
  * int limit = 10;
- * List&lt;TestClass&gt; objects = new ArrayList&lt;TestClass&gt;(limit);
+ * List<TestClass> objects = new ArrayList<>(limit);
  *
- * DynamoDBQueryExpression&lt;TestClass&gt; query = new DynamoDBQueryExpression()
- *     .withRangeKeyCondition(table.rangeKey().name(), table.rangeKey().ge(&quot;ABAA&quot;))
- *     .withQueryFilterEntry(&quot;amount&quot;, table.field(&quot;amount&quot;).gt(100D))
- *     .withHashKeyValues(1234L)
- *     .withConsistentReads(true);
+ * // The hash key value is supplied as an object with only its key set
+ * TestClass hashKeyValues = new TestClass();
+ * hashKeyValues.setKey(1234L);
  *
- * QueryResultPage&lt;TestClass&gt; results = new QueryResultPage&lt;TestClass&gt;();
+ * DynamoDBQueryExpression<TestClass> query = new DynamoDBQueryExpression<TestClass>()
+ *     .withHashKeyValues(hashKeyValues)
+ *     .withRangeKeyCondition(mapper.rangeKey().name(), mapper.rangeKey().ge("ABAA"))
+ *     .withQueryFilterEntry("amount", mapper.field("amount").gt(100D))
+ *     .withConsistentRead(true);
+ *
+ * QueryResultPage<TestClass> results = new QueryResultPage<>();
  *
  * do {
  *     if (results.getLastEvaluatedKey() != null) {
  *         query.setExclusiveStartKey(results.getLastEvaluatedKey());
  *     }
  *     query.setLimit(limit - objects.size());
- *     results = mapper.query(query);
- *     for (TestClass object : results.getResults()) {
- *         objects.add(object);
- *     }
- * } while (results.getLastEvaluatedKey() != null &amp;&amp; objects.size() &lt; limit)
- * </pre>
+ *     results = mapper.queryPage(query);
+ *     objects.addAll(results.getResults());
+ * } while (results.getLastEvaluatedKey() != null && objects.size() < limit);
+ * }
  *
  * @param <T> The object type which this mapper operates.
  * @param <H> The hash key value type.

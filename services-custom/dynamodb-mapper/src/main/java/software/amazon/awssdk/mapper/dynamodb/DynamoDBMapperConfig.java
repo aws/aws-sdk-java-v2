@@ -30,8 +30,8 @@ import java.util.Random;
  * instances can be given to the mapper object on individual save, load, and
  * delete operations to override the defaults. For example:
  *
- * <pre class="brush: java">
- * DynamoDBMapper mapper = new DynamoDBMapper(dynamoDBClient);
+ * {@snippet :
+ * DynamoDBMapper mapper = DynamoDBMapper.builder().dynamoDbClient(dynamoDBClient).build();
  * // Force this read to be consistent
  * DomainClass obj = mapper.load(DomainClass.class, key, ConsistentReads.CONSISTENT.config());
  * // Force this save operation to use putItem rather than updateItem
@@ -40,7 +40,7 @@ import java.util.Random;
  * mapper.save(obj, new TableNameOverride("AnotherTable").config());
  * // Delete the object even if the version field is out of date
  * mapper.delete(obj, SaveBehavior.CLOBBER.config());
- * </pre>
+ * }
  */
 @SdkPublicApi
 @SdkPreviewApi
@@ -415,18 +415,18 @@ public final class DynamoDBMapperConfig {
         /**
          * The type-converter factory for scalar conversions.
          * <p>To override standard type-conversions,</p>
-         * <pre class="brush: java">
+         * {@snippet :
          * DynamoDBMapperConfig config = DynamoDBMapperConfig.builder()
          *     .withTypeConverterFactory(DynamoDBTypeConverterFactory.standard().override()
          *         .with(String.class, MyObject.class, new StringToMyObjectConverter())
          *         .build())
          *     .build();
-         * </pre>
+         * }
          * <p>Then, on the property, specify the attribute binding,</p>
-         * <pre class="brush: java">
-         * &#064;DynamoDBTyped(DynamoDBAttributeType.S)
-         * public MyObject getMyObject()
-         * </pre>
+         * {@snippet :
+         * @DynamoDBTyped(DynamoDBAttributeType.S)
+         * public MyObject getMyObject() { return myObject; }
+         * }
          * @param value the new type-converter factory
          * @return this builder
          */
@@ -958,11 +958,11 @@ public final class DynamoDBMapperConfig {
      * a per-operation config therefore still overrides only the values that
      * are set.
      *
-     * <pre class="brush: java">
+     * {@snippet :
      * DynamoDBMapperConfig consistent = config.toBuilder()
      *                                         .withConsistentReads(ConsistentReads.CONSISTENT)
      *                                         .build();
-     * </pre>
+     * }
      *
      * @return a new builder holding a copy of this configuration's values
      */

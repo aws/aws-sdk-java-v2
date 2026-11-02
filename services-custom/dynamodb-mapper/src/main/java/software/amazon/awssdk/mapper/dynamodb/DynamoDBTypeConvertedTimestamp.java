@@ -33,10 +33,10 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
  * Annotation to format a timestamp object using Java's standard date and time
  * patterns.
  *
- * <pre class="brush: java">
- * &#064;DynamoDBTypeConvertedTimestamp(pattern=&quot;yyyyMMddHHmmssSSS&quot;, timeZone=&quot;UTC&quot;)
- * public Date getCreatedDate()
- * </pre>
+ * {@snippet :
+ * @DynamoDBTypeConvertedTimestamp(pattern="yyyyMMddHHmmssSSS", timeZone="UTC")
+ * public Date getCreatedDate() { return createdDate; }
+ * }
  *
  * <p>Supports the standard {@link Date} type-conversions; such as
  * {@link java.util.Calendar}, {@link Long}.</p>

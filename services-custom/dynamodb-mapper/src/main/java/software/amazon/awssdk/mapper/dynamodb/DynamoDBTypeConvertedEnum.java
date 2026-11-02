@@ -25,12 +25,12 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
  * Annotation to convert the enumeration value to a string.
  *
  * <p>Alternately, the {@link DynamoDBTyped} annotation may be used,</p>
- * <pre class="brush: java">
+ * {@snippet :
  * public static enum Status { OPEN, PENDING, CLOSED }
  *
- * &#064;DynamoDBTyped(DynamoDBAttributeType.S)
- * public Status getStatus()
- * </pre>
+ * @DynamoDBTyped(DynamoDBAttributeType.S)
+ * public Status getStatus() { return status; }
+ * }
  *
  * <p>Please note, there are some risks in distributed systems when using
  * enumerations as attributes instead of simply using a String.

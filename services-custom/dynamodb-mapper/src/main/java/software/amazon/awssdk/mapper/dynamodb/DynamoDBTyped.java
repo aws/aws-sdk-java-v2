@@ -27,10 +27,10 @@ import java.lang.annotation.Target;
 /**
  * Annotation to override the standard attribute type binding.
  *
- * <pre class="brush: java">
- * &#064;DynamoDBTyped(DynamoDBAttributeType.S)
- * public MyObject getMyObject()
- * </pre>
+ * {@snippet :
+ * @DynamoDBTyped(DynamoDBAttributeType.S)
+ * public MyObject getMyObject() { return myObject; }
+ * }
 
  * <p><b>Standard Types</b></p>
  * <p>Standard types do not require the annotation if applying the default
@@ -70,13 +70,13 @@ import java.lang.annotation.Target;
  * <p><b>{@link DynamoDBTypeConverter}</b></p>
  * <p>A custom type-converter maybe applied to any attribute, either by
  * annotation or by overriding the standard type-converter factory.</p>
- * <pre class="brush: java">
+ * {@snippet :
  * DynamoDBMapperConfig config = DynamoDBMapperConfig.builder()
  *     .withTypeConverterFactory(DynamoDBTypeConverterFactory.standard().override()
  *         .with(String.class, MyObject.class, new StringToMyObjectConverter())
  *         .build())
  *     .build();
- * </pre>
+ * }
  * <p>If the converter being applied is already a supported data type and
  * the conversion is of the same attribute type, for instance,
  * {@link java.util.Date} to {@link String} to {@code S},
@@ -91,19 +91,19 @@ import java.lang.annotation.Target;
  * <p><b>{@link Boolean} to {@code BOOL}</b></p>
  * <p>The standard V2 conversion schema will by default serialize booleans
  * natively using the DynamoDB {@code BOOL} type.</p>
- * <pre class="brush: java">
- * &#064;DynamoDBTyped(DynamoDBAttributeType.BOOL)
- * public boolean isTesting()
- * </pre>
+ * {@snippet :
+ * @DynamoDBTyped(DynamoDBAttributeType.BOOL)
+ * public boolean isTesting() { return testing; }
+ * }
  *
  * <p><b>{@link Boolean} to {@code N}</b></p>
  * <p>The standard V1 and V2 compatible conversion schemas will by default
  * serialize booleans using the DynamoDB {@code N} type, with a value of '1'
  * representing 'true' and a value of '0' representing 'false'.</p>
- * <pre class="brush: java">
- * &#064;DynamoDBTyped(DynamoDBAttributeType.N)
- * public boolean isTesting()
- * </pre>
+ * {@snippet :
+ * @DynamoDBTyped(DynamoDBAttributeType.N)
+ * public boolean isTesting() { return testing; }
+ * }
  *
  * <p><b>{@link Enum} to {@code S}</b></p>
  * <p>The {@code enum} type is only supported by override or custom converter.
@@ -112,38 +112,38 @@ import java.lang.annotation.Target;
  * enumeration, the enum only changes must deployed before the enumeration
  * value can be persisted. This will ensure that all systems have the correct
  * code to map it from the item record in DynamoDB to your objects.</p>
- * <pre class="brush: java">
- * public enum Status { OPEN, PENDING, CLOSED };
+ * {@snippet :
+ * public enum Status { OPEN, PENDING, CLOSED }
  *
- * &#064;DynamoDBTyped(DynamoDBAttributeType.S)
- * public Status getStatus()
- * </pre>
+ * @DynamoDBTyped(DynamoDBAttributeType.S)
+ * public Status getStatus() { return status; }
+ * }
  *
  * <p><b>{@link java.util.UUID} to {@code B}</b></p>
  * <p>The {@code UUID} type will serialize to {@link String}/{@code S} by
  * default in all conversion schemas. The schemas do support serializing to
  * {@link java.nio.ByteBuffer}/{@code B} by override.</p>
- * <pre class="brush: java">
- * &#064;DynamoDBTyped(DynamoDBAttributeType.B)
- * public UUID getKey()
- * </pre>
+ * {@snippet :
+ * @DynamoDBTyped(DynamoDBAttributeType.B)
+ * public UUID getKey() { return key; }
+ * }
  *
  * <p><b>{@link java.util.Set} to {@code L}</b></p>
  * <p>The standard V1 and V2 compatible conversion schemas do not by default
  * support non-scalar {@code Set} types. They are supported in V2.  In
  * non-supported schemas, the {@link java.util.List}/{@code L} override may be applied
  * to any {@code Set} type.</p>
- * <pre class="brush: java">
- * &#064;DynamoDBTyped(DynamoDBAttributeType.L)
- * public Set&lt;MyObject&gt; getMyObjects()
- * </pre>
+ * {@snippet :
+ * @DynamoDBTyped(DynamoDBAttributeType.L)
+ * public Set<MyObject> getMyObjects() { return myObjects; }
+ * }
  *
  * <p><b>{@link Object} to {@code M}</b></p>
  * <p>Also supported as {@link DynamoDBDocument}.</p>
- * <pre class="brush: java">
- * &#064;DynamoDBTyped(DynamoDBAttributeType.M)
- * public MyObject getMyObject()
- * </pre>
+ * {@snippet :
+ * @DynamoDBTyped(DynamoDBAttributeType.M)
+ * public MyObject getMyObject() { return myObject; }
+ * }
  *
  * <p>May be combined with {@link DynamoDBTypeConverted}.</p>
  *

@@ -28,18 +28,18 @@ import java.util.Map.Entry;
  * {@link DynamoDBTypeConverter} factory and supporting classes.
  *
  * <p>To override standard type-conversions,</p>
- * <pre class="brush: java">
+ * {@snippet :
  * DynamoDBMapperConfig config = DynamoDBMapperConfig.builder()
  *     .withTypeConverterFactory(DynamoDBTypeConverterFactory.standard().override()
  *         .with(String.class, MyObject.class, new StringToMyObjectConverter())
  *         .build())
  *     .build();
- * </pre>
+ * }
  * <p>Then, on the property, specify the attribute binding,</p>
- * <pre class="brush: java">
- * &#064;DynamoDBTyped(DynamoDBAttributeType.S)
- * public MyObject getMyObject()
- * </pre>
+ * {@snippet :
+ * @DynamoDBTyped(DynamoDBAttributeType.S)
+ * public MyObject getMyObject() { return myObject; }
+ * }
  *
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig
  */

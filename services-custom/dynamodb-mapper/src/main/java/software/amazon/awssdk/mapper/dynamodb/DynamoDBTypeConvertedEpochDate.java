@@ -26,10 +26,10 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
  * to a {@link software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType#N} stored as epoch time.
  *
  * <p>Alternately, the {@link DynamoDBTyped} annotation may be used,</p>
- * <pre class="brush: java">
- * &#064;DynamoDBTyped(DynamoDBAttributeType.N)
- * public Date getDate()
- * </pre>
+ * {@snippet :
+ * @DynamoDBTyped(DynamoDBAttributeType.N)
+ * public Date getDate() { return date; }
+ * }
  *
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverted
  */

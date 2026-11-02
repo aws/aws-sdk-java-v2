@@ -24,27 +24,27 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 /**
  * Annotation to convert a {@link Boolean} to the DynamoDB {@code S} type.
  *
- * <pre class="brush: java">
- * &#064;DynamoDBConvertedBool(DynamoDBConvertedBool.Format.Y_N)
- * public boolean isTesting()
- * </pre>
+ * {@snippet :
+ * @DynamoDBConvertedBool(DynamoDBConvertedBool.Format.Y_N)
+ * public boolean isTesting() { return testing; }
+ * }
  *
  * <p>The standard V1 and V2 compatible conversion schemas will, by default,
  * serialize booleans using the DynamoDB {@code N} type, with a value of '1'
  * representing 'true' and a value of '0' representing 'false'. To force the
  * {@code N} conversion in other schemas,
- * <pre class="brush: java">
- * &#064;DynamoDBTyped(DynamoDBAttributeType.N)
- * public boolean isTesting()
- * </pre>
+ * {@snippet :
+ * @DynamoDBTyped(DynamoDBAttributeType.N)
+ * public boolean isTesting() { return testing; }
+ * }
  *
  * <p>The standard V2 conversion schema will by default serialize booleans
  * natively using the DynamoDB {@code BOOL} type. To force the native
  * {@code BOOL} conversion in other schemas,
- * <pre class="brush: java">
- * &#064;DynamoDBTyped(DynamoDBAttributeType.BOOL)
- * public boolean isTesting()
- * </pre>
+ * {@snippet :
+ * @DynamoDBTyped(DynamoDBAttributeType.BOOL)
+ * public boolean isTesting() { return testing; }
+ * }
  *
  * <p>May be used as a meta-annotation.</p>
  */
