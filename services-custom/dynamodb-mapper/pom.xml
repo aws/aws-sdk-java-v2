@@ -130,14 +130,6 @@
             <version>${sdk-v1.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- Only needed by @DynamoDBTypeConvertedJson. Optional so that it is not added to every
-             mapper user's classpath; applications that use the annotation must add it themselves. -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.databind.version}</version>
-            <optional>true</optional>
-        </dependency>
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
