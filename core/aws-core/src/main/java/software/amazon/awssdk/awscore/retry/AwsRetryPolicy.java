@@ -16,8 +16,6 @@
 package software.amazon.awssdk.awscore.retry;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.awscore.internal.AwsErrorCode;
-import software.amazon.awssdk.awscore.retry.conditions.RetryOnErrorCodeCondition;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.conditions.OrRetryCondition;
@@ -66,7 +64,10 @@ public final class AwsRetryPolicy {
                         .build();
     }
 
-    private static RetryOnErrorCodeCondition awsRetryCondition() {
-        return RetryOnErrorCodeCondition.create(AwsErrorCode.RETRYABLE_ERROR_CODES);
+    /**
+     * Retries on the same AWS error codes, using the same predicate, as {@link AwsRetryStrategy}.
+     */
+    private static RetryCondition awsRetryCondition() {
+        return context -> AwsRetryStrategy.retryOnAwsRetryableErrors(context.exception());
     }
 }

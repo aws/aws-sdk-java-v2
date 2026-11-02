@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.awscore.internal.AwsErrorCode;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -456,6 +457,7 @@ public class AwsServiceModel implements ClassSpec {
                 methodSpecs.add(serializableBuilderClass());
                 methodSpecs.addAll(memberGetters());
                 methodSpecs.addAll(retryableOverrides());
+                methodSpecs.addAll(authenticationErrorOverrides());
                 break;
             default:
                 methodSpecs.addAll(addModifier(memberGetters(), FINAL));
@@ -835,6 +837,30 @@ public class AwsServiceModel implements ClassSpec {
             return Arrays.asList(isRetryable);
         }
         return emptyList();
+    }
+
+    private List<MethodSpec> authenticationErrorOverrides() {
+        // An awsQueryCompatible service reports the query error code rather than the registered code, so check both.
+        if (!AwsErrorCode.isAuthenticationErrorCode(shapeModel.getErrorCode())
+            && !AwsErrorCode.isAuthenticationErrorCode(shapeModel.getQueryCompatibleErrorCode())) {
+            return emptyList();
+        }
+        // Every current model that declares an exception with an authentication error code uses it for a problem with a
+        // token in the request, not with the signing credentials. A future check of a modeled member (for example, a
+        // credentialsValid member) would replace "return false" with an expression on that member's getter.
+        MethodSpec isAuthenticationError =
+            MethodSpec.methodBuilder("isAuthenticationError")
+                      .addJavadoc("This modeled error reports a problem with a token in the request, such as an expired "
+                                  + "token passed as input, not with the credentials used to sign the request. The SDK "
+                                  + "therefore does not invalidate cached credentials or retry the request as an "
+                                  + "authentication error.\n\n"
+                                  + "@return false")
+                      .addAnnotation(Override.class)
+                      .addModifiers(PUBLIC)
+                      .returns(TypeName.BOOLEAN)
+                      .addStatement("return false")
+                      .build();
+        return Collections.singletonList(isAuthenticationError);
     }
 
     private List<TypeSpec> nestedModelClassTypes() {

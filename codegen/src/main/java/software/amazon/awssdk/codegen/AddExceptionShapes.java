@@ -55,6 +55,7 @@ final class AddExceptionShapes extends AddShapes implements IntermediateModelSha
 
                 exceptionShapeModel.setType(ShapeType.Exception.getValue());
                 exceptionShapeModel.setErrorCode(getErrorCode(errorShapeName));
+                exceptionShapeModel.setQueryCompatibleErrorCode(getQueryCompatibleErrorCode(shape.getError()));
                 exceptionShapeModel.setHttpStatusCode(getHttpStatusCode(errorShapeName));
                 exceptionShapeModel.withIsRetryable(shape.isRetryable());
                 exceptionShapeModel.withIsThrottling(shape.isThrottling());
@@ -81,6 +82,19 @@ final class AddExceptionShapes extends AddShapes implements IntermediateModelSha
         } else {
             return errorShapeName;
         }
+    }
+
+    /**
+     * For an awsQueryCompatible service, the client reports the error code from the x-amzn-query-error response header
+     * (see AwsJsonProtocolErrorUnmarshaller#getEffectiveErrorCode). The service sends the error trait code in that header,
+     * so return it even for protocols that ignore it when registering the exception.
+     */
+    private String getQueryCompatibleErrorCode(ErrorTrait errorTrait) {
+        boolean awsQueryCompatible = getServiceModel().getMetadata().getAwsQueryCompatible() != null;
+        if (awsQueryCompatible && errorTrait != null && !Utils.isNullOrEmpty(errorTrait.getCode())) {
+            return errorTrait.getCode();
+        }
+        return null;
     }
 
     private boolean isErrorCodeOverridden(ErrorTrait errorTrait) {

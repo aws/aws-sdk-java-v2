@@ -1,0 +1,95 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "query-compatible-service",
+    "jsonVersion": "1.0",
+    "protocol": "json",
+    "protocols": ["json"],
+    "serviceAbbreviation": "QueryCompatibleService",
+    "serviceFullName": "QueryCompatibleService",
+    "serviceId": "QueryCompatibleService",
+    "signatureVersion": "v4",
+    "targetPrefix": "QueryCompatibleService",
+    "uid": "query-compatible-service-2010-05-08",
+    "awsQueryCompatible": {}
+  },
+  "operations": {
+    "APostOperation": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "APostOperationRequest"
+      },
+      "errors": [
+        {
+          "shape": "InvalidInputException"
+        },
+        {
+          "shape": "ExpiredTokenException"
+        },
+        {
+          "shape": "QueryTokenExpired"
+        }
+      ],
+      "documentation": "<p>Performs a post operation and has no output</p>"
+    }
+  },
+  "shapes": {
+    "APostOperationRequest": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "InvalidInputException": {
+      "type": "structure",
+      "members": {
+        "message": {
+          "shape": "String"
+        }
+      },
+      "documentation": "<p>The input is invalid.</p>",
+      "error": {
+        "code": "InvalidInput",
+        "httpStatusCode": 400,
+        "senderFault": true
+      },
+      "exception": true
+    },
+    "ExpiredTokenException": {
+      "type": "structure",
+      "members": {
+        "message": {
+          "shape": "String"
+        }
+      },
+      "documentation": "<p>The provided token has expired.</p>",
+      "exception": true
+    },
+    "QueryTokenExpired": {
+      "type": "structure",
+      "members": {
+        "message": {
+          "shape": "String"
+        }
+      },
+      "documentation": "<p>The token passed as input has expired.</p>",
+      "error": {
+        "code": "ExpiredToken",
+        "httpStatusCode": 400,
+        "senderFault": true
+      },
+      "exception": true
+    },
+    "String": {
+      "type": "string"
+    }
+  },
+  "documentation": "A JSON service that is compatible with an earlier query protocol version"
+}

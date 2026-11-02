@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -48,6 +49,9 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.protocolquery.ProtocolQueryAsyncClient;
+import software.amazon.awssdk.services.protocolquery.ProtocolQueryClient;
+import software.amazon.awssdk.services.protocolquery.model.ExpiredTokenException;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm;
@@ -60,8 +64,10 @@ import software.amazon.awssdk.utils.StringInputStream;
  * Functional tests for how the SDK handles a service rejecting a request's credentials, and how it resolves credentials on
  * retries:
  * <ul>
- *     <li>An {@code ExpiredToken} or {@code ExpiredTokenException} rejection invalidates the provider's cached credentials, and the
- *     request is retried. The retry attempt resolves the credentials again, so it is signed with the refreshed credentials.</li>
+ *     <li>An {@code ExpiredToken} or {@code ExpiredTokenException} rejection that the service doesn't model invalidates the
+ *     provider's cached credentials, and the request is retried. The retry attempt resolves the credentials again, so it is signed with the refreshed credentials.</li>
+ *     <li>An {@code ExpiredToken} or {@code ExpiredTokenException} that the service models as an operation error (a modeled
+ *     exception) neither invalidates the credentials nor is retried.</li>
  *     <li>Every retry attempt resolves the credentials again, whatever the reason for the retry.</li>
  *     <li>Other errors, such as the authorization error {@code AccessDenied} or {@code InvalidToken}, neither invalidate the
  *     credentials nor are retried.</li>
@@ -367,7 +373,111 @@ public class AuthErrorInvalidationFunctionalTest {
         }
     }
 
+    /**
+     * The query service models {@code ExpiredTokenException} as an error of the operation, as STS does. A modeled
+     * exception reports a problem with the request rather than rejected credentials, in every retry mode.
+     */
+    @ParameterizedTest
+    @EnumSource(RetryMode.class)
+    public void modeledAuthError_doesNotInvalidateCredentials_andIsNotRetried(RetryMode mode) {
+        MockSyncHttpClient mockHttpClient = new MockSyncHttpClient();
+        TrackingCredentialsProvider credentialsProvider = TrackingCredentialsProvider.refreshedOnInvalidate();
+
+        try (ProtocolQueryClient client = querySyncClient(mockHttpClient, credentialsProvider, mode)) {
+            mockHttpClient.stubResponses(queryErrorResponse("ExpiredTokenException"), querySuccessResponse());
+
+            assertThatThrownBy(() -> client.allTypes(r -> { }))
+                .isInstanceOf(ExpiredTokenException.class)
+                .satisfies(e -> assertThat(((ExpiredTokenException) e).numAttempts()).isEqualTo(1));
+
+            assertThat(credentialsProvider.invalidateCallCount()).isZero();
+            assertThat(mockHttpClient.getRequests()).hasSize(1);
+            assertThat(accessKeysUsed(mockHttpClient.getRequests())).containsExactly("key-0");
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(RetryMode.class)
+    public void async_modeledAuthError_doesNotInvalidateCredentials_andIsNotRetried(RetryMode mode) {
+        MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
+        TrackingCredentialsProvider credentialsProvider = TrackingCredentialsProvider.refreshedOnInvalidate();
+
+        try (ProtocolQueryAsyncClient client = queryAsyncClient(mockHttpClient, credentialsProvider, mode)) {
+            mockHttpClient.stubResponses(queryErrorResponse("ExpiredTokenException"), querySuccessResponse());
+
+            assertThatThrownBy(() -> client.allTypes(r -> { }).join())
+                .isInstanceOf(CompletionException.class)
+                .hasCauseInstanceOf(ExpiredTokenException.class)
+                .satisfies(e -> assertThat(((ExpiredTokenException) e.getCause()).numAttempts()).isEqualTo(1));
+
+            assertThat(credentialsProvider.invalidateCallCount()).isZero();
+            assertThat(mockHttpClient.getRequests()).hasSize(1);
+            assertThat(accessKeysUsed(mockHttpClient.getRequests())).containsExactly("key-0");
+        } finally {
+            mockHttpClient.close();
+        }
+    }
+
+    /**
+     * The same query client still treats an auth error code that its model doesn't declare as rejected credentials.
+     */
+    @Test
+    public void query_unmodeledAuthError_invalidatesCredentials_andRetryUsesRefreshedCredentials() {
+        MockSyncHttpClient mockHttpClient = new MockSyncHttpClient();
+        TrackingCredentialsProvider credentialsProvider = TrackingCredentialsProvider.refreshedOnInvalidate();
+
+        try (ProtocolQueryClient client = querySyncClient(mockHttpClient, credentialsProvider, RetryMode.STANDARD)) {
+            mockHttpClient.stubResponses(queryErrorResponse("ExpiredToken"), querySuccessResponse());
+
+            client.allTypes(r -> { });
+
+            assertThat(credentialsProvider.invalidateCallCount()).isEqualTo(1);
+            assertThat(accessKeysUsed(mockHttpClient.getRequests())).containsExactly("key-0", "key-1");
+        }
+    }
+
+    @Test
+    public void async_query_unmodeledAuthError_invalidatesCredentials_andRetryUsesRefreshedCredentials() {
+        MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
+        TrackingCredentialsProvider credentialsProvider = TrackingCredentialsProvider.refreshedOnInvalidate();
+
+        try (ProtocolQueryAsyncClient client = queryAsyncClient(mockHttpClient, credentialsProvider, RetryMode.STANDARD)) {
+            mockHttpClient.stubResponses(queryErrorResponse("ExpiredToken"), querySuccessResponse());
+
+            client.allTypes(r -> { }).join();
+
+            assertThat(credentialsProvider.invalidateCallCount()).isEqualTo(1);
+            assertThat(accessKeysUsed(mockHttpClient.getRequests())).containsExactly("key-0", "key-1");
+        } finally {
+            mockHttpClient.close();
+        }
+    }
+
     // --- Helper methods ---
+
+    private static ProtocolQueryClient querySyncClient(MockSyncHttpClient httpClient,
+                                                       AwsCredentialsProvider credentialsProvider,
+                                                       RetryMode mode) {
+        return ProtocolQueryClient.builder()
+                                  .credentialsProvider(credentialsProvider)
+                                  .region(Region.US_EAST_1)
+                                  .endpointOverride(URI.create("http://localhost"))
+                                  .httpClient(httpClient)
+                                  .overrideConfiguration(o -> o.retryStrategy(mode))
+                                  .build();
+    }
+
+    private static ProtocolQueryAsyncClient queryAsyncClient(MockAsyncHttpClient httpClient,
+                                                             AwsCredentialsProvider credentialsProvider,
+                                                             RetryMode mode) {
+        return ProtocolQueryAsyncClient.builder()
+                                       .credentialsProvider(credentialsProvider)
+                                       .region(Region.US_EAST_1)
+                                       .endpointOverride(URI.create("http://localhost"))
+                                       .httpClient(httpClient)
+                                       .overrideConfiguration(o -> o.retryStrategy(mode))
+                                       .build();
+    }
 
     private static ProtocolRestJsonClient syncClient(MockSyncHttpClient httpClient, AwsCredentialsProvider credentialsProvider) {
         return ProtocolRestJsonClient.builder()
@@ -414,6 +524,32 @@ public class AuthErrorInvalidationFunctionalTest {
                                                                       String.valueOf(errorBody.length()))
                                                            .build())
                                   .responseBody(AbortableInputStream.create(new StringInputStream(errorBody)))
+                                  .build();
+    }
+
+    private static HttpExecuteResponse queryErrorResponse(String errorCode) {
+        String errorBody = "<ErrorResponse><Error><Type>Sender</Type><Code>" + errorCode + "</Code>"
+                           + "<Message>The request was rejected</Message></Error>"
+                           + "<RequestId>request-id</RequestId></ErrorResponse>";
+        return HttpExecuteResponse.builder()
+                                  .response(SdkHttpResponse.builder()
+                                                           .statusCode(400)
+                                                           .putHeader("content-length",
+                                                                      String.valueOf(errorBody.length()))
+                                                           .build())
+                                  .responseBody(AbortableInputStream.create(new StringInputStream(errorBody)))
+                                  .build();
+    }
+
+    private static HttpExecuteResponse querySuccessResponse() {
+        String body = "<AllTypesResponse><AllTypes/></AllTypesResponse>";
+        return HttpExecuteResponse.builder()
+                                  .response(SdkHttpResponse.builder()
+                                                           .statusCode(200)
+                                                           .putHeader("content-length",
+                                                                      String.valueOf(body.length()))
+                                                           .build())
+                                  .responseBody(AbortableInputStream.create(new StringInputStream(body)))
                                   .build();
     }
 
