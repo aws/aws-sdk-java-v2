@@ -22,14 +22,18 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.interceptor.DefaultFailedExecutionContext;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -106,25 +110,36 @@ public class ExecutionInterceptorChain {
     }
 
     public void afterTransmission(Context.AfterTransmission context, ExecutionAttributes executionAttributes) {
-        reverseForEach(i -> i.afterTransmission(context, executionAttributes));
+        reverseForEachWithResponseCleanup(context, i -> i.afterTransmission(context, executionAttributes));
     }
 
     public InterceptorContext modifyHttpResponse(InterceptorContext context,
                                                  ExecutionAttributes executionAttributes) {
         InterceptorContext result = context;
+        InputStream originalResponseBody = result.responseBody().orElse(null);
+        InputStream responseBody = originalResponseBody;
 
-        for (int i = interceptors.size() - 1; i >= 0; i--) {
-            SdkHttpResponse interceptorResult =
-                interceptors.get(i).modifyHttpResponse(result, executionAttributes);
-            InputStream response = interceptors.get(i).modifyHttpResponseContent(result, executionAttributes).orElse(null);
+        try {
+            for (int i = interceptors.size() - 1; i >= 0; i--) {
+                SdkHttpResponse interceptorResult =
+                    interceptors.get(i).modifyHttpResponse(result, executionAttributes);
+                InputStream interceptorResponseBody =
+                    interceptors.get(i).modifyHttpResponseContent(result, executionAttributes).orElse(null);
+                // The response stage falls back to the original body when no replacement is returned, so failure cleanup
+                // must do the same. An interceptor that replaces the body owns the previous body.
+                responseBody = interceptorResponseBody != null ? interceptorResponseBody : originalResponseBody;
 
-            if (interceptorResult != result.httpResponse() || response != result.responseBody().orElse(null)) {
-                validateInterceptorResult(result.httpResponse(), interceptorResult, interceptors.get(i), "modifyHttpResponse");
-                result = result.copy(r -> r.httpResponse(interceptorResult)
-                                           .responseBody(response));
+                if (interceptorResult != result.httpResponse() ||
+                    interceptorResponseBody != result.responseBody().orElse(null)) {
+                    validateInterceptorResult(result.httpResponse(), interceptorResult,
+                                              interceptors.get(i), "modifyHttpResponse");
+                    result = result.copy(r -> r.httpResponse(interceptorResult)
+                                               .responseBody(interceptorResponseBody));
+                }
             }
-
-
+        } catch (Throwable e) {
+            closeResponseBody(responseBody);
+            throw e;
         }
 
         return result;
@@ -133,23 +148,33 @@ public class ExecutionInterceptorChain {
     public InterceptorContext modifyAsyncHttpResponse(InterceptorContext context,
                                                       ExecutionAttributes executionAttributes) {
         InterceptorContext result = context;
+        Publisher<ByteBuffer> originalResponsePublisher = result.responsePublisher().orElse(null);
+        Publisher<ByteBuffer> responsePublisher = originalResponsePublisher;
 
-        for (int i = interceptors.size() - 1; i >= 0; i--) {
-            ExecutionInterceptor interceptor = interceptors.get(i);
+        try {
+            for (int i = interceptors.size() - 1; i >= 0; i--) {
+                ExecutionInterceptor interceptor = interceptors.get(i);
 
-            Publisher<ByteBuffer> newResponsePublisher =
-                interceptor.modifyAsyncHttpResponseContent(result, executionAttributes).orElse(null);
+                Publisher<ByteBuffer> newResponsePublisher =
+                    interceptor.modifyAsyncHttpResponseContent(result, executionAttributes).orElse(null);
+                // The response handler falls back to the original publisher when no replacement is returned, so failure
+                // cleanup must do the same. An interceptor that replaces the publisher owns the previous publisher.
+                responsePublisher = newResponsePublisher != null ? newResponsePublisher : originalResponsePublisher;
 
-            if (newResponsePublisher != result.responsePublisher().orElse(null)) {
-                result = result.copy(r -> r.responsePublisher(newResponsePublisher));
+                if (newResponsePublisher != result.responsePublisher().orElse(null)) {
+                    result = result.copy(r -> r.responsePublisher(newResponsePublisher));
+                }
             }
+        } catch (Throwable e) {
+            cancelResponsePublisher(responsePublisher);
+            throw e;
         }
 
         return result;
     }
 
     public void beforeUnmarshalling(Context.BeforeUnmarshalling context, ExecutionAttributes executionAttributes) {
-        reverseForEach(i -> i.beforeUnmarshalling(context, executionAttributes));
+        reverseForEachWithResponseCleanup(context, i -> i.beforeUnmarshalling(context, executionAttributes));
     }
 
     public void afterUnmarshalling(Context.AfterUnmarshalling context, ExecutionAttributes executionAttributes) {
@@ -171,7 +196,7 @@ public class ExecutionInterceptorChain {
     }
 
     public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
-        reverseForEach(i -> i.afterExecution(context, executionAttributes));
+        reverseForEachWithResponseCleanup(context, i -> i.afterExecution(context, executionAttributes));
     }
 
     public DefaultFailedExecutionContext modifyException(DefaultFailedExecutionContext context,
@@ -218,6 +243,62 @@ public class ExecutionInterceptorChain {
     private void reverseForEach(Consumer<ExecutionInterceptor> action) {
         for (int i = interceptors.size() - 1; i >= 0; i--) {
             action.accept(interceptors.get(i));
+        }
+    }
+
+    private void reverseForEachWithResponseCleanup(Context.AfterTransmission context,
+                                                   Consumer<ExecutionInterceptor> action) {
+        try {
+            reverseForEach(action);
+        } catch (Throwable e) {
+            closeResponseBody(context.responseBody().orElse(null));
+            throw e;
+        }
+    }
+
+    private void closeResponseBody(InputStream responseBody) {
+        // An interceptor failure can prevent response-body ownership from reaching the next stage or caller.
+        if (responseBody instanceof Abortable) {
+            try {
+                ((Abortable) responseBody).abort();
+            } catch (Throwable e) {
+                LOG.debug(() -> "Failed to abort the response body after an interceptor failure.", e);
+            }
+        }
+        IoUtils.closeQuietlyV2(responseBody, LOG);
+    }
+
+    private void cancelResponsePublisher(Publisher<ByteBuffer> responsePublisher) {
+        if (responsePublisher == null) {
+            return;
+        }
+
+        try {
+            // modifyAsyncHttpResponse runs before the response transformer subscribes, so this is the first subscription.
+            responsePublisher.subscribe(new CancellingSubscriber());
+        } catch (Throwable e) {
+            LOG.debug(() -> "Failed to cancel the response publisher after an interceptor failure.", e);
+        }
+    }
+
+    // No shared SDK subscriber expresses cancel-on-subscribe without first requesting response data.
+    // This subscriber has no demand or signal-handling behavior for the reactive-streams TCK to exercise.
+    private static final class CancellingSubscriber implements Subscriber<ByteBuffer> {
+        @Override
+        public void onSubscribe(Subscription subscription) {
+            subscription.cancel();
+        }
+
+        @Override
+        public void onNext(ByteBuffer byteBuffer) {
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+        }
+
+        @Override
+        public void onComplete() {
         }
     }
 }

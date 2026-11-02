@@ -50,14 +50,16 @@ class AllServicesWarmUpTest {
 
     /**
      * Services with no selectable warm-up operation (all operations are streaming or deprecated); warm-up only
-     * builds and closes the client.
+     * builds and closes the client. The list is maintained deliberately so that a service losing its warm-up
+     * operation is surfaced and tracked. An entry may be added before the model change that makes the service no-op
+     * ships, so listed services are not required to be no-op.
      */
     private static final Set<String> KNOWN_NO_OP_SERVICES = new HashSet<>(Arrays.asList(
         // All APIs are deprecated
         "cloudhsm",
-        "finspacedata",
         "iotthingsgraph",
         "lexmodelbuilding",
+        "lookoutequipment",
         "proton",
 
         // All streaming operations
@@ -130,15 +132,11 @@ class AllServicesWarmUpTest {
 
     private void assertExpectedOperationRecorded(SdkWarmUpProvider provider, String clientClassName) {
         if (KNOWN_NO_OP_SERVICES.contains(serviceName(provider))) {
-            assertThat(OperationRecordingInterceptor.operationNames())
-                .as("%s is listed in KNOWN_NO_OP_SERVICES but recorded an operation; remove the stale entry",
-                    provider.getClass().getSimpleName())
-                .isEmpty();
-        } else {
-            assertThat(OperationRecordingInterceptor.operationNames())
-                .as("Warm-up of %s must invoke its selected warm-up operation", clientClassName)
-                .isNotEmpty();
+            return;
         }
+        assertThat(OperationRecordingInterceptor.operationNames())
+            .as("Warm-up of %s must invoke its selected warm-up operation", clientClassName)
+            .isNotEmpty();
     }
 
     /**

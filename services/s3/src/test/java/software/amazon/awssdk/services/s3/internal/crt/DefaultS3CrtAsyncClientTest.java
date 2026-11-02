@@ -63,6 +63,20 @@ class DefaultS3CrtAsyncClientTest {
     }
 
     @Test
+    void presignedUrlExtension_crtClient_throwsUnsupportedOperationException() {
+        try (S3AsyncClient s3AsyncClient = S3AsyncClient.crtBuilder()
+                                                        .region(Region.US_EAST_1)
+                                                        .credentialsProvider(StaticCredentialsProvider.create(
+                                                            AwsBasicCredentials.create("key", "secret")))
+                                                        .build()) {
+            assertThatThrownBy(s3AsyncClient::presignedUrlExtension)
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("Presigned URL downloads are not supported by the AWS CRT-based S3 client")
+                .hasMessageContaining("S3AsyncClient.builder().multipartEnabled(true)");
+        }
+    }
+
+    @Test
     void clientContextParamsSetOnBuilder_propagatedToInterceptors() {
         AtomicReference<AttributeMap> clientContexParams = new AtomicReference<>();
 

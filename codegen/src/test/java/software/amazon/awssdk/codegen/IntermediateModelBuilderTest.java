@@ -31,6 +31,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
+import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 
@@ -107,6 +108,22 @@ public class IntermediateModelBuilderTest {
             .build();
 
         assertNotNull(testModel.getMetadata().getAwsQueryCompatible());
+    }
+
+    @Test
+    public void operationNameDiffersFromKey_paginatedOperationIsMarkedPaginated() {
+        IntermediateModel testModel = new IntermediateModelBuilder(
+            C2jModels.builder()
+                     .serviceModel(serviceModel("operation-name-differs-from-key/service-2.json"))
+                     .customizationConfig(CustomizationConfig.create())
+                     .paginatorsModel(ModelLoaderUtils.loadModel(
+                         Paginators.class, resource("operation-name-differs-from-key/paginators.json")))
+                     .build())
+            .build();
+
+        assertThat(testModel.getPaginators()).containsOnlyKeys("ListThings");
+        assertTrue(testModel.getOperation("ListThings").isPaginated());
+        assertFalse(testModel.getOperation("GetThing").isPaginated());
     }
 
     /**

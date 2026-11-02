@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -110,6 +111,33 @@ class DefaultFileDownloadTest {
     }
 
     @Test
+    void pause_resumedDownloadBeforeWritingToFile_shouldReturnResumedToken() throws IOException {
+        File destination = destinationWithContent(1000);
+        // The file was touched while the download was paused, so the token no longer matches it and resuming restarts.
+        ResumableFileDownload resumedDownload =
+            resumedDownloadWithCompletedParts(destination, Instant.ofEpochMilli(destination.lastModified()).minusSeconds(5));
+        DefaultFileDownload fileDownload = resumedFileDownload(resumedDownload);
+
+        ResumableFileDownload pause = fileDownload.pause();
+
+        assertThat(pause).isSameAs(resumedDownload);
+    }
+
+    @Test
+    void pause_resumedDownloadAfterWritingToFile_shouldDescribeTheFile() throws IOException {
+        File destination = destinationWithContent(1000);
+        ResumableFileDownload resumedDownload =
+            resumedDownloadWithCompletedParts(destination, Instant.ofEpochMilli(destination.lastModified()));
+        DefaultFileDownload fileDownload = resumedFileDownload(resumedDownload);
+        Files.write(destination.toPath(), new byte[1500]);
+
+        ResumableFileDownload pause = fileDownload.pause();
+
+        assertThat(pause.bytesTransferred()).isEqualTo(1500L);
+        assertThat(pause.completedParts()).isEmpty();
+    }
+
+    @Test
     void pauseTwice_shouldReturnTheSame() {
         CompletableFuture<CompletedFileDownload> future =
             new CompletableFuture<>();
@@ -156,6 +184,32 @@ class DefaultFileDownloadTest {
 
         progressFuture.complete(transferProgress);
         assertThat(fileDownload.progress().snapshot()).isEqualTo(snapshot);
+    }
+
+    private static File destinationWithContent(int length) throws IOException {
+        File destination = File.createTempFile("test", UUID.randomUUID().toString());
+        destination.deleteOnExit();
+        Files.write(destination.toPath(), new byte[length]);
+        return destination;
+    }
+
+    private static ResumableFileDownload resumedDownloadWithCompletedParts(File destination, Instant fileLastModified) {
+        return ResumableFileDownload.builder()
+                                    .downloadFileRequest(r -> r.getObjectRequest(g -> g.bucket("BUCKET").key("KEY"))
+                                                               .destination(destination))
+                                    .bytesTransferred(destination.length())
+                                    .fileLastModified(fileLastModified)
+                                    .completedParts(Arrays.asList(1, 3))
+                                    .build();
+    }
+
+    private static DefaultFileDownload resumedFileDownload(ResumableFileDownload resumedDownload) {
+        TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
+        Mockito.when(transferProgress.snapshot()).thenReturn(DefaultTransferProgressSnapshot.builder()
+                                                                                            .transferredBytes(0L)
+                                                                                            .build());
+        return new DefaultFileDownload(new CompletableFuture<>(), transferProgress, resumedDownload::downloadFileRequest,
+                                       resumedDownload);
     }
 
     private DownloadFileRequest getDownloadFileRequest() {

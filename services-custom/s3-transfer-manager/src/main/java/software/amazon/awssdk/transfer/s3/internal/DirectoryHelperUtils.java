@@ -33,6 +33,21 @@ final class DirectoryHelperUtils {
      * If the prefix is not the full name of the folder, the folder name will be truncated. For example: given a request
      * with prefix = "top-" , delimiter = "/" and key = "top-level/sub-folder/1.txt", the normalized key should be
      * "level/sub-folder/1.txt"
+     * <p>
+     * The delimiter check applies to the whole key, not to the part after the prefix. Consequences:
+     * <ul>
+     *     <li>With a prefix that doesn't contain the delimiter, a key with no delimiter keeps its full name. For example,
+     *     prefix = "top-" and key = "top-file.txt" stays "top-file.txt".</li>
+     *     <li>A prefix that contains the delimiter is stripped from every key. For example, prefix = "data/top-" and
+     *     key = "data/top-file.txt" becomes "file.txt".</li>
+     *     <li>With a prefix that doesn't end with the delimiter, two keys can normalize to the same value. For example, with
+     *     prefix = "abc", "abc/def/x.txt" and "abcdef/x.txt" both become "def/x.txt", and "abc/abcd" and "abcd" both become
+     *     "abcd".</li>
+     *     <li>When the prefix ends with the delimiter, no extra leading delimiter is dropped. For example, prefix = "p/" and
+     *     key = "p//x.txt" becomes "/x.txt", which resolves outside the destination directory.</li>
+     * </ul>
+     * The public behavior is documented in
+     * {@link software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest.Builder#listObjectsV2RequestTransformer}.
      */
     static String normalizeKey(String prefix,
                                       String key,

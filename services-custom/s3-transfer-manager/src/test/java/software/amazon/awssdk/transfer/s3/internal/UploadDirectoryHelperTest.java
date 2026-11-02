@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.jimfs.Configuration;
@@ -63,6 +65,7 @@ import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgr
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
+import software.amazon.awssdk.transfer.s3.model.FailedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
@@ -460,6 +463,181 @@ public class UploadDirectoryHelperTest {
                                  .completionFuture();
 
         assertThatThrownBy(uploadFuture::join).getCause().hasCause(exception);
+    }
+
+    @ParameterizedTest
+    @MethodSource("fileSystems")
+    void uploadDirectory_delimiterInFileName_shouldUploadFirstFileAndReportLaterOneAsFailed(FileSystem fileSystem)
+        throws Exception {
+        Path source = createDuplicateKeyDirectory(fileSystem);
+        Path nested = source.resolve("a").resolve("b");
+        Path flat = source.resolve("a-b");
+        ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
+        when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
+
+        CompletedDirectoryUpload result =
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .source(source)
+                                                                        .bucket("bucket")
+                                                                        .s3Delimiter("-")
+                                                                        .s3Prefix("p")
+                                                                        .build())
+                                 .completionFuture()
+                                 .get(5, TimeUnit.SECONDS);
+
+        List<UploadFileRequest> uploaded = requestArgumentCaptor.getAllValues();
+        assertThat(uploaded).hasSize(1);
+        assertThat(uploaded.get(0).putObjectRequest().key()).isEqualTo("p-a-b");
+        Path first = uploaded.get(0).source();
+        assertThat(first).isIn(nested, flat);
+        Path later = first.equals(nested) ? flat : nested;
+
+        assertThat(result.failedTransfers()).hasSize(1);
+        FailedFileUpload failed = result.failedTransfers().iterator().next();
+        assertThat(failed.request().source()).isEqualTo(later);
+        assertThat(failed.request().putObjectRequest().bucket()).isEqualTo("bucket");
+        assertThat(failed.request().putObjectRequest().key()).isEqualTo("p-a-b");
+        assertThat(failed.exception())
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Skipped uploading " + later)
+            .hasMessageContaining(first + " is already being uploaded to key p-a-b")
+            .hasMessageContaining("\"-\"")
+            .hasMessageContaining("would overwrite that object");
+    }
+
+    @ParameterizedTest
+    @MethodSource("fileSystems")
+    void uploadDirectory_defaultDelimiter_shouldUploadEveryFileWithoutFailures(FileSystem fileSystem) throws Exception {
+        Path source = createDuplicateKeyDirectory(fileSystem);
+        ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
+        when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
+
+        CompletedDirectoryUpload result =
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .source(source)
+                                                                        .bucket("bucket")
+                                                                        .s3Prefix("p")
+                                                                        .build())
+                                 .completionFuture()
+                                 .get(5, TimeUnit.SECONDS);
+
+        assertThat(result.failedTransfers()).isEmpty();
+        assertThat(requestArgumentCaptor.getAllValues()).extracting(r -> r.putObjectRequest().key())
+                                                        .containsExactlyInAnyOrder("p/a/b", "p/a-b");
+    }
+
+    @ParameterizedTest
+    @MethodSource("fileSystems")
+    void delimiterCanOccurInFileName_defaultOrSeparator_shouldBeFalse(FileSystem fileSystem) {
+        assertThat(UploadDirectoryHelper.delimiterCanOccurInFileName("/", fileSystem)).isFalse();
+        assertThat(UploadDirectoryHelper.delimiterCanOccurInFileName(fileSystem.getSeparator(), fileSystem)).isFalse();
+        assertThat(UploadDirectoryHelper.delimiterCanOccurInFileName("-", fileSystem)).isTrue();
+    }
+
+    @Test
+    void delimiterCanOccurInFileName_backslash_shouldDependOnSeparator() throws IOException {
+        try (FileSystem unix = Jimfs.newFileSystem(Configuration.unix());
+             FileSystem windows = Jimfs.newFileSystem(Configuration.windows())) {
+            assertThat(UploadDirectoryHelper.delimiterCanOccurInFileName("\\", unix)).isTrue();
+            assertThat(UploadDirectoryHelper.delimiterCanOccurInFileName("\\", windows)).isFalse();
+        }
+    }
+
+    @Test
+    void uploadDirectory_transformerGivesDuplicateDistinctKey_shouldUploadBothWithoutFailures() throws Exception {
+        Path source = createDuplicateKeyDirectory(jimfs);
+        ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
+        when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
+
+        Consumer<UploadFileRequest.Builder> renameFlatFile = r -> {
+            UploadFileRequest current = r.build();
+            if (current.source().getFileName().toString().equals("a-b")) {
+                r.putObjectRequest(current.putObjectRequest().toBuilder().key("p-a-b-renamed").build());
+            }
+        };
+
+        CompletedDirectoryUpload result =
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .source(source)
+                                                                        .bucket("bucket")
+                                                                        .s3Delimiter("-")
+                                                                        .s3Prefix("p")
+                                                                        .uploadFileRequestTransformer(renameFlatFile)
+                                                                        .build())
+                                 .completionFuture()
+                                 .get(5, TimeUnit.SECONDS);
+
+        assertThat(result.failedTransfers()).isEmpty();
+        assertThat(requestArgumentCaptor.getAllValues()).extracting(r -> r.putObjectRequest().key())
+                                                        .containsExactlyInAnyOrder("p-a-b", "p-a-b-renamed");
+    }
+
+    @Test
+    void uploadDirectory_transformerSendsDuplicateKeyToOtherBucket_shouldUploadBothWithoutFailures() throws Exception {
+        Path source = createDuplicateKeyDirectory(jimfs);
+        ArgumentCaptor<UploadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
+        when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
+
+        Consumer<UploadFileRequest.Builder> routeFlatFile = r -> {
+            UploadFileRequest current = r.build();
+            if (current.source().getFileName().toString().equals("a-b")) {
+                r.putObjectRequest(current.putObjectRequest().toBuilder().bucket("other-bucket").build());
+            }
+        };
+
+        CompletedDirectoryUpload result =
+            uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                        .source(source)
+                                                                        .bucket("bucket")
+                                                                        .s3Delimiter("-")
+                                                                        .s3Prefix("p")
+                                                                        .uploadFileRequestTransformer(routeFlatFile)
+                                                                        .build())
+                                 .completionFuture()
+                                 .get(5, TimeUnit.SECONDS);
+
+        assertThat(result.failedTransfers()).isEmpty();
+        assertThat(requestArgumentCaptor.getAllValues())
+            .extracting(r -> r.putObjectRequest().bucket() + "/" + r.putObjectRequest().key())
+            .containsExactlyInAnyOrder("bucket/p-a-b", "other-bucket/p-a-b");
+    }
+
+    @Test
+    void uploadDirectory_manyDuplicateKeys_shouldReportEachWithoutStackOverflow() throws Exception {
+        int duplicates = 10_000;
+        Path source = jimfs.getPath("many");
+        Path nested = Files.createDirectories(source.resolve("a"));
+        for (int i = 0; i < duplicates; i++) {
+            Files.createFile(nested.resolve(String.valueOf(i)));
+            Files.createFile(source.resolve("a-" + i));
+        }
+        when(singleUploadFunction.apply(any(UploadFileRequest.class))).thenReturn(completedUpload());
+        UploadDirectoryHelper helper =
+            new UploadDirectoryHelper(TransferManagerConfiguration.builder().transferDirectoryMaxConcurrency(1).build(),
+                                      singleUploadFunction);
+
+        CompletedDirectoryUpload result =
+            helper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                         .source(source)
+                                                         .bucket("bucket")
+                                                         .s3Delimiter("-")
+                                                         .build())
+                  .completionFuture()
+                  .get(60, TimeUnit.SECONDS);
+
+        assertThat(result.failedTransfers()).hasSize(duplicates);
+        verify(singleUploadFunction, times(duplicates)).apply(any(UploadFileRequest.class));
+    }
+
+    /**
+     * Creates {@code dup/a/b} and {@code dup/a-b}, which map to the same key with the delimiter {@code "-"}.
+     */
+    private static Path createDuplicateKeyDirectory(FileSystem fileSystem) throws IOException {
+        Path source = fileSystem.getPath("dup");
+        Files.createDirectories(source.resolve("a"));
+        Files.write(source.resolve("a").resolve("b"), "nested".getBytes(StandardCharsets.UTF_8));
+        Files.write(source.resolve("a-b"), "flat".getBytes(StandardCharsets.UTF_8));
+        return source;
     }
 
     private DefaultFileUpload completedUpload() {
