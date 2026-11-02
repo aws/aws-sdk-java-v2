@@ -34,7 +34,6 @@ import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.mapper.dynamodb.pojos.SubClass;
@@ -48,7 +47,7 @@ public class StandardModelFactoriesV1Test {
         .withConversionSchema(ConversionSchemas.V1)
         .build();
 
-    private static final DynamoDBMapperModelFactory factory = StandardModelFactories.of(S3Link.Factory.of(null));
+    private static final DynamoDBMapperModelFactory factory = StandardModelFactories.of();
     private static final DynamoDBMapperModelFactory.TableFactory models = factory.getTableFactory(CONFIG);
 
     protected <T> AttributeValue convert(Class<T> clazz, Method getter, Object value) {
@@ -308,18 +307,6 @@ public class StandardModelFactoriesV1Test {
             Assert.fail("Expected DynamoDBMappingException");
         } catch (DynamoDBMappingException e) {
         }
-    }
-
-    @Test
-    public void testS3Link() {
-        S3ClientCache cache = new S3ClientCache((AWSCredentialsProvider) null);
-        S3Link link = new S3Link(cache, "bucket", "key");
-
-        assertEquals("{\"s3\":{"
-                     + "\"bucket\":\"bucket\","
-                     + "\"key\":\"key\","
-                     + "\"region\":null}}",
-                convert("getS3Link", link).s());
     }
 
     protected AttributeValue convert(String getter, Object value) {

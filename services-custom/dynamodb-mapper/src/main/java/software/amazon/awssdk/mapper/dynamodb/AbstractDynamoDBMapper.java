@@ -21,7 +21,6 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper.FailedBatch;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-import com.amazonaws.services.s3.model.Region;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -316,26 +315,6 @@ public class AbstractDynamoDBMapper implements IDynamoDBMapper {
 
     @Override
     public <T> int count(Class<T> clazz, DynamoDBQueryExpression<T> queryExpression, DynamoDBMapperConfig config) {
-        throw new UnsupportedOperationException("operation not supported in " + getClass());
-    }
-
-    @Override
-    public S3ClientCache getS3ClientCache() {
-        throw new UnsupportedOperationException("operation not supported in " + getClass());
-    }
-
-    @Override
-    public S3Link createS3Link(String bucketName, String key) {
-        return createS3Link((Region)null, bucketName, key);
-    }
-
-    @Override
-    public S3Link createS3Link(Region s3region, String bucketName, String key) {
-        throw new UnsupportedOperationException("operation not supported in " + getClass());
-    }
-
-    @Override
-    public S3Link createS3Link(String s3region, String bucketName, String key) {
         throw new UnsupportedOperationException("operation not supported in " + getClass());
     }
 

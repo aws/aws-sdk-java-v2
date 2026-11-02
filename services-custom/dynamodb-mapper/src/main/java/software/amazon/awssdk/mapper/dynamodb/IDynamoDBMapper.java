@@ -24,8 +24,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-import com.amazonaws.services.s3.model.Region;
-
 import java.util.List;
 import java.util.Map;
 
@@ -231,7 +229,7 @@ public interface IDynamoDBMapper {
      * </p>
      * <p>
      * <b>This method supports versioning annotations, but not in conjunction with condition expressions. It throws
-     * {@link com.amazonaws.SdkClientException} exception if class of any input object is annotated with
+     * {@link software.amazon.awssdk.core.exception.SdkClientException} exception if class of any input object is annotated with
      * {@link DynamoDBVersionAttribute} or {@link DynamoDBVersioned} and a condition expression is also present</b>
      * </p>
      * <p>
@@ -256,7 +254,7 @@ public interface IDynamoDBMapper {
      * </p>
      * <p>
      * <b>This method supports versioning annotations, but not in conjunction with condition expressions. It throws
-     * {@link com.amazonaws.SdkClientException} exception if class of any input object is annotated with
+     * {@link software.amazon.awssdk.core.exception.SdkClientException} exception if class of any input object is annotated with
      * {@link DynamoDBVersionAttribute} or {@link DynamoDBVersioned} and a condition expression is also present</b>
      * </p>
      * <p>
@@ -726,39 +724,6 @@ public interface IDynamoDBMapper {
      * @return The count of matching items, without returning any of the actual item data.
      */
     <T> int count(Class<T> clazz, DynamoDBQueryExpression<T> queryExpression, DynamoDBMapperConfig config);
-
-    /**
-     * Returns the underlying {@link S3ClientCache} for accessing S3.
-     */
-    S3ClientCache getS3ClientCache();
-
-    /**
-     * Creates an S3Link with the specified bucket name and key using the default S3 region. This
-     * method requires the mapper to have been initialized with the necessary credentials for
-     * accessing S3.
-     *
-     * @throws IllegalStateException
-     *             if the mapper has not been constructed with the necessary S3 AWS credentials.
-     */
-    S3Link createS3Link(String bucketName, String key);
-
-    /**
-     * Creates an S3Link with the specified region, bucket name and key. This method requires the
-     * mapper to have been initialized with the necessary credentials for accessing S3.
-     *
-     * @throws IllegalStateException
-     *             if the mapper has not been constructed with the necessary S3 AWS credentials.
-     */
-    S3Link createS3Link(Region s3region, String bucketName, String key);
-
-    /**
-     * Creates an S3Link with the specified region, bucket name and key. This method requires the
-     * mapper to have been initialized with the necessary credentials for accessing S3.
-     *
-     * @throws IllegalStateException
-     *             if the mapper has not been constructed with the necessary S3 AWS credentials.
-     */
-    S3Link createS3Link(String s3region, String bucketName, String key);
 
     /**
      * Parses the given POJO class and returns the {@link CreateTableRequest} for the DynamoDB table it

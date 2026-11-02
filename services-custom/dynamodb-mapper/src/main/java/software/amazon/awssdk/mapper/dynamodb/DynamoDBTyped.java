@@ -47,7 +47,6 @@ import java.lang.annotation.Target;
  *     <li>{@link java.util.Locale}</li>
  *     <li>{@link java.util.TimeZone}</li>
  *     <li>{@link java.util.UUID}</li>
- *     <li>{@link S3Link}</li>
  * </ul>
  * <p>Number/{@code N} types,</p>
  * <ul>

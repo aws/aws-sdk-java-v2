@@ -21,7 +21,6 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverted;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTyped;
 import software.amazon.awssdk.mapper.dynamodb.RandomUUIDConverter;
-import software.amazon.awssdk.mapper.dynamodb.S3Link;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -175,7 +174,4 @@ public class TestClass {
 
     public SubClass getObject() { return null; }
     public void setObject(SubClass c) { }
-
-    public S3Link getS3Link() { return null; }
-    public void setS3Link(S3Link link) { }
 }

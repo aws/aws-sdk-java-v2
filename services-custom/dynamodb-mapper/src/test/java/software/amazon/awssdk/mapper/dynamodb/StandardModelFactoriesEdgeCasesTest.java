@@ -48,7 +48,7 @@ public class StandardModelFactoriesEdgeCasesTest {
         .withConversionSchema(ConversionSchemas.V2)
         .build();
 
-    private static final DynamoDBMapperModelFactory factory = StandardModelFactories.of(S3Link.Factory.of(null));
+    private static final DynamoDBMapperModelFactory factory = StandardModelFactories.of();
     private static final DynamoDBMapperModelFactory.TableFactory v1Models = factory.getTableFactory(V1_CONFIG);
     private static final DynamoDBMapperModelFactory.TableFactory v2Models = factory.getTableFactory(V2_CONFIG);
 

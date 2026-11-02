@@ -48,7 +48,6 @@ import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.NumberToNumbe
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ObjectSetToStringSetMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ObjectToMapMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ObjectToStringMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.S3LinkToStringMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.StringSetToStringSetMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.StringToStringMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.UUIDSetToStringSetMarshaller;
@@ -81,7 +80,6 @@ import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.MapUnmarsha
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.NullableUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ObjectSetUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ObjectUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.S3LinkUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ShortSetUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ShortUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.StringSetUnmarshaller;
@@ -267,13 +265,7 @@ public final class ConversionSchemas {
 
         @Override
         public ItemConverter getConverter(Dependencies dependencies) {
-
-            S3ClientCache s3cc = dependencies.get(S3ClientCache.class);
-
-            return new StandardItemConverter(
-                    marshallers,
-                    unmarshallers,
-                    s3cc);
+            return new StandardItemConverter(marshallers, unmarshallers);
         }
 
         @Override
@@ -287,16 +279,13 @@ public final class ConversionSchemas {
 
         private final MarshallerSet marshallerSet;
         private final UnmarshallerSet unmarshallerSet;
-        private final S3ClientCache s3cc;
 
         public StandardItemConverter(
                 MarshallerSet marshallerSet,
-                UnmarshallerSet unmarshallerSet,
-                S3ClientCache s3cc) {
+                UnmarshallerSet unmarshallerSet) {
 
             this.marshallerSet = marshallerSet;
             this.unmarshallerSet = unmarshallerSet;
-            this.s3cc = s3cc;
         }
 
         @Override
@@ -539,11 +528,6 @@ public final class ConversionSchemas {
                 Type type,
                 ArgumentUnmarshaller unmarshaller) {
 
-            // Inject our s3 client cache if it's an S3LinkUnmarshaller.
-            if (unmarshaller instanceof S3LinkUnmarshaller) {
-                return new S3LinkUnmarshaller(s3cc);
-            }
-
             // Inject an appropriate member-type unmarshaller if it's a list,
             // object-set, or map unmarshaller.
             if (unmarshaller instanceof ObjectSetUnmarshaller) {
@@ -726,7 +710,6 @@ public final class ConversionSchemas {
             addStandardNumberMarshallers(list);
             addStandardStringMarshallers(list);
             addStandardBinaryMarshallers(list);
-            addStandardS3LinkMarshallers(list);
 
             // Add marshallers for the new list and map types.
             list.add(Pair.of(List.class, CollectionToListMarshaller.instance()));
@@ -769,7 +752,6 @@ public final class ConversionSchemas {
             addStandardNumberMarshallers(list);
             addStandardStringMarshallers(list);
             addStandardBinaryMarshallers(list);
-            addStandardS3LinkMarshallers(list);
 
             // Add marshallers for the new list and map types.
             list.add(Pair.of(List.class, CollectionToListMarshaller.instance()));
@@ -810,7 +792,6 @@ public final class ConversionSchemas {
             addStandardNumberMarshallers(list);
             addStandardStringMarshallers(list);
             addStandardBinaryMarshallers(list);
-            addStandardS3LinkMarshallers(list);
 
             return list;
         }
@@ -897,13 +878,6 @@ public final class ConversionSchemas {
                 ByteBufferToBinaryMarshaller.instance()));
         list.add(Pair.of(byte[].class,
                 ByteArrayToBinaryMarshaller.instance()));
-    }
-
-    private static void addStandardS3LinkMarshallers(
-            List<Pair<ArgumentMarshaller>> list) {
-
-        list.add(Pair.of(S3Link.class,
-                S3LinkToStringMarshaller.instance()));
     }
 
     private static void addStandardDateSetMarshallers(
@@ -1096,7 +1070,6 @@ public final class ConversionSchemas {
             list.add(Pair.of(byte[].class,
                     ByteArrayUnmarshaller.instance()));
 
-            list.add(Pair.of(S3Link.class, S3LinkUnmarshaller.instance()));
             list.add(Pair.of(UUID.class, UUIDUnmarshaller.instance()));
             list.add(Pair.of(String.class, StringUnmarshaller.instance()));
 
@@ -1432,8 +1405,8 @@ public final class ConversionSchemas {
         private final ItemConverter converter;
         private final boolean customSchema;
 
-        ItemConverterRuleFactory(DynamoDBMapperConfig config, S3Link.Factory s3Links, RuleFactory<V> typeConverters) {
-            ConversionSchema.Dependencies depends = new ConversionSchema.Dependencies().with(S3ClientCache.class, s3Links.getS3ClientCache());
+        ItemConverterRuleFactory(DynamoDBMapperConfig config, RuleFactory<V> typeConverters) {
+            ConversionSchema.Dependencies depends = new ConversionSchema.Dependencies();
             ConversionSchema schema = config.getConversionSchema();
 
             this.customSchema = (schema != V1 && schema != V2_COMPATIBLE && schema != V2);

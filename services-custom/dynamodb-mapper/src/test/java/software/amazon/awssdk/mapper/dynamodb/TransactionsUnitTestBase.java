@@ -29,7 +29,7 @@ import static org.junit.Assert.fail;
 public class TransactionsUnitTestBase extends DynamoDBUnitTestBase {
 
     protected static DynamoDBMapper dynamoMapper;
-    protected static final DynamoDBMapperModelFactory factory = StandardModelFactories.of(S3Link.Factory.of(null));
+    protected static final DynamoDBMapperModelFactory factory = StandardModelFactories.of();
     protected static final DynamoDBMapperModelFactory.TableFactory models = factory.getTableFactory(DynamoDBMapperConfig.DEFAULT);
 
     @SuppressWarnings("unchecked")

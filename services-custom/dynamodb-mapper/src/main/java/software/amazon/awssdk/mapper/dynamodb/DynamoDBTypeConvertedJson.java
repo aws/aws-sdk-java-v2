@@ -20,16 +20,19 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
+import software.amazon.awssdk.mapper.dynamodb.internal.MapperJsonUtils;
 
 /**
  * A simple JSON converter that uses the Jackson JSON processor.
  *
  * <p>It shares all limitations of that library. For more information about
  * Jackson, see: http://wiki.fasterxml.com/JacksonHome</p>
+ *
+ * <p>Jackson is an optional dependency of the mapper. To use this annotation,
+ * add {@code com.fasterxml.jackson.core:jackson-databind} to your application's
+ * dependencies. Without it, building the table model for a class that uses this
+ * annotation fails with a {@link DynamoDBMappingException}.</p>
  *
  * {@snippet :
  * @DynamoDBTypeConvertedJson
@@ -74,17 +77,23 @@ public @interface DynamoDBTypeConvertedJson {
      * JSON type converter.
      */
     final class Converter<T> implements DynamoDBTypeConverter<String,T> {
-        private static final ObjectMapper mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         private final Class<T> targetType;
 
         public Converter(Class<T> targetType, DynamoDBTypeConvertedJson annotation) {
+            // Fail while the table model is built, with a clear message, instead of a
+            // NoClassDefFoundError on the first read or write.
+            if (!MapperJsonUtils.isJacksonAvailable()) {
+                throw new DynamoDBMappingException(
+                    "@DynamoDBTypeConvertedJson requires Jackson, which is an optional dependency of the mapper. "
+                    + "Add com.fasterxml.jackson.core:jackson-databind to the classpath to use it.");
+            }
             this.targetType = annotation.targetType() == void.class ? targetType : (Class<T>)annotation.targetType();
         }
 
         @Override
         public final String convert(final T object) {
             try {
-                return mapper.writeValueAsString(object);
+                return MapperJsonUtils.writeValueAsString(object);
             } catch (final Exception e) {
                 throw new DynamoDBMappingException("Unable to write object to JSON", e);
             }
@@ -93,7 +102,7 @@ public @interface DynamoDBTypeConvertedJson {
         @Override
         public final T unconvert(final String object) {
             try {
-                return mapper.readValue(object, targetType);
+                return MapperJsonUtils.readValue(object, targetType);
             } catch (final Exception e) {
                 throw new DynamoDBMappingException("Unable to read JSON string", e);
             }

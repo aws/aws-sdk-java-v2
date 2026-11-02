@@ -20,13 +20,12 @@ import static org.junit.Assert.assertEquals;
 import java.lang.reflect.Method;
 import org.junit.Test;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class UnmarshallerTest extends StandardModelFactoriesV2UnconvertTest {
 
     private static final ItemConverter CONVERTER = CONFIG.getConversionSchema().getConverter(
-        new ConversionSchema.Dependencies().with(S3ClientCache.class, new S3ClientCache((AWSCredentialsProvider)null)));
+        new ConversionSchema.Dependencies());
 
     @Override
     protected <T> Object unconvert(Class<T> clazz, Method getter, Method setter, AttributeValue value) {

@@ -36,13 +36,11 @@ import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.mapper.dynamodb.pojos.SubClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.UnannotatedSubClass;
-import com.amazonaws.services.s3.model.Region;
 
 public class StandardModelFactoriesV2UnconvertTest {
 
@@ -51,7 +49,7 @@ public class StandardModelFactoriesV2UnconvertTest {
         .withConversionSchema(ConversionSchemas.V2)
         .build();
 
-    private static final DynamoDBMapperModelFactory factory = StandardModelFactories.of(new S3Link.Factory(new S3ClientCache((AWSCredentialsProvider)null)));
+    private static final DynamoDBMapperModelFactory factory = StandardModelFactories.of();
     private static final DynamoDBMapperModelFactory.TableFactory models = factory.getTableFactory(CONFIG);
 
     protected <T> Object unconvert(Class<T> clazz, Method getter, Method setter, AttributeValue value) {
@@ -456,19 +454,6 @@ public class StandardModelFactoriesV2UnconvertTest {
             Assert.fail("Expected DynamoDBMappingException");
         } catch (DynamoDBMappingException e) {
         }
-    }
-
-    @Test
-    public void testS3Link() {
-        S3Link link = (S3Link) unconvert("getS3Link", "setS3Link",
-                        AttributeValue.builder().s("{\"s3\":{"
-                                           + "\"bucket\":\"bucket\","
-                                           + "\"key\":\"key\","
-                                           + "\"region\":null}}").build());
-
-        assertEquals("bucket", link.getBucketName());
-        assertEquals("key", link.getKey());
-        assertEquals(Region.US_Standard, link.getS3Region());
     }
 
     public Object unconvert(String getter, String setter, AttributeValue value) {

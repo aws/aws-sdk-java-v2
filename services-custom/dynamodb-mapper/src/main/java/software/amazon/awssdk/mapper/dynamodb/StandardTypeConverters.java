@@ -224,11 +224,6 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
         ),
 
         /**
-         * {@link S3Link}
-         */
-        S3_LINK(ScalarAttributeType.S, new ConverterMap(S3Link.class, null)),
-
-        /**
          * {@link Short}
          */
         SHORT(ScalarAttributeType.N, new ConverterMap(Short.class, Short.TYPE)
