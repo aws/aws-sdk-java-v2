@@ -39,14 +39,14 @@ import software.amazon.awssdk.utils.Validate;
 @ThreadSafe
 final class CertificateCache {
     private final Object lock = new Object();
-    private final LinkedHashMap<String, PublicKey> byFingerprint;
-    private final LinkedHashMap<URI, String> fingerprintByUrl;
+    private final LinkedHashMap<String, PublicKey> fingerprintToKey;
+    private final LinkedHashMap<URI, String> urlToFingerprint;
 
     CertificateCache(int maxCertificates, int maxUrlHints) {
         Validate.isPositive(maxCertificates, "maxCertificates");
         Validate.isPositive(maxUrlHints, "maxUrlHints");
-        this.byFingerprint = new LruMap<>(maxCertificates);
-        this.fingerprintByUrl = new LruMap<>(maxUrlHints);
+        this.fingerprintToKey = new LruMap<>(maxCertificates);
+        this.urlToFingerprint = new LruMap<>(maxUrlHints);
     }
 
     /**
@@ -55,12 +55,12 @@ final class CertificateCache {
      */
     List<PublicKey> candidates(URI url) {
         synchronized (lock) {
-            List<PublicKey> result = new ArrayList<>(byFingerprint.size());
+            List<PublicKey> result = new ArrayList<>(fingerprintToKey.size());
             PublicKey hinted = lookupLocked(url);
             if (hinted != null) {
                 result.add(hinted);
             }
-            for (PublicKey key : byFingerprint.values()) {
+            for (PublicKey key : fingerprintToKey.values()) {
                 if (key != hinted) {
                     result.add(key);
                 }
@@ -85,12 +85,12 @@ final class CertificateCache {
      */
     PublicKey putIfAbsent(URI url, String fingerprint, PublicKey publicKey) {
         synchronized (lock) {
-            PublicKey cached = byFingerprint.get(fingerprint);
+            PublicKey cached = fingerprintToKey.get(fingerprint);
             if (cached == null) {
-                byFingerprint.put(fingerprint, publicKey);
+                fingerprintToKey.put(fingerprint, publicKey);
                 cached = publicKey;
             }
-            fingerprintByUrl.put(url, fingerprint);
+            urlToFingerprint.put(url, fingerprint);
             return cached;
         }
     }
@@ -100,18 +100,18 @@ final class CertificateCache {
      */
     int size() {
         synchronized (lock) {
-            return byFingerprint.size();
+            return fingerprintToKey.size();
         }
     }
 
     private PublicKey lookupLocked(URI url) {
-        String fingerprint = fingerprintByUrl.get(url);
+        String fingerprint = urlToFingerprint.get(url);
         if (fingerprint == null) {
             return null;
         }
-        PublicKey key = byFingerprint.get(fingerprint);
+        PublicKey key = fingerprintToKey.get(fingerprint);
         if (key == null) {
-            fingerprintByUrl.remove(url);
+            urlToFingerprint.remove(url);
         }
         return key;
     }
