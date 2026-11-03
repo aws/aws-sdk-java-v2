@@ -108,6 +108,7 @@ public class DeleteItemOperation<T>
                                          .attributes(attributes)
                                          .consumedCapacity(response.consumedCapacity())
                                          .itemCollectionMetrics(response.itemCollectionMetrics())
+                                         .responseMetadata(response.responseMetadata())
                                          .build();
     }
 

@@ -225,6 +225,7 @@ public class UpdateItemOperation<T>
                 .attributes(attributes)
                 .consumedCapacity(response.consumedCapacity())
                 .itemCollectionMetrics(response.itemCollectionMetrics())
+                .responseMetadata(response.responseMetadata())
                 .build();
         } catch (RuntimeException e) {
             // With a partial update it's possible to update the record into a state that the mapper can no longer
