@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Fix S3Presigner leaking a background S3 Express session refresh on every presign call for a directory bucket. The presigner now calls CreateSession directly for each presign, without caching or background refresh."
+}
