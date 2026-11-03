@@ -203,7 +203,7 @@ class CrtTransferManagerPauseAndResumeTest {
     }
 
     @Test
-    void pauseAfterRestartedResume_shouldNotKeepPausedDownloadContext() {
+    void pauseAfterRestartedResumeWrote_shouldNotKeepPausedDownloadContext() throws IOException {
         MultipartDownloadResumeContext pausedContext = new MultipartDownloadResumeContext();
         pausedContext.addCompletedPart(1);
         pausedContext.totalParts(2);
@@ -233,7 +233,9 @@ class CrtTransferManagerPauseAndResumeTest {
                                  .completedParts(Collections.singletonList(1))
                                  .build();
 
-        ResumableFileDownload newResumable = tm.resumeDownloadFile(resumable).pause();
+        FileDownload restarted = tm.resumeDownloadFile(resumable);
+        Files.write(file.toPath(), new byte[100]);
+        ResumableFileDownload newResumable = restarted.pause();
 
         assertThat(newResumable.downloadFileRequest().getObjectRequest().overrideConfiguration().get()
                                .executionAttributes().getAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT))

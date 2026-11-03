@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "The SSE-C customer key is no longer written when a ResumableFileUpload or ResumableFileDownload is serialized, and serializeToFile now creates the file readable and writable by its owner only. Set the key on the request again before resuming a deserialized SSE-C transfer."
+}
