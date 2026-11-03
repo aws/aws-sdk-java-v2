@@ -67,15 +67,26 @@ public class S3ExpressIdentityCache {
                        .build();
     }
 
+    /**
+     * Calls CreateSession for the given key, without caching the result.
+     */
+    static SessionCredentials createSession(S3ExpressIdentityKey key) {
+        return getCredentials(key, staticProvider(key));
+    }
+
     private CachedS3ExpressCredentials getCachedCredentials(S3ExpressIdentityKey key) {
-        AwsCredentials credentialsIdentity = CredentialUtils.toCredentials(key.identity());
-        StaticCredentialsProvider resolvedCredentialsProvider = StaticCredentialsProvider.create(credentialsIdentity);
+        StaticCredentialsProvider resolvedCredentialsProvider = staticProvider(key);
         return CachedS3ExpressCredentials.builder(k -> getCredentials(k, resolvedCredentialsProvider))
                                          .key(key)
                                          .build();
     }
 
-    SessionCredentials getCredentials(S3ExpressIdentityKey key, IdentityProvider<AwsCredentialsIdentity> provider) {
+    private static StaticCredentialsProvider staticProvider(S3ExpressIdentityKey key) {
+        AwsCredentials credentialsIdentity = CredentialUtils.toCredentials(key.identity());
+        return StaticCredentialsProvider.create(credentialsIdentity);
+    }
+
+    static SessionCredentials getCredentials(S3ExpressIdentityKey key, IdentityProvider<AwsCredentialsIdentity> provider) {
         SdkClient client = key.client();
         String bucket = key.bucket();
         SdkServiceClientConfiguration serviceClientConfiguration = client.serviceClientConfiguration();
