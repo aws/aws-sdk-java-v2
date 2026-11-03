@@ -333,6 +333,18 @@ public class ParallelMultipartDownloaderSubscriber
 
             log.debug(() -> "Completed part: 1");
             completedParts.incrementAndGet();
+
+            // Must run before setInitialPartCountAndEtag, which starts the remaining parts
+            if (hasMultipleParts(res)) {
+                getObjectResponse = res;
+                MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
+                                      .ifPresent(ctx -> {
+                                          ctx.addCompletedPart(1);
+                                          ctx.response(res);
+                                          ctx.totalParts(res.partsCount());
+                                      });
+            }
+
             setInitialPartCountAndEtag(res);
 
             if (!isMultipartObject(res)) {
@@ -340,15 +352,8 @@ public class ParallelMultipartDownloaderSubscriber
             }
 
             log.debug(() -> "Multipart object detected, performing multipart download");
-            getObjectResponse = res;
 
             processPendingTransformers(res.partsCount());
-            MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
-                                  .ifPresent(ctx -> {
-                                      ctx.addCompletedPart(1);
-                                      ctx.response(res);
-                                      ctx.totalParts(res.partsCount());
-                                  });
 
             synchronized (subscriptionLock) {
                 subscription.request(1);
@@ -356,8 +361,12 @@ public class ParallelMultipartDownloaderSubscriber
         });
     }
 
+    private static boolean hasMultipleParts(GetObjectResponse response) {
+        return response.partsCount() != null && response.partsCount() != 1;
+    }
+
     private boolean isMultipartObject(GetObjectResponse response) {
-        if (response.partsCount() == null || response.partsCount() == 1) {
+        if (!hasMultipleParts(response)) {
             // Single part object detected, skip multipart and complete everything now
             log.debug(() -> "Single Part object detected, skipping multipart download");
             synchronized (subscriptionLock) {
