@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "S3TransferManager copy now calls transferComplete for copies sent as a single CopyObject request, reports the source object size as the progress total, counts bytes as each part finishes, and calls transfer listeners on every S3 client."
+}
