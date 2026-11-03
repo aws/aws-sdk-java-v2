@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "Amazon S3",
     "contributor": "",
-    "description": "Fixed a race in parallel multipart downloads on the multipart-enabled S3AsyncClient where `getObject` could complete with a `null` response, causing `S3TransferManager.downloadFile` to fail with a `NullPointerException`, if the remaining parts finished before the first part's response was recorded."
+    "description": "Fixed a race in parallel multipart downloads where `getObject` could complete with a `null` response and a paused download's resume token could be missing part 1."
 }

@@ -334,24 +334,25 @@ public class ParallelMultipartDownloaderSubscriber
             log.debug(() -> "Completed part: 1");
             completedParts.incrementAndGet();
 
-            // Must run before setInitialPartCountAndEtag, which starts the remaining parts
-            if (hasMultipleParts(res)) {
-                getObjectResponse = res;
-                MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
-                                      .ifPresent(ctx -> {
-                                          ctx.addCompletedPart(1);
-                                          ctx.response(res);
-                                          ctx.totalParts(res.partsCount());
-                                      });
-            }
-
-            setInitialPartCountAndEtag(res);
-
-            if (!isMultipartObject(res)) {
+            if (!hasMultipleParts(res)) {
+                setInitialPartCountAndEtag(res);
+                completeSinglePartDownload(res);
                 return;
             }
 
             log.debug(() -> "Multipart object detected, performing multipart download");
+
+            // Record part 1 before setInitialPartCountAndEtag: completing totalPartsFuture can send and finish every
+            // remaining part synchronously, which completes resultFuture with getObjectResponse.
+            getObjectResponse = res;
+            MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
+                                  .ifPresent(ctx -> {
+                                      ctx.addCompletedPart(1);
+                                      ctx.response(res);
+                                      ctx.totalParts(res.partsCount());
+                                  });
+
+            setInitialPartCountAndEtag(res);
 
             processPendingTransformers(res.partsCount());
 
@@ -365,17 +366,13 @@ public class ParallelMultipartDownloaderSubscriber
         return response.partsCount() != null && response.partsCount() != 1;
     }
 
-    private boolean isMultipartObject(GetObjectResponse response) {
-        if (!hasMultipleParts(response)) {
-            // Single part object detected, skip multipart and complete everything now
-            log.debug(() -> "Single Part object detected, skipping multipart download");
-            synchronized (subscriptionLock) {
-                subscription.cancel();
-            }
-            resultFuture.complete(response);
-            return false;
+    private void completeSinglePartDownload(GetObjectResponse response) {
+        // Single part object detected, skip multipart and complete everything now
+        log.debug(() -> "Single Part object detected, skipping multipart download");
+        synchronized (subscriptionLock) {
+            subscription.cancel();
         }
-        return true;
+        resultFuture.complete(response);
     }
 
     private void setInitialPartCountAndEtag(GetObjectResponse response) {

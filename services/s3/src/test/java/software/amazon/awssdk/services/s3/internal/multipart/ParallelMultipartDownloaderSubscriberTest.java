@@ -72,8 +72,8 @@ class ParallelMultipartDownloaderSubscriberTest {
 
     @ParameterizedTest(name = "{0} parts, max {1} in flight")
     @MethodSource("multipartConfigurations")
-    void remainingPartsFinishBeforeFirstPartCallbackReturns_completesWithFirstPartResponse(int totalParts,
-                                                                                           int maxInFlightParts) {
+    void onNext_whenRemainingPartsFinishInsideFirstPartCallback_completesWithFirstPartResponse(
+        int totalParts, int maxInFlightParts) {
         stubPartResponses(totalParts);
         CompletableFuture<GetObjectResponse> resultFuture = new CompletableFuture<>();
         ParallelMultipartDownloaderSubscriber subscriber =
@@ -90,8 +90,8 @@ class ParallelMultipartDownloaderSubscriberTest {
 
     @ParameterizedTest(name = "{0} parts, max {1} in flight")
     @MethodSource("multipartConfigurations")
-    void remainingPartsFinishBeforeFirstPartCallbackReturns_resumeContextHasFirstPartWhenResultCompletes(int totalParts,
-                                                                                                         int maxInFlightParts) {
+    void onNext_whenRemainingPartsFinishInsideFirstPartCallback_recordsFirstPartInResumeContext(
+        int totalParts, int maxInFlightParts) {
         stubPartResponses(totalParts);
         MultipartDownloadResumeContext ctx = new MultipartDownloadResumeContext();
         GetObjectRequest request =
@@ -119,14 +119,15 @@ class ParallelMultipartDownloaderSubscriberTest {
         GetObjectResponse firstPartResponse = partResponse(1, totalParts);
         firstPartFuture.complete(firstPartResponse);
 
-        assertThat(resultFuture).isCompletedWithValue(firstPartResponse);
+        // Resume context assertions first, so they are checked even if the result is wrong.
         assertThat(completedPartsAtCompletion.get()).containsExactlyInAnyOrder(allParts(totalParts));
         assertThat(contextResponseAtCompletion.get()).isSameAs(firstPartResponse);
         assertThat(contextTotalPartsAtCompletion.get()).isEqualTo(totalParts);
+        assertThat(resultFuture).isCompletedWithValue(firstPartResponse);
     }
 
     @Test
-    void singlePartObject_completesWithResponseAndDoesNotRecordResumeContext() {
+    void onNext_whenSinglePartObject_completesWithResponseAndLeavesResumeContextEmpty() {
         stubPartResponses(1);
         MultipartDownloadResumeContext ctx = new MultipartDownloadResumeContext();
         GetObjectRequest request =
