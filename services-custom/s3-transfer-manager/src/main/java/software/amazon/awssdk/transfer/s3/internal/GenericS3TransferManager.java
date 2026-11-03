@@ -24,6 +24,7 @@ import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionA
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.RESUME_TOKEN;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -111,7 +112,8 @@ class GenericS3TransferManager implements S3TransferManager {
                              boolean isDefaultS3AsyncClient) {
         this.s3AsyncClient = s3AsyncClient;
         this.transferConfiguration = transferConfiguration;
-        uploadDirectoryHelper = new UploadDirectoryHelper(transferConfiguration, this::uploadFile);
+        uploadDirectoryHelper = new UploadDirectoryHelper(transferConfiguration,
+                                                          (request, confineToRoot) -> uploadFile(request, confineToRoot));
         ListObjectsHelper listObjectsHelper = new ListObjectsHelper(s3AsyncClient::listObjectsV2);
         downloadDirectoryHelper = new DownloadDirectoryHelper(transferConfiguration,
                                                               listObjectsHelper,
@@ -206,11 +208,20 @@ class GenericS3TransferManager implements S3TransferManager {
      */
     @Override
     public FileUpload uploadFile(UploadFileRequest uploadFileRequest) {
+        return uploadFile(uploadFileRequest, null);
+    }
+
+    /**
+     * Uploads a file. If {@code confineToRoot} is not null, the file is read below that directory without following a
+     * symbolic link in any path component below it. May be overridden by subclasses to provide customized behavior.
+     */
+    FileUpload uploadFile(UploadFileRequest uploadFileRequest, Path confineToRoot) {
         Validate.paramNotNull(uploadFileRequest, "uploadFileRequest");
 
         AsyncRequestBody requestBody =
             FileAsyncRequestBody.builder()
                                 .path(uploadFileRequest.source())
+                                .confineToRoot(confineToRoot)
                                 .build();
 
         CompletableFuture<CompletedFileUpload> returnFuture = new CompletableFuture<>();

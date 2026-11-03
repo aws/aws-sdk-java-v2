@@ -21,13 +21,19 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.Channel;
 import java.nio.channels.CompletionHandler;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.util.Optional;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -41,6 +47,7 @@ import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -64,6 +71,11 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
      */
     private final Path path;
 
+    /**
+     * If set, {@link #path} is resolved below this directory without following a symbolic link in any path component.
+     */
+    private final Path confineToRoot;
+
     private final long fileLength;
 
     /**
@@ -77,11 +89,25 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
 
     private FileAsyncRequestBody(DefaultBuilder builder) {
         this.path = builder.path;
+        this.confineToRoot = builder.confineToRoot;
         this.chunkSizeInBytes = builder.chunkSizeInBytes == null ? DEFAULT_CHUNK_SIZE : builder.chunkSizeInBytes;
-        this.fileLength = invokeSafely(() -> Files.size(path));
+        // When confined, the length, the size at start and the modified time at start all come from one attribute read.
+        BasicFileAttributes confinedAttributes =
+            confineToRoot == null ? null : invokeSafely(() -> ConfinedFileAccess.readAttributes(confineToRoot, path));
+        this.fileLength = confinedAttributes != null ? confinedAttributes.size() : invokeSafely(() -> Files.size(path));
         this.position = builder.position == null ? 0 : Validate.isNotNegative(builder.position, "position");
         this.numBytesToRead = builder.numBytesToRead == null ? fileLength - this.position :
                               Validate.isNotNegative(builder.numBytesToRead, "numBytesToRead");
+        if (confinedAttributes != null) {
+            this.modifiedTimeAtStart = builder.modifiedTimeAtStart != null ? builder.modifiedTimeAtStart
+                                                                           : confinedAttributes.lastModifiedTime();
+            this.sizeAtStart = builder.sizeAtStart != null ? builder.sizeAtStart : confinedAttributes.size();
+        } else {
+            initUnconfinedStartAttributes(builder);
+        }
+    }
+
+    private void initUnconfinedStartAttributes(DefaultBuilder builder) {
         if (builder.modifiedTimeAtStart != null) {
             this.modifiedTimeAtStart = builder.modifiedTimeAtStart;
         } else {
@@ -120,6 +146,14 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         return path;
     }
 
+    /**
+     * @return The directory below which {@link #path()} is resolved without following symbolic links, or {@code null} if
+     * the path is opened normally.
+     */
+    Path confineToRoot() {
+        return confineToRoot;
+    }
+
     public long fileLength() {
         return fileLength;
     }
@@ -156,9 +190,10 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> s) {
-        AsynchronousFileChannel channel = null;
+        Channel channel = null;
         try {
-            channel = openInputChannel(this.path);
+            channel = confineToRoot == null ? openInputChannel(this.path)
+                                            : ConfinedFileAccess.openForRead(confineToRoot, this.path);
 
             // We need to synchronize here because the subscriber could call
             // request() from within onSubscribe which would potentially
@@ -249,6 +284,18 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
          * @return The builder for method chaining.
          */
         Builder sizeAtStart(Long sizeAtStart);
+
+        /**
+         * Sets a directory that contains the file. When set, the file is resolved below this directory without following a
+         * symbolic link in any path component below it, every time its attributes are read or it is opened. A symbolic link
+         * in any of those components makes the read fail. The directory itself is trusted.
+         *
+         * <p>By default, it's null, and the file is read normally, following symbolic links.
+         *
+         * @param confineToRoot the directory below which the file must be resolved
+         * @return The builder for method chaining.
+         */
+        Builder confineToRoot(Path confineToRoot);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -259,6 +306,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         private Long numBytesToRead;
         private FileTime modifiedTimeAtStart;
         private Long sizeAtStart;
+        private Path confineToRoot;
 
         @Override
         public Builder path(Path path) {
@@ -300,6 +348,12 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             return this;
         }
 
+        @Override
+        public Builder confineToRoot(Path confineToRoot) {
+            this.confineToRoot = confineToRoot;
+            return this;
+        }
+
         public void setChunkSizeInBytes(Integer chunkSizeInBytes) {
             chunkSizeInBytes(chunkSizeInBytes);
         }
@@ -314,7 +368,10 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
      * Reads the file for one subscriber.
      */
     private final class FileSubscription implements Subscription {
-        private final AsynchronousFileChannel inputChannel;
+        /**
+         * An {@link AsynchronousFileChannel}, or a {@link FileChannel} when the body is confined to a root.
+         */
+        private final Channel inputChannel;
         private final Subscriber<? super ByteBuffer> subscriber;
 
         private final AtomicLong currentPosition;
@@ -326,21 +383,30 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         private volatile boolean done = false;
         private final Object lock = new Object();
 
-        private FileSubscription(AsynchronousFileChannel inputChannel,
+        private FileSubscription(Channel inputChannel,
                                  Subscriber<? super ByteBuffer> subscriber,
                                  FileTime modifiedTimeAtStart, Long sizeAtStart) throws IOException {
             this.inputChannel = inputChannel;
             this.subscriber = subscriber;
             this.remainingBytes = new AtomicLong(numBytesToRead);
             this.currentPosition = new AtomicLong(position);
+            BasicFileAttributes confinedAttributes = null;
+            if (confineToRoot != null && (sizeAtStart == null || modifiedTimeAtStart == null)) {
+                confinedAttributes = ConfinedFileAccess.readAttributes(confineToRoot, path);
+            }
+
             if (sizeAtStart != null) {
                 this.sizeAtStart = sizeAtStart;
+            } else if (confinedAttributes != null) {
+                this.sizeAtStart = confinedAttributes.size();
             } else {
                 this.sizeAtStart = Files.size(path);
             }
 
             if (modifiedTimeAtStart != null) {
                 this.modifiedTimeAtStart = modifiedTimeAtStart;
+            } else if (confinedAttributes != null) {
+                this.modifiedTimeAtStart = confinedAttributes.lastModifiedTime();
             } else {
                 this.modifiedTimeAtStart = Files.getLastModifiedTime(path);
             }
@@ -399,7 +465,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             }
 
             ByteBuffer buffer = ByteBuffer.allocate(Math.min(chunkSizeInBytes, NumericUtils.saturatedCast(remainingBytes.get())));
-            inputChannel.read(buffer, currentPosition.get(), buffer, new CompletionHandler<Integer, ByteBuffer>() {
+            CompletionHandler<Integer, ByteBuffer> handler = new CompletionHandler<Integer, ByteBuffer>() {
                 @Override
                 public void completed(Integer result, ByteBuffer attachment) {
                     try {
@@ -450,7 +516,13 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
                     signalOnError(exc);
                     closeFile();
                 }
-            });
+            };
+
+            if (inputChannel instanceof FileChannel) {
+                readOnConfinedReadPool((FileChannel) inputChannel, buffer, currentPosition.get(), handler);
+            } else {
+                ((AsynchronousFileChannel) inputChannel).read(buffer, currentPosition.get(), buffer, handler);
+            }
         }
 
         private void closeFile() {
@@ -484,7 +556,9 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
 
         private boolean validateFileUnchangedAndSignalErrors() {
             try {
-                long sizeAtEnd = Files.size(path);
+                BasicFileAttributes confinedAttributes =
+                    confineToRoot == null ? null : ConfinedFileAccess.readAttributes(confineToRoot, path);
+                long sizeAtEnd = confinedAttributes != null ? confinedAttributes.size() : Files.size(path);
                 if (sizeAtStart != sizeAtEnd) {
                     signalOnError(SdkClientException.create("File size changed after reading started. Initial size: "
                                                          + sizeAtStart + ". Current size: " + sizeAtEnd));
@@ -497,7 +571,8 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
                     return false;
                 }
 
-                FileTime modifiedTimeAtEnd = Files.getLastModifiedTime(path);
+                FileTime modifiedTimeAtEnd = confinedAttributes != null ? confinedAttributes.lastModifiedTime()
+                                                                        : Files.getLastModifiedTime(path);
                 if (modifiedTimeAtStart.compareTo(modifiedTimeAtEnd) != 0) {
                     signalOnError(SdkClientException.create("File last-modified time changed after reading started. "
                                                             + "Initial modification time: " + modifiedTimeAtStart
@@ -527,6 +602,52 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
 
     private static AsynchronousFileChannel openInputChannel(Path path) throws IOException {
         return AsynchronousFileChannel.open(path, StandardOpenOption.READ);
+    }
+
+    /**
+     * Reads from {@code channel} at {@code position} into {@code buffer} on {@link ConfinedReadPool} and completes
+     * {@code handler} from the pool thread. A confined file is opened through a {@link java.nio.file.SecureDirectoryStream},
+     * which returns a blocking {@link FileChannel}, so its reads run on the pool to keep them off the subscriber's thread.
+     */
+    private static void readOnConfinedReadPool(FileChannel channel, ByteBuffer buffer, long position,
+                                               CompletionHandler<Integer, ByteBuffer> handler) {
+        try {
+            ConfinedReadPool.EXECUTOR.execute(() -> {
+                int result;
+                try {
+                    result = channel.read(buffer, position);
+                } catch (Throwable t) {
+                    handler.failed(t, buffer);
+                    return;
+                }
+                handler.completed(result, buffer);
+            });
+        } catch (Throwable t) {
+            handler.failed(t, buffer);
+        }
+    }
+
+    /**
+     * Holds the pool that runs reads of confined files, created on first use. It has at most one daemon thread per
+     * available processor, and more reads wait in its queue. Each read is one positional read of at most one chunk. Idle
+     * threads end after 60 seconds, so the pool holds no threads while no confined upload is running.
+     */
+    private static final class ConfinedReadPool {
+        private static final int MAX_THREADS = Math.max(2, Runtime.getRuntime().availableProcessors());
+        private static final ThreadPoolExecutor EXECUTOR = createExecutor();
+
+        private ConfinedReadPool() {
+        }
+
+        private static ThreadPoolExecutor createExecutor() {
+            ThreadPoolExecutor executor =
+                new ThreadPoolExecutor(MAX_THREADS, MAX_THREADS, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
+                                       new ThreadFactoryBuilder().threadNamePrefix("sdk-confined-file-read")
+                                                                 .daemonThreads(true)
+                                                                 .build());
+            executor.allowCoreThreadTimeOut(true);
+            return executor;
+        }
     }
 
     private static class ClosableAsyncRequestBodyWrapper implements CloseableAsyncRequestBody {
