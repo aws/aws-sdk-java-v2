@@ -21,7 +21,6 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory;
 import software.amazon.awssdk.mapper.dynamodb.internal.UpdateExpressionGenerator;
 import software.amazon.awssdk.mapper.dynamodb.internal.VersionAttributeConditionExpressionGenerator;
-import com.amazonaws.auth.AWSCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.retry.RetryUtils;
@@ -76,7 +75,6 @@ import software.amazon.awssdk.services.dynamodb.model.Update;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
-import com.amazonaws.services.s3.model.Region;
 
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -217,8 +215,9 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  *                                            .build();
  * }
  * <p>
- * The constructors that take an S3 credentials provider have no builder
- * equivalent yet; S3Link support has not been ported to the v2 SDK.
+ * The v1 mapper's {@code S3Link} attribute type, along with its
+ * {@code createS3Link} and {@code getS3ClientCache} methods and the
+ * constructors that take S3 credentials, is not supported in this preview.
  * <p>
  * This class is thread-safe and can be shared between threads.
  *
@@ -244,7 +243,6 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
 
     private final DynamoDbClient db;
     private final DynamoDBMapperModelFactory models;
-    private final S3Link.Factory s3Links;
 
     private final AttributeTransformer transformer;
 
@@ -285,8 +283,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
     private DynamoDBMapper(final DefaultBuilder builder) {
         this(Validate.paramNotNull(builder.dynamoDbClient, "dynamoDbClient"),
              builder.mapperConfig,
-             builder.attributeTransformer,
-             null);
+             builder.attributeTransformer);
     }
 
     /**
@@ -302,7 +299,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
      * @see #builder()
      */
     public DynamoDBMapper(final DynamoDbClient dynamoDB) {
-        this(dynamoDB, DynamoDBMapperConfig.DEFAULT, null, null);
+        this(dynamoDB, DynamoDBMapperConfig.DEFAULT, null);
     }
 
     /**
@@ -322,25 +319,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
             final DynamoDbClient dynamoDB,
             final DynamoDBMapperConfig config) {
 
-        this(dynamoDB, config, null, null);
-    }
-
-    /**
-     * Constructs a new mapper with the service object and S3 client cache
-     * given, using the default configuration.
-     *
-     * @param ddb
-     *            The service object to use for all service calls.
-     * @param s3CredentialProvider
-     *            The credentials provider for accessing S3.
-     *            Relevant only if {@link S3Link} is involved.
-     * @see DynamoDBMapperConfig#DEFAULT
-     */
-    public DynamoDBMapper(
-            final DynamoDbClient ddb,
-            final AWSCredentialsProvider s3CredentialProvider) {
-
-        this(ddb, DynamoDBMapperConfig.DEFAULT, s3CredentialProvider);
+        this(dynamoDB, config, null);
     }
 
     /**
@@ -365,71 +344,11 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
             final DynamoDbClient dynamoDB,
             final DynamoDBMapperConfig config,
             final AttributeTransformer transformer) {
-
-        this(dynamoDB, config, transformer, null);
-    }
-
-    /**
-     * Constructs a new mapper with the service object, configuration, and S3
-     * client cache given.
-     *
-     * @param dynamoDB
-     *            The service object to use for all service calls.
-     * @param config
-     *            The default configuration to use for all service calls. It can
-     *            be overridden on a per-operation basis.
-     * @param s3CredentialProvider
-     *            The credentials provider for accessing S3.
-     *            Relevant only if {@link S3Link} is involved.
-     */
-    public DynamoDBMapper(
-            final DynamoDbClient dynamoDB,
-            final DynamoDBMapperConfig config,
-            final AWSCredentialsProvider s3CredentialProvider) {
-
-        this(dynamoDB, config, null, validate(s3CredentialProvider));
-    }
-
-    /**
-     * Throws an exception if the given credentials provider is {@code null}.
-     */
-    private static AWSCredentialsProvider validate(
-            final AWSCredentialsProvider provider) {
-        if (provider == null) {
-            throw new IllegalArgumentException(
-                    "s3 credentials provider must not be null");
-        }
-        return provider;
-    }
-
-    /**
-     * Constructor with all parameters.
-     *
-     * @param dynamoDB
-     *            The service object to use for all service calls.
-     * @param config
-     *            The default configuration to use for all service calls. It can
-     *            be overridden on a per-operation basis.
-     * @param transformer
-     *            The custom attribute transformer to invoke when serializing or
-     *            deserializing an object.
-     * @param s3CredentialsProvider
-     *            The credentials provider for accessing S3.
-     *            Relevant only if {@link S3Link} is involved.
-     */
-    public DynamoDBMapper(
-            final DynamoDbClient dynamoDB,
-            final DynamoDBMapperConfig config,
-            final AttributeTransformer transformer,
-            final AWSCredentialsProvider s3CredentialsProvider) {
         super(config);
 
         this.db = dynamoDB;
         this.transformer = transformer;
-
-        this.s3Links = S3Link.Factory.of(s3CredentialsProvider);
-
-        this.models = StandardModelFactories.of(this.s3Links);
+        this.models = StandardModelFactories.of();
     }
 
     @Override
@@ -2281,21 +2200,6 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
         mergedExpectedValues.putAll(userProvidedConditions);
 
         return mergedExpectedValues;
-    }
-
-    @Override
-    public S3ClientCache getS3ClientCache() {
-        return s3Links.getS3ClientCache();
-    }
-
-    @Override
-    public S3Link createS3Link(Region s3region, String bucketName, String key) {
-        return s3Links.createS3Link(s3region, bucketName, key);
-    }
-
-    @Override
-    public S3Link createS3Link(String s3region, String bucketName, String key) {
-        return s3Links.createS3Link(s3region, bucketName, key);
     }
 
     @Override

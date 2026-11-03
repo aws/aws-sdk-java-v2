@@ -37,7 +37,7 @@ public class StandardModelFactoriesV2CompatibleOverrideTest extends StandardMode
         .withConversionSchema(ConversionSchemas.v2CompatibleBuilder("V2CompatibleOverride").build())
         .build();
 
-    private final DynamoDBMapperModelFactory factory = StandardModelFactories.of(S3Link.Factory.of(null));
+    private final DynamoDBMapperModelFactory factory = StandardModelFactories.of();
     private final DynamoDBMapperModelFactory.TableFactory models = factory.getTableFactory(config);
 
     @Override

@@ -49,7 +49,7 @@ import org.junit.Test;
  */
 public class StandardModelFactoriesTest {
 
-    private static final DynamoDBMapperModelFactory factory = StandardModelFactories.of(S3Link.Factory.of(null));
+    private static final DynamoDBMapperModelFactory factory = StandardModelFactories.of();
     private static final DynamoDBMapperModelFactory.TableFactory models = factory.getTableFactory(DynamoDBMapperConfig.DEFAULT);
 
     @SuppressWarnings("unchecked")

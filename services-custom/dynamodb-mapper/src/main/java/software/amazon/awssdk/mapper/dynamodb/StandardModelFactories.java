@@ -68,8 +68,8 @@ final class StandardModelFactories {
     /**
      * Creates the standard {@link DynamoDBMapperModelFactory} factory.
      */
-    static final DynamoDBMapperModelFactory of(S3Link.Factory s3Links) {
-        return new StandardModelFactory(s3Links);
+    static final DynamoDBMapperModelFactory of() {
+        return new StandardModelFactory();
     }
 
     /**
@@ -78,12 +78,10 @@ final class StandardModelFactories {
     private static final class StandardModelFactory implements DynamoDBMapperModelFactory {
         private final ConcurrentMap<ConversionSchema,TableFactory> cache;
         private final ConcurrentMap<ConversionSchema,TableFactory> readOnlyByteBufferCache;
-        private final S3Link.Factory s3Links;
 
-        private StandardModelFactory(S3Link.Factory s3Links) {
+        private StandardModelFactory() {
             this.cache = new ConcurrentHashMap<ConversionSchema,TableFactory>();
             this.readOnlyByteBufferCache = new ConcurrentHashMap<ConversionSchema,TableFactory>();
-            this.s3Links = s3Links;
         }
 
         @Override
@@ -93,8 +91,8 @@ final class StandardModelFactories {
                 ? readOnlyByteBufferCache : cache;
             ConversionSchema schema = config.getConversionSchema();
             if (!selectedCache.containsKey(schema)) {
-                RuleFactory<Object> typeConverters = rulesOf(config, s3Links, this);
-                ItemConverterRuleFactory<Object> rules = new ItemConverterRuleFactory<Object>(config, s3Links, typeConverters);
+                RuleFactory<Object> typeConverters = rulesOf(config, this);
+                ItemConverterRuleFactory<Object> rules = new ItemConverterRuleFactory<Object>(config, typeConverters);
                 selectedCache.putIfAbsent(schema, new StandardTableFactory(rules));
             }
             return selectedCache.get(schema);
@@ -165,17 +163,14 @@ final class StandardModelFactories {
     /**
      * Creates a new set of conversion rules based on the configuration.
      */
-    private static final <T> RuleFactory<T> rulesOf(DynamoDBMapperConfig config, S3Link.Factory s3Links, DynamoDBMapperModelFactory models) {
+    private static final <T> RuleFactory<T> rulesOf(DynamoDBMapperConfig config, DynamoDBMapperModelFactory models) {
         boolean ver1 = (config.getConversionSchema() == ConversionSchemas.V1);
         boolean ver2 = (config.getConversionSchema() == ConversionSchemas.V2);
         boolean v2Compatible = (config.getConversionSchema() == ConversionSchemas.V2_COMPATIBLE);
 
-        DynamoDBTypeConverterFactory.Builder scalars = config.getTypeConverterFactory().override();
-        scalars.with(String.class, S3Link.class, s3Links);
-
         boolean readOnlyByteBuffers =
             config.getByteBufferReadBehavior() == DynamoDBMapperConfig.ByteBufferReadBehavior.READ_ONLY;
-        Rules<T> factory = new Rules<T>(scalars.build(), readOnlyByteBuffers);
+        Rules<T> factory = new Rules<T>(config.getTypeConverterFactory(), readOnlyByteBuffers);
         factory.add(factory.new NativeType(!ver1));
         factory.add(factory.new V2CompatibleBool(v2Compatible));
         factory.add(factory.new NativeBool(ver2));

@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import java.lang.reflect.Method;
 import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -33,7 +32,7 @@ public class StandardModelFactoriesV2UnconvertOverrideTest extends StandardModel
         .build();
 
     private final DynamoDBMapperModelFactory factory =
-        StandardModelFactories.of(new S3Link.Factory(new S3ClientCache((AWSCredentialsProvider) null)));
+        StandardModelFactories.of();
     private final DynamoDBMapperModelFactory.TableFactory models = factory.getTableFactory(config);
 
     @Override

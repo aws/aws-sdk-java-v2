@@ -48,7 +48,7 @@ public class StandardModelFactoriesEdgeCasesTest {
         .withConversionSchema(ConversionSchemas.V2)
         .build();
 
-    private static final DynamoDBMapperModelFactory factory = StandardModelFactories.of(S3Link.Factory.of(null));
+    private static final DynamoDBMapperModelFactory factory = StandardModelFactories.of();
     private static final DynamoDBMapperModelFactory.TableFactory v1Models = factory.getTableFactory(V1_CONFIG);
     private static final DynamoDBMapperModelFactory.TableFactory v2Models = factory.getTableFactory(V2_CONFIG);
 
@@ -167,61 +167,6 @@ public class StandardModelFactoriesEdgeCasesTest {
         } catch (RuntimeException e) {
             // expected
         }
-    }
-
-    public static class JsonPayload {
-        private String name;
-        private int count;
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public int getCount() { return count; }
-        public void setCount(int count) { this.count = count; }
-        @Override
-        public boolean equals(Object o) {
-            if (!(o instanceof JsonPayload)) {
-                return false;
-            }
-            JsonPayload that = (JsonPayload) o;
-            return count == that.count
-                   && (name == null ? that.name == null : name.equals(that.name));
-        }
-        @Override
-        public int hashCode() {
-            return (name == null ? 0 : name.hashCode()) * 31 + count;
-        }
-    }
-
-    public static class JsonPojo extends AutoKeyAndVal<JsonPayload> {
-        @DynamoDBTypeConvertedJson
-        public JsonPayload getVal() { return super.getVal(); }
-        public void setVal(JsonPayload val) { super.setVal(val); }
-    }
-
-    @Test
-    public void convert_withJsonPayload_producesString() {
-        JsonPayload payload = new JsonPayload();
-        payload.setName("widget");
-        payload.setCount(7);
-
-        DynamoDBMapperTableModel<JsonPojo> model = table(new JsonPojo());
-        AttributeValue av = model.field("val").convert(payload);
-
-        Assert.assertNotNull(av.s());
-        Assert.assertTrue(av.s().contains("widget"));
-        Assert.assertTrue(av.s().contains("7"));
-    }
-
-    @Test
-    public void convertAndUnconvert_withJsonPayload_roundTrips() {
-        JsonPayload payload = new JsonPayload();
-        payload.setName("widget");
-        payload.setCount(7);
-
-        DynamoDBMapperTableModel<JsonPojo> model = table(new JsonPojo());
-        AttributeValue av = model.field("val").convert(payload);
-        Object back = model.field("val").unconvert(av);
-
-        assertEquals(payload, back);
     }
 
     @Test

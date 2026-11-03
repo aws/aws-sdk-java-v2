@@ -37,7 +37,7 @@ public class BinaryConversionOptimizationsTest {
 
     @Test
     public void byteBufferDefaultReturnsWritableDefensiveCopy() {
-        DynamoDBMapperModelFactory factory = StandardModelFactories.of(S3Link.Factory.of(null));
+        DynamoDBMapperModelFactory factory = StandardModelFactories.of();
         DynamoDBMapperTableModel<BinaryPojo> model = table(factory, DEFAULT_CONFIG);
         SdkBytes source = SdkBytes.fromByteArray(new byte[] {1, 2, 3});
 
@@ -51,7 +51,7 @@ public class BinaryConversionOptimizationsTest {
 
     @Test
     public void byteBufferReadOnlyOptInReturnsReadOnlyView() {
-        DynamoDBMapperModelFactory factory = StandardModelFactories.of(S3Link.Factory.of(null));
+        DynamoDBMapperModelFactory factory = StandardModelFactories.of();
         DynamoDBMapperTableModel<BinaryPojo> model = table(factory, READ_ONLY_CONFIG);
         SdkBytes source = SdkBytes.fromByteArray(new byte[] {1, 2, 3});
 
@@ -64,7 +64,7 @@ public class BinaryConversionOptimizationsTest {
 
     @Test
     public void byteBufferReadBehaviorUsesSeparateModelCaches() {
-        DynamoDBMapperModelFactory factory = StandardModelFactories.of(S3Link.Factory.of(null));
+        DynamoDBMapperModelFactory factory = StandardModelFactories.of();
         AttributeValue value = AttributeValue.createB(SdkBytes.fromUtf8String("data"));
 
         DynamoDBMapperFieldModel<BinaryPojo, ByteBuffer> writableField =
@@ -80,7 +80,7 @@ public class BinaryConversionOptimizationsTest {
 
     @Test
     public void byteBufferSetReadOnlyOptInReturnsReadOnlyViews() {
-        DynamoDBMapperModelFactory factory = StandardModelFactories.of(S3Link.Factory.of(null));
+        DynamoDBMapperModelFactory factory = StandardModelFactories.of();
         DynamoDBMapperTableModel<BinaryPojo> model = table(factory, READ_ONLY_CONFIG);
         SdkBytes source = SdkBytes.fromUtf8String("data");
 
@@ -92,7 +92,7 @@ public class BinaryConversionOptimizationsTest {
 
     @Test
     public void sdkBytesScalarRoundTripPreservesInstance() {
-        DynamoDBMapperModelFactory factory = StandardModelFactories.of(S3Link.Factory.of(null));
+        DynamoDBMapperModelFactory factory = StandardModelFactories.of();
         DynamoDBMapperFieldModel<BinaryPojo, SdkBytes> field = table(factory, DEFAULT_CONFIG).field("sdkBytes");
         SdkBytes source = SdkBytes.fromUtf8String("data");
 
@@ -104,7 +104,7 @@ public class BinaryConversionOptimizationsTest {
 
     @Test
     public void sdkBytesSetRoundTripPreservesElementInstance() {
-        DynamoDBMapperModelFactory factory = StandardModelFactories.of(S3Link.Factory.of(null));
+        DynamoDBMapperModelFactory factory = StandardModelFactories.of();
         DynamoDBMapperFieldModel<BinaryPojo, Set<SdkBytes>> field = table(factory, DEFAULT_CONFIG).field("sdkBytesSet");
         SdkBytes source = SdkBytes.fromUtf8String("data");
 

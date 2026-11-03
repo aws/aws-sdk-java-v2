@@ -35,7 +35,7 @@ public class ConversionToAttributeValuesTest {
                 .withTypeConverterFactory(DynamoDBMapperConfig.DEFAULT.getTypeConverterFactory())
                 .withConversionSchema(ConversionSchemas.V2)
                 .build();
-        this.models = StandardModelFactories.of(S3Link.Factory.of(null));
+        this.models = StandardModelFactories.of();
     }
 
     @Test
