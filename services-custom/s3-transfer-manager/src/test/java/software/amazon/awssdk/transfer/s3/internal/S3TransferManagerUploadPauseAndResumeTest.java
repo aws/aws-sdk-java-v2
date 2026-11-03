@@ -243,6 +243,74 @@ class S3TransferManagerUploadPauseAndResumeTest {
         verifyNoInteractions(mockS3, mockS3Crt);
     }
 
+    private static Stream<Arguments> invalidResumeTokens() {
+        Stream<Long[]> tokens = Stream.of(new Long[] {100L, 2_000_000_000L, 0L},
+                                          new Long[] {100L, (long) Integer.MAX_VALUE + 1, 0L},
+                                          new Long[] {100L, -1L, 0L},
+                                          new Long[] {100L, 0L, 0L},
+                                          new Long[] {100L, 10_001L, 0L},
+                                          new Long[] {0L, 10L, 0L},
+                                          new Long[] {-1L, 10L, 0L},
+                                          new Long[] {100L, 10L, -1L},
+                                          new Long[] {100L, 10L, 11L});
+        return tokens.flatMap(t -> Stream.of(Arguments.of(TmType.JAVA, t[0], t[1], t[2]),
+                                             Arguments.of(TmType.CRT, t[0], t[1], t[2])));
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidResumeTokens")
+    void resumeUploadFile_invalidResumeToken_shouldThrowWithoutCallingS3(TmType tmType, Long partSizeInBytes,
+                                                                          Long totalParts, Long transferredParts) {
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        long fileLength = file.length();
+        UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
+                                                               .putObjectRequest(putObjectRequest())
+                                                               .source(file)
+                                                               .build();
+        S3TransferManager tm = tmType == TmType.JAVA ? tmJava : tmCrt;
+
+        assertThatThrownBy(() -> tm.resumeUploadFile(r -> r.fileLength(fileLength)
+                                                           .partSizeInBytes(partSizeInBytes)
+                                                           .totalParts(totalParts)
+                                                           .transferredParts(transferredParts)
+                                                           .multipartUploadId("someId")
+                                                           .uploadFileRequest(uploadFileRequest)
+                                                           .fileLastModified(fileLastModified)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Invalid resume token");
+
+        verifyNoInteractions(mockS3, mockS3Crt);
+    }
+
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void resumeUploadFile_fileModifiedWithInvalidResumeToken_shouldUploadFromBeginning(TmType tmType) {
+        PutObjectResponse response = PutObjectResponse.builder().build();
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        long fileLength = file.length();
+        UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
+                                                               .putObjectRequest(putObjectRequest())
+                                                               .source(file)
+                                                               .build();
+        S3TransferManager tm = configureTestBehavior(tmType, response);
+
+        CompletedFileUpload completedFileUpload = tm.resumeUploadFile(r -> r.fileLength(fileLength + 10L)
+                                                                            .partSizeInBytes(8 * MB)
+                                                                            .totalParts(2_000_000_000L)
+                                                                            .multipartUploadId("someId")
+                                                                            .uploadFileRequest(uploadFileRequest)
+                                                                            .fileLastModified(fileLastModified))
+                                                    .completionFuture()
+                                                    .join();
+        assertThat(completedFileUpload.response()).isEqualTo(response);
+
+        if (tmType == TmType.JAVA) {
+            verifyActualPutObjectRequestNotResumed_tmJava();
+        } else {
+            verifyActualPutObjectRequestNotResumed_tmCrt();
+        }
+    }
+
     @ParameterizedTest
     @MethodSource("transferManagers")
     void resumeUploadFile_deserializedSseCTokenWithKeySupplied_shouldResumeUpload(TmType tmType) {
@@ -333,6 +401,7 @@ class S3TransferManagerUploadPauseAndResumeTest {
         assertThat(s3ResumeToken.uploadId()).isEqualTo(multipartId);
         assertThat(s3ResumeToken.partSize()).isEqualTo(partSizeInBytes);
         assertThat(s3ResumeToken.totalNumParts()).isEqualTo(totalParts);
+        assertThat(s3ResumeToken.numPartsCompleted()).isEqualTo(0L);
     }
 
     private void verifyActualPutObjectRequestResumedAndCorrectTokenReturned_tmCrt(String multipartId, long partSizeInBytes,
@@ -349,6 +418,7 @@ class S3TransferManagerUploadPauseAndResumeTest {
             assertThat(token.getUploadId()).isEqualTo(multipartId);
             assertThat(token.getPartSize()).isEqualTo(partSizeInBytes);
             assertThat(token.getTotalNumParts()).isEqualTo(totalParts);
+            assertThat(token.getNumPartsCompleted()).isEqualTo(0L);
         });
     }
 
