@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon SQS",
+    "contributor": "",
+    "description": "SqsAsyncBatchManager now removes idle batch buffers and cancels their flush tasks, and enforces the maxBatchKeys limit exactly."
+}
