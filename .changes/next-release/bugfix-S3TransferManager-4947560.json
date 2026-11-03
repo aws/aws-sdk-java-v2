@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Validate the part counts and part size of a ResumableFileUpload before resuming an upload."
+}
