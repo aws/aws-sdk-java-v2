@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.http.apache5.internal.conn;
 
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -27,7 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.core5.util.TimeValue;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,13 +39,13 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class IdleConnectionReaperTest {
     private static final long SLEEP_PERIOD = 250;
 
-    private final Map<PoolingHttpClientConnectionManager, Long> connectionManagers = new HashMap<>();
+    private final Map<IdleConnectionCloser, Long> connectionManagers = new HashMap<>();
 
     @Mock
     public ExecutorService executorService;
 
     @Mock
-    public PoolingHttpClientConnectionManager connectionManager;
+    public IdleConnectionCloser connectionManager;
 
     private IdleConnectionReaper idleConnectionReaper;
 
@@ -75,7 +72,7 @@ public class IdleConnectionReaperTest {
     @Test
     public void doesNotShutDownExecutorIfNoManagerRemoved() {
         idleConnectionReaper.registerConnectionManager(connectionManager, 1L);
-        HttpClientConnectionManager someOtherConnectionManager = mock(HttpClientConnectionManager.class);
+        IdleConnectionCloser someOtherConnectionManager = mock(IdleConnectionCloser.class);
         idleConnectionReaper.deregisterConnectionManager(someOtherConnectionManager);
         verify(executorService, times(0)).shutdownNow();
     }
