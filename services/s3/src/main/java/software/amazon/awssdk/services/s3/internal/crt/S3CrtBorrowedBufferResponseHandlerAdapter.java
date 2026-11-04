@@ -38,7 +38,8 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * Adapts CRT borrowed-buffer {@link GetObjectResponse} callbacks to an {@link S3CrtBorrowedBufferBlockingResponseTransformer}.
  *
- * <p>Headers, progress and request completion go through {@link S3CrtResponseHandlerAdapter}.
+ * <p>Headers, progress and request completion go through {@link S3CrtResponseHandlerAdapter}. A failure after the stream starts
+ * is also reported to the progress listener, because the {@code getObject} future has already completed by then.
  */
 @SdkInternalApi
 public final class S3CrtBorrowedBufferResponseHandlerAdapter
@@ -48,6 +49,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
     private final S3CrtResponseHandlerAdapter delegate;
     private final CompletableFuture<Void> executeFuture;
     private final S3CrtBorrowedBufferBlockingResponseTransformer transformer;
+    private final PublisherListener<S3MetaRequestProgress> progressListener;
     private final CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
     private final AtomicBoolean streamInitiated = new AtomicBoolean();
     private long nextObjectRangeStart;
@@ -57,6 +59,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         this.delegate = new S3CrtResponseHandlerAdapter(this.executeFuture, builder.responseHandler, builder.progressListener,
                                                        builder.metaRequestFuture);
         this.transformer = Validate.paramNotNull(builder.transformer, "transformer");
+        this.progressListener = builder.progressListener;
         this.metaRequestFuture = builder.metaRequestFuture;
     }
 
@@ -155,6 +158,17 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         }
     }
 
+    private void notifyProgressListenerOnError(Throwable error) {
+        if (progressListener == null) {
+            return;
+        }
+        try {
+            progressListener.subscriberOnError(error);
+        } catch (Throwable notificationFailure) {
+            log.error(() -> "Failed to notify progress listener of request failure", notificationFailure);
+        }
+    }
+
     private void initiateStream() {
         if (streamInitiated.compareAndSet(false, true)) {
             transformer.onBorrowedStreamStart(() -> executeFuture.cancel(true), this::incrementReadWindow);
@@ -166,6 +180,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
                     } catch (Throwable notificationFailure) {
                         log.error(() -> "Failed to notify borrowed response stream of request failure", notificationFailure);
                     }
+                    notifyProgressListenerOnError(error);
                 }
             });
         }

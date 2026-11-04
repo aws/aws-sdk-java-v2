@@ -39,10 +39,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3BorrowedBuffer;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
+import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 
 class S3CrtBorrowedBufferResponseHandlerAdapterTest {
@@ -221,14 +223,16 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
     }
 
     @Test
-    void failureBeforeStreamStart_shouldNotNotifyTransformer() {
+    void failureBeforeStreamStart_shouldNotNotifyTransformerOrProgressListener() {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
         S3CrtBorrowedBufferBlockingResponseTransformer transformer = mock(S3CrtBorrowedBufferBlockingResponseTransformer.class);
-        adapterBuilder(executeFuture, transformer).build();
+        PublisherListener<S3MetaRequestProgress> progressListener = progressListener();
+        adapterBuilder(executeFuture, transformer).progressListener(progressListener).build();
 
         executeFuture.completeExceptionally(new RuntimeException("request failed"));
 
         verify(transformer, never()).onBorrowedStreamError(any());
+        verify(progressListener, never()).subscriberOnError(any());
     }
     @Test
     void failureWhileStreamStarting_shouldBeReportedOnceStarted() throws Exception {
@@ -257,6 +261,58 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
 
         verify(transformer).onBorrowedStreamError(failure);
     }
+    @Test
+    void failureAfterStreamStart_shouldReportErrorToProgressListener() {
+        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
+        PublisherListener<S3MetaRequestProgress> progressListener = progressListener();
+        S3CrtBorrowedBufferResponseHandlerAdapter handler = handlerWithProgressListener(executeFuture, progressListener);
+        handler.onResponseBodyBorrowed(directCrtBuffer(3), 0, 3);
+        RuntimeException failure = new RuntimeException("late failure");
+
+        executeFuture.completeExceptionally(failure);
+
+        verify(progressListener, times(1)).subscriberOnError(failure);
+    }
+
+    @Test
+    void cancellationAfterStreamStart_shouldReportCancellationToProgressListener() {
+        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
+        PublisherListener<S3MetaRequestProgress> progressListener = progressListener();
+        AtomicReference<Runnable> cancellation = new AtomicReference<>();
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer = mock(S3CrtBorrowedBufferBlockingResponseTransformer.class);
+        when(transformer.onBorrowedBuffer(any())).thenReturn(true);
+        doAnswer(invocation -> {
+            cancellation.set(invocation.getArgument(0));
+            return null;
+        }).when(transformer).onBorrowedStreamStart(any(), any());
+        S3CrtBorrowedBufferResponseHandlerAdapter handler =
+            adapterBuilder(executeFuture, transformer).progressListener(progressListener).build();
+        handler.onResponseBodyBorrowed(directCrtBuffer(3), 0, 3);
+
+        cancellation.get().run();
+
+        verify(progressListener, times(1)).subscriberOnError(any(CancellationException.class));
+    }
+
+    @Test
+    void progressListenerFailure_shouldNotAffectEarlierStreamNotification() {
+        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
+        PublisherListener<S3MetaRequestProgress> progressListener = progressListener();
+        doAnswer(invocation -> {
+            throw new IllegalStateException("listener failure");
+        }).when(progressListener).subscriberOnError(any());
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer = mock(S3CrtBorrowedBufferBlockingResponseTransformer.class);
+        when(transformer.onBorrowedBuffer(any())).thenReturn(true);
+        S3CrtBorrowedBufferResponseHandlerAdapter handler =
+            adapterBuilder(executeFuture, transformer).progressListener(progressListener).build();
+        handler.onResponseBodyBorrowed(directCrtBuffer(3), 0, 3);
+        RuntimeException failure = new RuntimeException("late failure");
+
+        executeFuture.completeExceptionally(failure);
+
+        verify(transformer).onBorrowedStreamError(failure);
+    }
+
     @Test
     void borrowedCallback_whenBufferCallbackThrows_shouldReleaseAndFailRequest() {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
@@ -312,6 +368,19 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
                                                          .metaRequestFuture(
                                                              CompletableFuture.completedFuture(mock(S3MetaRequestWrapper.class)))
                                                          .transformer(transformer);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static PublisherListener<S3MetaRequestProgress> progressListener() {
+        return mock(PublisherListener.class);
+    }
+
+    private static S3CrtBorrowedBufferResponseHandlerAdapter handlerWithProgressListener(
+        CompletableFuture<Void> executeFuture,
+        PublisherListener<S3MetaRequestProgress> progressListener) {
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer = mock(S3CrtBorrowedBufferBlockingResponseTransformer.class);
+        when(transformer.onBorrowedBuffer(any())).thenReturn(true);
+        return adapterBuilder(executeFuture, transformer).progressListener(progressListener).build();
     }
 
     private static S3BorrowedBuffer directCrtBuffer(int size) {

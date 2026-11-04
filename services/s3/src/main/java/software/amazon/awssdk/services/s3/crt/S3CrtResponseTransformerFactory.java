@@ -58,6 +58,9 @@ public final class S3CrtResponseTransformerFactory {
      * <p>{@code ExecutionInterceptor.modifyAsyncHttpResponseContent} is not applied to the object body. Don't use this
      * transformer if an interceptor must transform object bytes.
      *
+     * <p>To download through a transfer manager, use {@code S3TransferManager.downloadWithDirectBufferPool} instead of passing
+     * this transformer to {@code S3TransferManager.download}.
+     *
      * @return a transformer that produces a blocking response stream
      */
     public static AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>>
