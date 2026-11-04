@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EMR",
+    "contributor": "",
+    "description": "Added StepAdditionalInfo on DescribeStep and ListSteps to surface YARN application IDs for steps."
+}
