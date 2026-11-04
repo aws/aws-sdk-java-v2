@@ -193,15 +193,16 @@
             <artifactId>smithy-rules-engine</artifactId>
             <version>${smithy.version}</version>
         </dependency>
-        <dependency>
-            <groupId>software.amazon.smithy</groupId>
-            <artifactId>smithy-aws-endpoints</artifactId>
-            <version>${smithy.version}</version>
-            <scope>runtime</scope>
-        </dependency>
+        <!-- Defines @waitable. Without it on the codegen classpath, model assembly drops the trait and no waiter is
+             generated. -->
         <dependency>
             <groupId>software.amazon.smithy</groupId>
             <artifactId>smithy-waiters</artifactId>
+            <version>${smithy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-aws-endpoints</artifactId>
             <version>${smithy.version}</version>
             <scope>runtime</scope>
         </dependency>
