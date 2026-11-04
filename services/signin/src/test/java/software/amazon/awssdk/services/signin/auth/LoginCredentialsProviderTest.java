@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.signin.auth;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -229,6 +230,80 @@ public class LoginCredentialsProviderTest {
         stubAccessDeniedException(OAuth2ErrorCode.INSUFFICIENT_PERMISSIONS);
         SdkClientException e = assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
         assertTrue(e.getMessage().contains("insufficient permissions"));
+    }
+
+    @Test
+    public void resolveCredentials_tokenHasSignInRegion_refreshSentToSignInRegion() throws Exception {
+        LoginCredentialsProvider provider = providerWithoutEndpointOverride();
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600)))
+                                    .toBuilder().signInRegion("eu-central-1").build());
+        stubSuccessfulRefreshResponse();
+
+        verifyResolvedCredentialsAreUpdated(provider.resolveCredentials());
+
+        assertEquals(1, captureRequestInterceptor.httpRequests.size());
+        SdkHttpRequest httpRequest = captureRequestInterceptor.httpRequests.get(0);
+        assertEquals("eu-central-1.signin.aws.amazon.com", httpRequest.host());
+        assertEquals("eu-central-1.signin.aws.amazon.com", mockHttpClient.getLastRequest().host());
+        Map<String, Object> payload =
+            getJwtPayloadFromEncodedDpopHeader(httpRequest.headers().get("DPoP").get(0));
+        assertEquals("https://eu-central-1.signin.aws.amazon.com/v1/token", payload.get("htu"));
+
+        verifyTokenCacheUpdated();
+        assertEquals("eu-central-1", tokenManager.loadToken().get().getSignInRegion());
+    }
+
+    @Test
+    public void resolveCredentials_tokenWithoutSignInRegion_refreshSentToClientRegion() throws Exception {
+        LoginCredentialsProvider provider = providerWithoutEndpointOverride();
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600))));
+        stubSuccessfulRefreshResponse();
+
+        verifyResolvedCredentialsAreUpdated(provider.resolveCredentials());
+
+        assertEquals("us-east-1.signin.aws.amazon.com", captureRequestInterceptor.httpRequests.get(0).host());
+        verifyTokenCacheUpdated();
+        assertNull(tokenManager.loadToken().get().getSignInRegion());
+    }
+
+    @Test
+    public void resolveCredentials_tokenWithEmptySignInRegion_refreshSentToClientRegion() throws Exception {
+        LoginCredentialsProvider provider = providerWithoutEndpointOverride();
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600)))
+                                    .toBuilder().signInRegion("").build());
+        stubSuccessfulRefreshResponse();
+
+        verifyResolvedCredentialsAreUpdated(provider.resolveCredentials());
+
+        assertEquals("us-east-1.signin.aws.amazon.com", captureRequestInterceptor.httpRequests.get(0).host());
+    }
+
+    @Test
+    public void resolveCredentials_tokenHasSignInRegion_clientEndpointOverrideStillUsed() throws Exception {
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600)))
+                                    .toBuilder().signInRegion("eu-central-1").build());
+        stubSuccessfulRefreshResponse();
+
+        verifyResolvedCredentialsAreUpdated(loginCredentialsProvider.resolveCredentials());
+
+        assertEquals("custom-signin-endpoint.com", captureRequestInterceptor.httpRequests.get(0).host());
+        verifyDpopHeader(captureRequestInterceptor.httpRequests.get(0));
+    }
+
+    private LoginCredentialsProvider providerWithoutEndpointOverride() {
+        SigninClient client = SigninClient
+            .builder()
+            .region(Region.US_EAST_1)
+            .httpClient(mockHttpClient)
+            .overrideConfiguration(c -> c.addExecutionInterceptor(captureRequestInterceptor))
+            .build();
+        return LoginCredentialsProvider
+            .builder()
+            .loginSession(LOGIN_SESSION_ID)
+            .signinClient(client)
+            .tokenCacheLocation(tempDir)
+            .asyncCredentialUpdateEnabled(false)
+            .build();
     }
 
     private static void verifyResolvedCredentialsAreUpdated(AwsCredentials resolvedCredentials) {
