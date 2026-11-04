@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Marketplace Discovery",
-    "contributor": "",
-    "description": "GetListing and SearchListings APIs now return G2 and PeerSpot review sources in review summaries."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonMWAAServerless",
-    "contributor": "",
-    "description": "Adding support to Environment Variables in MWAA Serverless"
-}
