@@ -38,20 +38,27 @@ import software.amazon.awssdk.utils.Validate;
  * SDK does not time out a download that stops after its stream is returned. The application can close the stream to end
  * it.
  *
- * <p>The default {@code initialReadBufferSizeInBytes} of 80 MiB can limit the throughput of each download on
- * high-bandwidth instances. Raising it can increase throughput per download, but each download can then hold more pool
- * memory.
+ * <p>The default {@code initialReadBufferSizeInBytes}, 10 times the part size (80 MiB with the default part size), can
+ * limit the throughput of each download on high-bandwidth instances. Raising it can increase throughput per download, but
+ * each download can then hold more pool memory.
  *
- * <p>Use {@link #fixed(long)} or {@link #elastic(long, long)} for a predictable ceiling. An explicit ceiling, set through
- * either of those or through {@code maxNativeMemoryLimitInBytes}, must fit within 80% of the JVM direct-memory limit
- * ({@code -XX:MaxDirectMemorySize}), or client creation fails. A {@link #fixed(long)} or {@link #elastic(long, long)}
- * ceiling must also not exceed {@code maxNativeMemoryLimitInBytes} when that is set. An {@link #auto()} pool without
- * {@code maxNativeMemoryLimitInBytes} derives its ceiling from the throughput target. If that ceiling doesn't fit within
- * the direct-memory limit, it's lowered to fit instead of failing client creation.
+ * <p>Start with {@link #auto()}, which lets CRT size the pool. Use {@link #elastic(long, long)} to set the ceiling
+ * yourself, and {@link #fixed(long)} only when the pool must be a specific amount of memory that never changes. An
+ * explicit ceiling, set through either of those or through {@code maxNativeMemoryLimitInBytes}, must fit within 80% of
+ * the JVM direct-memory limit ({@code -XX:MaxDirectMemorySize}), or client creation fails. A {@link #fixed(long)} or
+ * {@link #elastic(long, long)} ceiling must also not exceed {@code maxNativeMemoryLimitInBytes} when that is set. For
+ * {@link #auto()}, a ceiling set through CRT's {@code AWS_CRT_S3_MEMORY_LIMIT_IN_MB} or
+ * {@code AWS_CRT_S3_MEMORY_LIMIT_IN_GIB} environment variable is also explicit. An {@link #auto()} pool without an
+ * explicit ceiling derives its ceiling from the throughput target. If that ceiling doesn't fit within the direct-memory
+ * limit, it's lowered to fit and CRT logs a warning, instead of failing client creation.
  *
  * <p>With a pool, an explicitly set {@code minimumPartSizeInBytes} is used as the exact upload part size and is never
  * raised. In this case, a known-size upload above the multipart threshold fails before sending data if that part size is
- * below S3's 5 MiB minimum for non-final parts or the object needs more than 10,000 parts.
+ * below S3's 5 MiB minimum for non-final parts or the object needs more than 10,000 parts. Without an explicit part size,
+ * a known-size upload that needs larger parts than the pool can provide fails before sending data. This doesn't apply
+ * to uploads from a file path, such as {@code putObject(PutObjectRequest, Path)} or Transfer Manager
+ * {@code uploadFile}. For those, CRT can raise the part size as it does without a pool, and a {@link #fixed(long)} pool
+ * fails the upload if a part doesn't fit.
  */
 @SdkPublicApi
 @Immutable
@@ -68,10 +75,13 @@ public final class S3CrtDirectBufferPoolConfiguration {
     /**
      * Creates a configuration for a pool whose memory limit is automatically determined by CRT.
      *
-     * <p>CRT sizes the pool from system information and the client's throughput target. The pool grows with demand and
-     * releases memory it is not using. The derived ceiling can be reduced to fit the JVM direct-memory limit. Use
-     * {@link #elastic(long, long)} for a known number of concurrent downloads that use the pool and need an explicit
-     * ceiling.
+     * <p>Unless a ceiling is set through {@code maxNativeMemoryLimitInBytes} or CRT's
+     * {@code AWS_CRT_S3_MEMORY_LIMIT_IN_MB} or {@code AWS_CRT_S3_MEMORY_LIMIT_IN_GIB} environment variable, CRT derives
+     * the ceiling from the client's throughput target. The pool allocates 16 parts (128 MiB with the default part size)
+     * when the client is created, or the whole pool if the ceiling is smaller, and keeps them while idle. Above that, it
+     * grows with demand and releases unused memory when the client is idle. The derived ceiling can be reduced to fit the
+     * JVM direct-memory limit. Use {@link #elastic(long, long)} for a known number of concurrent downloads that use the
+     * pool and need an explicit ceiling.
      *
      * @return an automatically sized pool configuration
      */
@@ -85,8 +95,8 @@ public final class S3CrtDirectBufferPoolConfiguration {
      * <p>CRT rounds {@code memoryLimitInBytes} down to whole parts, allocates the resulting capacity when the client is
      * created, and never grows or shrinks it. When
      * {@link software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder#minimumPartSizeInBytes(Long)} is not set, a
-     * fixed pool limits a known-size multipart upload to 312.5 GiB, or less for a pool smaller than 32 MiB. A larger
-     * upload fails before sending data. Use {@link #elastic(long, long)} for larger uploads.
+     * fixed pool supports known-size multipart uploads up to 312.5 GiB. Use {@link #auto()} or
+     * {@link #elastic(long, long)} for larger uploads.
      *
      * @param memoryLimitInBytes requested pool ceiling in bytes, rounded down to whole parts by CRT
      * @return a fixed-size pool configuration
@@ -99,11 +109,12 @@ public final class S3CrtDirectBufferPoolConfiguration {
 
     /**
      * Creates a configuration for a pool that grows on demand to its ceiling and releases unused capacity above its
-     * floor.
+     * floor when the client is idle.
      *
-     * <p>The pool allocates its floor when the client is created and keeps it while idle. The pool grows in blocks of 16
-     * parts, so the floor is {@code minimumSizeInBytes} rounded down to a multiple of 16 parts, or the whole pool if it
-     * reaches the ceiling. The ceiling is {@code memoryLimitInBytes} rounded down to whole parts.
+     * <p>The pool keeps its floor allocated from client creation, even while idle. The floor is rounded down to blocks of
+     * 16 parts (128 MiB with the default part size). A floor below one block keeps no memory allocated unless it reaches
+     * the ceiling, in which case the pool keeps its whole capacity allocated. The ceiling is {@code memoryLimitInBytes}
+     * rounded down to whole parts.
      *
      * @param minimumSizeInBytes requested elastic floor in bytes
      * @param memoryLimitInBytes requested pool ceiling in bytes

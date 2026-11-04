@@ -27,6 +27,7 @@ import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequest
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toCrtDownloadFileRequest;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -233,6 +234,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         CompletableFuture<TransferProgress> progressFuture = new CompletableFuture<>();
         CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture = new CompletableFuture<>();
         S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
+        AtomicReference<DownloadFileRequest> requestToSaveOnPauseRef = new AtomicReference<>(originalDownloadRequest);
 
         CompletableFuture<HeadObjectResponse> headFuture =
             s3AsyncClient.headObject(b -> b.bucket(getObjectRequest.bucket()).key(getObjectRequest.key()));
@@ -251,6 +253,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
             DownloadFileRequest newDownloadFileRequest = toCrtDownloadFileRequest(resumableFileDownload, headObjectResponse,
                                                                                  originalDownloadRequest,
                                                                                  restartFromBeginning);
+            requestToSaveOnPauseRef.set(requestToSaveOnPause(originalDownloadRequest, newDownloadFileRequest));
 
             // CRT appends to whatever the destination file already holds, so appending is only correct when the download is
             // genuinely being continued. Otherwise the file has to be replaced.
@@ -274,7 +277,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         return new CrtFileDownload(returnFuture,
                                    new ResumeTransferProgress(progressFuture),
                                    observable,
-                                   () -> originalDownloadRequest,
+                                   requestToSaveOnPauseRef::get,
                                    resumableFileDownload);
     }
 

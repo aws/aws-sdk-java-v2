@@ -17,11 +17,13 @@ package software.amazon.awssdk.transfer.s3.internal.utils;
 
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior.LEAVE;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 
 import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
@@ -80,7 +82,7 @@ public final class ResumableRequestConverter {
                                                                             .position(0L)
                                                                             .failureBehavior(LEAVE)
                                                                             .build());
-            return Pair.of(originalDownloadRequest, responseTransformer);
+            return Pair.of(attachIfMatch(originalDownloadRequest, resumableFileDownload), responseTransformer);
         }
 
         log.debug(() -> "The paused download was performed with range GET, now resuming download of remaining bytes.");
@@ -97,6 +99,7 @@ public final class ResumableRequestConverter {
                 fileAsyncResponseTransformer(newDownloadFileRequest, false);
             return Pair.of(newDownloadFileRequest, responseTransformer);
         }
+        newDownloadFileRequest = attachIfMatch(newDownloadFileRequest, resumableFileDownload);
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
             fileAsyncResponseTransformer(newDownloadFileRequest, true);
         return Pair.of(newDownloadFileRequest, responseTransformer);
@@ -159,6 +162,23 @@ public final class ResumableRequestConverter {
             return newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
         }
         return resumed;
+    }
+
+    /**
+     * Pins the resumed request to the ETag of the object that was being downloaded before the pause, so S3 rejects the request
+     * with 412 rather than serving bytes of a replacement object. Any If-Match on the original request is replaced: the token
+     * ETag came from a response that already satisfied it. If the token has no ETag, the request is returned unchanged.
+     */
+    private static DownloadFileRequest attachIfMatch(DownloadFileRequest downloadRequest,
+                                                     ResumableFileDownload resumableFileDownload) {
+        String s3ObjectEtag = resumableFileDownload.s3ObjectEtag().orElse(null);
+        if (s3ObjectEtag == null) {
+            return downloadRequest;
+        }
+        GetObjectRequest getObjectRequest = downloadRequest.getObjectRequest();
+        return downloadRequest.toBuilder()
+                              .getObjectRequest(getObjectRequest.toBuilder().ifMatch(s3ObjectEtag).build())
+                              .build();
     }
 
     private static boolean hasRemainingParts(GetObjectRequest getObjectRequest) {
@@ -320,13 +340,25 @@ public final class ResumableRequestConverter {
         }
     }
 
+    /**
+     * Builds the request for downloading the object from the beginning. It gets a new {@link MultipartDownloadResumeContext},
+     * otherwise the multipart client would skip the parts the paused download had completed.
+     */
     private static DownloadFileRequest newDownloadFileRequest(DownloadFileRequest originalDownloadRequest,
                                                               GetObjectRequest getObjectRequest,
                                                               HeadObjectResponse headObjectResponse) {
+        AwsRequestOverrideConfiguration overrideConfiguration =
+            getObjectRequest.overrideConfiguration()
+                            .map(AwsRequestOverrideConfiguration::toBuilder)
+                            .orElseGet(AwsRequestOverrideConfiguration::builder)
+                            .putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext())
+                            .build();
         return originalDownloadRequest.toBuilder()
                                       .getObjectRequest(
                                           getObjectRequest.toBuilder()
-                                                          .ifUnmodifiedSince(headObjectResponse.lastModified()).build())
+                                                          .ifUnmodifiedSince(headObjectResponse.lastModified())
+                                                          .overrideConfiguration(overrideConfiguration)
+                                                          .build())
                                       .build();
     }
 }

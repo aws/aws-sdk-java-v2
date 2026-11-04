@@ -14,23 +14,58 @@
  */
 package software.amazon.awssdk.eventstream;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.emptyMap;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import com.sun.management.ThreadMXBean;
 
 import java.io.ByteArrayOutputStream;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.management.ManagementFactory;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.emptyMap;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class MessageTest {
+    private static final ThreadMXBean threadMXBean = (ThreadMXBean) ManagementFactory.getThreadMXBean();
+    private static final MethodHandle GET_THREAD_ALLOCATED_BYTES;
+
+    static {
+        MethodHandle handle;
+        try {
+            handle = MethodHandles.lookup().findVirtual(ThreadMXBean.class, "getCurrentThreadAllocatedBytes",
+                MethodType.methodType(long.class));
+        } catch (Throwable t) {
+            handle = null;
+        }
+        GET_THREAD_ALLOCATED_BYTES = handle;
+    }
+
+    private static void assumeGetCurrentThreadAllocatedBytesExists() {
+        Assumptions.assumeTrue(GET_THREAD_ALLOCATED_BYTES != null,
+                               "JVM does not have ThreadMXBean::getCurrentThreadAllocatedBytes");
+    }
+
+    private static long getCurrentThreadAllocatedBytes() {
+        try {
+            return (long) GET_THREAD_ALLOCATED_BYTES.invoke(threadMXBean);
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
     @Test
     public void emptyVector() {
         Message message = new Message(emptyMap(), new byte[]{});
@@ -96,8 +131,7 @@ public class MessageTest {
             int arraylen = 256 * 1024;
             int arrayoffset = rand.nextInt(4 * 1024);
             ByteBuffer buf = ((ByteBuffer) ByteBuffer.allocate(arraylen).position(arrayoffset)).slice();
-            byte[] encodedBytes = baos.toByteArray();
-            buf.put(encodedBytes);
+            buf.put(baos.toByteArray());
             buf.flip();
 
             buf.get(padding);
@@ -105,9 +139,9 @@ public class MessageTest {
 
             assertEquals(message, decoded);
 
-            // Corrupt a random byte and verify that decoding fails
-            encodedBytes[rand.nextInt(encodedBytes.length)]++;
-            assertThrows(IllegalArgumentException.class, () -> Message.decode(ByteBuffer.wrap(encodedBytes)));
+            // toByteBuffer path
+            Message decodedViaToByteBuffer = Message.decode(message.toByteBuffer());
+            assertEquals(message, decodedViaToByteBuffer);
         }
     }
 
@@ -131,10 +165,106 @@ public class MessageTest {
         }
     }
 
+    /**
+     * How much the allocation overhead needs to change before we fail the 'test'.
+     * The tests are really benchmarks which notify on significant deviation.
+     * If it regresses, we want to check if the regression is avoidable.
+     */
+    static final double ALLOCATION_RATE_EPSILON = 0.5;
+
+    @Test
+    public void allocationRateEncodeSmallPayload() {
+        assumeGetCurrentThreadAllocatedBytesExists();
+        TestUtils utils = new TestUtils(8912374098123423L);
+        long encodedBytes = 0;
+        List<Message> messages = utils.randomMessages(5_000, 1_000);
+        long initialAllocatedBytes = getCurrentThreadAllocatedBytes();
+
+        for (Message message : messages) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            message.encode(baos);
+            encodedBytes += baos.size();
+        }
+
+        long totalAllocatedBytes = getCurrentThreadAllocatedBytes() - initialAllocatedBytes;
+        double overhead = ((double) totalAllocatedBytes / encodedBytes) - 1;
+
+        double expectedOverhead = 6.7;
+        assertTrue((overhead - expectedOverhead) < ALLOCATION_RATE_EPSILON,
+                   "Allocation overhead should be close to " + expectedOverhead + ", but was " + overhead);
+    }
+
+    @Test
+    public void allocationRateToByteBufferSmallPayload() {
+        assumeGetCurrentThreadAllocatedBytesExists();
+        TestUtils utils = new TestUtils(8912374098123423L);
+        long encodedBytes = 0;
+        List<Message> messages = utils.randomMessages(5_000, 1_000);
+        long initialAllocatedBytes = getCurrentThreadAllocatedBytes();
+
+        for (Message message : messages) {
+            encodedBytes += message.toByteBuffer().remaining();
+        }
+
+        long totalAllocatedBytes = getCurrentThreadAllocatedBytes() - initialAllocatedBytes;
+        double overhead = ((double) totalAllocatedBytes / encodedBytes) - 1;
+
+        double expectedOverhead = 4.5;
+        assertTrue((overhead - expectedOverhead) < ALLOCATION_RATE_EPSILON,
+                   "Allocation overhead should be close to " + expectedOverhead + ", but was " + overhead);
+    }
+
+    @Test
+    public void allocationRateEncodeLargePayload() {
+        assumeGetCurrentThreadAllocatedBytesExists();
+        TestUtils utils = new TestUtils(8912374098123423L);
+        long encodedBytes = 0;
+        List<Message> messages = utils.randomMessages(5_000, 50_000);
+        long initialAllocatedBytes = getCurrentThreadAllocatedBytes();
+
+        for (Message message : messages) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            message.encode(baos);
+            encodedBytes += baos.size();
+        }
+
+        long totalAllocatedBytes = getCurrentThreadAllocatedBytes() - initialAllocatedBytes;
+        double overhead = ((double) totalAllocatedBytes / encodedBytes) - 1;
+
+        double expectedOverhead = 2.1;
+        assertTrue((overhead - expectedOverhead) < ALLOCATION_RATE_EPSILON,
+            "Allocation overhead should be close to " + expectedOverhead + ", but was " + overhead);
+    }
+
+    @Test
+    public void allocationRateToByteBufferLargePayload() {
+        assumeGetCurrentThreadAllocatedBytesExists();
+        TestUtils utils = new TestUtils(8912374098123423L);
+        long encodedBytes = 0;
+        List<Message> messages = utils.randomMessages(5_000, 50_000);
+        long initialAllocatedBytes = getCurrentThreadAllocatedBytes();
+
+        for (Message message : messages) {
+            encodedBytes += message.toByteBuffer().remaining();
+        }
+
+        long totalAllocatedBytes = getCurrentThreadAllocatedBytes() - initialAllocatedBytes;
+        double overhead = ((double) totalAllocatedBytes / encodedBytes) - 1;
+
+        double expectedOverhead = 0.1;
+        assertTrue((overhead - expectedOverhead) < ALLOCATION_RATE_EPSILON,
+            "Allocation overhead should be close to " + expectedOverhead + ", but was " + overhead);
+    }
+
     static void roundTrip(Message expected) {
+        // Using the encode path
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         expected.encode(baos);
         Message actual = Message.decode(ByteBuffer.wrap(baos.toByteArray()));
+        assertEquals(expected, actual);
+
+        // Using the toByteBuffer path
+        actual = Message.decode(expected.toByteBuffer());
         assertEquals(expected, actual);
     }
 }

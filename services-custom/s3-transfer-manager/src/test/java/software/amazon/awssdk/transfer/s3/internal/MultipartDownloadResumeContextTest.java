@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -87,6 +88,59 @@ public class MultipartDownloadResumeContextTest {
 
         assertThat(resume2.downloadFileRequest().getObjectRequest())
             .matches(hasMultipartContextAttribute(), "[2] hasMultipartContextAttribute");
+    }
+
+    @Test
+    void resumeAfterObjectReplaced_thenPause_shouldNotKeepPausedDownloadContext() throws IOException {
+        File file = RandomTempFile.createTempFile("test", UUID.randomUUID().toString());
+        try {
+            Files.write(file.toPath(), RandomStringUtils.randomAlphanumeric(1024).getBytes(StandardCharsets.UTF_8));
+            MultipartDownloadResumeContext pausedContext = new MultipartDownloadResumeContext();
+            pausedContext.addCompletedPart(1);
+            pausedContext.totalParts(2);
+            pausedContext.response(GetObjectResponse.builder().eTag("\"original\"").partsCount(2).build());
+            GetObjectRequest getObjectRequest =
+                GetObjectRequest.builder()
+                                .bucket("bucket")
+                                .key("key")
+                                .overrideConfiguration(c -> c.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT,
+                                                                                    pausedContext))
+                                .build();
+            Instant originalLastModified = Instant.parse("2026-09-28T12:00:00Z");
+            ResumableFileDownload token =
+                ResumableFileDownload.builder()
+                                     .downloadFileRequest(DownloadFileRequest.builder()
+                                                                             .getObjectRequest(getObjectRequest)
+                                                                             .destination(file)
+                                                                             .build())
+                                     .bytesTransferred(file.length())
+                                     .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                     .s3ObjectLastModified(originalLastModified)
+                                     .s3ObjectEtag("\"original\"")
+                                     .totalSizeInBytes(2048L)
+                                     .build();
+
+            when(s3.headObject(any(Consumer.class)))
+                .thenReturn(CompletableFuture.completedFuture(HeadObjectResponse.builder()
+                                                                                .eTag("\"replacement\"")
+                                                                                .lastModified(originalLastModified.plusSeconds(60))
+                                                                                .contentLength(2048L)
+                                                                                .build()));
+            when(s3.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+                .thenReturn(new CompletableFuture<>());
+
+            ResumableFileDownload secondToken = tm.resumeDownloadFile(token).pause();
+
+            GetObjectRequest pausedRequest = secondToken.downloadFileRequest().getObjectRequest();
+            assertThat(pausedRequest.overrideConfiguration().get().executionAttributes()
+                                    .getAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT))
+                .isNotSameAs(pausedContext)
+                .satisfies(ctx -> assertThat(ctx.completedParts()).isEmpty());
+            assertThat(pausedRequest.ifUnmodifiedSince()).isNull();
+            assertThat(pausedRequest.ifMatch()).isNull();
+        } finally {
+            file.delete();
+        }
     }
 
     private Predicate<GetObjectRequest> hasMultipartContextAttribute() {

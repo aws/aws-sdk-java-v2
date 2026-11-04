@@ -26,7 +26,6 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 
 // TODO: Remove this when the long polling trait is formalized as a c2j trait.
@@ -75,8 +74,13 @@ public class LongPollingOperationProcessor implements CodegenCustomizationProces
             return;
         }
 
-        if (intermediateModel.getMetadata().getProtocol() != Protocol.AWS_JSON) {
-            throw new IllegalArgumentException("Currently only AWS-JSON services can use the longPoll trait");
+        // The long polling flag is only emitted by JsonProtocolSpec (see LongPollTrait). SyncClientClass#getProtocolSpecs
+        // routes exactly the protocols where isJsonProtocol() is true to JsonProtocolSpec. Update this check if that routing
+        // changes, so the flag is never silently dropped.
+        if (!intermediateModel.getMetadata().isJsonProtocol()) {
+            throw new IllegalArgumentException("Currently only JSON-based protocol services (AWS JSON, REST JSON, CBOR, "
+                                               + "Smithy RPC v2 CBOR) can use the longPoll trait. Service " + serviceId
+                                               + " uses protocol: " + intermediateModel.getMetadata().getProtocol().getValue());
         }
 
         List<String> longPollingOperations = serviceIdToOperations.getOrDefault(serviceId, Collections.emptyList());

@@ -38,7 +38,6 @@ import software.amazon.awssdk.eventstream.internal.Utils;
  */
 @SdkProtectedApi
 public abstract class HeaderValue {
-
     protected HeaderValue() {
     }
 
@@ -200,7 +199,6 @@ public abstract class HeaderValue {
             if (this == o) {
                 return true;
             }
-
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
@@ -243,7 +241,8 @@ public abstract class HeaderValue {
         }
 
         @Override
-        void encodeValue(DataOutputStream dos) {
+        void encodeValue(DataOutputStream dos) throws IOException {
+            dos.writeByte(value);
         }
 
         @Override
@@ -251,7 +250,6 @@ public abstract class HeaderValue {
             if (this == o) {
                 return true;
             }
-
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
@@ -290,7 +288,8 @@ public abstract class HeaderValue {
         }
 
         @Override
-        void encodeValue(DataOutputStream dos) {
+        void encodeValue(DataOutputStream dos) throws IOException {
+            dos.writeShort(value);
         }
 
         @Override
@@ -298,7 +297,6 @@ public abstract class HeaderValue {
             if (this == o) {
                 return true;
             }
-
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
@@ -346,7 +344,6 @@ public abstract class HeaderValue {
             if (this == o) {
                 return true;
             }
-
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
@@ -394,7 +391,6 @@ public abstract class HeaderValue {
             if (this == o) {
                 return true;
             }
-
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
@@ -442,7 +438,6 @@ public abstract class HeaderValue {
             if (this == o) {
                 return true;
             }
-
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
@@ -490,7 +485,6 @@ public abstract class HeaderValue {
             if (this == o) {
                 return true;
             }
-
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
@@ -543,7 +537,6 @@ public abstract class HeaderValue {
             if (this == o) {
                 return true;
             }
-
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
@@ -598,7 +591,6 @@ public abstract class HeaderValue {
             if (this == o) {
                 return true;
             }
-
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }

@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "S3 Transfer Manager",
-    "contributor": "",
-    "description": "Fixed an issue where `S3TransferManager#uploadDirectory` with a custom `s3Delimiter` silently uploaded two local files to the same key when the delimiter appeared in a file or directory name, for example `a/b` and `a-b` with the delimiter `-`. Only the first file is now uploaded to that key, and each other file that maps to it is reported in `CompletedDirectoryUpload#failedTransfers()`."
-}

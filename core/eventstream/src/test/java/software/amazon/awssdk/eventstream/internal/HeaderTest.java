@@ -1,5 +1,5 @@
 /*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,22 +14,30 @@
  */
 package software.amazon.awssdk.eventstream.internal;
 
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static software.amazon.awssdk.eventstream.HeaderValue.fromInteger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.eventstream.HeaderType;
 import software.amazon.awssdk.eventstream.HeaderValue;
+import software.amazon.awssdk.eventstream.TestUtils;
+
 
 public class HeaderTest {
+    private final TestUtils util = new TestUtils(Double.doubleToLongBits(Math.random()));
+
     @Test
-    public void genericHeaders() throws Exception {
-        roundTrip(new Header("test-string-header", "test-string-value"));
-        roundTrip(new Header("test-byte-array-header", HeaderValue.fromByteArray(bb(1, 2, 3, 4, 5, 6, 7, 8))));
-        roundTrip(new Header("test-uint32-header", fromInteger(8918230)));
+    public void headerEncoding() throws Exception {
+        for (byte i = 0; i <= 9; i++) {
+            HeaderType headerType = HeaderType.fromTypeId(i);
+            assertEquals(i, headerType.headerTypeId());
+            HeaderValue value = util.randomHeaderValue(headerType);
+            roundTrip(new Header("test-header", value));
+        }
     }
 
     static void roundTrip(Header header) throws IOException {
@@ -41,13 +49,5 @@ public class HeaderTest {
         Header actual = Header.decode(ByteBuffer.wrap(bytes));
 
         assertEquals(header, actual);
-    }
-
-    static byte[] bb(int... bytes) {
-        byte[] bs = new byte[bytes.length];
-        for (int i = 0; i < bytes.length; i++) {
-            bs[i] = (byte) bytes[i];
-        }
-        return bs;
     }
 }
