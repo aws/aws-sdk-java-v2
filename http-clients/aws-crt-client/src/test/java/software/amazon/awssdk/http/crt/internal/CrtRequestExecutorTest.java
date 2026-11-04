@@ -46,6 +46,7 @@ import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -152,7 +153,41 @@ public class CrtRequestExecutorTest {
         assertThatThrownBy(executeFuture::join).hasCause(exception);
     }
 
+    @Test
+    public void execute_acquireStreamFailsAndStreamManagerClosed_withMetrics_failsRequest() {
+        IllegalStateException exception = new IllegalStateException("Http2StreamManager has been closed");
+        Mockito.when(streamManager.acquireStream(Mockito.any(HttpRequest.class),
+                                                 Mockito.any(HttpStreamBaseResponseHandler.class)))
+               .thenReturn(CompletableFutureUtils.failedFuture(exception));
+        Mockito.when(streamManager.getManagerMetrics())
+               .thenThrow(new IllegalStateException("HttpClientConnectionManager has been closed, can't fetch metrics"));
+
+        CompletableFuture<SdkHttpFullResponse> executeFuture =
+            requestExecutor.execute(crtRequestContext(MetricCollector.create("test")));
+
+        assertThat(executeFuture).hasFailedWithThrowableThat().hasCause(exception).isInstanceOf(IOException.class);
+    }
+
+    @Test
+    public void execute_acquireStreamFailsAndMetricCollectorThrows_failsRequestWithAcquireFailure() {
+        IllegalStateException exception = new IllegalStateException("connection closed");
+        Mockito.when(streamManager.acquireStream(Mockito.any(HttpRequest.class),
+                                                 Mockito.any(HttpStreamBaseResponseHandler.class)))
+               .thenReturn(CompletableFutureUtils.failedFuture(exception));
+        MetricCollector metricCollector = Mockito.mock(MetricCollector.class);
+        Mockito.doThrow(new RuntimeException("metrics failure"))
+               .when(metricCollector).reportMetric(Mockito.any(), Mockito.any());
+
+        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(crtRequestContext(metricCollector));
+
+        assertThat(executeFuture).hasFailedWithThrowableThat().hasCause(exception).isInstanceOf(IOException.class);
+    }
+
     private CrtRequestContext crtRequestContext() {
+        return crtRequestContext(null);
+    }
+
+    private CrtRequestContext crtRequestContext(MetricCollector metricCollector) {
         SdkHttpFullRequest request = createRequest(URI.create("http://localhost"));
         return CrtRequestContext.builder()
                                 .readBufferSize(2000)
@@ -160,6 +195,7 @@ public class CrtRequestExecutorTest {
                                 .request(HttpExecuteRequest.builder()
                                                            .request(request)
                                                            .contentStreamProvider(SdkBytes.fromUtf8String("test").asContentStreamProvider())
+                                                           .metricCollector(metricCollector)
                                                            .build())
                                 .build();
     }
