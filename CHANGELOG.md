@@ -1,4 +1,107 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.57.9__ __2026-11-04__
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - Adds DefaultAmiList to DescribePlatformVersion to return the default AMI for each processor architecture that a platform version supports.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Adds support for an optional jobName on CreateDatasetExportJob. The jobName is returned by DescribeDatasetExportJob and ListDatasetExportJobs, making dataset export jobs easier to identify and track. If jobName is omitted, a default name is generated automatically.
+
+## __AWS Marketplace Discovery__
+  - ### Features
+    - GetListing and SearchListings APIs now return G2 and PeerSpot review sources in review summaries.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Release Software APIs- GetSoftwareV2, GetSoftwareStatisticsV2 and GetSoftwareResourcesV2 to list software packages with aggregated resource count, get aggregated software statistics, and find the resources that contain a specific software package.
+
+## __AWS Signin__
+  - ### Bugfixes
+    - LoginCredentialsProvider now sends refresh requests to the signInRegion recorded in the cached login token.
+
+## __Amazon Connect Contact Lens__
+  - ### Features
+    - Rules TBAC GA (Contact Lens V1) - Adds an optional ListFilter (CategoriesAttributeFilter with OrConditions, AndCondition and TagCondition) to ListRealtimeContactAnalysisSegments. This filters matched categories by rule tags. It also adds an optional RuleId to CategoryDetails in the response.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds support for retrieving associated cases in contact responses. The Contact object now includes a Cases field containing case IDs and reference numbers linked to the contact.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adds StartBulkPutItems, DescribeBulkOperation, ListBulkOperations, and CancelBulkOperation for asynchronously loading Amazon S3 datasets into existing DynamoDB tables.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS Managed Instances now supports the json-file log driver in task definitions. Daemon task definition volumes also support logDriverVolumeConfiguration, letting managed daemons read those logs.
+
+## __Amazon EMR__
+  - ### Features
+    - Added StepAdditionalInfo on DescribeStep and ListSteps to surface YARN application IDs for steps.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add the Unsupported SupportabilityScore to GetCapacityManagerSupportabilityScores.
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - Amazon Lookout for Equipment reached end of support on October 7, 2026. All Lookout for Equipment APIs are now marked as deprecated.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly now supports tagging lexicons. Use the new TagResource, UntagResource and ListTagsForResource APIs, or add tags when creating a lexicon with PutLexicon, to organize lexicons and control access with tag-based (ABAC) IAM policies.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for copying and tagging option groups with cross-Region DB snapshot copies, in the same account or across accounts.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix S3Presigner leaking a background S3 Express session refresh on every presign call for a directory bucket. The presigner now calls CreateSession directly for each presign, without caching or background refresh.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - Amazon S3 Tables now supports migrating AWS Glue Data Catalog tables into S3 Table buckets. This release adds the StartTableMigration, SyncTableMigration, UpdateTableMigration, CompleteTableMigration, GetTableMigration, and ListTableMigrations APIs.
+
+## __Amazon SNS Message Manager__
+  - ### Bugfixes
+    - Improved the robustness of SnsMessageManager message parsing, certificate handling and signature validation.
+
+## __Amazon SQS__
+  - ### Bugfixes
+    - SqsAsyncBatchManager now removes idle batch buffers and cancels their flush tasks, and enforces the maxBatchKeys limit exactly.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Add Ubuntu 24.04, Ubuntu 26.04, RHEL 9, RHEL10, Rocky 9 and Rocky 10 to OperatingSystemName and documentation update for WorkspaceProperties Protocols.
+
+## __AmazonMWAAServerless__
+  - ### Features
+    - Adding support to Environment Variables in MWAA Serverless
+
+## __Application Migration Service__
+  - ### Features
+    - This release adds Migration Planning artifacts as a source environment for network migration definitions, and an optional clientToken on CreateNetworkMigrationDefinition so that retried requests don't create duplicate definitions.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - Adds the crlDpRevocationEnabled field to enable automatic revocation checking using CRL distribution points in X.509 certificates.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - S3TransferManager copy now calls transferComplete for copies sent as a single CopyObject request, reports the source object size as the progress total, counts bytes as each part finishes, and calls transfer listeners on every S3 client.
+    - The SSE-C customer key is no longer written when a ResumableFileUpload or ResumableFileDownload is serialized, and serializeToFile now creates the file readable and writable by its owner only. Set the key on the request again before resuming a deserialized SSE-C transfer.
+    - Validate the part counts and part size of a ResumableFileUpload before resuming an upload.
+
+## __Tax Settings__
+  - ### Features
+    - Adds Colombia additional information (responsibility codes, taxpayer type code, and RUT issue date) and a rejection reason (statusReason) to tax registration responses, and adds Argentina and Uruguay tax registration types.
+
 # __2.57.8__ __2026-10-30__
 ## __AWS Lambda__
   - ### Features

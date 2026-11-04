@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Contact Lens",
-    "contributor": "",
-    "description": "Rules TBAC GA (Contact Lens V1) - Adds an optional ListFilter (CategoriesAttributeFilter with OrConditions, AndCondition and TagCondition) to ListRealtimeContactAnalysisSegments. This filters matched categories by rule tags. It also adds an optional RuleId to CategoryDetails in the response."
-}
