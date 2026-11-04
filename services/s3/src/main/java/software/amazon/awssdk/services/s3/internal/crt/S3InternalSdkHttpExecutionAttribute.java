@@ -67,6 +67,10 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
     public static final S3InternalSdkHttpExecutionAttribute<Boolean> RESPONSE_FILE_DELETE_ON_FAILURE =
         new S3InternalSdkHttpExecutionAttribute<>(Boolean.class);
 
+    public static final S3InternalSdkHttpExecutionAttribute<S3CrtBorrowedBufferBlockingResponseTransformer>
+        BORROWED_BUFFER_RESPONSE_TRANSFORMER =
+        new S3InternalSdkHttpExecutionAttribute<>(S3CrtBorrowedBufferBlockingResponseTransformer.class);
+
     public static final S3InternalSdkHttpExecutionAttribute<CrtCredentialsProviderAdapter> CRT_CREDENTIALS_PROVIDER_ADAPTER =
         new S3InternalSdkHttpExecutionAttribute<>(CrtCredentialsProviderAdapter.class);
 

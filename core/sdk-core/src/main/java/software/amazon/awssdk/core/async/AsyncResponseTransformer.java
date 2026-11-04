@@ -506,6 +506,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
         BYTES("Bytes", "b"),
         STREAM("Stream", "s"),
         PUBLISHER("Publisher", "p"),
+        DIRECT_BUFFER_POOL_STREAM("DirectBufferPoolStream", "ds"),
         UNKNOWN("Unknown", "u");
 
         private static final Map<String, TransformerType> VALUE_MAP =
