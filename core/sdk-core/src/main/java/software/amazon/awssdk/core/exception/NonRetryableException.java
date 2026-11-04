@@ -19,8 +19,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * Extension of {@link SdkException} that can be used by clients to
- * explicitly have an exception not retried. This exception will never be
- * thrown by the SDK unless explicitly used by the client.
+ * explicitly have an exception not retried. The SDK may also use this exception
+ * to wrap failures raised by customer-provided callbacks.
  *
  * See {@link RetryableException} for marking retryable exceptions.
  */

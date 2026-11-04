@@ -15,14 +15,12 @@
 
 package software.amazon.awssdk.awscore.eventstream;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.utils.async.SequentialSubscriber;
 
 /**
  * Base class for event stream response handler builders.
@@ -39,6 +37,7 @@ public abstract class DefaultEventStreamResponseHandlerBuilder<ResponseT, EventT
     private Consumer<Throwable> onError;
     private Runnable onComplete;
     private Supplier<Subscriber<EventT>> subscriber;
+    private Consumer<EventT> eventConsumer;
     private Consumer<SdkPublisher<EventT>> onSubscribe;
     private Function<SdkPublisher<EventT>, SdkPublisher<EventT>> publisherTransformer;
 
@@ -78,17 +77,23 @@ public abstract class DefaultEventStreamResponseHandlerBuilder<ResponseT, EventT
     @Override
     public SubBuilderT subscriber(Supplier<Subscriber<EventT>> eventSubscriber) {
         this.subscriber = eventSubscriber;
+        this.eventConsumer = null;
         return subclass();
     }
 
     @Override
     public SubBuilderT subscriber(Consumer<EventT> eventConsumer) {
-        this.subscriber = () -> new SequentialSubscriber<>(eventConsumer, new CompletableFuture<>());
+        this.eventConsumer = eventConsumer;
+        this.subscriber = null;
         return subclass();
     }
 
     Supplier<Subscriber<EventT>> subscriber() {
         return subscriber;
+    }
+
+    Consumer<EventT> eventConsumer() {
+        return eventConsumer;
     }
 
     @Override
