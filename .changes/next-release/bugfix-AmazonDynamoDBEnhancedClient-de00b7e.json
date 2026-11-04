@@ -4,3 +4,4 @@
     "contributor": "",
     "description": "Fix DynamoDB Enhanced Client immutable schema introspection for getters such as `get__encryption_keyId()` so they match fluent builders like `__encryption_keyId(...)`. Prefers the normalized property name and falls back to the original getter name for legacy pairings [#5589](https://github.com/aws/aws-sdk-java-v2/issues/5589)."
 }
+
