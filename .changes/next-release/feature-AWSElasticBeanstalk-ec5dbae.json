@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elastic Beanstalk",
+    "contributor": "",
+    "description": "Adds DefaultAmiList to DescribePlatformVersion to return the default AMI for each processor architecture that a platform version supports."
+}
