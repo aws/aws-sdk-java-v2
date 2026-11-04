@@ -148,10 +148,11 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
     /**
      * Configures a client-wide direct buffer pool for the CRT-based S3 client. By default, no pool is configured.
      *
-     * <p>Configure a pool to use {@link S3CrtResponseTransformerFactory} which reads {@code GetObject} body data directly from
-     * pool memory instead of copying each part into a new heap array. This can reduce heap allocation and garbage collection
-     * pressure for high-throughput downloads. Leave the pool unset unless the application uses that transformer or needs
-     * explicit control of pool memory.
+     * <p>Configure a pool to use {@link S3CrtResponseTransformerFactory#toBlockingInputStreamFromDirectBufferPool()},
+     * which reads {@code GetObject} body data directly from pool memory instead of copying each part into a new heap
+     * array. This can reduce heap allocation and garbage collection pressure for high-throughput downloads. Without that
+     * transformer, a pool doesn't avoid heap copies. Its main use is then making CRT's download and multipart-upload
+     * buffers visible in JVM direct-memory metrics, so leave it unset unless you need that.
      *
      * <p>Once configured, the pool is also used by multipart uploads and by all downloads except {@code GetObject} requests
      * that set {@link GetObjectRequest#partNumber()}. Single-part uploads don't use it. Pool memory counts against

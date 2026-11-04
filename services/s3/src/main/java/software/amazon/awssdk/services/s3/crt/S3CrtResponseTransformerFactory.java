@@ -36,8 +36,7 @@ public final class S3CrtResponseTransformerFactory {
      * from the client's direct buffer pool. Unlike {@link AsyncResponseTransformer#toBlockingInputStream()}, the client
      * does not copy each downloaded part into a new heap array. Reading into the caller's array still copies.
      *
-     * <p>For {@code GetObject} requests with {@code partNumber}, CRT delivers the body from a separately allocated buffer
-     * outside the pool.
+     * <p>For a {@code GetObject} request that sets {@code partNumber}, the response does not consume pool capacity.
      *
      * <p>Pass this transformer directly to {@code getObject} on an {@link S3AsyncClient} created by
      * {@link S3AsyncClient#crtBuilder()} with a direct buffer pool configured through
@@ -50,10 +49,14 @@ public final class S3CrtResponseTransformerFactory {
      * <p>Always close the response stream. Closing releases unread buffers, which other requests on the client can't use
      * until then, and cancels any remaining download work.
      *
+     * <p>Read the stream to the end. A failure after the stream is returned, including a full-object checksum mismatch, is
+     * thrown by {@code read}.
+     *
      * <p>Concurrent downloads that share a direct buffer pool can stall if the pool is too small. See
      * {@link S3CrtDirectBufferPoolConfiguration} for how to size it.
      *
-     * <p>{@code modifyAsyncHttpResponseContent} is not applied to the object body.
+     * <p>{@code ExecutionInterceptor.modifyAsyncHttpResponseContent} is not applied to the object body. Don't use this
+     * transformer if an interceptor must transform object bytes.
      *
      * @return a transformer that produces a blocking response stream
      */
