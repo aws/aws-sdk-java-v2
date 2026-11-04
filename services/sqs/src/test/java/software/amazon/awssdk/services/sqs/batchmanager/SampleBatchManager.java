@@ -37,6 +37,13 @@ public class SampleBatchManager extends RequestBatchManager<String, String, Batc
         this.client = client;
     }
 
+    protected SampleBatchManager(RequestBatchConfiguration requestBatchConfiguration,
+                                 ScheduledExecutorService executorService,
+                                 CustomClient client) {
+        super(requestBatchConfiguration, executorService);
+        this.client = client;
+    }
+
     @Override
     protected CompletableFuture<BatchResponse> batchAndSend(List<IdentifiableMessage<String>> identifiedRequests, String batchKey) {
         return client.sendBatchAsync(identifiedRequests, batchKey);

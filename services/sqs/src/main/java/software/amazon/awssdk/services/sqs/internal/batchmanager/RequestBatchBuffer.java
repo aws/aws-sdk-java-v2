@@ -157,8 +157,14 @@ public final class RequestBatchBuffer<RequestT, ResponseT> {
 
     public void cancelScheduledFlush() {
         synchronized (scheduledFlushLock) {
-            scheduledFlush.cancel(false);
+            if (scheduledFlush != null) {
+                scheduledFlush.cancel(false);
+            }
         }
+    }
+
+    public boolean isEmpty() {
+        return idToBatchContext.isEmpty();
     }
 
     public Collection<CompletableFuture<ResponseT>> responses() {

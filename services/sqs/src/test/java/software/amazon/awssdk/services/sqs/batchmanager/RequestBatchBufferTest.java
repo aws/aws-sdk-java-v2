@@ -52,6 +52,22 @@ class RequestBatchBufferTest {
     }
 
     @Test
+    void whenRequestPutAndExtractedThenIsEmptyReflectsContents() {
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        assertTrue(batchBuffer.isEmpty());
+        batchBuffer.put("request1", new CompletableFuture<>());
+        assertFalse(batchBuffer.isEmpty());
+        batchBuffer.extractEntriesForScheduledFlush(10);
+        assertTrue(batchBuffer.isEmpty());
+    }
+
+    @Test
+    void whenCancelScheduledFlushWithNullFlushThenNoExceptionThrown() {
+        batchBuffer = new RequestBatchBuffer<>(null, 10, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        assertDoesNotThrow(() -> batchBuffer.cancelScheduledFlush());
+    }
+
+    @Test
     void whenExtractBatchIfReadyThenReturnRequestsUpToMaxBatchItems() {
         batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 1, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         CompletableFuture<String> response = new CompletableFuture<>();
