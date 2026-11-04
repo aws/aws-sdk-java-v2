@@ -35,6 +35,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *    OR arn:aws:signin:::devtools/cross-device)
  * dpopKey - PEM file contents containing the base64-encoding of the ECPrivateKey format defined by
  *   RFC5915: Elliptic Curve Private Key Structure. It MUST include the public key coordinates.
+ * signInRegion - Optional. The region where the session was created.
  */
 @SdkInternalApi
 public class LoginAccessToken implements ToCopyableBuilder<LoginAccessToken.Builder, LoginAccessToken> {
@@ -44,6 +45,7 @@ public class LoginAccessToken implements ToCopyableBuilder<LoginAccessToken.Buil
     private final String identityToken;
     private final String clientId;
     private final String dpopKey;
+    private final String signInRegion;
 
     private LoginAccessToken(BuilderImpl builder) {
         this.accessToken = builder.accessToken;
@@ -52,6 +54,7 @@ public class LoginAccessToken implements ToCopyableBuilder<LoginAccessToken.Buil
         this.identityToken = builder.identityToken;
         this.clientId = builder.clientId;
         this.dpopKey = builder.dpopKey;
+        this.signInRegion = builder.signInRegion;
     }
 
     public static Builder builder() {
@@ -102,6 +105,13 @@ public class LoginAccessToken implements ToCopyableBuilder<LoginAccessToken.Buil
         return dpopKey;
     }
 
+    /**
+     * The region where the session was created. This is optional and may be null.
+     */
+    public String getSignInRegion() {
+        return signInRegion;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
@@ -110,7 +120,8 @@ public class LoginAccessToken implements ToCopyableBuilder<LoginAccessToken.Buil
         LoginAccessToken that = (LoginAccessToken) o;
         return Objects.equals(accessToken, that.accessToken) && Objects.equals(tokenType, that.tokenType)
                && Objects.equals(refreshToken, that.refreshToken) && Objects.equals(identityToken, that.identityToken)
-               && Objects.equals(clientId, that.clientId) && Objects.equals(dpopKey, that.dpopKey);
+               && Objects.equals(clientId, that.clientId) && Objects.equals(dpopKey, that.dpopKey)
+               && Objects.equals(signInRegion, that.signInRegion);
     }
 
     public int hashCode() {
@@ -121,6 +132,7 @@ public class LoginAccessToken implements ToCopyableBuilder<LoginAccessToken.Buil
         result = 31 * result + Objects.hashCode(identityToken);
         result = 31 * result + Objects.hashCode(clientId);
         result = 31 * result + Objects.hashCode(dpopKey);
+        result = 31 * result + Objects.hashCode(signInRegion);
         return result;
     }
 
@@ -132,6 +144,7 @@ public class LoginAccessToken implements ToCopyableBuilder<LoginAccessToken.Buil
                ", tokenType='" + tokenType + '\'' +
                ", identityToken='" + identityToken + '\'' +
                ", clientId='" + clientId + '\'' +
+               ", signInRegion='" + signInRegion + '\'' +
                '}';
     }
 
@@ -153,6 +166,8 @@ public class LoginAccessToken implements ToCopyableBuilder<LoginAccessToken.Buil
 
         Builder dpopKey(String dpopKey);
 
+        Builder signInRegion(String signInRegion);
+
         LoginAccessToken build();
     }
 
@@ -163,6 +178,7 @@ public class LoginAccessToken implements ToCopyableBuilder<LoginAccessToken.Buil
         private String identityToken;
         private String clientId;
         private String dpopKey;
+        private String signInRegion;
 
         private BuilderImpl() {
 
@@ -175,6 +191,7 @@ public class LoginAccessToken implements ToCopyableBuilder<LoginAccessToken.Buil
             this.identityToken = loginAccessToken.identityToken;
             this.clientId = loginAccessToken.clientId;
             this.dpopKey = loginAccessToken.dpopKey;
+            this.signInRegion = loginAccessToken.signInRegion;
         }
 
         @Override
@@ -211,6 +228,12 @@ public class LoginAccessToken implements ToCopyableBuilder<LoginAccessToken.Buil
         @Override
         public Builder dpopKey(String dpopKey) {
             this.dpopKey = dpopKey;
+            return this;
+        }
+
+        @Override
+        public Builder signInRegion(String signInRegion) {
+            this.signInRegion = signInRegion;
             return this;
         }
 

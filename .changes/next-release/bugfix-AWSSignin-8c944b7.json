@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS Signin",
+    "contributor": "",
+    "description": "LoginCredentialsProvider now sends refresh requests to the signInRegion recorded in the cached login token."
+}
