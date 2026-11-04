@@ -60,9 +60,9 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     /**
      * Timeout for acquiring a connection from a connection pool to a remote service.
      * <p>
-     * Depending on the HTTP client, this time can also include opening a new connection. For example, the Netty
-     * client counts the time to open a new connection as part of this timeout, so it should be at least as long
-     * as the connection timeout.
+     * For the Netty and AWS CRT clients, this time also includes opening a new connection, so it should be at least
+     * as long as the connection timeout. The Apache clients do not count the time to open a new connection. The
+     * URLConnection client does not use this option.
      */
     public static final SdkHttpConfigurationOption<Duration> CONNECTION_ACQUIRE_TIMEOUT =
             new SdkHttpConfigurationOption<>("ConnectionAcquireTimeout", Duration.class);
