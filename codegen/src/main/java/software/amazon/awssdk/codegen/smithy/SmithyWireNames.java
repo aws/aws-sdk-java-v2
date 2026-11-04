@@ -34,7 +34,7 @@ final class SmithyWireNames {
 
     /**
      * Wire name used when writing a member. EC2 has its own rule (see {@link #deriveEc2MarshallName});
-     * other protocols use the name-override trait, then the HTTP binding location name, then the
+     * other protocols use the HTTP binding location name, then the name-override trait, then the
      * member name.
      */
     static String marshallLocationName(String protocol,
@@ -49,7 +49,7 @@ final class SmithyWireNames {
     }
 
     /**
-     * Wire name used when reading a member: name-override trait, then HTTP binding location name,
+     * Wire name used when reading a member: HTTP binding location name, then name-override trait,
      * then the member name.
      */
     static String unmarshallLocationName(String protocol,
@@ -63,12 +63,12 @@ final class SmithyWireNames {
                                              MemberShape member,
                                              String bindingLocationName,
                                              String memberName) {
+        if (StringUtils.isNotBlank(bindingLocationName)) {
+            return bindingLocationName;
+        }
         String traitName = memberNameOverride(protocol, member);
         if (StringUtils.isNotBlank(traitName)) {
             return traitName;
-        }
-        if (StringUtils.isNotBlank(bindingLocationName)) {
-            return bindingLocationName;
         }
         return memberName;
     }

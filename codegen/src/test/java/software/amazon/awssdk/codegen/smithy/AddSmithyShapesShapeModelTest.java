@@ -300,6 +300,26 @@ class AddSmithyShapesShapeModelTest {
         assertThat(sm.getXmlNamespace().getPrefix()).isEqualTo("ex");
     }
 
+    @Test
+    void xmlNamespaceOnStructureMember_movesToTargetShape() {
+        Model model = modelOf(
+            "structure Grant {\n"
+            + "    @xmlNamespace(uri: \"http://www.w3.org/2001/XMLSchema-instance\", prefix: \"xsi\")\n"
+            + "    Grantee: Grantee\n"
+            + "}\n"
+            + "structure Grantee { ID: String }\n");
+        Probe p = probe(model, "rest-xml");
+
+        ShapeModel grant = p.translate("Grant", shape(model, "Grant"), null);
+        ShapeModel grantee = p.translate("Grantee", shape(model, "Grantee"), null);
+
+        assertThat(grant.getXmlNamespace()).isNull();
+        assertThat(grant.findMemberModelByC2jName("Grantee").getXmlNameSpaceUri()).isNull();
+        assertThat(grantee.getXmlNamespace()).isNotNull();
+        assertThat(grantee.getXmlNamespace().getUri()).isEqualTo("http://www.w3.org/2001/XMLSchema-instance");
+        assertThat(grantee.getXmlNamespace().getPrefix()).isEqualTo("xsi");
+    }
+
     // ---- Enum shapes ------------------------------------------------------
 
     @Test

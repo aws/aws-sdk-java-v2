@@ -244,7 +244,9 @@ final class AddSmithyOperations {
             httpChecksum.setRequestChecksumRequired(trait.isRequestChecksumRequired());
             trait.getRequestAlgorithmMember().ifPresent(httpChecksum::setRequestAlgorithmMember);
             trait.getRequestValidationModeMember().ifPresent(httpChecksum::setRequestValidationModeMember);
-            httpChecksum.setResponseAlgorithms(trait.getResponseAlgorithms());
+            if (!trait.getResponseAlgorithms().isEmpty()) {
+                httpChecksum.setResponseAlgorithms(trait.getResponseAlgorithms());
+            }
             return httpChecksum;
         }).orElse(null);
     }
