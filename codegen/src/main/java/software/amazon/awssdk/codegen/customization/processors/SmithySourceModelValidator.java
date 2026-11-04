@@ -90,7 +90,7 @@ public final class SmithySourceModelValidator {
 
     private static void validateShapeNames(Set<Shape> serviceShapes) {
         serviceShapes.stream()
-                     .filter(s -> (s.isStructureShape() || s.isUnionShape()) && !s.hasTrait(TraitDefinition.class))
+                     .filter(SmithySourceModelValidator::isDataStructure)
                      .map(s -> s.getId().getName())
                      .filter(name -> Character.isLowerCase(name.charAt(0)))
                      .sorted()
@@ -103,5 +103,13 @@ public final class SmithySourceModelValidator {
                              ValidationEntry.create(ValidationErrorId.INVALID_IDENTIFIER_NAME,
                                                     ValidationErrorSeverity.DANGER, errorMsg));
                      });
+    }
+
+    /**
+     * Returns true for structures and unions, except trait definitions. Trait names are lower camel case by
+     * convention.
+     */
+    private static boolean isDataStructure(Shape shape) {
+        return (shape.isStructureShape() || shape.isUnionShape()) && !shape.hasTrait(TraitDefinition.class);
     }
 }
