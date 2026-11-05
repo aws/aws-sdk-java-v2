@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Agent Registry Control",
+    "contributor": "",
+    "description": "Adds support for OAuth2 Authorization Server Metadata (RFC 8414) discovery URLs in custom JWT authorizer."
+}
