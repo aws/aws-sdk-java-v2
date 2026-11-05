@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "contributor": "",
+    "description": "AWS WAF customers who monetize AI traffic on Web ACLs can now configure payments through connected accounts (Stripe)."
+}
