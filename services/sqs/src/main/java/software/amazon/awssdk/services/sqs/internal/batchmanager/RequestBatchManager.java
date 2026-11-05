@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
+public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT, KeyT> {
 
     // abm stands for Automatic Batching Manager
     public static final Consumer<AwsRequestOverrideConfiguration.Builder> USER_AGENT_APPLIER =
@@ -46,7 +46,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     private final int maxBatchItems;
     private final Duration sendRequestFrequency;
     private final Duration shutdownTimeout;
-    private final BatchingMap<RequestT, ResponseT> requestsAndResponsesMaps;
+    private final BatchingMap<RequestT, ResponseT, KeyT> requestsAndResponsesMaps;
     private final ScheduledExecutorService scheduledExecutor;
     private final Set<CompletableFuture<BatchResponseT>> pendingBatchResponses ;
     private final Set<CompletableFuture<ResponseT>> pendingResponses ;
@@ -76,7 +76,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
         response.whenComplete((r, t) -> pendingResponses.remove(response));
 
         try {
-            String batchKey = getBatchKey(request);
+            KeyT batchKey = getBatchKey(request);
             // Handle potential byte size overflow only if there are request in map and if feature enabled
             if (requestsAndResponsesMaps.contains(batchKey) && batchConfiguration.maxBatchBytesSize() > 0) {
                 Optional.of(requestsAndResponsesMaps.extractBatchIfSizeExceeded(batchKey, request))
@@ -105,14 +105,14 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     }
 
     protected abstract CompletableFuture<BatchResponseT> batchAndSend(List<IdentifiableMessage<RequestT>> identifiedRequests,
-                                                                      String batchKey);
+                                                                      KeyT batchKey);
 
-    protected abstract String getBatchKey(RequestT request);
+    protected abstract KeyT getBatchKey(RequestT request);
 
     protected abstract List<Either<IdentifiableMessage<ResponseT>,
         IdentifiableMessage<Throwable>>> mapBatchResponse(BatchResponseT batchResponse);
 
-    private void manualFlushBuffer(String batchKey,
+    private void manualFlushBuffer(KeyT batchKey,
                                    Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
         flushBuffer(batchKey, flushableRequests);
         requestsAndResponsesMaps.cancelAndReplaceScheduledFlush(batchKey,
@@ -121,7 +121,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
                                                                        scheduledExecutor));
     }
 
-    private void flushBuffer(String batchKey, Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
+    private void flushBuffer(KeyT batchKey, Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
         List<IdentifiableMessage<RequestT>> requestEntries = new ArrayList<>();
         flushableRequests.forEach((contextId, batchExecutionContext) ->
                                       requestEntries.add(new IdentifiableMessage<>(contextId, batchExecutionContext.request())));
@@ -153,13 +153,13 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
         requests.clear();
     }
 
-    private ScheduledFuture<?> scheduleBufferFlush(String batchKey, long timeOutInMs,
+    private ScheduledFuture<?> scheduleBufferFlush(KeyT batchKey, long timeOutInMs,
                                                    ScheduledExecutorService scheduledExecutor) {
         return scheduledExecutor.scheduleAtFixedRate(() -> performScheduledFlush(batchKey), timeOutInMs, timeOutInMs,
                                                      TimeUnit.MILLISECONDS);
     }
 
-    private void performScheduledFlush(String batchKey) {
+    private void performScheduledFlush(KeyT batchKey) {
         Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractedEntries =
             requestsAndResponsesMaps.extractEntriesForScheduledFlush(batchKey, maxBatchItems);
         if (!extractedEntries.isEmpty()) {
