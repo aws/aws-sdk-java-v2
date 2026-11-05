@@ -17,7 +17,9 @@ package software.amazon.awssdk.retries.internal.ratelimiter;
 
 import java.time.Duration;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -66,21 +68,22 @@ public class RateLimiterTokenBucket implements SdkAutoCloseable {
 
     @Override
     public void close() {
-        doClose(null);
+        completeClose(closeAndDrain(null));
     }
 
-    private void doClose(Throwable cause) {
+    private CloseResult closeAndDrain(Throwable cause) {
         synchronized (lock) {
             open = false;
-            IllegalStateException closedException = new IllegalStateException("Rate limiter bucket is closed", cause);
-            while (true) {
-                CompletableFuture<Void> w = waiting.poll();
-                if (w == null) {
-                    break;
-                }
-                w.completeExceptionally(closedException);
-            }
+            notifierRunning = false;
+            List<CompletableFuture<Void>> waiters = new ArrayList<>(waiting);
+            waiting.clear();
+            return new CloseResult(waiters, cause);
         }
+    }
+
+    private void completeClose(CloseResult closeResult) {
+        IllegalStateException closedException = new IllegalStateException("Rate limiter bucket is closed", closeResult.cause);
+        closeResult.waiters.forEach(waiter -> waiter.completeExceptionally(closedException));
     }
 
     /**
@@ -89,6 +92,8 @@ public class RateLimiterTokenBucket implements SdkAutoCloseable {
      * @return A future that is completed when the requested amount is acquired from this bucket.
      */
     public CompletableFuture<Void> acquireAsync() {
+        CompletableFuture<Void> future;
+        CloseResult closeResult = null;
         synchronized (lock) {
             if (!open) {
                 return CompletableFutureUtils.failedFuture(new IllegalStateException("Rate limiter bucket is closed"));
@@ -99,13 +104,21 @@ public class RateLimiterTokenBucket implements SdkAutoCloseable {
                 return CompletableFuture.completedFuture(null);
             }
 
-            CompletableFuture<Void> future = new CompletableFuture<>();
+            future = new CompletableFuture<>();
             waiting.add(future);
             if (!notifierRunning) {
-                notifierRunning = scheduleOrClose(this::doNotify, Duration.ZERO);
+                notifierRunning = true;
+                try {
+                    schedule(this::doNotify, Duration.ZERO);
+                } catch (Throwable t) {
+                    closeResult = closeAndDrain(t);
+                }
             }
-            return future;
         }
+        if (closeResult != null) {
+            completeClose(closeResult);
+        }
+        return future;
     }
 
 
@@ -121,10 +134,12 @@ public class RateLimiterTokenBucket implements SdkAutoCloseable {
 
     private void doNotify() {
         while (true) {
-            CompletableFuture<Void> w;
+            CompletableFuture<Void> waiter;
+            boolean acquired = false;
+            CloseResult closeResult = null;
             synchronized (lock) {
-                w = waiting.poll();
-                if (w == null) {
+                waiter = waiting.poll();
+                if (waiter == null) {
                     notifierRunning = false;
                     return;
                 }
@@ -134,14 +149,26 @@ public class RateLimiterTokenBucket implements SdkAutoCloseable {
                 // Not enough capacity. Try again later when enough time has
                 // passed to refill the bucket at the current rate.
                 if (!acquireResult.isSuccessful()) {
-                    waiting.push(w);
-                    notifierRunning = scheduleOrClose(this::doNotify, acquireResult.refillWait());
-                    return;
+                    waiting.push(waiter);
+                    notifierRunning = true;
+                    try {
+                        schedule(this::doNotify, acquireResult.refillWait());
+                    } catch (Throwable t) {
+                        closeResult = closeAndDrain(t);
+                    }
+                } else {
+                    acquired = true;
                 }
-
+            }
+            if (closeResult != null) {
+                completeClose(closeResult);
+                return;
+            }
+            if (!acquired) {
+                return;
             }
             // Acquire was successful, signal the waiting thread.
-            w.complete(null);
+            waiter.complete(null);
         }
     }
 
@@ -149,17 +176,14 @@ public class RateLimiterTokenBucket implements SdkAutoCloseable {
         scheduler.schedule(command, d.toMillis(), TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * @return true if schedule was successful, false otherwise. If the schedule failed, this bucket will be closed.
-     */
-    private boolean scheduleOrClose(Runnable command, Duration d) {
-        try {
-            schedule(command, d);
-            return true;
-        } catch (Throwable t) {
-            doClose(t);
+    private static final class CloseResult {
+        private final List<CompletableFuture<Void>> waiters;
+        private final Throwable cause;
+
+        private CloseResult(List<CompletableFuture<Void>> waiters, Throwable cause) {
+            this.waiters = waiters;
+            this.cause = cause;
         }
-        return false;
     }
 
     /**

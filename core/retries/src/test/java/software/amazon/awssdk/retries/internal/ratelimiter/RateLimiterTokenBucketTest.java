@@ -31,9 +31,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
@@ -148,6 +152,38 @@ class RateLimiterTokenBucketTest {
         verifyNoInteractions(scheduler);
     }
     
+    @Test
+    void doNotify_whenRescheduleFails_completesCallbacksOutsideLock() {
+        tokenBucket.updateRateAfterThrottling();
+        AtomicReference<Runnable> notifier = new AtomicReference<>();
+        when(scheduler.schedule(any(Runnable.class), eq(0L), any(TimeUnit.class))).thenAnswer(invocation -> {
+            notifier.set(invocation.getArgument(0));
+            return null;
+        });
+        when(scheduler.schedule(any(Runnable.class), eq(2000L), eq(TimeUnit.MILLISECONDS)))
+            .thenThrow(new RejectedExecutionException("no"));
+
+        CompletableFuture<Void> waiter = tokenBucket.acquireAsync();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            CompletableFuture<Void> callback = waiter.handle((r, t) -> {
+                Future<?> update = executor.submit(tokenBucket::updateRateAfterSuccess);
+                try {
+                    update.get(1, TimeUnit.SECONDS);
+                } catch (Exception e) {
+                    throw new AssertionError(e);
+                }
+                return null;
+            });
+
+            notifier.get().run();
+
+            callback.join();
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
     @Test
     void doNotify_scheduleRejected_failsFuture() {
         tokenBucket.updateRateAfterThrottling();
