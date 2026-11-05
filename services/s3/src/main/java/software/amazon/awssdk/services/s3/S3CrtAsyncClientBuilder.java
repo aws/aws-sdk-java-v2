@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -26,7 +27,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
+import software.amazon.awssdk.core.client.config.ExecutionAwareExecutor;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
@@ -360,11 +363,60 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * We strongly <strong>discourage</strong> using {@code Runnable::run}, which executes the future-completion directly from
      * within the I/O thread because it may block the I/O thread and cause deadlock, especially if you are sending
      * another SDK request in the {@link CompletableFuture} chain since the SDK may perform blocking calls in some cases.
+     * <p>
+     * This option is mutually exclusive with {@link #executionAwareFutureCompletionExecutor(ExecutionAwareExecutor)}.
      *
      * @param futureCompletionExecutor the executor
      * @return an instance of this builder.
      */
     S3CrtAsyncClientBuilder futureCompletionExecutor(Executor futureCompletionExecutor);
+
+    /**
+     * Configure the {@link ExecutionAwareExecutor} that should be used to complete the {@link CompletableFuture} that is
+     * returned by the async service client. Unlike {@link #futureCompletionExecutor(Executor)}, the executor is given the
+     * execution attributes of the API call whose future it is completing, which allows propagating context bound to the
+     * caller's thread. See {@link SdkAdvancedAsyncClientOption#EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR} for details.
+     * <p>
+     * The same warnings as for {@link #futureCompletionExecutor(Executor)} apply.
+     * <p>
+     * This option is mutually exclusive with {@link #futureCompletionExecutor(Executor)}.
+     *
+     * @param executionAwareFutureCompletionExecutor the executor
+     * @return an instance of this builder.
+     */
+    default S3CrtAsyncClientBuilder executionAwareFutureCompletionExecutor(
+        ExecutionAwareExecutor executionAwareFutureCompletionExecutor) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Configure a list of execution interceptors that will have access to view and modify the request and response objects as
+     * they are processed by the SDK. These will replace any interceptors configured previously with this method or
+     * {@link #addExecutionInterceptor(ExecutionInterceptor)}.
+     * <p>
+     * The provided interceptors are executed in the order they are configured, after the interceptors used internally by the
+     * client. Signing, retries and the transfer of the request and response are performed by the AWS Common Runtime (CRT), so
+     * interceptor hooks that modify the HTTP request or response may not be applied to what is actually sent or received.
+     *
+     * @param executionInterceptors the execution interceptors
+     * @return an instance of this builder.
+     * @see ExecutionInterceptor
+     */
+    default S3CrtAsyncClientBuilder executionInterceptors(List<ExecutionInterceptor> executionInterceptors) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Add an execution interceptor that will have access to view and modify the request and response objects as they are
+     * processed by the SDK.
+     *
+     * @param executionInterceptor the execution interceptor
+     * @return an instance of this builder.
+     * @see #executionInterceptors(List)
+     */
+    default S3CrtAsyncClientBuilder addExecutionInterceptor(ExecutionInterceptor executionInterceptor) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Configure whether to disable this client's usage of Session Auth for S3Express buckets and reverts to using conventional

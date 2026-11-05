@@ -295,7 +295,8 @@ class DefaultAsyncPresignedUrlExtensionTest {
                                      .option(AwsClientOption.SERVICE_SIGNING_NAME, Region.AP_EAST_2.toString())
                                      .option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, false)
                                      .option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE, Executors.newScheduledThreadPool(1))
-                                     .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, Runnable::run)
+                                     .option(SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR,
+                                             (command, executionAttributes) -> command.run())
                                      .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
                                              software.amazon.awssdk.core.ClientEndpointProvider.forEndpointOverride(DEFAULT_ENDPOINT))
                                      .build();

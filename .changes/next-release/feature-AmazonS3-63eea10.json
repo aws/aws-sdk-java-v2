@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3",
+    "description": "Add `executionInterceptors` and `addExecutionInterceptor` to `S3CrtAsyncClientBuilder`, so that execution interceptors can be configured on the CRT-based S3 client. See [#7470](https://github.com/aws/aws-sdk-java-v2/issues/7470).",
+    "contributor": "scrocquesel"
+}

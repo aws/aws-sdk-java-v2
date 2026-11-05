@@ -60,7 +60,8 @@ public class HttpTestUtils {
                                      .option(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
                                      .option(SdkAdvancedClientOption.USER_AGENT_PREFIX, "")
                                      .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "")
-                                     .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, Runnable::run)
+                                     .option(SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR,
+                                             (command, executionAttributes) -> command.run())
                                      .option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE, Executors.newScheduledThreadPool(1))
                                      .build();
     }

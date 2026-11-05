@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "description": "Add `SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR`, a future completion executor that receives the execution's `ExecutionAttributes`, so that caller context (e.g. MDC, tracing context, Vert.x context) can be propagated to the thread completing the future of async clients. See [#7470](https://github.com/aws/aws-sdk-java-v2/issues/7470).",
+    "contributor": "scrocquesel"
+}
