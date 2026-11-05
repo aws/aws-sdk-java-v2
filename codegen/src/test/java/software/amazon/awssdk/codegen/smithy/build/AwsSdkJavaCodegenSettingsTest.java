@@ -53,43 +53,6 @@ class AwsSdkJavaCodegenSettingsTest {
     }
 
     @Test
-    void emptySettings_hasNoOutputDirectories() {
-        AwsSdkJavaCodegenSettings settings = AwsSdkJavaCodegenSettings.fromNode(Node.objectNode());
-
-        assertThat(settings.hasOutputDirectories()).isFalse();
-        assertThat(settings.sourcesDirectory()).isEmpty();
-        assertThat(settings.resourcesDirectory()).isEmpty();
-        assertThat(settings.testsDirectory()).isEmpty();
-    }
-
-    @Test
-    void outputDirectories_withBaseDir_resolveRelativePaths() {
-        Path baseDir = Paths.get("/service/module");
-        AwsSdkJavaCodegenSettings settings = AwsSdkJavaCodegenSettings.fromNode(
-            Node.objectNodeBuilder()
-                .withMember(AwsSdkJavaCodegenSettings.BASE_DIR, baseDir.toString())
-                .withMember(AwsSdkJavaCodegenSettings.SOURCES_DIRECTORY, "target/generated-sources/sdk")
-                .withMember(AwsSdkJavaCodegenSettings.RESOURCES_DIRECTORY, "/abs/sdk-resources")
-                .withMember(AwsSdkJavaCodegenSettings.TESTS_DIRECTORY, "target/generated-test-sources/sdk-tests")
-                .build());
-
-        assertThat(settings.hasOutputDirectories()).isTrue();
-        assertThat(settings.sourcesDirectory()).contains(baseDir.resolve("target/generated-sources/sdk"));
-        assertThat(settings.resourcesDirectory()).contains(Paths.get("/abs/sdk-resources"));
-        assertThat(settings.testsDirectory()).contains(baseDir.resolve("target/generated-test-sources/sdk-tests"));
-    }
-
-    @Test
-    void outputDirectories_partiallySet_fails() {
-        assertThatThrownBy(() -> AwsSdkJavaCodegenSettings.fromNode(settings(
-            AwsSdkJavaCodegenSettings.SOURCES_DIRECTORY, "src",
-            AwsSdkJavaCodegenSettings.TESTS_DIRECTORY, "tests")))
-            .isInstanceOf(ExpectationNotMetException.class)
-            .hasMessageContaining("Set all of [sourcesDirectory, resourcesDirectory, testsDirectory] or none of them")
-            .hasMessageContaining("only [sourcesDirectory, testsDirectory] are set");
-    }
-
-    @Test
     void unknownSetting_fails() {
         assertThatThrownBy(() -> AwsSdkJavaCodegenSettings.fromNode(settings("unknown", "value")))
             .isInstanceOf(ExpectationNotMetException.class)

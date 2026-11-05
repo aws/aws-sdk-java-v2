@@ -24,14 +24,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -59,37 +60,28 @@ import software.amazon.smithy.model.validation.ValidationEvent;
  */
 final class SmithyBuildGenerator {
 
+    // Output directories written by AwsSdkJavaCodegenPlugin.
+    private static final String SOURCES_DIR = "generated-sources";
+    private static final String RESOURCES_DIR = "generated-resources";
+    private static final String TESTS_DIR = "generated-test-sources";
+
     private static final String SDK_VERSION_PLACEHOLDER = "${AWS_SDK_JAVA_VERSION}";
 
     private static final String BASE_DIR_SETTING = "baseDir";
-    private static final String SOURCES_DIRECTORY_SETTING = "sourcesDirectory";
-    private static final String RESOURCES_DIRECTORY_SETTING = "resourcesDirectory";
-    private static final String TESTS_DIRECTORY_SETTING = "testsDirectory";
 
     private final MavenProject project;
     private final Log log;
-    private final Path sourcesDirectory;
-    private final Path resourcesDirectory;
-    private final Path testsDirectory;
 
-    /**
-     * The three directories are the ones the C2J path writes to. The internal Brazil import copies generated code
-     * only from them, and the root POM registers the resources directory, so a Smithy build writes there too.
-     */
-    SmithyBuildGenerator(MavenProject project, Log log, Path sourcesDirectory, Path resourcesDirectory,
-                         Path testsDirectory) {
+    SmithyBuildGenerator(MavenProject project, Log log) {
         this.project = project;
         this.log = log;
-        this.sourcesDirectory = sourcesDirectory;
-        this.resourcesDirectory = resourcesDirectory;
-        this.testsDirectory = testsDirectory;
     }
 
     void generate(Path smithyBuildFile, Path outputDirectory) throws MojoExecutionException {
         log.info("Generating from " + smithyBuildFile);
         SmithyBuildConfig smithyBuildConfig = loadSmithyBuildConfig(smithyBuildFile);
 
-        smithyBuildConfig = injectPluginSettings(smithyBuildFile, smithyBuildConfig);
+        smithyBuildConfig = injectBaseDir(smithyBuildFile, smithyBuildConfig, project.getBasedir().toPath());
 
         List<Path> sources = resolvePaths(smithyBuildConfig.getSources());
         List<Path> imports = resolvePaths(smithyBuildConfig.getImports());
@@ -217,19 +209,18 @@ final class SmithyBuildGenerator {
     }
 
     /**
-     * Sets {@code baseDir} and the output directories on the codegen plugin's settings. {@code baseDir} makes
-     * relative paths resolve against the module directory. These settings are supplied by this class, so a value
-     * written in {@code smithy-build.json} is rejected.
+     * Sets {@code baseDir} on the codegen plugin's settings so relative paths resolve against the module directory.
+     * {@code baseDir} is supplied by this class, so a value written in {@code smithy-build.json} is rejected.
      */
-    private SmithyBuildConfig injectPluginSettings(Path smithyBuildFile, SmithyBuildConfig smithyBuildConfig)
-            throws MojoExecutionException {
+    private static SmithyBuildConfig injectBaseDir(Path smithyBuildFile, SmithyBuildConfig smithyBuildConfig,
+                                                   Path baseDir) throws MojoExecutionException {
         SmithyBuildConfig.Builder builder = smithyBuildConfig.toBuilder();
-        builder.plugins(withPluginSettings(smithyBuildFile, smithyBuildConfig.getPlugins()));
+        builder.plugins(withBaseDir(smithyBuildFile, smithyBuildConfig.getPlugins(), baseDir));
         if (!smithyBuildConfig.getProjections().isEmpty()) {
             Map<String, ProjectionConfig> projections = new HashMap<>();
             for (Map.Entry<String, ProjectionConfig> entry : smithyBuildConfig.getProjections().entrySet()) {
                 ProjectionConfig projection = entry.getValue();
-                Map<String, ObjectNode> plugins = withPluginSettings(smithyBuildFile, projection.getPlugins());
+                Map<String, ObjectNode> plugins = withBaseDir(smithyBuildFile, projection.getPlugins(), baseDir);
                 projections.put(entry.getKey(), projection.toBuilder().plugins(plugins).build());
             }
             builder.projections(projections);
@@ -237,27 +228,22 @@ final class SmithyBuildGenerator {
         return builder.build();
     }
 
-    private Map<String, ObjectNode> withPluginSettings(Path smithyBuildFile, Map<String, ObjectNode> plugins)
-            throws MojoExecutionException {
+    private static Map<String, ObjectNode> withBaseDir(Path smithyBuildFile, Map<String, ObjectNode> plugins,
+                                                       Path baseDir) throws MojoExecutionException {
         ObjectNode settings = plugins.get(AwsSdkJavaCodegenPlugin.NAME);
         if (settings == null) {
             return plugins;
         }
-        for (String supplied : Arrays.asList(BASE_DIR_SETTING, SOURCES_DIRECTORY_SETTING, RESOURCES_DIRECTORY_SETTING,
-                                             TESTS_DIRECTORY_SETTING)) {
-            if (settings.getMember(supplied).isPresent()) {
-                throw new MojoExecutionException(String.format(
-                    "The '%s' plugin settings in %s set '%s', which is supplied by codegen-maven-plugin. Remove it.",
-                    AwsSdkJavaCodegenPlugin.NAME, smithyBuildFile, supplied));
-            }
+        if (settings.getMember(BASE_DIR_SETTING).isPresent()) {
+            throw new MojoExecutionException(String.format(
+                "The '%s' plugin settings in %s set '%s', which is supplied by codegen-maven-plugin. Remove it; "
+                + "relative paths in the plugin settings resolve against the module directory.",
+                AwsSdkJavaCodegenPlugin.NAME, smithyBuildFile, BASE_DIR_SETTING));
         }
 
         Map<String, ObjectNode> updated = new HashMap<>(plugins);
         updated.put(AwsSdkJavaCodegenPlugin.NAME,
-                    settings.withMember(BASE_DIR_SETTING, project.getBasedir().toPath().toAbsolutePath().toString())
-                            .withMember(SOURCES_DIRECTORY_SETTING, sourcesDirectory.toAbsolutePath().toString())
-                            .withMember(RESOURCES_DIRECTORY_SETTING, resourcesDirectory.toAbsolutePath().toString())
-                            .withMember(TESTS_DIRECTORY_SETTING, testsDirectory.toAbsolutePath().toString()));
+                    settings.withMember(BASE_DIR_SETTING, baseDir.toAbsolutePath().toString()));
         return updated;
     }
 
@@ -276,18 +262,55 @@ final class SmithyBuildGenerator {
     }
 
     /**
-     * Registers the generated source directories the same way the C2J path does. The root POM registers the resources
-     * directory.
+     * Registers the codegen plugin's output directories. Unlike the C2J output, the root POM does not add them.
      */
     private void registerOutputDirectories(SmithyBuildResult result) throws MojoExecutionException {
-        boolean pluginRan = result.getProjectionResults().stream()
-                                  .anyMatch(p -> p.getPluginManifest(AwsSdkJavaCodegenPlugin.NAME).isPresent());
-        if (!pluginRan) {
+        List<Path> pluginOutputs = new ArrayList<>();
+        for (ProjectionResult projection : result.getProjectionResults()) {
+            projection.getPluginManifest(AwsSdkJavaCodegenPlugin.NAME)
+                      .ifPresent(manifest -> pluginOutputs.add(manifest.getBaseDir()));
+        }
+        if (pluginOutputs.isEmpty()) {
             throw new MojoExecutionException(
                 "smithy-build completed without running the '" + AwsSdkJavaCodegenPlugin.NAME + "' plugin. Add it to "
                 + "the 'plugins' block of smithy-build.json.");
         }
-        project.addCompileSourceRoot(sourcesDirectory.toAbsolutePath().toString());
-        project.addTestCompileSourceRoot(testsDirectory.toAbsolutePath().toString());
+        for (Path pluginOutput : pluginOutputs) {
+            addCompileSourceRoot(pluginOutput.resolve(SOURCES_DIR));
+            addTestCompileSourceRoot(pluginOutput.resolve(TESTS_DIR));
+            addResource(pluginOutput.resolve(RESOURCES_DIR));
+        }
+    }
+
+    private void addCompileSourceRoot(Path directory) throws MojoExecutionException {
+        if (containsFiles(directory)) {
+            project.addCompileSourceRoot(directory.toAbsolutePath().toString());
+        }
+    }
+
+    private void addTestCompileSourceRoot(Path directory) throws MojoExecutionException {
+        if (containsFiles(directory)) {
+            project.addTestCompileSourceRoot(directory.toAbsolutePath().toString());
+        }
+    }
+
+    private void addResource(Path directory) throws MojoExecutionException {
+        if (containsFiles(directory)) {
+            Resource resource = new Resource();
+            resource.setDirectory(directory.toAbsolutePath().toString());
+            project.addResource(resource);
+        }
+    }
+
+    // The plugin always creates all three output directories; empty ones are not registered.
+    private static boolean containsFiles(Path directory) throws MojoExecutionException {
+        if (!Files.isDirectory(directory)) {
+            return false;
+        }
+        try (Stream<Path> files = Files.walk(directory)) {
+            return files.anyMatch(Files::isRegularFile);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to inspect generated directory " + directory, e);
+        }
     }
 }

@@ -94,7 +94,7 @@ public class GenerationMojo extends AbstractMojo {
 
         Path smithyBuildFile = project.getBasedir().toPath().resolve(SMITHY_BUILD_FILE);
         if (Files.exists(smithyBuildFile)) {
-            new SmithyBuildGenerator(project, getLog(), sourcesDirectory, resourcesDirectory, testsDirectory)
+            new SmithyBuildGenerator(project, getLog())
                 .generate(smithyBuildFile, Paths.get(outputDirectory).resolve(SMITHY_PROJECTIONS_DIR));
             return;
         }

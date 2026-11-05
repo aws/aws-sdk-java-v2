@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import software.amazon.smithy.build.FileManifest;
@@ -104,52 +103,6 @@ class AwsSdkJavaCodegenPluginTest {
         assertThat(generated).as("generator produced sources").isNotEmpty();
         assertThat(generated).as("generated a client from the projected model")
                              .anyMatch(f -> f.endsWith("Client.java"));
-    }
-
-    @Test
-    void smithyBuild_withOutputDirectories_writesThereAndRegistersNothing(@TempDir Path tempDir) throws IOException {
-        Model model = Model.assembler()
-                           .discoverModels(LOADER)
-                           .addUnparsedModel("test.smithy", MODEL)
-                           .assemble()
-                           .unwrap();
-        Path sources = tempDir.resolve("generated-sources").resolve("sdk");
-        Path resources = tempDir.resolve("generated-resources").resolve("sdk-resources");
-        Path tests = tempDir.resolve("generated-test-sources").resolve("sdk-tests");
-        ProjectionConfig sdk = ProjectionConfig.builder()
-                                               .plugins(Collections.singletonMap(
-                                                   AwsSdkJavaCodegenPlugin.NAME,
-                                                   Node.objectNodeBuilder()
-                                                       .withMember(AwsSdkJavaCodegenSettings.SOURCES_DIRECTORY,
-                                                                   sources.toString())
-                                                       .withMember(AwsSdkJavaCodegenSettings.RESOURCES_DIRECTORY,
-                                                                   resources.toString())
-                                                       .withMember(AwsSdkJavaCodegenSettings.TESTS_DIRECTORY,
-                                                                   tests.toString())
-                                                       .build()))
-                                               .build();
-
-        SmithyBuildResult result = SmithyBuild.create(LOADER)
-                                              .config(SmithyBuildConfig.builder()
-                                                                       .version("1.0")
-                                                                       .projections(Collections.singletonMap("sdk", sdk))
-                                                                       .build())
-                                              .model(model)
-                                              .outputDirectory(tempDir.resolve("smithyprojections"))
-                                              .build();
-
-        assertThat(result.anyBroken()).as("smithy-build should not be broken").isFalse();
-        FileManifest manifest = result.getProjectionResult("sdk").get()
-                                      .getPluginManifest(AwsSdkJavaCodegenPlugin.NAME).get();
-        assertThat(manifest.getFiles()).as("files outside the projection are not registered").isEmpty();
-        try (Stream<Path> files = Files.walk(sources)) {
-            assertThat(files.map(p -> p.getFileName().toString())).contains("DemoClient.java");
-        }
-        if (Files.exists(manifest.getBaseDir())) {
-            try (Stream<Path> files = Files.walk(manifest.getBaseDir())) {
-                assertThat(files.filter(Files::isRegularFile)).as("nothing is written into the projection").isEmpty();
-            }
-        }
     }
 
     @Test

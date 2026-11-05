@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.maven.plugin;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,14 +28,11 @@ import static software.amazon.awssdk.codegen.maven.plugin.SmithyTestModule.proje
 import static software.amazon.awssdk.codegen.maven.plugin.SmithyTestModule.write;
 
 import java.nio.file.Path;
-import java.util.Collections;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.project.MavenProject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class SmithyBuildGeneratorTest {
 
@@ -141,37 +136,6 @@ class SmithyBuildGeneratorTest {
     }
 
     @Test
-    void generate_writesIntoC2jDirectories_andRegistersOnlyThem() throws Exception {
-        write(moduleDir.resolve("model.smithy"), SERVICE + REQUEST);
-        Path configFile = write(moduleDir.resolve("smithy-build.json"), config(SOURCES, PLUGIN));
-        MavenProject project = project(moduleDir);
-
-        generate(project, configFile);
-
-        assertTrue(containsFileEndingWith(outputDirectory(), "DemoClient.java"));
-        assertFalse(containsFileEndingWith(projectionsDirectory(), ".java"),
-                    "no Java source is written into the smithy-build projection");
-        assertEquals(Collections.singletonList(outputDirectory().toAbsolutePath().toString()),
-                     project.getCompileSourceRoots());
-        assertEquals(Collections.singletonList(testsDirectory().toAbsolutePath().toString()),
-                     project.getTestCompileSourceRoots());
-        assertTrue(project.getResources().isEmpty(), "the root POM registers the resources directory");
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"sourcesDirectory", "resourcesDirectory", "testsDirectory"})
-    void generate_outputDirectoryInSmithyBuildFile_fails(String setting) throws Exception {
-        write(moduleDir.resolve("model.smithy"), SERVICE + REQUEST);
-        Path configFile = write(moduleDir.resolve("smithy-build.json"),
-                                pluginSettings("{ \"" + setting + "\": \"elsewhere\" }"));
-
-        MojoExecutionException e = assertThrows(MojoExecutionException.class,
-                                                () -> generate(project(moduleDir), configFile));
-        assertTrue(e.getMessage().contains("'" + setting + "'")
-                   && e.getMessage().contains("supplied by codegen-maven-plugin"), e.getMessage());
-    }
-
-    @Test
     void sdkVersionPlaceholder_isReplacedWithoutSettingSystemProperty() throws Exception {
         write(moduleDir.resolve("model.smithy"), SERVICE + REQUEST);
         // project() sets version 2.0.0, so the placeholder must resolve to this file for generation to succeed.
@@ -187,26 +151,11 @@ class SmithyBuildGeneratorTest {
     }
 
     private void generate(MavenProject project, Path configFile) throws MojoExecutionException {
-        new SmithyBuildGenerator(project, new SystemStreamLog(), outputDirectory(), resourcesDirectory(),
-                                 testsDirectory())
-            .generate(configFile, projectionsDirectory());
+        new SmithyBuildGenerator(project, new SystemStreamLog()).generate(configFile, outputDirectory());
     }
 
-    private Path projectionsDirectory() {
-        return moduleDir.resolve("target").resolve("smithyprojections");
-    }
-
-    // Generated sources land where the C2J path writes them.
     private Path outputDirectory() {
-        return moduleDir.resolve("target").resolve("generated-sources").resolve("sdk");
-    }
-
-    private Path resourcesDirectory() {
-        return moduleDir.resolve("target").resolve("generated-resources").resolve("sdk-resources");
-    }
-
-    private Path testsDirectory() {
-        return moduleDir.resolve("target").resolve("generated-test-sources").resolve("sdk-tests");
+        return moduleDir.resolve("target").resolve("smithyprojections");
     }
 
     private static String pluginSettings(String settings) {

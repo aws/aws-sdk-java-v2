@@ -48,8 +48,10 @@ class GenerationMojoSmithyRoutingTest {
 
         mojo.execute();
 
-        // The same directory the C2J path writes to, which the internal Brazil import copies.
-        Path generatedSources = outputDirectory.resolve("generated-sources").resolve("sdk");
+        Path generatedSources = outputDirectory.resolve("smithyprojections")
+                                               .resolve("sdk")
+                                               .resolve(PLUGIN)
+                                               .resolve("generated-sources");
         assertTrue(project.getCompileSourceRoots().contains(generatedSources.toAbsolutePath().toString()),
                    "expected " + generatedSources + " in " + project.getCompileSourceRoots());
         assertTrue(containsFileEndingWith(generatedSources, "Client.java"),
