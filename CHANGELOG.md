@@ -1,4 +1,69 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.57.10__ __2026-11-05__
+## __AWS DataSync__
+  - ### Features
+    - Adds support for federated identity on Azure Blob Storage and object storage locations, enabling DataSync to authenticate to Azure and Google Cloud Storage using Workload Identity Federation (WIF) over OpenID Connect (OIDC) instead of stored long-lived credentials.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue Spark ETL jobs can now auto-upgrade to the latest version. Set GlueVersion to Auto, then track progress with the AutoVersionStatus field in GetJob. Use StartJobUpgradeAnalysis to approve or decline an upgrade, GetJobUpgradeAnalysis to view details, and StopJobUpgradeAnalysis to stop it.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix an issue where closing an async client using adaptive retries could hang when requests were rate-limited.
+
+## __AWS Security Agent__
+  - ### Features
+    - Adds support for IAM Identity Center groups as Agent Space members. CreateMembership, DeleteMembership, and ListMemberships now accept the GROUP member type. ListMemberships can filter by USER, GROUP, or ALL, and returns group display name and description.
+
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF customers who monetize AI traffic on Web ACLs can now configure payments through connected accounts (Stripe).
+
+## __Account Access Runtime__
+  - ### Features
+    - Adds SDK support for Account Access user portal operations, enabling users to list out and get credentials for role assignments configured in AWS IAM Account Access Manager.
+
+## __Agent Registry Control__
+  - ### Features
+    - Adds support for OAuth2 Authorization Server Metadata (RFC 8414) discovery URLs in custom JWT authorizer.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Amazon Bedrock Managed Knowledge Base now supports an optional mediaId parameter in GetDocumentContent that you can use to retrieve images embedded in source documents.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - This release adds a LastModifiedRegion field to GetApplication and ListApplications so customers can see which Region an application was last modified in.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for OAuth2 Authorization Server Metadata (RFC 8414) discovery URLs in custom JWT authorizer and OAuth2 credential provider configurations.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Adds account-level retention policies with dry run preview and the Essentials log group class to Amazon CloudWatch Logs
+
+## __Amazon Q Connect__
+  - ### Features
+    - Adds support for real-time agent assistance and self-service with Amazon Connect Global Resiliency, including cross-Region replication of supported AI agent resources and configurations.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight adds APIs to view account service role settings and switch to or replace a customer-managed IAM role.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Route 53 Domains now supports restoring domains. This release adds the RestoreDomain API to self-serve domain restoration.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Fixed the ImageDeleted and ImageVersionDeleted waiters to succeed on the ResourceNotFound error returned by DescribeImage and DescribeImageVersion
+
+## __Lambda MicroVMs__
+  - ### Features
+    - AWS Lambda MicroVMs now support the x86-64 CPU architecture, which you can select in addition to ARM64 (Graviton) when launching a MicroVM.
+
 # __2.57.9__ __2026-11-04__
 ## __AWS Elastic Beanstalk__
   - ### Features
