@@ -7,7 +7,7 @@ This module contains performance tests for `S3AsyncClient` and
 
 ```
 # Build the JAR
-mvn clean install -pl :s3-benchmarks -P quick --am
+mvn clean install -pl :s3-benchmarks -P quick -am
 
 # download
 java -jar s3-benchmarks.jar --bucket=bucket --key=key -file=/path/to/destionfile/ --operation=download --partSizeInMB=20 --maxThroughput=100.0

@@ -14,7 +14,7 @@ See [Setting up GraalVM with native-image support](https://graalvm.github.io/nat
 You can run the integration tests by using the following commands.
 
 ```
-mvn clean install -pl :sdk-native-image-test -P quick --am
+mvn clean install -pl :sdk-native-image-test -P quick -am
 
 mvn clean install -pl :bom-internal,:bom
 
