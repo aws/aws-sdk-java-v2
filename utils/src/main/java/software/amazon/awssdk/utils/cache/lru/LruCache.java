@@ -50,10 +50,6 @@ public final class LruCache<K, V>  {
     private final Map<K, CacheEntry<K, V>> cache;
     private final Function<K, V> valueSupplier;
     private final Object listLock = new Object();
-    /**
-     * Serializes close calls when multiple entries reference the same value.
-     */
-    private final Object resourceCloseLock = new Object();
     private final int maxCacheSize;
 
     private CacheEntry<K, V> leastRecentlyUsed = null;
@@ -191,13 +187,11 @@ public final class LruCache<K, V>  {
     }
 
     private void closeEvictedResourcesIfPossible(V value) {
-        synchronized (resourceCloseLock) {
-            if (value instanceof AutoCloseable) {
-                try {
-                    ((AutoCloseable) value).close();
-                } catch (Exception e) {
-                    log.warn(() -> "Attempted to close instance that was evicted by cache, but got exception: " + e.getMessage());
-                }
+        if (value instanceof AutoCloseable) {
+            try {
+                ((AutoCloseable) value).close();
+            } catch (Exception e) {
+                log.warn(() -> "Attempted to close instance that was evicted by cache, but got exception: " + e.getMessage());
             }
         }
     }
