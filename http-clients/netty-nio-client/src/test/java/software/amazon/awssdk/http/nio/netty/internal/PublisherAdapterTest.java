@@ -284,33 +284,14 @@ public class PublisherAdapterTest {
         DefaultStreamedHttpResponse streamedResponse = new DefaultStreamedHttpResponse(HttpVersion.HTTP_1_1,
                                                                                        HttpResponseStatus.OK, publisher);
 
-        Subscriber<ByteBuffer> subscriber = new Subscriber<ByteBuffer>() {
-            private Subscription subscription;
-
-            @Override
-            public void onSubscribe(Subscription subscription) {
-                this.subscription = subscription;
-                subscription.request(Long.MAX_VALUE);
-            }
-
-            @Override
-            public void onNext(ByteBuffer byteBuffer) {
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-            }
-
-            @Override
-            public void onComplete() {
-            }
-        };
+        TestSubscriber subscriber = new TestSubscriber();
 
         ResponseHandler.PublisherAdapter publisherAdapter = new ResponseHandler.PublisherAdapter(streamedResponse, ctx,
                                                                                                  requestContext, executeFuture);
 
         publisherAdapter.subscribe(subscriber);
 
+        assertThat(subscriber.errorOccurred).isTrue();
         verify(ctx).close();
         verify(channelPool).release(channel);
     }
