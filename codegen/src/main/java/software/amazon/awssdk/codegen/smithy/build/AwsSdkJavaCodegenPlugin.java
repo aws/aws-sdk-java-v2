@@ -71,17 +71,32 @@ public final class AwsSdkJavaCodegenPlugin implements SmithyBuildPlugin {
         FileManifest manifest = context.getFileManifest();
         Path base = manifest.getBaseDir();
 
-        CodeGenerator.builder()
-                     .intermediateModel(intermediateModel)
-                     .sourcesDirectory(base.resolve("generated-sources").toString())
-                     .resourcesDirectory(base.resolve("generated-resources").toString())
-                     .testsDirectory(base.resolve("generated-test-sources").toString())
-                     .build()
-                     .execute();
+        // Builds pass explicit output directories so the client lands where the C2J path writes it; the internal
+        // Brazil import and the root POM read those directories. They are outside the projection, so smithy-build's
+        // manifest cannot list them.
+        if (settings.hasOutputDirectories()) {
+            Path sources = settings.sourcesDirectory().get();
+            generate(intermediateModel, sources, settings.resourcesDirectory().get(), settings.testsDirectory().get());
+            log.info("{} generated service {} into {}", NAME, intermediateModel.getMetadata().getServiceName(), sources);
+            return;
+        }
+
+        generate(intermediateModel, base.resolve("generated-sources"), base.resolve("generated-resources"),
+                 base.resolve("generated-test-sources"));
 
         registerGeneratedFiles(manifest, base);
         log.info("{} generated {} files for service {}",
                  NAME, manifest.getFiles().size(), intermediateModel.getMetadata().getServiceName());
+    }
+
+    private static void generate(IntermediateModel intermediateModel, Path sources, Path resources, Path tests) {
+        CodeGenerator.builder()
+                     .intermediateModel(intermediateModel)
+                     .sourcesDirectory(sources.toString())
+                     .resourcesDirectory(resources.toString())
+                     .testsDirectory(tests.toString())
+                     .build()
+                     .execute();
     }
 
     private CustomizationConfig loadCustomizationConfig(AwsSdkJavaCodegenSettings settings) {
