@@ -84,6 +84,14 @@ public class SdkAdvancedClientOption<T> extends ClientOption<T> {
      * the endpoint host that the API request is sent to.
      *
      * Customers can set this value to True to disable the behavior.
+     *
+     * <p>If this option is not set, the SDK resolves it from the following sources, in order:
+     * <ol>
+     * <li>The {@code aws.disableHostPrefixInjection} system property</li>
+     * <li>The {@code AWS_DISABLE_HOST_PREFIX_INJECTION} environment variable</li>
+     * <li>The {@code disable_host_prefix_injection} property in the configured profile</li>
+     * </ol>
+     * If none of them is set, the default is false.
      */
     public static final SdkAdvancedClientOption<Boolean> DISABLE_HOST_PREFIX_INJECTION =
         new SdkAdvancedClientOption<>(Boolean.class);

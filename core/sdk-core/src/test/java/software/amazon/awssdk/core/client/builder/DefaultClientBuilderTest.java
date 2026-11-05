@@ -63,6 +63,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,6 +73,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -89,6 +91,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -111,6 +114,9 @@ public class DefaultClientBuilderTest {
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
+    @Rule
+    public EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
+
     @Mock
     private SdkHttpClient.Builder defaultHttpClientFactory;
 
@@ -121,6 +127,12 @@ public class DefaultClientBuilderTest {
     public void setup() {
         when(defaultHttpClientFactory.buildWithDefaults(any())).thenReturn(mock(SdkHttpClient.class));
         when(defaultAsyncHttpClientFactory.buildWithDefaults(any())).thenReturn(mock(SdkAsyncHttpClient.class));
+        System.clearProperty(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION.property());
+    }
+
+    @After
+    public void cleanup() {
+        System.clearProperty(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION.property());
     }
 
     @Test
@@ -518,6 +530,108 @@ public class DefaultClientBuilderTest {
         ProfileFile secondGet = defaultProfileFileSupplier.get();
 
         assertThat(secondGet).isSameAs(firstGet);
+    }
+
+    @Test
+    public void disableHostPrefixInjection_nothingSet_defaultsToFalse() {
+        assertThat(disableHostPrefixInjection(null, null)).isFalse();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_asyncClient_nothingSet_defaultsToFalse() {
+        SdkClientConfiguration config = testAsyncClientBuilder()
+            .overrideConfiguration(o -> o.defaultProfileFile(profileFile(""))
+                                         .defaultProfileName("p"))
+            .build().clientConfiguration;
+        assertThat(config.option(DISABLE_HOST_PREFIX_INJECTION)).isFalse();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_systemPropertyTrue_resolvesTrue() {
+        System.setProperty(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION.property(), "TRUE");
+        assertThat(disableHostPrefixInjection(null, null)).isTrue();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_asyncClient_systemPropertyTrue_resolvesTrue() {
+        System.setProperty(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION.property(), "true");
+        SdkClientConfiguration config = testAsyncClientBuilder().build().clientConfiguration;
+        assertThat(config.option(DISABLE_HOST_PREFIX_INJECTION)).isTrue();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_envVarTrue_resolvesTrue() {
+        environmentVariableHelper.set(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION, "true");
+        assertThat(disableHostPrefixInjection(null, null)).isTrue();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_profileTrue_resolvesTrue() {
+        assertThat(disableHostPrefixInjection(null, "[profile p]\ndisable_host_prefix_injection = True")).isTrue();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_profileTrueInOtherProfile_isIgnored() {
+        assertThat(disableHostPrefixInjection(null, "[profile other]\ndisable_host_prefix_injection = true")).isFalse();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_explicitFalse_beatsSystemProperty() {
+        System.setProperty(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION.property(), "true");
+        assertThat(disableHostPrefixInjection(Boolean.FALSE, null)).isFalse();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_explicitTrue_beatsSystemProperty() {
+        System.setProperty(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION.property(), "false");
+        assertThat(disableHostPrefixInjection(Boolean.TRUE, null)).isTrue();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_systemPropertyFalse_beatsEnvVar() {
+        System.setProperty(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION.property(), "false");
+        environmentVariableHelper.set(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION, "true");
+        assertThat(disableHostPrefixInjection(null, null)).isFalse();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_envVarFalse_beatsProfile() {
+        environmentVariableHelper.set(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION, "false");
+        assertThat(disableHostPrefixInjection(null, "[profile p]\ndisable_host_prefix_injection = true")).isFalse();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_invalidSystemProperty_throwsOnBuild() {
+        System.setProperty(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION.property(), "yes");
+        assertThatThrownBy(() -> disableHostPrefixInjection(null, null)).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    public void disableHostPrefixInjection_invalidProfileValue_throwsOnBuild() {
+        assertThatThrownBy(() -> disableHostPrefixInjection(null, "[profile p]\ndisable_host_prefix_injection = yes"))
+            .isInstanceOf(IllegalStateException.class);
+    }
+
+    private Boolean disableHostPrefixInjection(Boolean explicitValue, String profileContent) {
+        ClientOverrideConfiguration.Builder overrideConfig =
+            ClientOverrideConfiguration.builder()
+                                       .putAdvancedOption(SIGNER, TEST_SIGNER)
+                                       .defaultProfileFile(profileFile(profileContent == null ? "" : profileContent))
+                                       .defaultProfileName("p");
+        if (explicitValue != null) {
+            overrideConfig.putAdvancedOption(DISABLE_HOST_PREFIX_INJECTION, explicitValue);
+        }
+        return new TestClientBuilder().overrideConfiguration(overrideConfig.build())
+                                      .build()
+                                      .clientConfiguration
+                                      .option(DISABLE_HOST_PREFIX_INJECTION);
+    }
+
+    private static ProfileFile profileFile(String content) {
+        return ProfileFile.builder()
+                          .content(new StringInputStream(content))
+                          .type(ProfileFile.Type.CONFIGURATION)
+                          .build();
     }
 
     private SdkDefaultClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {

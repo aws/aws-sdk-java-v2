@@ -178,6 +178,12 @@ public final class ProfileProperty {
     public static final String DISABLE_REQUEST_COMPRESSION = "disable_request_compression";
 
     /**
+     * Whether the SDK should skip prepending the modeled hostPrefix to the endpoint host. The default value is false, i.e.,
+     * the hostPrefix is prepended.
+     */
+    public static final String DISABLE_HOST_PREFIX_INJECTION = "disable_host_prefix_injection";
+
+    /**
      * The minimum compression size in bytes, inclusive, for a request to be compressed. The default value is 10_240.
      * The value must be non-negative and no greater than 10_485_760.
      */
