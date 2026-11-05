@@ -113,8 +113,9 @@ public class CrtUtilsTest {
     }
 
     @Test
-    public void reportMetrics_streamManagerClosed_reportsAcquireDurationOnly() {
+    public void reportMetrics_streamManagerClosed_reportsAcquireDurationAndMaxConcurrencyOnly() {
         HttpStreamManager streamManager = Mockito.mock(HttpStreamManager.class);
+        Mockito.when(streamManager.getMaxConnections()).thenReturn(10);
         Mockito.when(streamManager.getManagerMetrics())
                .thenThrow(new IllegalStateException("HttpClientConnectionManager has been closed, can't fetch metrics"));
         MetricCollector metricCollector = MetricCollector.create("test");
@@ -123,7 +124,7 @@ public class CrtUtilsTest {
 
         MetricCollection metrics = metricCollector.collect();
         assertThat(metrics.metricValues(HttpMetric.CONCURRENCY_ACQUIRE_DURATION)).hasSize(1);
-        assertThat(metrics.metricValues(HttpMetric.MAX_CONCURRENCY)).isEmpty();
+        assertThat(metrics.metricValues(HttpMetric.MAX_CONCURRENCY)).containsExactly(10);
         assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).isEmpty();
         assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY)).isEmpty();
         assertThat(metrics.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES)).isEmpty();

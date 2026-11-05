@@ -183,6 +183,24 @@ public class CrtRequestExecutorTest {
         assertThat(executeFuture).hasFailedWithThrowableThat().hasCause(exception).isInstanceOf(IOException.class);
     }
 
+    @Test
+    public void execute_requestFailsBeforeStreamAcquiredAndMetricCollectorThrows_closesStreamOnAcquire() {
+        CompletableFuture<HttpStreamBase> streamFuture = new CompletableFuture<>();
+        Mockito.when(streamManager.acquireStream(Mockito.any(HttpRequest.class),
+                                                 Mockito.any(HttpStreamBaseResponseHandler.class)))
+               .thenReturn(streamFuture);
+        MetricCollector metricCollector = Mockito.mock(MetricCollector.class);
+        Mockito.doThrow(new RuntimeException("metrics failure"))
+               .when(metricCollector).reportMetric(Mockito.any(), Mockito.any());
+
+        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(crtRequestContext(metricCollector));
+        executeFuture.completeExceptionally(new RuntimeException("timeout"));
+        streamFuture.complete(httpStream);
+
+        Mockito.verify(httpStream).cancel();
+        Mockito.verify(httpStream).close();
+    }
+
     private CrtRequestContext crtRequestContext() {
         return crtRequestContext(null);
     }

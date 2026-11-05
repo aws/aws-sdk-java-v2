@@ -121,6 +121,7 @@ public final class CrtUtils {
         long acquireCompletionTime = System.nanoTime();
         Duration acquireTimeTaken = Duration.ofNanos(acquireCompletionTime - acquireStartTime);
         metricCollector.reportMetric(CONCURRENCY_ACQUIRE_DURATION, acquireTimeTaken);
+        metricCollector.reportMetric(MAX_CONCURRENCY, connManager.getMaxConnections());
         HttpManagerMetrics managerMetrics;
         try {
             managerMetrics = connManager.getManagerMetrics();
@@ -128,7 +129,6 @@ public final class CrtUtils {
             // The client was closed while this request was in flight, so pool-state metrics are unavailable.
             return;
         }
-        metricCollector.reportMetric(MAX_CONCURRENCY, connManager.getMaxConnections());
         metricCollector.reportMetric(AVAILABLE_CONCURRENCY, saturatedCast(managerMetrics.getAvailableConcurrency()));
         metricCollector.reportMetric(LEASED_CONCURRENCY, saturatedCast(managerMetrics.getLeasedConcurrency()));
         metricCollector.reportMetric(PENDING_CONCURRENCY_ACQUIRES, saturatedCast(managerMetrics.getPendingConcurrencyAcquires()));
