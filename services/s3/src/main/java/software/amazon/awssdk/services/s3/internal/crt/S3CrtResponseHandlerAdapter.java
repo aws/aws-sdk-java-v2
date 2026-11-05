@@ -449,7 +449,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             MetricCollection collection = apiCall.collect();
             metricPublisherDispatcher.dispatch(collection, metricPublishers);
         } catch (LinkageError e) {
-            log.debug(() -> "Incompatible AWS CRT version for S3 metric publishing. Upgrade "
+            log.debug(() -> "Incompatible AWS CRT version for S3 metric publishing. Update to the latest version of "
                             + "'software.amazon.awssdk.crt:aws-crt'.", e);
         } catch (RuntimeException e) {
             log.debug(() -> "Failed to collect CRT S3 request metrics", e);
