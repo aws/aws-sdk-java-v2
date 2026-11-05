@@ -18,10 +18,17 @@ package software.amazon.awssdk.services.cloudfront.internal.utils;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Base64;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 class SigningUtilsTest {
 
@@ -173,4 +180,20 @@ class SigningUtilsTest {
         assertThat(policy).contains("\"Resource\":\"" + url + "\"");
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"30847FFFFFFF", "308480000000"})
+    void loadPrivateKey_pkcs1PemWithInvalidDerLength_throwsIllegalArgumentException(String derHex,
+                                                                                    @TempDir Path tempDir)
+        throws IOException {
+        byte[] der = BinaryUtils.fromHex(derHex);
+        String pem = "-----BEGIN RSA PRIVATE KEY-----\n"
+                     + Base64.getEncoder().encodeToString(der)
+                     + "\n-----END RSA PRIVATE KEY-----\n";
+        Path keyFile = tempDir.resolve("evil.pem");
+        Files.write(keyFile, pem.getBytes(StandardCharsets.UTF_8));
+
+        assertThatThrownBy(() -> SigningUtils.loadPrivateKey(keyFile))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasCauseInstanceOf(IOException.class);
+    }
 }
