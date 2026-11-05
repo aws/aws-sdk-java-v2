@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -153,6 +154,13 @@ class DefaultS3CrtAsyncClientTest {
         assertThatThrownBy(() -> S3AsyncClient.crtBuilder().minimumPartSizeInBytes(value).build()).isInstanceOf(IllegalArgumentException.class)
                                                                                                   .hasMessageContaining(
                                                                                                       "positive");
+    }
+
+    @Test
+    void metricPublishers_withNullElement_throws() {
+        assertThatThrownBy(() -> S3AsyncClient.crtBuilder().metricPublishers(Collections.singletonList(null)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("metricPublishers must not contain null elements");
     }
 
     @Test

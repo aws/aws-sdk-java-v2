@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -27,8 +28,10 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
@@ -390,6 +393,40 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * map must match the key type of the map, or a runtime exception will be raised.
      */
     S3CrtAsyncClientBuilder advancedOptions(Map<SdkAdvancedAsyncClientOption<?>, ?> advancedOptions);
+
+    /**
+     * Sets the {@link MetricPublisher}s that this client publishes metrics to. This overrides any previously configured
+     * publishers.
+     *
+     * <p>Each underlying CRT request attempt is published as a separate {@code "ApiCall"} metric collection. A single
+     * high-level transfer (for example a multipart {@code getObject}) fans out into several underlying requests, so
+     * several collections are published per transfer.
+     *
+     * <p>When migrating from another S3 client, note that the CRT-based client does not publish
+     * {@link CoreMetric#CREDENTIALS_FETCH_DURATION}, {@link CoreMetric#READ_THROUGHPUT}, or
+     * {@link CoreMetric#WRITE_THROUGHPUT}.
+     *
+     * <p>The SDK does not close these publishers when the client is closed; the caller retains ownership and is
+     * responsible for closing them. Metric publication is asynchronous and best effort. Closing the client waits for a
+     * bounded time while pending metric collections are published, but may return before collections generated during
+     * client shutdown are delivered. If a publisher is closed concurrently with this delivery, those metric collections
+     * may not be published and a debug message may be logged. This does not affect the outcome of the S3 operation.
+     *
+     * @param metricPublishers the metric publishers to use
+     * @return this builder for method chaining.
+     */
+    S3CrtAsyncClientBuilder metricPublishers(Collection<MetricPublisher> metricPublishers);
+
+    /**
+     * Adds a {@link MetricPublisher} that this client publishes metrics to. Can be called multiple times to add several
+     * publishers.
+     *
+     * <p>See {@link #metricPublishers(Collection)} for details on how metrics are published and on publisher ownership.
+     *
+     * @param metricPublisher the metric publisher to add
+     * @return this builder for method chaining.
+     */
+    S3CrtAsyncClientBuilder addMetricPublisher(MetricPublisher metricPublisher);
 
     @Override
     S3AsyncClient build();

@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
-import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.CrtChecksumUtils.checksumConfig;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
@@ -37,6 +36,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -62,6 +62,7 @@ import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.NumericUtils;
@@ -74,14 +75,20 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkInternalApi
 public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
+    static final String CLIENT_NAME = "s3crt";
+
     private final S3Client crtS3Client;
 
     private final S3NativeClientConfiguration s3NativeClientConfiguration;
     private final S3ClientOptions s3ClientOptions;
+    private final List<MetricPublisher> metricPublishers;
+    private final S3CrtMetricPublisherDispatcher metricPublisherDispatcher;
 
     private S3CrtAsyncHttpClient(Builder builder) {
         s3NativeClientConfiguration = builder.clientConfiguration;
         this.s3ClientOptions = createS3ClientOption();
+        this.metricPublishers = copyMetricPublishers(builder.metricPublishers);
+        this.metricPublisherDispatcher = new S3CrtMetricPublisherDispatcher();
 
         this.crtS3Client = new S3Client(s3ClientOptions);
     }
@@ -91,7 +98,15 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                          Builder builder) {
         s3NativeClientConfiguration = builder.clientConfiguration;
         s3ClientOptions = createS3ClientOption();
+        this.metricPublishers = copyMetricPublishers(builder.metricPublishers);
+        this.metricPublisherDispatcher = new S3CrtMetricPublisherDispatcher();
         this.crtS3Client = crtS3Client;
+    }
+
+    private static List<MetricPublisher> copyMetricPublishers(List<MetricPublisher> metricPublishers) {
+        return metricPublishers == null
+               ? Collections.emptyList()
+               : Collections.unmodifiableList(new ArrayList<>(metricPublishers));
     }
 
     @SdkTestInternalApi
@@ -164,12 +179,22 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         S3MetaRequestOptions.ResponseFileOption responseFileOption = httpExecutionAttributes.getAttribute(RESPONSE_FILE_OPTION);
         Boolean responseFileDeleteOnFailure = httpExecutionAttributes.getAttribute(RESPONSE_FILE_DELETE_ON_FAILURE);
 
+        List<MetricPublisher> requestMetricPublishers =
+            httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS);
+        List<MetricPublisher> effectivePublishers = resolveEffectiveMetricPublishers(requestMetricPublishers,
+                                                                                     metricPublishers);
+
         S3CrtResponseHandlerAdapter responseHandler =
-            new S3CrtResponseHandlerAdapter(
-                executeFuture,
-                asyncRequest.responseHandler(),
-                httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
-                s3MetaRequestFuture);
+            S3CrtResponseHandlerAdapter.builder()
+                                       .executeFuture(executeFuture)
+                                       .responseHandler(asyncRequest.responseHandler())
+                                       .httpExecutionAttributes(httpExecutionAttributes)
+                                       .metaRequestFuture(s3MetaRequestFuture)
+                                       .metricPublishers(effectivePublishers)
+                                       .metricPublisherDispatcher(metricPublisherDispatcher)
+                                       .maxConcurrency(effectivePublishers.isEmpty() ?
+                                                       null : crtS3Client.getMaxActiveConnections())
+                                       .build();
 
         URI endpoint = getEndpoint(uri);
 
@@ -233,6 +258,18 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         return executeFuture;
     }
 
+    /**
+     * Request-level publishers (if any were set on the request override) take precedence over the client-level
+     * publishers; otherwise the client-level publishers are used.
+     */
+    static List<MetricPublisher> resolveEffectiveMetricPublishers(List<MetricPublisher> requestLevel,
+                                                                  List<MetricPublisher> clientLevel) {
+        if (requestLevel != null && !requestLevel.isEmpty()) {
+            return requestLevel;
+        }
+        return clientLevel;
+    }
+
     private static boolean isResponseFileAlreadyExistsError(Throwable throwable, Path responseFilePath) {
         return responseFilePath != null
                && throwable instanceof CrtRuntimeException
@@ -267,7 +304,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     @Override
     public String clientName() {
-        return "s3crt";
+        return CLIENT_NAME;
     }
 
     private static S3MetaRequestOptions.MetaRequestType requestType(String operationName) {
@@ -312,8 +349,17 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     @Override
     public void close() {
-        s3NativeClientConfiguration.close();
-        crtS3Client.close();
+        CompletableFuture<Void> shutdownCompleteFuture = crtS3Client.getShutdownCompleteFuture();
+        shutdownCompleteFuture.whenComplete((ignored, throwable) -> metricPublisherDispatcher.startAsyncClose());
+        try {
+            metricPublisherDispatcher.flushPendingMetrics();
+        } finally {
+            try {
+                s3NativeClientConfiguration.close();
+            } finally {
+                crtS3Client.close();
+            }
+        }
     }
 
     public static Builder builder() {
@@ -322,9 +368,15 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     public static final class Builder implements SdkAsyncHttpClient.Builder<S3CrtAsyncHttpClient.Builder> {
         private S3NativeClientConfiguration clientConfiguration;
+        private List<MetricPublisher> metricPublishers;
 
         public Builder s3ClientConfiguration(S3NativeClientConfiguration clientConfiguration) {
             this.clientConfiguration = clientConfiguration;
+            return this;
+        }
+
+        public Builder metricPublishers(List<MetricPublisher> metricPublishers) {
+            this.metricPublishers = metricPublishers;
             return this;
         }
 
