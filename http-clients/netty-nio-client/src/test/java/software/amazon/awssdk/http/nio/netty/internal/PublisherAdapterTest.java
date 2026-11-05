@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.STREAMING_COMPLETE_KEY;
 
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.EmptyByteBuf;
@@ -311,6 +312,20 @@ public class PublisherAdapterTest {
 
         publisherAdapter.subscribe(subscriber);
 
+        verify(ctx).close();
+        verify(channelPool).release(channel);
+    }
+
+    @Test
+    public void channelInactive_streamingCompleteButResponseNotComplete_shouldInvokeResponseHandler() {
+        channel.attr(STREAMING_COMPLETE_KEY).set(true);
+
+        nettyResponseHandler.channelInactive(ctx);
+
+        ArgumentCaptor<Throwable> errorCaptor = ArgumentCaptor.forClass(Throwable.class);
+        verify(responseHandler).onError(errorCaptor.capture());
+        assertThat(errorCaptor.getValue()).isInstanceOf(IOException.class);
+        assertThat(executeFuture).isCompletedExceptionally();
         verify(ctx).close();
         verify(channelPool).release(channel);
     }
