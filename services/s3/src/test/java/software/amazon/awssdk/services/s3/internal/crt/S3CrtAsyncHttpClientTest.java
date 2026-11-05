@@ -192,6 +192,28 @@ public class S3CrtAsyncHttpClientTest {
     }
 
     @Test
+    public void onTelemetry_withIncompatibleCrt_shouldNotThrowIntoNativeCallback() {
+        MetricPublisher publisher = Mockito.mock(MetricPublisher.class);
+        when(s3Client.getMaxActiveConnections()).thenReturn(64);
+        asyncHttpClient = new S3CrtAsyncHttpClient(
+            s3Client,
+            S3CrtAsyncHttpClient.builder()
+                                .s3ClientConfiguration(s3NativeClientConfiguration)
+                                .metricPublishers(Collections.singletonList(publisher)));
+
+        try {
+            S3MetaRequestOptions requestOptions = makeRequest(getExecuteRequestBuilder().build());
+            S3RequestMetrics requestMetrics = Mockito.mock(S3RequestMetrics.class);
+            when(requestMetrics.getResponseStatus()).thenThrow(new NoSuchMethodError("getResponseStatus"));
+
+            assertDoesNotThrow(() -> requestOptions.getResponseHandler().onTelemetry(requestMetrics));
+            verify(publisher, Mockito.never()).publish(any());
+        } finally {
+            asyncHttpClient.close();
+        }
+    }
+
+    @Test
     public void metricPublishers_areCopiedWhenClientIsConstructed() {
         MetricPublisher originalPublisher = Mockito.mock(MetricPublisher.class);
         MetricPublisher addedAfterConstruction = Mockito.mock(MetricPublisher.class);
