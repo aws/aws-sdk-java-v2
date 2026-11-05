@@ -50,6 +50,10 @@ public final class LruCache<K, V>  {
     private final Map<K, CacheEntry<K, V>> cache;
     private final Function<K, V> valueSupplier;
     private final Object listLock = new Object();
+    /**
+     * Serializes close calls when multiple entries reference the same value.
+     */
+    private final Object resourceCloseLock = new Object();
     private final int maxCacheSize;
 
     private CacheEntry<K, V> leastRecentlyUsed = null;
@@ -69,13 +73,15 @@ public final class LruCache<K, V>  {
     public V get(K key) {
         while (true) {
             CacheEntry<K, V> cachedEntry = cache.computeIfAbsent(key, this::newEntry);
+            CacheEntry<K, V> evictedEntry;
             synchronized (listLock) {
                 if (cachedEntry.evicted()) {
                     continue;
                 }
-                moveToBackOfQueue(cachedEntry);
-                return cachedEntry.value();
+                evictedEntry = moveToBackOfQueue(cachedEntry);
             }
+            closeEvictedResourcesIfPossible(evictedEntry);
+            return cachedEntry.value();
         }
     }
 
@@ -89,8 +95,9 @@ public final class LruCache<K, V>  {
                 }
                 evicted.add(evictedEntry.value);
             }
-            return evicted;
         }
+        evicted.forEach(this::closeEvictedResourcesIfPossible);
+        return evicted;
     }
 
     private CacheEntry<K, V> newEntry(K key) {
@@ -108,12 +115,12 @@ public final class LruCache<K, V>  {
      * <li>Add it to the back of the queue (most recently used)</li>
      *</ol>
      */
-    private void moveToBackOfQueue(CacheEntry<K, V> entry) {
+    private CacheEntry<K, V> moveToBackOfQueue(CacheEntry<K, V> entry) {
         if (entry.equals(mostRecentlyUsed)) {
-            return;
+            return null;
         }
         removeFromQueue(entry);
-        addToQueue(entry);
+        return addToQueue(entry);
     }
 
     /**
@@ -145,7 +152,7 @@ public final class LruCache<K, V>  {
      * Adds an entry to the queue as the most recently used, adjusts all pointers and triggers an evict
      * event if the cache is now full.
      */
-    private void addToQueue(CacheEntry<K, V> entry) {
+    private CacheEntry<K, V> addToQueue(CacheEntry<K, V> entry) {
         if (mostRecentlyUsed != null) {
             mostRecentlyUsed.setPrevious(entry);
             entry.setNext(mostRecentlyUsed);
@@ -156,8 +163,9 @@ public final class LruCache<K, V>  {
             leastRecentlyUsed = entry;
         }
         if (size() > maxCacheSize) {
-            evict();
+            return evict();
         }
+        return null;
     }
 
     /**
@@ -171,18 +179,25 @@ public final class LruCache<K, V>  {
         CacheEntry<K, V> entryToEvict = leastRecentlyUsed;
 
         entryToEvict.isEvicted(true);
-        closeEvictedResourcesIfPossible(entryToEvict.value);
-        cache.remove(entryToEvict.key());
+        cache.remove(entryToEvict.key(), entryToEvict);
         removeFromQueue(entryToEvict);
         return entryToEvict;
     }
 
+    private void closeEvictedResourcesIfPossible(CacheEntry<K, V> entry) {
+        if (entry != null) {
+            closeEvictedResourcesIfPossible(entry.value());
+        }
+    }
+
     private void closeEvictedResourcesIfPossible(V value) {
-        if (value instanceof AutoCloseable) {
-            try {
-                ((AutoCloseable) value).close();
-            } catch (Exception e) {
-                log.warn(() -> "Attempted to close instance that was evicted by cache, but got exception: " + e.getMessage());
+        synchronized (resourceCloseLock) {
+            if (value instanceof AutoCloseable) {
+                try {
+                    ((AutoCloseable) value).close();
+                } catch (Exception e) {
+                    log.warn(() -> "Attempted to close instance that was evicted by cache, but got exception: " + e.getMessage());
+                }
             }
         }
     }
