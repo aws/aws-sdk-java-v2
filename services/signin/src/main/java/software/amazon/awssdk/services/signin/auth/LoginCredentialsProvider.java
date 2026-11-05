@@ -33,11 +33,14 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.signin.SigninClient;
+import software.amazon.awssdk.services.signin.SigninServiceClientConfiguration;
 import software.amazon.awssdk.services.signin.internal.AccessTokenManager;
 import software.amazon.awssdk.services.signin.internal.DpopAuthPlugin;
 import software.amazon.awssdk.services.signin.internal.DpopIdentity;
@@ -188,17 +191,16 @@ public final class LoginCredentialsProvider implements
         DpopIdentity dpopIdentity = loadDpopIdentity(tokenFromDisc);
 
         try (SdkPlugin dpopAuthPlugin = DpopAuthPlugin.create(dpopIdentity)) {
-            CreateOAuth2TokenRequest refreshRequest =
+            CreateOAuth2TokenRequest.Builder refreshRequestBuilder =
                 CreateOAuth2TokenRequest
                     .builder()
                     .tokenInput(t -> t
                         .clientId(tokenFromDisc.getClientId())
                         .refreshToken(tokenFromDisc.getRefreshToken())
-                        .grantType("refresh_token"))
-                    .overrideConfiguration(c -> c.addPlugin(dpopAuthPlugin))
-                    .build();
+                        .grantType("refresh_token"));
+            addRefreshPlugins(refreshRequestBuilder, dpopAuthPlugin, tokenFromDisc);
 
-            CreateOAuth2TokenResponse createTokenResponse = signinClient.createOAuth2Token(refreshRequest);
+            CreateOAuth2TokenResponse createTokenResponse = signinClient.createOAuth2Token(refreshRequestBuilder.build());
 
             Instant newExpiration = Instant.now().plusSeconds(createTokenResponse.tokenOutput().expiresIn());
             AwsSessionCredentials updatedCredentials = AwsSessionCredentials
@@ -260,6 +262,34 @@ public final class LoginCredentialsProvider implements
         } catch (RuntimeException e) {
             throw invalidToken("member 'dpopKey' is not a valid EC private key", e);
         }
+    }
+
+    private static void addRefreshPlugins(CreateOAuth2TokenRequest.Builder builder,
+                                          SdkPlugin dpopAuthPlugin,
+                                          LoginAccessToken tokenFromDisc) {
+        String signInRegion = tokenFromDisc.getSignInRegion();
+
+        AwsRequestOverrideConfiguration.Builder overrideConfig = AwsRequestOverrideConfiguration
+            .builder()
+            .addPlugin(dpopAuthPlugin);
+        if (!StringUtils.isBlank(signInRegion)) {
+            log.debug(() -> "Sending refresh request to the token's signInRegion: " + signInRegion);
+            overrideConfig.addPlugin(signInRegionPlugin(signInRegion));
+        }
+        builder.overrideConfiguration(overrideConfig.build());
+    }
+
+    /**
+     * Create a per-request plugin that sets the region of the refresh request to the region where the session was created.
+     */
+    private static SdkPlugin signInRegionPlugin(String signInRegion) {
+        Region region = Region.of(signInRegion.trim());
+        return config -> {
+            SigninServiceClientConfiguration.Builder scb =
+                Validate.isInstanceOf(SigninServiceClientConfiguration.Builder.class, config,
+                                      "signInRegion plugin must be applied to a SigninServiceClient");
+            scb.region(region);
+        };
     }
 
     /**
@@ -393,6 +423,9 @@ public final class LoginCredentialsProvider implements
         /**
          * Configure the {@link SigninClient} to use when calling Signin to update the session. This client should not be shut
          * down as long as this credentials provider is in use.
+         * <p>
+         * When the cached login token records a {@code signInRegion}, refresh requests are sent to that region instead of the
+         * client's configured region, unless the client has an explicit endpoint override.
          */
         Builder signinClient(SigninClient signinClient);
 

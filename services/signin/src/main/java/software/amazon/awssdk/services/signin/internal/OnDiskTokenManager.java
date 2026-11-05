@@ -178,6 +178,7 @@ public final class OnDiskTokenManager implements AccessTokenManager {
         // optional fields
         node.field("tokenType").map(JsonNode::text).ifPresent(tokenBuilder::tokenType);
         node.field("identityToken").map(JsonNode::text).ifPresent(tokenBuilder::identityToken);
+        node.field("signInRegion").map(JsonNode::text).ifPresent(tokenBuilder::signInRegion);
         return tokenBuilder.build();
     }
 
@@ -285,6 +286,11 @@ public final class OnDiskTokenManager implements AccessTokenManager {
             if (token.getDpopKey() != null) {
                 jsonWriter.writeFieldName("dpopKey");
                 jsonWriter.writeValue(token.getDpopKey());
+            }
+
+            if (!StringUtils.isBlank(token.getSignInRegion())) {
+                jsonWriter.writeFieldName("signInRegion");
+                jsonWriter.writeValue(token.getSignInRegion());
             }
 
             jsonWriter.writeEndObject();

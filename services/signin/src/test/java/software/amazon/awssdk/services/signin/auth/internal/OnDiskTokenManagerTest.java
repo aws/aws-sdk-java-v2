@@ -33,6 +33,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
@@ -252,6 +253,67 @@ public class OnDiskTokenManagerTest {
         Path readOnlyDir = tempDir.resolve("pathdoesnotexist");
         OnDiskTokenManager manager = OnDiskTokenManager.create(readOnlyDir, LOGIN_SESSION_ID);
         SdkClientException e = assertThrows(SdkClientException.class, () -> manager.storeToken(token));
+    }
+
+    @Test
+    void loadToken_withSignInRegion_readsSignInRegion() throws IOException {
+        OnDiskTokenManager manager = OnDiskTokenManager.create(tempDir, LOGIN_SESSION_ID);
+        Files.write(tokenLocation(LOGIN_SESSION_ID), tokenJson(", \"signInRegion\": \"eu-central-1\"")
+            .getBytes(StandardCharsets.UTF_8));
+
+        assertEquals("eu-central-1", manager.loadToken().get().getSignInRegion());
+    }
+
+    @Test
+    void loadToken_withoutSignInRegion_signInRegionIsNull() throws IOException {
+        OnDiskTokenManager manager = OnDiskTokenManager.create(tempDir, LOGIN_SESSION_ID);
+        Files.write(tokenLocation(LOGIN_SESSION_ID), tokenJson("").getBytes(StandardCharsets.UTF_8));
+
+        LoginAccessToken loaded = manager.loadToken().get();
+        assertEquals("client-123", loaded.getClientId());
+        assertNull(loaded.getSignInRegion());
+    }
+
+    @Test
+    void storeAndLoadToken_withSignInRegion_keepsSignInRegion() {
+        OnDiskTokenManager manager = OnDiskTokenManager.create(tempDir, LOGIN_SESSION_ID);
+        LoginAccessToken withRegion = token.toBuilder().signInRegion("eu-central-1").build();
+        manager.storeToken(withRegion);
+
+        assertEquals(withRegion, manager.loadToken().get());
+    }
+
+    @Test
+    void storeToken_withoutSignInRegion_doesNotWriteSignInRegion() throws IOException {
+        OnDiskTokenManager manager = OnDiskTokenManager.create(tempDir, LOGIN_SESSION_ID);
+        manager.storeToken(token);
+
+        String contents = new String(Files.readAllBytes(tokenLocation(LOGIN_SESSION_ID)), StandardCharsets.UTF_8);
+        assertFalse(contents.contains("signInRegion"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   "})
+    void storeToken_withBlankSignInRegion_doesNotWriteSignInRegion(String blankRegion) throws IOException {
+        OnDiskTokenManager manager = OnDiskTokenManager.create(tempDir, LOGIN_SESSION_ID);
+        manager.storeToken(token.toBuilder().signInRegion(blankRegion).build());
+
+        String contents = new String(Files.readAllBytes(tokenLocation(LOGIN_SESSION_ID)), StandardCharsets.UTF_8);
+        assertFalse(contents.contains("signInRegion"));
+    }
+
+    private static String tokenJson(String extraFields) {
+        return "{ \"accessToken\": { "
+               + "\"accessKeyId\": \"AKIA\", "
+               + "\"secretAccessKey\": \"SECRET\", "
+               + "\"sessionToken\": \"SESSION\", "
+               + "\"expiresAt\": \"2025-01-01T00:00:00Z\", "
+               + "\"accountId\": \"123\" }, "
+               + "\"clientId\": \"client-123\", "
+               + "\"dpopKey\": \"dpop-key\", "
+               + "\"refreshToken\": \"refresh-token\""
+               + extraFields
+               + "}";
     }
 
     private Path tokenLocation(String loginSession) {
