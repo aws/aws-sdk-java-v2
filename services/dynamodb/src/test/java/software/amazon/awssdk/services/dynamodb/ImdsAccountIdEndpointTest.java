@@ -26,16 +26,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.time.Duration;
 import java.time.Instant;
-import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.HttpExecuteResponse;
-import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.SdkHttpResponse;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
+import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.DateUtils;
@@ -73,21 +75,25 @@ class ImdsAccountIdEndpointTest {
 
     private MockSyncHttpClient mockHttpClient;
 
-    @BeforeEach
-    void setup() {
+    @BeforeAll
+    static void setupImdsEndpoint() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),
                            "http://localhost:" + wireMockServer.getPort());
+    }
+
+    @AfterAll
+    static void teardown() {
+        System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
+    }
+
+    @BeforeEach
+    void setup() {
         mockHttpClient = new MockSyncHttpClient();
         mockHttpClient.stubNextResponse(HttpExecuteResponse.builder()
                                                            .response(SdkHttpResponse.builder().statusCode(200).build())
                                                            .responseBody(AbortableInputStream.create(
                                                                new StringInputStream("{}")))
                                                            .build());
-    }
-
-    @AfterAll
-    static void teardown() {
-        System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
     }
 
     private void stubImdsResponse(String credentialsBody) {
@@ -103,6 +109,7 @@ class ImdsAccountIdEndpointTest {
         return DynamoDbClient.builder()
                              .region(Region.US_EAST_1)
                              .credentialsProvider(credentialsProvider)
+                             .accountIdEndpointMode(AccountIdEndpointMode.PREFERRED)
                              .httpClient(mockHttpClient)
                              .build();
     }
@@ -119,7 +126,7 @@ class ImdsAccountIdEndpointTest {
         }
 
         SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
-        assertThat(lastRequest.host()).contains(ACCOUNT_ID + ".ddb.");
+        assertThat(lastRequest.host()).isEqualTo(ACCOUNT_ID + ".ddb.us-east-1.amazonaws.com");
     }
 
     @Test
