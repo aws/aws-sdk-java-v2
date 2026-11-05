@@ -24,10 +24,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.exception.TestModeledException;
+import software.amazon.awssdk.awscore.exception.TestServiceException;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
+import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
@@ -93,13 +97,13 @@ public class AwsRetryStrategyTest {
 
     @ParameterizedTest
     @CsvSource({"STANDARD, false, ExpiredToken",
-                "STANDARD, false, InvalidToken",
+                "STANDARD, false, ExpiredTokenException",
                 "STANDARD, true, ExpiredToken",
-                "STANDARD, true, InvalidToken",
+                "STANDARD, true, ExpiredTokenException",
                 "ADAPTIVE_V2, false, ExpiredToken",
-                "ADAPTIVE_V2, true, InvalidToken",
+                "ADAPTIVE_V2, true, ExpiredTokenException",
                 "LEGACY, false, ExpiredToken",
-                "LEGACY, false, InvalidToken"})
+                "LEGACY, false, ExpiredTokenException"})
     void forRetryMode_authenticationErrorCode_isRetried(RetryMode mode, boolean newRetries2026Enabled, String errorCode) {
         RetryStrategy strategy = AwsRetryStrategy.forRetryMode(mode, newRetries2026Enabled);
 
@@ -115,8 +119,9 @@ public class AwsRetryStrategyTest {
     @ParameterizedTest
     @CsvSource({"STANDARD, AccessDenied",
                 "STANDARD, AccessDeniedException",
-                "STANDARD, ExpiredTokenException",
-                "LEGACY, AccessDenied"})
+                "STANDARD, InvalidToken",
+                "LEGACY, AccessDenied",
+                "LEGACY, InvalidToken"})
     void forRetryMode_errorCodeThatIsNotAnAuthenticationError_isNotRetried(RetryMode mode, String errorCode) {
         RetryStrategy strategy = AwsRetryStrategy.forRetryMode(mode, false);
 
@@ -130,10 +135,104 @@ public class AwsRetryStrategyTest {
             .isInstanceOf(TokenAcquisitionFailedException.class);
     }
 
+    @ParameterizedTest
+    @CsvSource({"STANDARD, false, ExpiredToken",
+                "STANDARD, false, ExpiredTokenException",
+                "STANDARD, true, ExpiredToken",
+                "STANDARD, true, ExpiredTokenException",
+                "ADAPTIVE_V2, false, ExpiredToken",
+                "ADAPTIVE_V2, false, ExpiredTokenException",
+                "ADAPTIVE_V2, true, ExpiredToken",
+                "ADAPTIVE_V2, true, ExpiredTokenException",
+                "LEGACY, false, ExpiredToken",
+                "LEGACY, false, ExpiredTokenException"})
+    void forRetryMode_modeledExceptionWithAuthenticationErrorCode_isNotRetried(RetryMode mode,
+                                                                                boolean newRetries2026Enabled,
+                                                                                String errorCode) {
+        RetryStrategy strategy = AwsRetryStrategy.forRetryMode(mode, newRetries2026Enabled);
+
+        assertThatThrownBy(() -> refreshRetryToken(strategy, createModeledException(errorCode)))
+            .isInstanceOf(TokenAcquisitionFailedException.class);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"STANDARD, false, ExpiredToken",
+                "STANDARD, false, ExpiredTokenException",
+                "STANDARD, true, ExpiredToken",
+                "STANDARD, true, ExpiredTokenException",
+                "ADAPTIVE_V2, false, ExpiredToken",
+                "ADAPTIVE_V2, false, ExpiredTokenException",
+                "ADAPTIVE_V2, true, ExpiredToken",
+                "ADAPTIVE_V2, true, ExpiredTokenException",
+                "LEGACY, false, ExpiredToken",
+                "LEGACY, false, ExpiredTokenException"})
+    void forRetryMode_serviceBaseExceptionWithAuthenticationErrorCode_isRetried(RetryMode mode,
+                                                                                 boolean newRetries2026Enabled,
+                                                                                 String errorCode) {
+        RetryStrategy strategy = AwsRetryStrategy.forRetryMode(mode, newRetries2026Enabled);
+
+        assertThat(refreshRetryToken(strategy, createServiceBaseException(errorCode)).delay())
+            .isGreaterThanOrEqualTo(Duration.ZERO);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"STANDARD, PriorRequestNotComplete",
+                "STANDARD, RequestTimeout",
+                "STANDARD, RequestTimeoutException",
+                "STANDARD, InternalError",
+                "ADAPTIVE_V2, PriorRequestNotComplete",
+                "ADAPTIVE_V2, RequestTimeout",
+                "ADAPTIVE_V2, RequestTimeoutException",
+                "ADAPTIVE_V2, InternalError",
+                "LEGACY, PriorRequestNotComplete",
+                "LEGACY, RequestTimeout",
+                "LEGACY, RequestTimeoutException",
+                "LEGACY, InternalError"})
+    void forRetryMode_modeledExceptionWithRetryableErrorCode_isRetried(RetryMode mode, String errorCode) {
+        RetryStrategy strategy = AwsRetryStrategy.forRetryMode(mode, false);
+
+        assertThat(refreshRetryToken(strategy, createModeledException(errorCode)).delay())
+            .isGreaterThanOrEqualTo(Duration.ZERO);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"ExpiredToken", "ExpiredTokenException"})
+    void configure_modeledExceptionWithAuthenticationErrorCode_isNotRetried(String errorCode) {
+        RetryStrategy strategy = AwsRetryStrategy.configure(DefaultRetryStrategy.standardStrategyBuilder()).build();
+
+        assertThatThrownBy(() -> refreshRetryToken(strategy, createModeledException(errorCode)))
+            .isInstanceOf(TokenAcquisitionFailedException.class);
+        assertThat(refreshRetryToken(strategy, createServiceBaseException(errorCode)).delay())
+            .isGreaterThanOrEqualTo(Duration.ZERO);
+    }
+
+    private static RefreshRetryTokenResponse refreshRetryToken(RetryStrategy strategy, Throwable failure) {
+        RetryToken token = strategy.acquireInitialToken(AcquireInitialTokenRequest.create("test")).token();
+        RefreshRetryTokenRequest refresh = RefreshRetryTokenRequest.builder()
+                                                                   .failure(failure)
+                                                                   .token(token)
+                                                                   .build();
+        return strategy.refreshRetryToken(refresh);
+    }
+
     private static AwsServiceException createTestException(String errorCode) {
         AwsErrorDetails details = AwsErrorDetails.builder()
                                                  .errorCode(errorCode)
                                                  .build();
         return AwsServiceException.builder().awsErrorDetails(details).build();
+    }
+
+    private static AwsServiceException createModeledException(String errorCode) {
+        return TestModeledException.builder()
+                                   .awsErrorDetails(AwsErrorDetails.builder().errorCode(errorCode).build())
+                                   .statusCode(400)
+                                   .build();
+    }
+
+    private static AwsServiceException createServiceBaseException(String errorCode) {
+        return TestServiceException.builder()
+                                   .awsErrorDetails(AwsErrorDetails.builder().errorCode(errorCode).build())
+                                   .statusCode(400)
+                                   .build();
     }
 }

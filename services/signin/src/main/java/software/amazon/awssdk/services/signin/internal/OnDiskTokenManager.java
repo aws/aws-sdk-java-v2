@@ -22,6 +22,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileAttribute;
@@ -31,6 +32,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Optional;
@@ -43,6 +45,7 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -52,11 +55,12 @@ public final class OnDiskTokenManager implements AccessTokenManager {
 
     private final JsonNodeParser jsonParser = JsonNodeParser.builder().removeErrorLocations(true).build();
 
+    private final String loginSession;
     private final Path tokenLocation;
 
     private OnDiskTokenManager(Path cacheLocation, String loginSession) {
         Validate.paramNotNull(cacheLocation, "cacheLocation");
-        Validate.paramNotBlank(loginSession, "loginSession");
+        this.loginSession = Validate.paramNotBlank(loginSession, "loginSession");
         String cacheKey = deriveCacheKey(loginSession);
         this.tokenLocation = cacheLocation.resolve(cacheKey + ".json");
     }
@@ -75,17 +79,28 @@ public final class OnDiskTokenManager implements AccessTokenManager {
         return new OnDiskTokenManager(cacheLocation, loginSession);
     }
 
+    /**
+     * Loads the cached token, or returns an empty {@code Optional} if the token file does not exist.
+     *
+     * <p>Content errors in the file (it is not valid JSON or not a JSON object, or a required member is missing, empty, or
+     * invalid) throw {@link InvalidLoginTokenException}. Failing to read a file that exists throws a plain
+     * {@link SdkClientException}, because the failure may be transient (for example, a concurrent replace of the file by
+     * another process).
+     */
     @Override
     public Optional<LoginAccessToken> loadToken() {
-        if (!Files.exists(tokenLocation)) {
-            return Optional.empty();
-        }
+        return readTokenFile().map(this::unmarshalToken);
+    }
 
+    private Optional<String> readTokenFile() {
         try (InputStream cachedTokenStream = Files.newInputStream(tokenLocation)) {
-            String content = IoUtils.toUtf8String(cachedTokenStream);
-            return Optional.of(unmarshalToken(content));
+            return Optional.of(IoUtils.toUtf8String(cachedTokenStream));
+        } catch (NoSuchFileException e) {
+            // The token file (or its directory) does not exist: there is no cached token.
+            return Optional.empty();
         } catch (IOException | UncheckedIOException e) {
-            throw SdkClientException.create("Failed to load cached token at " + tokenLocation, e);
+            throw SdkClientException.create("Unable to read the token cache file for login_session `" + loginSession
+                                            + "` at " + tokenLocation + ".", e);
         }
     }
 
@@ -136,25 +151,29 @@ public final class OnDiskTokenManager implements AccessTokenManager {
     }
 
     private LoginAccessToken unmarshalToken(String contents) {
-        JsonNode node = jsonParser.parse(contents);
+        JsonNode node;
+        try {
+            node = jsonParser.parse(contents);
+        } catch (RuntimeException e) {
+            // Parse errors are reported as an UncheckedIOException. Any other RuntimeException is handled the same way as a
+            // defensive measure: the parser's IllegalArgumentException for unexpected tokens is not reachable with the text
+            // parser. The parser exception is not chained, because its message can quote the unparseable text, which may be
+            // part of a secret value.
+            throw invalidToken("the file is not valid JSON", null);
+        }
+        // An empty file parses to null.
+        if (node == null || !node.isObject()) {
+            throw invalidToken("the file does not contain a JSON object", null);
+        }
         LoginAccessToken.Builder tokenBuilder = LoginAccessToken.builder();
 
-        JsonNode accessToken = node.field("accessToken")
-                                   .orElseThrow(() -> SdkClientException.create("required member 'accessToken' not found"));
+        JsonNode accessToken = node.field("accessToken").orElseThrow(() -> missingMember("accessToken"));
         AwsSessionCredentials awsSessionCredentials = unmarshalAccessTokenCredentials(accessToken);
         tokenBuilder.accessToken(awsSessionCredentials);
 
-        String clientId = node.field("clientId").map(JsonNode::text)
-                              .orElseThrow(() -> SdkClientException.create("required member 'clientId' not found"));
-        tokenBuilder.clientId(clientId);
-
-        String dpopKey = node.field("dpopKey").map(JsonNode::text)
-                                 .orElseThrow(() -> SdkClientException.create("required member 'dpopKey' not found"));
-        tokenBuilder.dpopKey(dpopKey);
-
-        String refreshToken = node.field("refreshToken").map(JsonNode::text)
-                                      .orElseThrow(() -> SdkClientException.create("required member 'refreshToken' not found"));
-        tokenBuilder.refreshToken(refreshToken);
+        tokenBuilder.clientId(requiredText(node, "clientId", "clientId"));
+        tokenBuilder.dpopKey(requiredText(node, "dpopKey", "dpopKey"));
+        tokenBuilder.refreshToken(requiredText(node, "refreshToken", "refreshToken"));
 
         // optional fields
         node.field("tokenType").map(JsonNode::text).ifPresent(tokenBuilder::tokenType);
@@ -162,33 +181,51 @@ public final class OnDiskTokenManager implements AccessTokenManager {
         return tokenBuilder.build();
     }
 
-    private static AwsSessionCredentials unmarshalAccessTokenCredentials(JsonNode accessToken) {
+    private AwsSessionCredentials unmarshalAccessTokenCredentials(JsonNode accessToken) {
         AwsSessionCredentials.Builder awsSessionCredentials = AwsSessionCredentials.builder();
-        String accessKeyId = accessToken.field("accessKeyId").map(JsonNode::text)
-                                          .orElseThrow(() -> SdkClientException
-                                              .create("required member 'accessKeyId' not found"));
-        awsSessionCredentials.accessKeyId(accessKeyId);
+        awsSessionCredentials.accessKeyId(requiredText(accessToken, "accessKeyId", "accessToken.accessKeyId"));
+        awsSessionCredentials.secretAccessKey(requiredText(accessToken, "secretAccessKey", "accessToken.secretAccessKey"));
+        awsSessionCredentials.sessionToken(requiredText(accessToken, "sessionToken", "accessToken.sessionToken"));
 
-        String secretAccessKey = accessToken.field("secretAccessKey").map(JsonNode::text)
-                                              .orElseThrow(() -> SdkClientException
-                                                  .create("required member 'secretAccessKey' not found"));
-        awsSessionCredentials.secretAccessKey(secretAccessKey);
+        String expiresAt = requiredText(accessToken, "expiresAt", "accessToken.expiresAt");
+        try {
+            awsSessionCredentials.expirationTime(Instant.parse(expiresAt));
+        } catch (DateTimeParseException e) {
+            throw invalidToken("member 'accessToken.expiresAt' is not a valid ISO-8601 timestamp", e);
+        }
 
-        String sessionToken = accessToken.field("sessionToken").map(JsonNode::text)
-                                           .orElseThrow(() -> SdkClientException
-                                               .create("required member 'sessionToken' not found"));
-        awsSessionCredentials.sessionToken(sessionToken);
-
-        String  expiresAt = accessToken.field("expiresAt").map(JsonNode::text)
-                                        .orElseThrow(() -> SdkClientException
-                                            .create("required member 'expiresAt' not found"));
-        awsSessionCredentials.expirationTime(Instant.parse(expiresAt));
-
-        String accountId = accessToken.field("accountId").map(JsonNode::text)
-                                      .orElseThrow(() -> SdkClientException
-                                          .create("required member 'accountId' not found"));
-        awsSessionCredentials.accountId(accountId);
+        awsSessionCredentials.accountId(requiredText(accessToken, "accountId", "accessToken.accountId"));
         return awsSessionCredentials.build();
+    }
+
+    /**
+     * Returns the text of a required member. A member that is absent, JSON {@code null}, or not a scalar is reported as
+     * not found. A member that is empty or whitespace-only is reported as empty.
+     *
+     * @param parent the JSON object that contains the member
+     * @param fieldName the name of the member within {@code parent}
+     * @param member the full (dotted) name of the member, used in the error message
+     */
+    private String requiredText(JsonNode parent, String fieldName, String member) {
+        String text = parent.field(fieldName).map(JsonNode::text).orElseThrow(() -> missingMember(member));
+        if (StringUtils.isBlank(text)) {
+            throw invalidToken("member '" + member + "' is empty", null);
+        }
+        return text;
+    }
+
+    private InvalidLoginTokenException missingMember(String member) {
+        return invalidToken("required member '" + member + "' not found", null);
+    }
+
+    /**
+     * Creates the exception for a token cache file that cannot be used. The message names the file and the problem, but not
+     * the file contents. The {@code cause}, if any, must not repeat secret values from the file: the cause of an invalid
+     * {@code accessToken.expiresAt} quotes only that timestamp.
+     */
+    private InvalidLoginTokenException invalidToken(String problem, Throwable cause) {
+        return InvalidLoginTokenException.create("Invalid token cache file for login_session `" + loginSession + "` at "
+                                                 + tokenLocation + ": " + problem + ". You must re-authenticate.", cause);
     }
 
     private byte[] marshalToken(LoginAccessToken token) {

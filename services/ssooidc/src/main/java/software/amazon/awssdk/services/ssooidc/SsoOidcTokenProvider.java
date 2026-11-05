@@ -20,10 +20,10 @@ import java.time.Instant;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.token.CachedTokenRefresher;
 import software.amazon.awssdk.awscore.internal.token.TokenManager;
 import software.amazon.awssdk.awscore.internal.token.TokenRefresher;
@@ -65,7 +65,9 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
         this.staleTime = builder.staleTime == null ? DEFAULT_STALE_DURATION : builder.staleTime;
         this.prefetchTime = builder.prefetchTime == null ? DEFAULT_PREFETCH_DURATION : builder.prefetchTime;
 
-        this.onDiskTokenManager = OnDiskTokenManager.create(builder.sessionName);
+        this.onDiskTokenManager = builder.tokenManager != null
+                                  ? builder.tokenManager
+                                  : OnDiskTokenManager.create(builder.sessionName);
 
         this.tokenRefresher = CachedTokenRefresher.builder()
                                                   .tokenRetriever(getDefaultSsoTokenRetriever(this.ssoOidcClient,
@@ -81,13 +83,12 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
 
     private Function<SdkException, SsoOidcToken> exceptionHandler() {
         return e -> {
-            if (e instanceof AwsServiceException) {
-                log.warn(() -> "Failed to fetch token.", e);
-                // If we fail to get token from service then fetch the previous cached token from disc.
-                return onDiskTokenManager.loadToken()
-                                         .orElseThrow(() -> SdkClientException.create("Unable to load SSO token"));
-            }
-            throw e;
+            // If the refresh fails for any reason (service error, network error, timeout), fall back to the token on disk.
+            // resolveToken rejects the token if it has expired.
+            SsoOidcToken diskToken =
+                onDiskTokenManager.loadToken().orElseThrow(() -> SdkClientException.create("Unable to load SSO token"));
+            log.warn(() -> "Failed to refresh the SSO token. Falling back to the token in the on-disk cache.", e);
+            return diskToken;
         };
     }
 
@@ -102,6 +103,13 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
 
     public static Builder builder() {
         return new BuilderImpl();
+    }
+
+    @SdkTestInternalApi
+    static Builder builder(TokenManager<SsoOidcToken> tokenManager) {
+        BuilderImpl builder = new BuilderImpl();
+        builder.tokenManager = tokenManager;
+        return builder;
     }
 
     @Override
@@ -171,6 +179,7 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
         private Duration staleTime;
         private Duration prefetchTime;
         private Boolean asyncTokenUpdateEnabled = false;
+        private TokenManager<SsoOidcToken> tokenManager;
 
 
         private BuilderImpl() {
@@ -234,7 +243,13 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
                                   .clientSecret(baseToken.clientSecret())
                                   .refreshToken(baseToken.refreshToken())
                                   .build()));
-            tokenManager.storeToken(refreshToken);
+            try {
+                tokenManager.storeToken(refreshToken);
+            } catch (SdkException e) {
+                // The refreshed token is valid even if it could not be persisted, so use it rather than the older disk token.
+                log.warn(() -> "Failed to write the refreshed SSO token to the on-disk cache. The refreshed token will be "
+                               + "used, but it was not saved.", e);
+            }
             return refreshToken;
         };
     }

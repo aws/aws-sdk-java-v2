@@ -63,6 +63,23 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
         callClient(verify(stsClient, times(2)), Mockito.any());
     }
 
+    /**
+     * The initial fetch returns expired credentials: they are used without a refresh backoff, so the second call refreshes.
+     * STS returns expired credentials again, which is a failed refresh that arms the backoff, so the third call does not
+     * call STS.
+     */
+    @Test
+    public void expiredSessionReturnedAgainOnRefresh_stsNotCalledAgainDuringBackoff() {
+        callClientWithCredentialsProvider(Instant.now().minus(Duration.ofSeconds(5)), 3, false);
+        callClient(verify(stsClient, times(2)), Mockito.any());
+    }
+
+    @Test
+    public void expiredSessionReturnedAgainOnRefresh_stsNotCalledAgainDuringBackoff_OverridePrefetchAndStaleTimes() {
+        callClientWithCredentialsProvider(Instant.now().minus(Duration.ofSeconds(5)), 3, true);
+        callClient(verify(stsClient, times(2)), Mockito.any());
+    }
+
     @Test
     public void cachingAppliesToNonExpiredSession() {
         callClientWithCredentialsProvider(Instant.now().plus(Duration.ofHours(5)), 2, false);

@@ -135,8 +135,14 @@ public class AwsServiceException extends SdkServiceException {
     }
 
     /**
-     * Checks if the exception indicates an authentication error where the credentials were rejected,
-     * based on the AWS error code (e.g., {@code ExpiredToken}, {@code InvalidToken}).
+     * Checks if the exception indicates an authentication error where the credentials were rejected.
+     * <p>
+     * This is true when the AWS error code is an authentication error code ({@code ExpiredToken} or
+     * {@code ExpiredTokenException}). Generated modeled exceptions whose error doesn't concern the request's credentials,
+     * such as the STS {@code ExpiredTokenException} (an expired token passed as input), override this to return false.
+     * <p>
+     * When this returns true, the SDK invalidates the cached credentials and retries the request. When it returns false
+     * for one of these codes, the SDK does neither.
      *
      * @return true if the AWS error code indicates an authentication error, otherwise false.
      */

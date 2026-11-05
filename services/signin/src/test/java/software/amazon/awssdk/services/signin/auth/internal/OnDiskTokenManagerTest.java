@@ -20,16 +20,26 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
+import software.amazon.awssdk.services.signin.internal.InvalidLoginTokenException;
 import software.amazon.awssdk.services.signin.internal.LoginAccessToken;
 import software.amazon.awssdk.services.signin.internal.OnDiskTokenManager;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -106,23 +116,55 @@ public class OnDiskTokenManagerTest {
     }
 
     @Test
-    void loadToken_whenCorruptJson_raisesException() throws IOException {
+    void loadToken_whenCacheDirectoryMissing_returnsEmpty() {
+        OnDiskTokenManager manager = OnDiskTokenManager.create(tempDir.resolve("doesnotexist"), LOGIN_SESSION_ID);
+        assertFalse(manager.loadToken().isPresent());
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidTokenFiles")
+    void loadToken_whenTokenFileInvalid_throwsInvalidLoginTokenException(String description, String contents,
+                                                                         String expectedFragment) throws IOException {
         OnDiskTokenManager manager = OnDiskTokenManager.create(tempDir, LOGIN_SESSION_ID);
-        Files.write(tokenLocation(LOGIN_SESSION_ID), "{not valid json}".getBytes(StandardCharsets.UTF_8));
-        assertThrows(SdkClientException.class, manager::loadToken);
+        Files.write(tokenLocation(LOGIN_SESSION_ID), contents.getBytes(StandardCharsets.UTF_8));
+
+        InvalidLoginTokenException e = assertThrows(InvalidLoginTokenException.class, manager::loadToken);
+        assertInvalidTokenMessage(e, expectedFragment);
     }
 
     @Test
-    void storeToken_whenIoFails_raisesException() {
-        Path readOnlyDir = tempDir.resolve("pathdoesnotexist");
-        OnDiskTokenManager manager = OnDiskTokenManager.create(readOnlyDir, LOGIN_SESSION_ID);
-        SdkClientException e = assertThrows(SdkClientException.class, () -> manager.storeToken(token));
+    void loadToken_whenFileUnreadable_throwsRecoverableSdkClientException() throws IOException {
+        // A directory at the token location exists, but reading it fails with an IOException on every OS.
+        Files.createDirectory(tokenLocation(LOGIN_SESSION_ID));
+        OnDiskTokenManager manager = OnDiskTokenManager.create(tempDir, LOGIN_SESSION_ID);
+
+        // A read failure may be transient, so it is not reported as an invalid token.
+        SdkClientException e = assertThrows(SdkClientException.class, manager::loadToken);
+        assertFalse(e instanceof InvalidLoginTokenException, e.getClass().getName());
+        String message = e.getMessage();
+        assertTrue(message.contains("Unable to read the token cache file"), message);
+        assertTrue(message.contains(LOGIN_SESSION_ID), message);
+        assertTrue(message.contains(tokenLocation(LOGIN_SESSION_ID).toString()), message);
+        assertFalse(message.contains("You must re-authenticate"), message);
+        assertInstanceOf(IOException.class, e.getCause());
     }
 
     @Test
-    void unmarshalToken_whenMissingRequiredFields_raisesException() throws IOException {
+    void loadToken_whenSecretValueIsUnparseable_doesNotIncludeSecretValueInExceptionChain() throws IOException {
+        // The JSON parser's own message for this file quotes the unquoted value.
+        String contents = "{\"accessToken\":{\"secretAccessKey\": SECRETVALUE}}";
         OnDiskTokenManager manager = OnDiskTokenManager.create(tempDir, LOGIN_SESSION_ID);
+        Files.write(tokenLocation(LOGIN_SESSION_ID), contents.getBytes(StandardCharsets.UTF_8));
 
+        InvalidLoginTokenException e = assertThrows(InvalidLoginTokenException.class, manager::loadToken);
+        assertInvalidTokenMessage(e, "the file is not valid JSON");
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            String message = String.valueOf(t.getMessage());
+            assertFalse(message.contains("SECRETVALUE"), t.getClass().getName() + ": " + message);
+        }
+    }
+
+    private static Stream<Arguments> invalidTokenFiles() {
         String jsonMissingClientId = "{ \"accessToken\": { " +
                                      "\"accessKeyId\": \"AKIA\", " +
                                      "\"secretAccessKey\": \"SECRET\", " +
@@ -130,10 +172,86 @@ public class OnDiskTokenManagerTest {
                                      "\"expiresAt\": \"2025-01-01T00:00:00Z\", " +
                                      "\"accountId\": \"123\" " +
                                      "}}";
+        String jsonUnparseableExpiresAt = "{ \"accessToken\": { " +
+                                          "\"accessKeyId\": \"AKIA\", " +
+                                          "\"secretAccessKey\": \"SECRET\", " +
+                                          "\"sessionToken\": \"SESSION\", " +
+                                          "\"expiresAt\": \"yesterday\", " +
+                                          "\"accountId\": \"123\" " +
+                                          "}, " +
+                                          "\"clientId\": \"client-123\", " +
+                                          "\"dpopKey\": \"dpop-key\", " +
+                                          "\"refreshToken\": \"refresh-token\" " +
+                                          "}";
+        return Stream.concat(emptyRequiredMemberTokenFiles(), Stream.of(
+            Arguments.of("corrupt JSON", "{not valid json}", "the file is not valid JSON"),
+            Arguments.of("missing clientId", jsonMissingClientId, "required member 'clientId' not found"),
+            Arguments.of("empty file", "", "the file does not contain a JSON object"),
+            Arguments.of("whitespace only", "  \n", "the file does not contain a JSON object"),
+            Arguments.of("JSON null", "null", "the file does not contain a JSON object"),
+            Arguments.of("JSON array", "[]", "the file does not contain a JSON object"),
+            Arguments.of("JSON string", "\"text\"", "the file does not contain a JSON object"),
+            Arguments.of("unparseable expiresAt", jsonUnparseableExpiresAt,
+                         "member 'accessToken.expiresAt' is not a valid ISO-8601 timestamp")));
+    }
 
-        Files.write(tokenLocation(LOGIN_SESSION_ID), jsonMissingClientId.getBytes(StandardCharsets.UTF_8));
+    /**
+     * A token file for each required text member set to an empty string, and to a whitespace-only string.
+     */
+    private static Stream<Arguments> emptyRequiredMemberTokenFiles() {
+        List<String> requiredTextMembers = Arrays.asList("accessToken.accessKeyId", "accessToken.secretAccessKey",
+                                                         "accessToken.sessionToken", "accessToken.expiresAt",
+                                                         "accessToken.accountId", "clientId", "dpopKey", "refreshToken");
+        // The whitespace-only value is a JSON string of a space, a tab, a newline, and a space.
+        return requiredTextMembers.stream().flatMap(member -> Stream.of(
+            Arguments.of("empty " + member, tokenJsonWith(member, ""),
+                         "member '" + member + "' is empty"),
+            Arguments.of("whitespace-only " + member, tokenJsonWith(member, " \\t\\n "),
+                         "member '" + member + "' is empty")));
+    }
 
-        assertThrows(SdkClientException.class, manager::loadToken);
+    /**
+     * A valid token file with {@code member} (members of {@code accessToken} use a dotted name) set to the JSON string
+     * {@code value}, which is inserted without escaping.
+     */
+    private static String tokenJsonWith(String member, String value) {
+        Map<String, String> accessToken = new LinkedHashMap<>();
+        accessToken.put("accessKeyId", "AKIA");
+        accessToken.put("secretAccessKey", "SECRET");
+        accessToken.put("sessionToken", "SESSION");
+        accessToken.put("expiresAt", "2025-01-01T00:00:00Z");
+        accessToken.put("accountId", "123");
+        Map<String, String> token = new LinkedHashMap<>();
+        token.put("clientId", "client-123");
+        token.put("dpopKey", "dpop-key");
+        token.put("refreshToken", "refresh-token");
+        if (member.startsWith("accessToken.")) {
+            accessToken.put(member.substring("accessToken.".length()), value);
+        } else {
+            token.put(member, value);
+        }
+        return "{\"accessToken\":{" + toJsonMembers(accessToken) + "}," + toJsonMembers(token) + "}";
+    }
+
+    private static String toJsonMembers(Map<String, String> members) {
+        return members.entrySet().stream()
+                      .map(e -> "\"" + e.getKey() + "\":\"" + e.getValue() + "\"")
+                      .collect(Collectors.joining(","));
+    }
+
+    private void assertInvalidTokenMessage(InvalidLoginTokenException e, String expectedFragment) {
+        String message = e.getMessage();
+        assertTrue(message.contains(expectedFragment), message);
+        assertTrue(message.contains(tokenLocation(LOGIN_SESSION_ID).toString()), message);
+        assertTrue(message.contains(LOGIN_SESSION_ID), message);
+        assertTrue(message.contains("You must re-authenticate"), message);
+    }
+
+    @Test
+    void storeToken_whenIoFails_raisesException() {
+        Path readOnlyDir = tempDir.resolve("pathdoesnotexist");
+        OnDiskTokenManager manager = OnDiskTokenManager.create(readOnlyDir, LOGIN_SESSION_ID);
+        SdkClientException e = assertThrows(SdkClientException.class, () -> manager.storeToken(token));
     }
 
     private Path tokenLocation(String loginSession) {

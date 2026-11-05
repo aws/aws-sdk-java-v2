@@ -40,10 +40,15 @@ import java.time.Instant;
 import java.util.Locale;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.awscore.internal.token.TokenManager;
+import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ssooidc.SsoOidcClient;
 import software.amazon.awssdk.services.ssooidc.SsoOidcTokenProvider;
 import software.amazon.awssdk.services.ssooidc.internal.common.SsoOidcTokenRefreshTestBase;
@@ -180,6 +185,47 @@ public class SsoOidcTokenProviderTest {
         SsoOidcTokenProvider tokenProvider = getDefaultSsoOidcTokenProviderBuilder().build();
 
         assertThatExceptionOfType(SdkClientException.class).isThrownBy(() -> tokenProvider.resolveToken());
+    }
+
+    private static Stream<SdkException> refreshFailures() {
+        return Stream.of(SdkClientException.create("Unable to execute HTTP request"),
+                         ApiCallTimeoutException.create(1000),
+                         UnauthorizedClientException.builder().message("service error").build());
+    }
+
+    @ParameterizedTest
+    @MethodSource("refreshFailures")
+    void resolveToken_refreshFailsAndDiskTokenStillValid_returnsDiskToken(SdkException refreshFailure) {
+        SsoOidcToken validDiskToken = getDefaultTokenBuilder()
+            .expiresAt(Instant.now().plus(Duration.ofMinutes(3)))
+            .registrationExpiresAt(Instant.now().plus(Duration.ofDays(1)))
+            .build();
+        mockTokenManager.storeToken(validDiskToken);
+        when(ssoOidcClient.createToken(any(CreateTokenRequest.class))).thenThrow(refreshFailure);
+
+        SsoOidcTokenProvider tokenProvider = getDefaultSsoOidcTokenProviderBuilder().build();
+
+        SdkToken resolvedToken = tokenProvider.resolveToken();
+        assertThat(resolvedToken.token()).isEqualTo(validDiskToken.token());
+        assertThat(resolvedToken.expirationTime()).isEqualTo(validDiskToken.expirationTime());
+        verify(ssoOidcClient, times(1)).createToken(any(CreateTokenRequest.class));
+    }
+
+    @ParameterizedTest
+    @MethodSource("refreshFailures")
+    void resolveToken_refreshFailsAndDiskTokenExpired_throwsTokenExpired(SdkException refreshFailure) {
+        SsoOidcToken expiredDiskToken = getDefaultTokenBuilder()
+            .expiresAt(Instant.now().minusSeconds(2))
+            .registrationExpiresAt(Instant.now().plus(Duration.ofDays(1)))
+            .build();
+        mockTokenManager.storeToken(expiredDiskToken);
+        when(ssoOidcClient.createToken(any(CreateTokenRequest.class))).thenThrow(refreshFailure);
+
+        SsoOidcTokenProvider tokenProvider = getDefaultSsoOidcTokenProviderBuilder().build();
+
+        assertThatThrownBy(tokenProvider::resolveToken)
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Token is expired");
     }
 
     //        {

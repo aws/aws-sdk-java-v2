@@ -104,6 +104,7 @@ public final class SharedModelsValidator implements ModelValidator {
                && Objects.equals(m1.getEnums(), m2.getEnums())
                && Objects.equals(m1.getVariable(), m2.getVariable())
                && Objects.equals(m1.getErrorCode(), m2.getErrorCode())
+               && Objects.equals(m1.getQueryCompatibleErrorCode(), m2.getQueryCompatibleErrorCode())
                && Objects.equals(m1.getHttpStatusCode(), m2.getHttpStatusCode())
                && Objects.equals(m1.getCustomization(), m2.getCustomization())
                && Objects.equals(m1.getXmlNamespace(), m2.getXmlNamespace())

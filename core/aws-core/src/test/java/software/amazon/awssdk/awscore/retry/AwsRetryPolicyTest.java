@@ -26,6 +26,8 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.exception.TestModeledException;
+import software.amazon.awssdk.awscore.exception.TestServiceException;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -43,7 +45,29 @@ public class AwsRetryPolicyTest {
     @Test
     public void retriesOnAuthenticationErrorCodes() {
         assertTrue(shouldRetry(applyErrorCode("ExpiredToken")));
-        assertTrue(shouldRetry(applyErrorCode("InvalidToken")));
+        assertTrue(shouldRetry(applyErrorCode("ExpiredTokenException")));
+    }
+
+    @Test
+    public void doesNotRetryOnModeledExceptionWithAuthenticationErrorCode() {
+        assertFalse(shouldRetry(applyException(TestModeledException.builder(), "ExpiredToken")));
+        assertFalse(shouldRetry(applyException(TestModeledException.builder(), "ExpiredTokenException")));
+    }
+
+    @Test
+    public void retriesOnServiceBaseExceptionWithAuthenticationErrorCode() {
+        assertTrue(shouldRetry(applyException(TestServiceException.builder(), "ExpiredToken")));
+        assertTrue(shouldRetry(applyException(TestServiceException.builder(), "ExpiredTokenException")));
+    }
+
+    @Test
+    public void retriesOnModeledExceptionWithRetryableErrorCode() {
+        assertTrue(shouldRetry(applyException(TestModeledException.builder(), "PriorRequestNotComplete")));
+    }
+
+    @Test
+    public void doesNotRetryOnInvalidToken() {
+        assertFalse(shouldRetry(applyErrorCode("InvalidToken")));
     }
 
     @Test
@@ -134,6 +158,12 @@ public class AwsRetryPolicyTest {
         return b -> b.exception(exception.build());
     }
 
+
+    private Consumer<RetryPolicyContext.Builder> applyException(AwsServiceException.Builder exception, String errorCode) {
+        exception.statusCode(400);
+        exception.awsErrorDetails(AwsErrorDetails.builder().errorCode(errorCode).build());
+        return b -> b.exception(exception.build());
+    }
 
     private Consumer<RetryPolicyContext.Builder> applyErrorCode(String errorCode, Duration clockSkew, Instant dateHeader) {
         SdkHttpFullResponse response = SdkHttpFullResponse.builder()

@@ -57,6 +57,23 @@ public class SsoCredentialsProviderTest {
         callClient(verify(ssoClient, times(2)), Mockito.any());
     }
 
+    /**
+     * The initial fetch returns expired credentials: they are used without a refresh backoff, so the second call refreshes.
+     * SSO returns expired credentials again, which is a failed refresh that arms the backoff, so the third call does not
+     * call SSO.
+     */
+    @Test
+    public void expiredSessionReturnedAgainOnRefresh_ssoNotCalledAgainDuringBackoff() {
+        callClientWithCredentialsProvider(Instant.now().minus(Duration.ofSeconds(5)), 3, false);
+        callClient(verify(ssoClient, times(2)), Mockito.any());
+    }
+
+    @Test
+    public void expiredSessionReturnedAgainOnRefresh_ssoNotCalledAgainDuringBackoff_OverridePrefetchAndStaleTimes() {
+        callClientWithCredentialsProvider(Instant.now().minus(Duration.ofSeconds(5)), 3, true);
+        callClient(verify(ssoClient, times(2)), Mockito.any());
+    }
+
     @Test
     public void cachingAppliesToNonExpiredSession() {
         callClientWithCredentialsProvider(Instant.now().plus(Duration.ofHours(5)), 2, false);

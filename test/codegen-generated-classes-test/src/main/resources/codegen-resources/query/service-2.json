@@ -23,7 +23,8 @@
       "input":{"shape":"AllTypesStructure"},
       "output":{"shape":"AllTypesStructure"},
       "errors":[
-        {"shape":"EmptyModeledException"}
+        {"shape":"EmptyModeledException"},
+        {"shape":"ExpiredTokenException"}
       ]
     },
     "DeleteOperation":{
@@ -216,6 +217,18 @@
     "EmptyModeledException":{
       "type":"structure",
       "members":{
+      },
+      "exception":true
+    },
+    "ExpiredTokenException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "error":{
+        "code":"ExpiredTokenException",
+        "httpStatusCode":400,
+        "senderFault":true
       },
       "exception":true
     },
