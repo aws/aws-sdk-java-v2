@@ -30,7 +30,6 @@ import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.Beans;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import software.amazon.awssdk.utils.Logger;
-import org.joda.time.DateTime;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -45,6 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Scalar.BOOLEAN;
+import static software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Scalar.DATE_TIME;
 import static software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Scalar.DEFAULT;
 import static software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Scalar.STRING;
 import static software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Vector.LIST;
@@ -218,6 +218,12 @@ final class StandardModelFactories {
 
         @Override
         public Rule<T> getRule(ConvertibleType<T> type) {
+            // A DateTime the mapper can't load would otherwise match the generic rules and be written as
+            // DateTime.toString(), even into an N attribute. This happens when the application's class loader has
+            // Joda-Time but the mapper's does not. A custom type converter hides the DateTime here, so it still works.
+            if (!JodaTimeSupport.isAvailable() && JodaTimeSupport.isDateTime(type.targetType())) {
+                throw JodaTimeSupport.missing("An org.joda.time.DateTime attribute");
+            }
             for (Rule<T> rule : rules) {
                 if (rule.isAssignableFrom(type)) {
                     return rule;
@@ -314,7 +320,7 @@ final class StandardModelFactories {
             }
             @Override
             public boolean isAssignableFrom(ConvertibleType<?> type) {
-                return (type.is(Date.class) || type.is(Calendar.class) || type.is(DateTime.class))
+                return (type.is(Date.class) || type.is(Calendar.class) || type.is(DATE_TIME))
                        && super.isAssignableFrom(type) && (type.attributeType() != null || type.is(N));
             }
             @Override

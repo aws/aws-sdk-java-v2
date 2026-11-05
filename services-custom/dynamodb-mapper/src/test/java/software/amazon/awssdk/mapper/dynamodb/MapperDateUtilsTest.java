@@ -119,8 +119,9 @@ public class MapperDateUtilsTest {
 
     @Test
     public void testIssue233Overflows() throws ParseException {
-        // 1 milli second passed the max time. Fails for JT <2.9, succeeds on >=2.9.
-        testOverflow("292278994-08-17T07:12:55.808Z", true);
+        // 1 millisecond past the max Date. The Joda-Time based v1 parser accepted this and returned a date that had
+        // overflowed to the year -292275055; it is now rejected.
+        testOverflow("292278994-08-17T07:12:55.808Z", false);
 
         // 1 year passed the max year
         testOverflow("292278995-01-17T07:12:55.807Z", false);
