@@ -124,7 +124,6 @@ public class HttpCredentialsLoaderTest {
 
     /**
      * Test that loadCredentials does not fail when response contains unexpected/unknown fields.
-     * This verifies the SEP requirement: "Parsing MUST NOT fail in the presence of unexpected fields."
      */
     @Test
     public void testLoadCredentialsIgnoresUnexpectedFields() {

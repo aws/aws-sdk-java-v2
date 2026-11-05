@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Add support for account-ID based endpoints when using IMDS credential provider. The SDK now sends the `X-amzn-extended: 1` header on IMDS credential requests and parses the `AccountId` field from the response when available."
+    "description": "Add support for account ID based endpoints when using IMDS and container credentials. Endpoint host names can change for services that support it, such as DynamoDB. To opt out, set `accountIdEndpointMode` to `disabled`. See https://docs.aws.amazon.com/sdkref/latest/guide/feature-account-endpoints.html"
 }
