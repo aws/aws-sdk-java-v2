@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Fixed an issue where presigned multipart downloads could hang when the server returned a Content-Range value outside the long range."
-}
