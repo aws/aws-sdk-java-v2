@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CRT-based S3 Client",
+    "contributor": "",
+    "description": "Added support for publishing SDK metrics from the AWS CRT-based S3 async client through client-level and request-level `MetricPublisher` configurations. This feature requires AWS CRT Java 0.48.5 or later."
+}
