@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Route 53 Domains",
+    "contributor": "",
+    "description": "Route 53 Domains now supports restoring domains. This release adds the RestoreDomain API to self-serve domain restoration."
+}
