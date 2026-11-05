@@ -37,11 +37,11 @@ public interface FileUpload extends ObjectTransfer {
      *
      * <p>
      * For a Java-based multipart-enabled {@link S3AsyncClient}, if the pause stops the upload, the returned
-     * {@link ResumableFileUpload} has a multipart upload ID and {@link #completionFuture()} completes with
-     * {@link java.util.concurrent.CancellationException}. If the upload failed before {@code CompleteMultipartUpload}
-     * started, the result can still have a multipart upload ID in case the multipart upload still exists, and
-     * {@link #completionFuture()} keeps the original failure. If no multipart upload ID is returned, the pause had no
-     * effect, and {@link #completionFuture()} reports the upload's result.
+     * {@link ResumableFileUpload} has a multipart upload ID and {@link #completionFuture()} completes exceptionally
+     * with {@link java.util.concurrent.CancellationException}. If the upload failed before
+     * {@code CompleteMultipartUpload} started, the result can still have a multipart upload ID in case the multipart
+     * upload still exists, and {@link #completionFuture()} keeps the original failure. If no multipart upload ID is
+     * returned, the pause had no effect, and {@link #completionFuture()} reports the upload's result.
      *
      * <p>
      * Currently, it's only supported if the underlying {@link S3AsyncClient} is CRT-based (created via
