@@ -167,6 +167,8 @@ public class InstanceProfileCredentialsProviderTest {
         verifyImdsCallWithToken();
     }
 
+    // TODO: Once profile name caching is supported, migrate the IMDS credentials tests to a data-driven test that runs
+    //  the shared IMDS credentials provider test suite as-is.
     @Test
     void resolveCredentials_sendsExtendedHeaderOnCredentialGet() {
         stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS_WITH_ACCOUNT_ID));
