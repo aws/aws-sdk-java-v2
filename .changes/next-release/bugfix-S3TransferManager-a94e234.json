@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Fixed FileUpload.pause() with a Java-based multipart-enabled S3AsyncClient. completionFuture() no longer stays pending after a pause, and a pause after CompleteMultipartUpload has started no longer aborts the upload or returns resume information for it."
+}
