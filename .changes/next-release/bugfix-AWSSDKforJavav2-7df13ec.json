@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed AsyncRequestBody splitting for chunk sizes larger than 2 GiB and propagated splitter failures through onError."
+}
