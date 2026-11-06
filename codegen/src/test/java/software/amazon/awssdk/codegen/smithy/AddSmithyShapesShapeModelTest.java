@@ -320,6 +320,23 @@ class AddSmithyShapesShapeModelTest {
         assertThat(grantee.getXmlNamespace().getPrefix()).isEqualTo("xsi");
     }
 
+    @Test
+    void xmlNamespaceWithoutPrefixOnStructureMember_staysOnMember() {
+        Model model = modelOf(
+            "structure Parent {\n"
+            + "    @xmlNamespace(uri: \"https://example.com/ns\")\n"
+            + "    Child: Child\n"
+            + "}\n"
+            + "structure Child { ID: String }\n");
+        Probe p = probe(model, "rest-xml");
+
+        ShapeModel parent = p.translate("Parent", shape(model, "Parent"), null);
+        ShapeModel child = p.translate("Child", shape(model, "Child"), null);
+
+        assertThat(parent.findMemberModelByC2jName("Child").getXmlNameSpaceUri()).isEqualTo("https://example.com/ns");
+        assertThat(child.getXmlNamespace()).isNull();
+    }
+
     // ---- Enum shapes ------------------------------------------------------
 
     @Test

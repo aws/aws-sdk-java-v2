@@ -332,7 +332,7 @@ abstract class AddSmithyShapes {
     }
 
     /**
-     * The {@code @xmlNamespace} that members targeting this structure or union carry.
+     * The prefixed {@code @xmlNamespace} that members targeting this structure or union carry.
      */
     private Optional<XmlNamespaceTrait> namespaceOfReferencingMembers(Shape shape) {
         if (!isXmlAggregate(shape)) {
@@ -341,6 +341,7 @@ abstract class AddSmithyShapes {
         List<XmlNamespaceTrait> namespaces = model.getMemberShapesWithTrait(XmlNamespaceTrait.class).stream()
                                                   .filter(m -> m.getTarget().equals(shape.getId()))
                                                   .map(m -> m.expectTrait(XmlNamespaceTrait.class))
+                                                  .filter(ns -> movesToTarget(ns, shape))
                                                   .distinct()
                                                   .collect(Collectors.toList());
         if (namespaces.size() > 1) {
@@ -351,6 +352,10 @@ abstract class AddSmithyShapes {
 
     private static boolean isXmlAggregate(Shape shape) {
         return shape.isStructureShape() || shape.isUnionShape();
+    }
+
+    private static boolean movesToTarget(XmlNamespaceTrait namespace, Shape target) {
+        return isXmlAggregate(target) && namespace.getPrefix().isPresent();
     }
 
     /**
@@ -468,9 +473,8 @@ abstract class AddSmithyShapes {
 
         memberModel.setXmlAttribute(member.hasTrait(XmlAttributeTrait.class));
 
-        // On a structure or union target the namespace belongs to the target shape (see namespaceOfReferencingMembers).
         member.getTrait(XmlNamespaceTrait.class)
-              .filter(ns -> !isXmlAggregate(targetShape))
+              .filter(ns -> !movesToTarget(ns, targetShape))
               .ifPresent(ns -> memberModel.setXmlNameSpaceUri(ns.getUri()));
 
         member.getTrait(ContextParamTrait.class).ifPresent(cp -> {

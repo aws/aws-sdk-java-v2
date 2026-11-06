@@ -28,10 +28,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.smithy.build.ProjectionTransformer;
 import software.amazon.smithy.build.TransformContext;
 import software.amazon.smithy.model.Model;
+import software.amazon.smithy.model.node.ArrayNode;
 import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.node.ObjectNode;
 import software.amazon.smithy.model.node.StringNode;
@@ -169,7 +171,7 @@ public final class RenameMembersTransformer implements ProjectionTransformer {
             }
             Optional<ExamplesTrait> examples = operation.getTrait(ExamplesTrait.class);
             if (examples.isPresent()) {
-                ExamplesTrait renamed = renameInExamples(examples.get(), operation, containerId, oldName, newName);
+                ExamplesTrait renamed = renameInExamples(model, examples.get(), operation, member, newName);
                 if (!renamed.equals(examples.get())) {
                     builder.addTrait(renamed);
                     changed = true;
@@ -182,35 +184,49 @@ public final class RenameMembersTransformer implements ProjectionTransformer {
         return operations;
     }
 
-    private static ExamplesTrait renameInExamples(ExamplesTrait trait, OperationShape operation, ShapeId containerId,
-                                                  String oldName, String newName) {
+    private static ExamplesTrait renameInExamples(Model model, ExamplesTrait trait, OperationShape operation,
+                                                  MemberShape member, String newName) {
         ExamplesTrait.Builder builder = ExamplesTrait.builder().sourceLocation(trait.getSourceLocation());
         for (ExamplesTrait.Example example : trait.getExamples()) {
-            ExamplesTrait.Example.Builder renamed = example.toBuilder();
-            if (operation.getInputShape().equals(containerId)) {
-                renamed.input(renameKey(example.getInput(), oldName, newName));
-            }
-            if (operation.getOutputShape().equals(containerId)) {
-                example.getOutput().ifPresent(output -> renamed.output(renameKey(output, oldName, newName)));
-            }
-            example.getError()
-                   .filter(error -> error.getShapeId().equals(containerId))
-                   .ifPresent(error -> renamed.error(error.toBuilder()
-                                                          .content(renameKey(error.getContent(), oldName, newName))
-                                                          .build()));
+            ExamplesTrait.Example.Builder renamed = example.toBuilder()
+                .input(renameInValue(model, example.getInput(), operation.getInputShape(), member, newName)
+                           .expectObjectNode());
+            example.getOutput().ifPresent(output -> renamed.output(
+                renameInValue(model, output, operation.getOutputShape(), member, newName).expectObjectNode()));
+            example.getError().ifPresent(error -> renamed.error(error.toBuilder().content(
+                renameInValue(model, error.getContent(), error.getShapeId(), member, newName).expectObjectNode())
+                .build()));
             builder.addExample(renamed.build());
         }
         return builder.build();
     }
 
-    private static ObjectNode renameKey(ObjectNode node, String oldName, String newName) {
-        if (!node.getMember(oldName).isPresent()) {
-            return node;
+    /**
+     * Renames the member's key in an example value, including nested values.
+     */
+    private static Node renameInValue(Model model, Node value, ShapeId shapeId, MemberShape member, String newName) {
+        Shape shape = model.expectShape(shapeId);
+        if (value.isArrayNode()) {
+            return shape.getMember("member")
+                        .<Node>map(element -> new ArrayNode(
+                            value.expectArrayNode().getElements().stream()
+                                 .map(e -> renameInValue(model, e, element.getTarget(), member, newName))
+                                 .collect(Collectors.toList()),
+                            value.getSourceLocation()))
+                        .orElse(value);
         }
-        ObjectNode.Builder renamed = Node.objectNodeBuilder().sourceLocation(node.getSourceLocation());
-        node.getMembers().forEach((key, value) -> renamed.withMember(key.getValue().equals(oldName) ? newName
-                                                                                                    : key.getValue(),
-                                                                     value));
+        if (!value.isObjectNode()) {
+            return value;
+        }
+        boolean renameHere = shapeId.equals(member.getContainer());
+        ObjectNode.Builder renamed = Node.objectNodeBuilder().sourceLocation(value.getSourceLocation());
+        value.expectObjectNode().getMembers().forEach((key, memberValue) -> {
+            String name = key.getValue();
+            Optional<MemberShape> valueMember = shape.isMapShape() ? shape.getMember("value") : shape.getMember(name);
+            renamed.withMember(renameHere && name.equals(member.getMemberName()) ? newName : name,
+                               valueMember.map(m -> renameInValue(model, memberValue, m.getTarget(), member, newName))
+                                          .orElse(memberValue));
+        });
         return renamed.build();
     }
 
