@@ -41,8 +41,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
-import org.joda.time.DateTime;
-
 /**
  * Type conversions.
  *
@@ -142,7 +140,7 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
          */
         CALENDAR(ScalarAttributeType.S, new ConverterMap(Calendar.class, null)
             .with(Date.class, ToCalendar.FromDate)
-            .with(DateTime.class, ToCalendar.FromDate.join(ToDate.FromDateTime))
+            .withDateTime(ToCalendar.FromDate)
             .with(Long.class, ToCalendar.FromDate.join(ToDate.FromLong))
             .with(String.class, ToCalendar.FromDate.join(ToDate.FromString))
         ),
@@ -166,20 +164,17 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
          */
         DATE(ScalarAttributeType.S, new ConverterMap(Date.class, null)
             .with(Calendar.class, ToDate.FromCalendar)
-            .with(DateTime.class, ToDate.FromDateTime)
+            .withDateTime(null)
             .with(Long.class, ToDate.FromLong)
             .with(String.class, ToDate.FromString)
         ),
 
         /**
-         * {@link DateTime}
+         * {@code org.joda.time.DateTime}, when Joda-Time is on the classpath. Otherwise this scalar matches no type.
          */
-        DATE_TIME(/*ScalarAttributeType.S*/null, new ConverterMap(DateTime.class, null)
-            .with(Calendar.class, ToDateTime.FromDate.join(ToDate.FromCalendar))
-            .with(Date.class, ToDateTime.FromDate)
-            .with(Long.class, ToDateTime.FromDate.join(ToDate.FromLong))
-            .with(String.class, ToDateTime.FromDate.join(ToDate.FromString))
-        ),
+        DATE_TIME(/*ScalarAttributeType.S*/null, JodaTimeSupport.isAvailable()
+                                                 ? JodaTimeConverters.dateTimeConverters()
+                                                 : ConverterMap.unavailable()),
 
         /**
          * {@link Double}
@@ -217,7 +212,7 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
          */
         LONG(ScalarAttributeType.N, new ConverterMap(Long.class, Long.TYPE)
             .with(Date.class, ToLong.FromDate)
-            .with(DateTime.class, ToLong.FromDate.join(ToDate.FromDateTime))
+            .withDateTime(ToLong.FromDate)
             .with(Calendar.class, ToLong.FromDate.join(ToDate.FromCalendar))
             .with(Number.class, ToLong.FromNumber)
             .with(String.class, ToLong.FromString)
@@ -499,6 +494,34 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
             return this;
         }
 
+        /**
+         * Adds a conversion from {@code org.joda.time.DateTime} through {@link Date}, if Joda-Time is on the classpath.
+         *
+         * @param fromDate converts a {@link Date} to this map's type, or {@code null} if this map's type is
+         *                 {@link Date}
+         */
+        private <S> ConverterMap withDateTime(Converter<S,Date> fromDate) {
+            if (JodaTimeSupport.isAvailable()) {
+                JodaTimeConverters.addDateTime(this, fromDate);
+            }
+            return this;
+        }
+
+        /**
+         * Returns a map for a scalar whose type isn't on the classpath. No type is assignable to it.
+         */
+        private static ConverterMap unavailable() {
+            return new ConverterMap(Unavailable.class, null);
+        }
+
+        /**
+         * Stands in for a type that isn't on the classpath. Never instantiated.
+         */
+        private static final class Unavailable {
+            private Unavailable() {
+            }
+        }
+
         private boolean isAssignableFrom(Class<?> type) {
             return type.isPrimitive() ? primitiveType == type : referenceType.isAssignableFrom(type);
         }
@@ -671,12 +694,6 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
             }
         };
 
-        private static final ToDate<DateTime> FromDateTime = new ToDate<DateTime>() {
-            @Override
-            public final Date convert(final DateTime o) {
-                return o.toDate();
-            }
-        };
 
         private static final ToDate<Long> FromLong = new ToDate<Long>() {
             @Override
@@ -694,14 +711,49 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
     }
 
     /**
-     * {@link DateTime} conversion functions.
+     * {@code org.joda.time.DateTime} conversion functions. These are the only Joda-Time references in this class, so
+     * this class must be loaded only after {@link JodaTimeSupport#isAvailable()} returns {@code true}.
      */
-    private static abstract class ToDateTime<T> extends Converter<DateTime,T> {
-        private static final ToDateTime<Date> FromDate = new ToDateTime<Date>() {
-            public final DateTime convert(final Date o) {
-                return new DateTime(o);
+    private static final class JodaTimeConverters {
+        private static final Converter<Date,org.joda.time.DateTime> DATE_FROM_DATE_TIME =
+            new Converter<Date,org.joda.time.DateTime>() {
+                @Override
+                public Date convert(final org.joda.time.DateTime o) {
+                    return o.toDate();
+                }
+            };
+        private static final Converter<org.joda.time.DateTime,Date> DATE_TIME_FROM_DATE =
+            new Converter<org.joda.time.DateTime,Date>() {
+                @Override
+                public org.joda.time.DateTime convert(final Date o) {
+                    return new org.joda.time.DateTime(o);
+                }
+            };
+
+        private JodaTimeConverters() {
+        }
+
+        /**
+         * Returns the conversions to {@code DateTime}, for the {@link Scalar#DATE_TIME} scalar.
+         */
+        private static ConverterMap dateTimeConverters() {
+            return new ConverterMap(org.joda.time.DateTime.class, null)
+                .with(Calendar.class, DATE_TIME_FROM_DATE.join(ToDate.FromCalendar))
+                .with(Date.class, DATE_TIME_FROM_DATE)
+                .with(Long.class, DATE_TIME_FROM_DATE.join(ToDate.FromLong))
+                .with(String.class, DATE_TIME_FROM_DATE.join(ToDate.FromString));
+        }
+
+        /**
+         * Adds a conversion from {@code DateTime} to the type of {@code map}.
+         */
+        private static <S> void addDateTime(ConverterMap map, Converter<S,Date> fromDate) {
+            if (fromDate == null) {
+                map.with(org.joda.time.DateTime.class, DATE_FROM_DATE_TIME);
+            } else {
+                map.with(org.joda.time.DateTime.class, fromDate.join(DATE_FROM_DATE_TIME));
             }
-        };
+        }
     }
 
     /**
