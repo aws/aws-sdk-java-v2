@@ -359,7 +359,7 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
                 try {
                     body.error(t);
                 } catch (Throwable bodyError) {
-                    log.warn(() -> "Failed to signal an error to the active split request body", bodyError);
+                    log.debug(() -> "Failed to signal an error to the active split request body", bodyError);
                 }
             }
             downstreamPublisher.error(t);
@@ -374,7 +374,7 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
             try {
                 subscription.cancel();
             } catch (Throwable t) {
-                log.warn(() -> "Upstream Subscription.cancel() threw an exception", t);
+                log.debug(() -> "Upstream Subscription.cancel() threw an exception", t);
             }
         }
 
