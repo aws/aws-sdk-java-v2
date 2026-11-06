@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "Rules in Amazon Connect now support ending email contacts associated to a case based on case events."
+}
