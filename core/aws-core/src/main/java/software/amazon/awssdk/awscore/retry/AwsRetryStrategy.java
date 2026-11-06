@@ -16,7 +16,7 @@
 package software.amazon.awssdk.awscore.retry;
 
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsErrorCode;
@@ -61,6 +61,11 @@ public final class AwsRetryStrategy {
     /**
      * Retrieve the {@link SdkDefaultRetryStrategy#defaultRetryStrategy()} with AWS-specific conditions added.
      *
+     * <p>The {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} strategies take their max attempts from the
+     * {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment variable or the {@code max_attempts}
+     * property of the <b>default</b> profile, read each time this is called. Clients read the {@code max_attempts} property
+     * from their own configured profile file and profile name instead.
+     *
      * @return The default retry strategy.
      */
     public static RetryStrategy defaultRetryStrategy() {
@@ -70,6 +75,11 @@ public final class AwsRetryStrategy {
     /**
      * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added. The
      * {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} strategies use retry behavior 2.1.
+     *
+     * <p>The {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} strategies take their max attempts from the
+     * {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment variable or the {@code max_attempts}
+     * property of the <b>default</b> profile, read each time this is called. Clients read the {@code max_attempts} property
+     * from their own configured profile file and profile name instead.
      *
      * @param mode The retry mode for which we want to create a retry strategy.
      * @return A retry strategy for the given retry mode.
@@ -104,9 +114,10 @@ public final class AwsRetryStrategy {
 
     /**
      * Retrieve the retry strategy for the retry mode with AWS-specific conditions added, reading the {@code max_attempts}
-     * profile property from the given profile file and profile name instead of the default profile. Used by client builders.
+     * profile property from the given profile file and profile name instead of the default profile. Used by client builders
+     * and service modules; not intended for direct use.
      */
-    @SdkInternalApi
+    @SdkProtectedApi
     public static RetryStrategy forRetryMode(RetryMode mode, Supplier<ProfileFile> profileFile, String profileName) {
         switch (mode) {
             case STANDARD:
@@ -143,6 +154,11 @@ public final class AwsRetryStrategy {
     /**
      * Returns a {@link StandardRetryStrategy} with AWS-specific conditions added, using retry behavior 2.1.
      *
+     * <p>The {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} strategies take their max attempts from the
+     * {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment variable or the {@code max_attempts}
+     * property of the <b>default</b> profile, read each time this is called. Clients read the {@code max_attempts} property
+     * from their own configured profile file and profile name instead.
+     *
      * @return A {@link StandardRetryStrategy} with AWS-specific conditions added.
      */
     public static StandardRetryStrategy standardRetryStrategy() {
@@ -175,6 +191,11 @@ public final class AwsRetryStrategy {
 
     /**
      * Returns an {@link AdaptiveRetryStrategy} with AWS-specific conditions added, using retry behavior 2.1.
+     *
+     * <p>The {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} strategies take their max attempts from the
+     * {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment variable or the {@code max_attempts}
+     * property of the <b>default</b> profile, read each time this is called. Clients read the {@code max_attempts} property
+     * from their own configured profile file and profile name instead.
      *
      * @return An {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
      */

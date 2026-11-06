@@ -284,6 +284,16 @@ public interface RetryStrategy extends SdkAutoCloseable {
          * its variants. For example, {@link RefreshRetryTokenRequest#operationName()} can be used to never retry a given
          * operation.
          *
+         * <p>Calling this more than once adds predicates: the request is not retried if any of them returns true.
+         *
+         * <p>{@link RefreshRetryTokenRequest#operationName()} is the operation name from the service model (for example,
+         * {@code "GetObject"}, not {@code "getObject"}). It is empty when the strategy is not used by an SDK client, so
+         * check it with {@link java.util.Optional#filter} or {@link java.util.Optional#isPresent} rather than
+         * {@link java.util.Optional#get}.
+         *
+         * <p>If the predicate throws an exception, the SDK retry strategies log it and do not retry the request, so the
+         * original failure is returned to the caller.
+         *
          * <p>The default implementation throws {@link UnsupportedOperationException}.
          */
         default B doNotRetryWhen(Predicate<RefreshRetryTokenRequest> doNotRetry) {

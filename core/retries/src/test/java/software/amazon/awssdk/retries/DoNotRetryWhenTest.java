@@ -70,6 +70,22 @@ class DoNotRetryWhenTest {
         assertRetried(strategy, "ListShards");
     }
 
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("builders")
+    void throwingPredicate_isNotRetriedAndKeepsOriginalFailure(String name, Supplier<RetryStrategy.Builder<?, ?>> builder) {
+        RetryStrategy strategy = builder.get()
+                                        .retryOnException(t -> true)
+                                        .doNotRetryWhen(r -> r.operationName().get().isEmpty())
+                                        .build();
+        RefreshRetryTokenRequest request = refreshRequest(strategy, null);
+
+        assertThatThrownBy(() -> strategy.refreshRetryToken(request))
+            .isInstanceOf(TokenAcquisitionFailedException.class)
+            .hasCause(request.failure())
+            .matches(e -> ((DefaultRetryToken) ((TokenAcquisitionFailedException) e).token()).state()
+                          == DefaultRetryToken.TokenState.NON_RETRYABLE_EXCEPTION);
+    }
+
     @Test
     void withoutPredicate_matchingRequestIsRetried() {
         assertRetried(StandardRetryStrategy.builder().retryOnException(t -> true).build(), EXCLUDED);

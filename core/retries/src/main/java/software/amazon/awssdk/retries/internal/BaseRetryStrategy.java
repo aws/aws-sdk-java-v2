@@ -407,9 +407,19 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         return token.attempt() >= maxAttempts;
     }
 
+    // A predicate that throws must not replace the failure the caller should see, so treat it as "do not retry".
+    private boolean doNotRetryOrFailSafe(Predicate<RefreshRetryTokenRequest> doNotRetry, RefreshRetryTokenRequest request) {
+        try {
+            return doNotRetry.test(request);
+        } catch (RuntimeException e) {
+            log.warn(() -> "A doNotRetryWhen predicate threw an exception. The request will not be retried.", e);
+            return true;
+        }
+    }
+
     private boolean isNonRetryableException(RefreshRetryTokenRequest request) {
         for (Predicate<RefreshRetryTokenRequest> doNotRetry : doNotRetryPredicates) {
-            if (doNotRetry.test(request)) {
+            if (doNotRetryOrFailSafe(doNotRetry, request)) {
                 return true;
             }
         }

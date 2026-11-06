@@ -50,13 +50,26 @@ class RetryModeNewRetries2026WarningTest {
     }
 
     @Test
-    void oldGateSet_logsWarningOnce() {
-        System.setProperty(OLD_GATE_PROPERTY, "true");
+    void oldGateSetToFalse_logsWarningOnce() {
+        System.setProperty(OLD_GATE_PROPERTY, "false");
         try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
             RetryMode.resolver().resolve();
             RetryMode.resolver().resolve();
 
             assertThat(logCaptor.loggedEvents()).filteredOn(RetryModeNewRetries2026WarningTest::isOldGateWarning).hasSize(1);
+        }
+    }
+
+    @Test
+    void oldGateSetToTrue_logsNoWarning() {
+        System.setProperty(OLD_GATE_PROPERTY, "true");
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            RetryMode.resolver().resolve();
+
+            assertThat(logCaptor.loggedEvents()).noneMatch(RetryModeNewRetries2026WarningTest::isOldGateWarning);
+            assertThat(logCaptor.loggedEvents())
+                .anyMatch(e -> e.getLevel() == Level.DEBUG
+                               && e.getMessage().getFormattedMessage().contains("AWS_NEW_RETRIES_2026"));
         }
     }
 

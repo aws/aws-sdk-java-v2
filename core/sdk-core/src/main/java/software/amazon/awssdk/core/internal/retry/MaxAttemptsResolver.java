@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.internal.retry;
 
 import java.util.Optional;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.OptionalUtils;
 /**
  * Resolves the retry max attempts from {@link SdkSystemSetting#AWS_MAX_ATTEMPTS} and {@link ProfileProperty#MAX_ATTEMPTS}.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public class MaxAttemptsResolver {
     private static final Logger LOG = Logger.loggerFor(MaxAttemptsResolver.class);
 

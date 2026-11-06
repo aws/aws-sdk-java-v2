@@ -203,12 +203,20 @@ public enum RetryMode {
                 return;
             }
 
-            if (SdkSystemSetting.AWS_NEW_RETRIES_2026.getStringValue().isPresent()
-                && NEW_RETRIES_2026_WARNING_LOGGED.compareAndSet(false, true)) {
-                LOG.warn(() -> "The AWS_NEW_RETRIES_2026 environment variable and aws.newRetries2026 system property are "
-                               + "ignored. The standard and adaptive retry modes now use retry behavior 2.1. To use the "
-                               + "previous default retry behavior, set the retry mode to legacy, for example with "
-                               + "AWS_RETRY_MODE=legacy.");
+            Optional<String> value = SdkSystemSetting.AWS_NEW_RETRIES_2026.getStringValue();
+            if (!value.isPresent() || !NEW_RETRIES_2026_WARNING_LOGGED.compareAndSet(false, true)) {
+                return;
+            }
+
+            // "true" asks for what is now the default, so only a different value means the setting no longer has an effect
+            String message = "The AWS_NEW_RETRIES_2026 environment variable and aws.newRetries2026 system property are "
+                             + "ignored. The standard and adaptive retry modes now use retry behavior 2.1. To use the "
+                             + "previous default retry behavior, set the retry mode to legacy, for example with "
+                             + "AWS_RETRY_MODE=legacy.";
+            if ("true".equalsIgnoreCase(value.get().trim())) {
+                LOG.debug(() -> message);
+            } else {
+                LOG.warn(() -> message);
             }
         }
 

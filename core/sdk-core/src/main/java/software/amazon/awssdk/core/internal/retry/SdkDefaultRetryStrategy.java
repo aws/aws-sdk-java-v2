@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.internal.retry;
 
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -60,6 +60,11 @@ public final class SdkDefaultRetryStrategy {
     /**
      * Retrieve the default retry strategy for the configured retry mode.
      *
+     * <p>The {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} strategies take their max attempts from the
+     * {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment variable or the {@code max_attempts}
+     * property of the <b>default</b> profile, read each time this is called. Clients read the {@code max_attempts} property
+     * from their own configured profile file and profile name instead.
+     *
      * @return the default retry strategy for the configured retry mode.
      */
     public static RetryStrategy defaultRetryStrategy() {
@@ -68,6 +73,11 @@ public final class SdkDefaultRetryStrategy {
 
     /**
      * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added.
+     *
+     * <p>The {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} strategies take their max attempts from the
+     * {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment variable or the {@code max_attempts}
+     * property of the <b>default</b> profile, read each time this is called. Clients read the {@code max_attempts} property
+     * from their own configured profile file and profile name instead.
      *
      * @param mode The retry mode for which we want the retry strategy
      * @return the appropriate retry strategy for the retry mode with AWS-specific conditions added.
@@ -103,9 +113,10 @@ public final class SdkDefaultRetryStrategy {
 
     /**
      * Retrieve the retry strategy for the retry mode, reading the {@code max_attempts} profile property from the given profile
-     * file and profile name instead of the default profile. Used by client builders.
+     * file and profile name instead of the default profile. Used by client builders and service
+     * modules; not intended for direct use.
      */
-    @SdkInternalApi
+    @SdkProtectedApi
     public static RetryStrategy forRetryMode(RetryMode mode, Supplier<ProfileFile> profileFile, String profileName) {
         switch (mode) {
             case STANDARD:
@@ -146,6 +157,11 @@ public final class SdkDefaultRetryStrategy {
     /**
      * Returns a {@link StandardRetryStrategy} with generic SDK retry conditions.
      *
+     * <p>The {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} strategies take their max attempts from the
+     * {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment variable or the {@code max_attempts}
+     * property of the <b>default</b> profile, read each time this is called. Clients read the {@code max_attempts} property
+     * from their own configured profile file and profile name instead.
+     *
      * @return a {@link StandardRetryStrategy} with generic SDK retry conditions.
      */
     public static StandardRetryStrategy standardRetryStrategy() {
@@ -174,6 +190,11 @@ public final class SdkDefaultRetryStrategy {
     /**
      * Returns an {@link AdaptiveRetryStrategy} with generic SDK retry conditions.
      *
+     * <p>The {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} strategies take their max attempts from the
+     * {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment variable or the {@code max_attempts}
+     * property of the <b>default</b> profile, read each time this is called. Clients read the {@code max_attempts} property
+     * from their own configured profile file and profile name instead.
+     *
      * @return an {@link AdaptiveRetryStrategy} with generic SDK retry conditions.
      */
     public static AdaptiveRetryStrategy adaptiveRetryStrategy() {
@@ -182,6 +203,11 @@ public final class SdkDefaultRetryStrategy {
 
     /**
      * Returns a {@link StandardRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
+     *
+     * <p>The {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} strategies take their max attempts from the
+     * {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment variable or the {@code max_attempts}
+     * property of the <b>default</b> profile, read each time this is called. Clients read the {@code max_attempts} property
+     * from their own configured profile file and profile name instead.
      *
      * @return a {@link StandardRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
      */
@@ -203,9 +229,10 @@ public final class SdkDefaultRetryStrategy {
 
     /**
      * Returns a {@link StandardRetryStrategy.Builder} with preconfigured generic SDK retry conditions, reading the
-     * {@code max_attempts} profile property from the given profile file and profile name. Used by client builders.
+     * {@code max_attempts} profile property from the given profile file and profile name. Used by client builders and service
+     * modules; not intended for direct use.
      */
-    @SdkInternalApi
+    @SdkProtectedApi
     public static StandardRetryStrategy.Builder standardRetryStrategyBuilder(Supplier<ProfileFile> profileFile,
                                                                              String profileName) {
         return configure(DefaultRetryStrategy.standardStrategyBuilder(),
@@ -225,6 +252,11 @@ public final class SdkDefaultRetryStrategy {
 
     /**
      * Returns an {@link AdaptiveRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
+     *
+     * <p>The {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} strategies take their max attempts from the
+     * {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment variable or the {@code max_attempts}
+     * property of the <b>default</b> profile, read each time this is called. Clients read the {@code max_attempts} property
+     * from their own configured profile file and profile name instead.
      *
      * @return an {@link AdaptiveRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
      */
@@ -246,9 +278,10 @@ public final class SdkDefaultRetryStrategy {
 
     /**
      * Returns an {@link AdaptiveRetryStrategy.Builder} with preconfigured generic SDK retry conditions, reading the
-     * {@code max_attempts} profile property from the given profile file and profile name. Used by client builders.
+     * {@code max_attempts} profile property from the given profile file and profile name. Used by client builders and service
+     * modules; not intended for direct use.
      */
-    @SdkInternalApi
+    @SdkProtectedApi
     public static AdaptiveRetryStrategy.Builder adaptiveRetryStrategyBuilder(Supplier<ProfileFile> profileFile,
                                                                              String profileName) {
         return configure(DefaultRetryStrategy.adaptiveStrategyBuilder(),
