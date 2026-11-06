@@ -151,11 +151,15 @@ class SmithyBuildGeneratorTest {
     }
 
     private void generate(MavenProject project, Path configFile) throws MojoExecutionException {
-        new SmithyBuildGenerator(project, new SystemStreamLog()).generate(configFile, outputDirectory());
+        Path target = moduleDir.resolve("target");
+        new SmithyBuildGenerator(project, new SystemStreamLog(), outputDirectory(),
+                                 target.resolve("generated-resources").resolve("sdk-resources"),
+                                 target.resolve("generated-test-sources").resolve("sdk-tests"))
+            .generate(configFile, target.resolve("smithyprojections"));
     }
 
     private Path outputDirectory() {
-        return moduleDir.resolve("target").resolve("smithyprojections");
+        return moduleDir.resolve("target").resolve("generated-sources").resolve("sdk");
     }
 
     private static String pluginSettings(String settings) {
