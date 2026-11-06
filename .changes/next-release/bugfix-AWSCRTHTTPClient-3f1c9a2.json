@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Fixed an issue where a request on `AwsCrtHttpClient` or `AwsCrtAsyncHttpClient` could hang instead of failing when metrics were enabled and the client was closed while the request was acquiring a connection."
-}

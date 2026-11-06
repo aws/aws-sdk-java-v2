@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DataZone",
-    "contributor": "",
-    "description": "Adds support for updating OAuth 2.0 connection settings with UpdateConnection."
-}
