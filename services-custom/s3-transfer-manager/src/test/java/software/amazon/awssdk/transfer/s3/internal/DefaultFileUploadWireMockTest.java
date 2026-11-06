@@ -17,19 +17,24 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
+import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Fault;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
@@ -37,7 +42,10 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -50,9 +58,11 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 
 /**
  * WireMock test for verifying the DefaultFileUpload codepath.
@@ -132,18 +142,116 @@ public class DefaultFileUploadWireMockTest {
                              .willReturn(aResponse()
                                              .withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
-        UploadFileRequest request = createUploadFileRequest();
+        FileUpload fileUpload = tm.uploadFile(createUploadFileRequest());
 
-        FileUpload fileUpload = null;
-        try {
-            fileUpload = tm.uploadFile(request);
-            fileUpload.completionFuture().join();
-        } catch (Exception e) {
-            assertThat(e).isInstanceOf(CompletionException.class);
-            ResumableFileUpload resumableFileUpload = fileUpload.pause();
-            assertThat(resumableFileUpload.multipartUploadId()).isPresent();
-            assertThat(resumableFileUpload.multipartUploadId().get()).isEqualTo("uploadId");
+        assertThatThrownBy(() -> fileUpload.completionFuture().join()).isInstanceOf(CompletionException.class);
+        ResumableFileUpload resumableFileUpload = fileUpload.pause();
+        assertThat(resumableFileUpload.multipartUploadId()).hasValue("uploadId");
+    }
+
+
+    @Test
+    void pause_whilePartsInFlight_shouldReturnTokenAndCancelCompletionFuture() throws Exception {
+        wireMock.resetAll();
+        S3TransferManager tm = S3TransferManager.builder().s3Client(s3).build();
+        stubCreateMpuSuccessfulResponse();
+        stubUploadPartSuccessfulResponse(10_000);
+        AtomicReference<Throwable> reportedFailure = new AtomicReference<>();
+        TransferListener listener = new TransferListener() {
+            @Override
+            public void transferFailed(Context.TransferFailed context) {
+                reportedFailure.set(context.exception());
+            }
+        };
+        UploadFileRequest request = createUploadFileRequest().toBuilder().addTransferListener(listener).build();
+
+        FileUpload fileUpload = tm.uploadFile(request);
+        awaitRequest(putRequestedFor(urlPathEqualTo("/bucket/key")).withQueryParam("uploadId", matching("uploadId")));
+
+        ResumableFileUpload resumableFileUpload = fileUpload.pause();
+
+        assertThat(resumableFileUpload.multipartUploadId()).hasValue("uploadId");
+        assertThatThrownBy(() -> fileUpload.completionFuture().get(5, TimeUnit.SECONDS))
+            .isInstanceOf(CancellationException.class);
+        assertThat(reportedFailure.get()).isInstanceOf(CancellationException.class);
+    }
+
+    @Test
+    void pause_whileCompleteMultipartUploadInFlight_shouldLetUploadFinish() throws Exception {
+        wireMock.resetAll();
+        S3TransferManager tm = S3TransferManager.builder().s3Client(s3).build();
+        stubCreateMpuSuccessfulResponse();
+        stubUploadPartSuccessfulResponse(0);
+        stubCompleteMpuSuccessfulResponse(5_000);
+        stubAbortMpuSuccessfulResponse();
+
+        FileUpload fileUpload = tm.uploadFile(createUploadFileRequest());
+        awaitRequest(postRequestedFor(urlPathEqualTo("/bucket/key")).withQueryParam("uploadId", matching("uploadId")));
+        assertThat(fileUpload.completionFuture()).isNotDone();
+
+        ResumableFileUpload resumableFileUpload = fileUpload.pause();
+
+        assertThat(resumableFileUpload.multipartUploadId()).isEmpty();
+        CompletedFileUpload completedFileUpload = fileUpload.completionFuture().get(10, TimeUnit.SECONDS);
+        assertThat(completedFileUpload.response().eTag()).isEqualTo("\"etag\"");
+        wireMock.verify(0, deleteRequestedFor(anyUrl()));
+    }
+
+    @Test
+    void cancel_whileCompleteMultipartUploadInFlight_shouldAbortUpload() throws Exception {
+        wireMock.resetAll();
+        S3TransferManager tm = S3TransferManager.builder().s3Client(s3).build();
+        stubCreateMpuSuccessfulResponse();
+        stubUploadPartSuccessfulResponse(0);
+        stubCompleteMpuSuccessfulResponse(5_000);
+        stubAbortMpuSuccessfulResponse();
+
+        FileUpload fileUpload = tm.uploadFile(createUploadFileRequest());
+        awaitRequest(postRequestedFor(urlPathEqualTo("/bucket/key")).withQueryParam("uploadId", matching("uploadId")));
+
+        fileUpload.completionFuture().cancel(true);
+
+        awaitRequest(deleteRequestedFor(urlPathEqualTo("/bucket/key")).withQueryParam("uploadId", matching("uploadId")));
+    }
+
+    private static void awaitRequest(RequestPatternBuilder pattern) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (wireMock.findAll(pattern).isEmpty()) {
+            assertThat(System.nanoTime()).withFailMessage("Timed out waiting for request %s", pattern.build())
+                                         .isLessThan(deadline);
+            Thread.sleep(10);
         }
+    }
+
+    private void stubUploadPartSuccessfulResponse(int delayMillis) {
+        wireMock.stubFor(put(urlPathEqualTo("/bucket/key"))
+                             .withQueryParam("uploadId", matching("uploadId"))
+                             .willReturn(aResponse()
+                                             .withStatus(200)
+                                             .withHeader("ETag", "\"part-etag\"")
+                                             .withFixedDelay(delayMillis)));
+    }
+
+    private void stubCompleteMpuSuccessfulResponse(int delayMillis) {
+        String completeMpuBody = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                                 + "<CompleteMultipartUploadResult>\n"
+                                 + "   <Bucket>bucket</Bucket>\n"
+                                 + "   <Key>key</Key>\n"
+                                 + "   <ETag>\"etag\"</ETag>\n"
+                                 + "</CompleteMultipartUploadResult>";
+
+        wireMock.stubFor(post(urlPathEqualTo("/bucket/key"))
+                             .withQueryParam("uploadId", matching("uploadId"))
+                             .willReturn(aResponse()
+                                             .withStatus(200)
+                                             .withBody(completeMpuBody)
+                                             .withFixedDelay(delayMillis)));
+    }
+
+    private void stubAbortMpuSuccessfulResponse() {
+        wireMock.stubFor(delete(urlPathEqualTo("/bucket/key"))
+                             .withQueryParam("uploadId", matching("uploadId"))
+                             .willReturn(aResponse().withStatus(204)));
     }
 
     private void stubCreateMpuSuccessfulResponse() {
