@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lightsail",
-    "contributor": "",
-    "description": "Marking fields as sensitive in GetInstanceAccessDetails, CreateKeyPair, DownloadDefaultKeyPair, CreateBucketAccessKey, CreateContainerServiceRegistryLogin, and GetRelationalDatabase responses."
-}
