@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "Adds support for user-defined functions governed by AWS Lake Formation."
+}
