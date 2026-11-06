@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EKS Auth",
+    "contributor": "",
+    "description": "Added workloadIdentityProviderArn to the AssumeRoleForPodIdentity API response."
+}
