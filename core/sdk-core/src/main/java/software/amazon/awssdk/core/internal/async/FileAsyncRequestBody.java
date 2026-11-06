@@ -628,12 +628,17 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     }
 
     /**
-     * Holds the pool that runs reads of confined files, created on first use. It has at most one daemon thread per
-     * available processor, and more reads wait in its queue. Each read is one positional read of at most one chunk. Idle
-     * threads end after 60 seconds, so the pool holds no threads while no confined upload is running.
+     * Holds the pool that runs reads of confined files, created on first use. It has at most {@link #MAX_THREADS} daemon
+     * threads, and more reads wait in its queue. Each read is one positional read of at most one chunk. Idle threads end
+     * after 60 seconds, so the pool holds no threads while no confined upload is running.
      */
     private static final class ConfinedReadPool {
-        private static final int MAX_THREADS = Math.max(2, Runtime.getRuntime().availableProcessors());
+        /**
+         * The subscriber's {@code onNext}, including any {@code TransferListener.bytesTransferred} callback, runs on the
+         * pool thread that read the chunk. The bound is at least 64 so that callbacks that block do not limit throughput on
+         * hosts with few processors.
+         */
+        private static final int MAX_THREADS = Math.max(64, Runtime.getRuntime().availableProcessors());
         private static final ThreadPoolExecutor EXECUTOR = createExecutor();
 
         private ConfinedReadPool() {
