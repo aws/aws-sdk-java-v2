@@ -26,6 +26,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -103,6 +104,13 @@ public final class LoginCredentialsProvider implements
     private final CachedSupplier<AwsCredentials> credentialCache;
     private final AccessTokenManager onDiskTokenManager;
 
+    /**
+     * The access key ID of the credentials most recently passed to {@link #invalidate(AwsCredentialsIdentity)}, or
+     * {@code null} if there is no pending rejection. While the token cache file still holds this key, a refresh calls the
+     * Sign-In service instead of returning the file's credentials. See {@link #updateSigninCredentials()}.
+     */
+    private final AtomicReference<String> rejectedAccessKeyId = new AtomicReference<>();
+
     private final Boolean asyncCredentialUpdateEnabled;
 
     /**
@@ -160,8 +168,18 @@ public final class LoginCredentialsProvider implements
         Instant currentExpirationTime = tokenFromDisc.getAccessToken().expirationTime().orElseThrow(
             () -> invalidToken("required member 'accessToken.expiresAt' not found", null));
 
+        // A service rejected the credentials in the token file, so they must not be returned again, even if the token has
+        // not reached its refresh window. If the file holds a different key (for example, another process refreshed it),
+        // the rejection no longer applies and the file's credentials are used as usual.
+        String rejectedKey = rejectedAccessKeyId.get();
+        boolean diskTokenRejected = rejectedKey != null && rejectedKey.equals(tokenFromDisc.getAccessToken().accessKeyId());
+        if (rejectedKey != null && !diskTokenRejected) {
+            clearRejectedAccessKeyId(rejectedKey);
+        }
+
         Duration effectivePrefetch = CacheRefreshUtils.computePrefetchWindow(currentExpirationTime, prefetchTime, Instant.now());
-        if (shouldNotRefresh(currentExpirationTime, staleTime)
+        if (!diskTokenRejected
+            && shouldNotRefresh(currentExpirationTime, staleTime)
             && shouldNotRefresh(currentExpirationTime, effectivePrefetch)) {
             log.debug(() -> "Using access token from disk, current expiration time is : " + currentExpirationTime);
             AwsCredentials credentials = tokenFromDisc.getAccessToken()
@@ -176,7 +194,27 @@ public final class LoginCredentialsProvider implements
                                 .build();
         }
 
-        return refreshFromSigninService(tokenFromDisc);
+        if (diskTokenRejected) {
+            log.debug(() -> "The credentials in the token cache file were rejected by a service; refreshing them from the "
+                            + "Signin service.");
+        }
+        // A failed refresh throws, and the rejection stays recorded, so the next refresh that CachedSupplier allows (after
+        // its backoff) calls the Sign-In service again rather than returning the rejected credentials.
+        RefreshResult<AwsCredentials> refreshed = refreshFromSigninService(tokenFromDisc);
+        if (diskTokenRejected) {
+            clearRejectedAccessKeyId(rejectedKey);
+        }
+        return refreshed;
+    }
+
+    /**
+     * Clears the recorded rejection only if it is still {@code handledRejection} (compared by reference), so that a rejection
+     * of a different key, recorded by {@link #invalidate(AwsCredentialsIdentity)} after {@code handledRejection} was read, is
+     * not lost. A rejection that is left in place is harmless: the next refresh clears it without calling the Sign-In service
+     * unless the token file still holds that key.
+     */
+    private void clearRejectedAccessKeyId(String handledRejection) {
+        rejectedAccessKeyId.compareAndSet(handledRejection, null);
     }
 
     private RefreshResult<AwsCredentials> refreshFromSigninService(LoginAccessToken tokenFromDisc) {
@@ -391,8 +429,16 @@ public final class LoginCredentialsProvider implements
 
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
-        String rejectedAccessKeyId = identity.accessKeyId();
-        credentialCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()));
+        // Record the rejected key before invalidating the cache, so that the refresh that follows the invalidation sees it and
+        // calls the Sign-In service instead of returning the same credentials from the token file. The key is recorded even if
+        // CachedSupplier skips the invalidation, because the cached credentials have a different key or a refresh holds its
+        // lock. That is harmless: the recorded key forces a Sign-In call only if the token file still holds it when a refresh
+        // runs, and otherwise that refresh clears it. A refresh already in progress may have checked for a rejection before the
+        // key was recorded and return the rejected credentials; the next rejection of them then invalidates the cache again,
+        // and the refresh that follows calls the Sign-In service.
+        String rejectedKey = identity.accessKeyId();
+        rejectedAccessKeyId.set(rejectedKey);
+        credentialCache.invalidate(cachedCreds -> rejectedKey.equals(cachedCreds.accessKeyId()));
         return CompletableFuture.completedFuture(null);
     }
 
