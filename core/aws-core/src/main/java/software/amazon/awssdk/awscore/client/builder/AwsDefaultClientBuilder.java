@@ -55,7 +55,6 @@ import software.amazon.awssdk.core.http.EnableDefaultSocketTimeout2026Resolver;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
-import software.amazon.awssdk.core.retry.NewRetries2026Resolver;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -218,10 +217,14 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         }
         SdkClientConfiguration.Builder builder = configuration.toBuilder();
         overrideConfig.retryStrategy().ifPresent(retryStrategy -> builder.option(RETRY_STRATEGY, retryStrategy));
-        overrideConfig.retryMode().ifPresent(retryMode -> builder.option(RETRY_STRATEGY,
-                                                                         AwsRetryStrategy.forRetryMode(retryMode)));
+        Supplier<ProfileFile> overrideProfileFile = overrideConfig.defaultProfileFileSupplier().orElse(null);
+        String overrideProfileName = overrideConfig.defaultProfileName().orElse(null);
+        overrideConfig.retryMode().ifPresent(retryMode -> builder.option(
+            RETRY_STRATEGY, AwsRetryStrategy.forRetryMode(retryMode, overrideProfileFile, overrideProfileName)));
         overrideConfig.retryStrategyConfigurator().ifPresent(configurator -> {
-            RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.defaultRetryStrategy().toBuilder();
+            RetryStrategy.Builder<?, ?> defaultBuilder =
+                AwsRetryStrategy.forRetryMode(RetryMode.defaultRetryMode(), overrideProfileFile, overrideProfileName)
+                                .toBuilder();
             configurator.accept(defaultBuilder);
             builder.option(RETRY_STRATEGY, defaultBuilder.build());
         });
@@ -469,13 +472,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     private void configureRetryStrategy(SdkClientConfiguration.Builder config) {
         RetryStrategy strategy = config.option(SdkClientOption.RETRY_STRATEGY);
         if (strategy == null) {
-            Boolean defaultNewRetries2026 = config.option(SdkClientOption.DEFAULT_NEW_RETRIES_2026);
-
-            config.lazyOption(SdkClientOption.RETRY_STRATEGY, src -> resolveAwsRetryStrategy(src, defaultNewRetries2026));
-
-            config.option(SdkClientOption.NEW_RETRIES_2026_ENABLED,
-                          new NewRetries2026Resolver().defaultNewRetries2026(defaultNewRetries2026).resolve());
-
+            config.lazyOption(SdkClientOption.RETRY_STRATEGY, this::resolveAwsRetryStrategy);
             return;
         }
 
@@ -487,25 +484,25 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             return;
         }
         DefaultAwareRetryStrategy defaultAwareRetryStrategy = (DefaultAwareRetryStrategy) strategy;
-        defaultAwareRetryStrategy = defaultAwareRetryStrategy.addDefaults(AwsRetryStrategy.retryStrategyDefaults());
+        // The AWS defaults are applied last so that their throttling predicate, which covers the SDK one, is the one kept
         defaultAwareRetryStrategy = defaultAwareRetryStrategy.addDefaults(SdkDefaultRetryStrategy.retryStrategyDefaults());
+        defaultAwareRetryStrategy = defaultAwareRetryStrategy.addDefaults(AwsRetryStrategy.retryStrategyDefaults());
 
         RetryStrategy.Builder<?, ?> strategyBuilder = defaultAwareRetryStrategy.toBuilder();
         config.option(SdkClientOption.RETRY_STRATEGY, strategyBuilder.build());
 
     }
 
-    private RetryStrategy resolveAwsRetryStrategy(LazyValueSource config, Boolean defaultNewRetries2026) {
+    private RetryStrategy resolveAwsRetryStrategy(LazyValueSource config) {
         RetryMode retryMode = RetryMode.resolver()
                                        .profileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
                                        .profileName(config.get(SdkClientOption.PROFILE_NAME))
                                        .defaultRetryMode(config.get(SdkClientOption.DEFAULT_RETRY_MODE))
-                                       .defaultNewRetries2026(defaultNewRetries2026)
                                        .resolve();
 
-        NewRetries2026Resolver newRetries2026Resolver = new NewRetries2026Resolver().defaultNewRetries2026(defaultNewRetries2026);
-
-        return AwsRetryStrategy.forRetryMode(retryMode, newRetries2026Resolver.resolve());
+        return AwsRetryStrategy.forRetryMode(retryMode,
+                                             config.get(SdkClientOption.PROFILE_FILE_SUPPLIER),
+                                             config.get(SdkClientOption.PROFILE_NAME));
     }
 
     @Override

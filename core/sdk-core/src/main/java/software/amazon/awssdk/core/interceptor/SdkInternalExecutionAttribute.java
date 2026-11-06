@@ -306,7 +306,10 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
 
     /**
      * Indicates whether retries v2.1 is enabled.
+     *
+     * @deprecated This attribute is no longer used. The standard and adaptive retry modes use retry behavior 2.1.
      */
+    @Deprecated
     public static final ExecutionAttribute<Boolean> NEW_RETRIES_2026_ENABLED = new ExecutionAttribute<>("NewRetries2026Enabled");
 
     /**

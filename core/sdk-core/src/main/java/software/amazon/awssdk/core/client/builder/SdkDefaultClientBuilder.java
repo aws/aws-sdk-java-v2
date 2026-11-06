@@ -254,10 +254,14 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         }
         SdkClientConfiguration.Builder builder = configuration.toBuilder();
         overrideConfig.retryStrategy().ifPresent(retryStrategy -> builder.option(RETRY_STRATEGY, retryStrategy));
-        overrideConfig.retryMode().ifPresent(retryMode -> builder.option(RETRY_STRATEGY,
-                                                                         SdkDefaultRetryStrategy.forRetryMode(retryMode)));
+        Supplier<ProfileFile> overrideProfileFile = overrideConfig.defaultProfileFileSupplier().orElse(null);
+        String overrideProfileName = overrideConfig.defaultProfileName().orElse(null);
+        overrideConfig.retryMode().ifPresent(retryMode -> builder.option(
+            RETRY_STRATEGY, SdkDefaultRetryStrategy.forRetryMode(retryMode, overrideProfileFile, overrideProfileName)));
         overrideConfig.retryStrategyConfigurator().ifPresent(configurator -> {
-            RetryStrategy.Builder<?, ?> defaultBuilder = SdkDefaultRetryStrategy.defaultRetryStrategy().toBuilder();
+            RetryStrategy.Builder<?, ?> defaultBuilder =
+                SdkDefaultRetryStrategy.forRetryMode(RetryMode.defaultRetryMode(), overrideProfileFile, overrideProfileName)
+                                       .toBuilder();
             configurator.accept(defaultBuilder);
             builder.option(RETRY_STRATEGY, defaultBuilder.build());
         });
@@ -459,7 +463,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                        .profileName(config.get(PROFILE_NAME))
                                        .defaultRetryMode(config.get(DEFAULT_RETRY_MODE))
                                        .resolve();
-        return SdkDefaultRetryStrategy.forRetryMode(retryMode);
+        return SdkDefaultRetryStrategy.forRetryMode(retryMode, config.get(PROFILE_FILE_SUPPLIER), config.get(PROFILE_NAME));
     }
 
     /**

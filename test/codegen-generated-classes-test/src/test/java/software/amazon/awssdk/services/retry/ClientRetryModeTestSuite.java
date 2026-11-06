@@ -25,25 +25,45 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public abstract class ClientRetryModeTestSuite<ClientT, BuilderT extends AwsClientBuilder<BuilderT, ClientT>> {
+    private static final String X_AMZ_RETRY_AFTER_HEADER = "x-amz-retry-after";
+
     @Rule
     public WireMockRule wireMock = new WireMockRule(0);
+
+    @Rule
+    public EnvironmentVariableHelper environment = new EnvironmentVariableHelper();
+
+    @Before
+    public void isolateRetryConfiguration() {
+        environment.remove(SdkSystemSetting.AWS_RETRY_MODE);
+        environment.remove(SdkSystemSetting.AWS_MAX_ATTEMPTS);
+        environment.set(ProfileFileSystemSetting.AWS_CONFIG_FILE, "does-not-exist");
+        System.clearProperty(SdkSystemSetting.AWS_RETRY_MODE.property());
+        System.clearProperty(SdkSystemSetting.AWS_MAX_ATTEMPTS.property());
+    }
 
     @Test
     public void legacyRetryModeIsFourAttempts() {
@@ -109,7 +129,82 @@ public abstract class ClientRetryModeTestSuite<ClientT, BuilderT extends AwsClie
         verifyRequestCount(151);
     }
 
-    private BuilderT clientBuilder() {
+    @Test
+    public void defaultRetryMode_honorsXAmzRetryAfter() {
+        stubRetryAfterThenSuccess(X_AMZ_RETRY_AFTER_HEADER, "300");
+        ClientT client = clientBuilder().build();
+        assertThat(timeCallMillis(client)).isGreaterThanOrEqualTo(300);
+        verifyRequestCount(2);
+    }
+
+    @Test
+    public void standardRetryMode_honorsXAmzRetryAfter() {
+        stubRetryAfterThenSuccess(X_AMZ_RETRY_AFTER_HEADER, "300");
+        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryStrategy(RetryMode.STANDARD)).build();
+        assertThat(timeCallMillis(client)).isGreaterThanOrEqualTo(300);
+        verifyRequestCount(2);
+    }
+
+    @Test
+    public void adaptiveV2RetryMode_honorsXAmzRetryAfter() {
+        stubRetryAfterThenSuccess(X_AMZ_RETRY_AFTER_HEADER, "300");
+        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryStrategy(RetryMode.ADAPTIVE_V2)).build();
+        assertThat(timeCallMillis(client)).isGreaterThanOrEqualTo(300);
+        verifyRequestCount(2);
+    }
+
+    @Test
+    public void retryStrategyConfigurator_honorsXAmzRetryAfter() {
+        stubRetryAfterThenSuccess(X_AMZ_RETRY_AFTER_HEADER, "300");
+        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryStrategy(b -> b.maxAttempts(3))).build();
+        assertThat(timeCallMillis(client)).isGreaterThanOrEqualTo(300);
+        verifyRequestCount(2);
+    }
+
+    @Test
+    public void standardRetryMode_clampsXAmzRetryAfter() {
+        stubRetryAfterThenSuccess(X_AMZ_RETRY_AFTER_HEADER, "7000");
+        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryStrategy(RetryMode.STANDARD)).build();
+        // clamped to at most the backoff (at most 50ms) plus 5 seconds
+        assertThat(timeCallMillis(client)).isBetween(5000L, 6500L);
+        verifyRequestCount(2);
+    }
+
+    @Test
+    public void legacyRetryMode_ignoresXAmzRetryAfter() {
+        stubRetryAfterThenSuccess(X_AMZ_RETRY_AFTER_HEADER, "5000");
+        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryStrategy(RetryMode.LEGACY)).build();
+        assertThat(timeCallMillis(client)).isLessThan(2500);
+        verifyRequestCount(2);
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    public void retryStrategyWithoutRetryBehavior21_ignoresXAmzRetryAfter() {
+        stubRetryAfterThenSuccess(X_AMZ_RETRY_AFTER_HEADER, "5000");
+        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryStrategy(StandardRetryStrategy.builder(false).build()))
+                                        .build();
+        assertThat(timeCallMillis(client)).isLessThan(2500);
+        verifyRequestCount(2);
+    }
+
+    protected long timeCallMillis(ClientT client) {
+        long start = System.nanoTime();
+        callAllTypes(client);
+        return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+    }
+
+    protected void stubRetryAfterThenSuccess(String header, String value) {
+        stubFor(post(anyUrl()).inScenario("retry-after")
+                              .whenScenarioStateIs(Scenario.STARTED)
+                              .willReturn(aResponse().withStatus(500).withHeader(header, value))
+                              .willSetStateTo("succeed"));
+        stubFor(post(anyUrl()).inScenario("retry-after")
+                              .whenScenarioStateIs("succeed")
+                              .willReturn(aResponse().withStatus(200).withBody("{}")));
+    }
+
+    protected BuilderT clientBuilder() {
         return newClientBuilder().credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                  .region(Region.US_EAST_1)
                                  .endpointOverride(URI.create("http://localhost:" + wireMock.port()));
@@ -119,7 +214,7 @@ public abstract class ClientRetryModeTestSuite<ClientT, BuilderT extends AwsClie
 
     protected abstract AllTypesResponse callAllTypes(ClientT client);
 
-    private void verifyRequestCount(int count) {
+    protected void verifyRequestCount(int count) {
         verify(count, anyRequestedFor(anyUrl()));
     }
 

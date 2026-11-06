@@ -28,7 +28,6 @@ import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
@@ -200,12 +199,12 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         }
 
         private Duration suggestedDelay() {
-            if (newRetries2026Enabled(context)) {
-                return xAmzRetryAfter(retryableStageHelper.getLastResponse()).orElse(Duration.ZERO);
+            if (retryableStageHelper.usesLegacyRetryAfterHeaders()) {
+                // Unlike in the sync RetryableStage, we never used 'Retry-After' for suggested delay in async
+                // https://github.com/aws/aws-sdk-java-v2/blob/1483d30d071716ead3dc1fa6571441658013d5c1/core/sdk-core/src/main/java/software/amazon/awssdk/core/internal/http/pipeline/stages/AsyncRetryableStage.java#L137
+                return Duration.ZERO;
             }
-            // Unlike in the sync RetryableStage, we never used 'Retry-After' for suggested delay in async
-            // https://github.com/aws/aws-sdk-java-v2/blob/1483d30d071716ead3dc1fa6571441658013d5c1/core/sdk-core/src/main/java/software/amazon/awssdk/core/internal/http/pipeline/stages/AsyncRetryableStage.java#L137
-            return Duration.ZERO;
+            return xAmzRetryAfter(retryableStageHelper.getLastResponse()).orElse(Duration.ZERO);
         }
     }
 
@@ -228,12 +227,6 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                 return null;
             }
         });
-    }
-
-    private boolean newRetries2026Enabled(RequestExecutionContext executionContext) {
-        return executionContext.executionAttributes()
-                               .getOptionalAttribute(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED)
-                               .orElse(false);
     }
 
     /**

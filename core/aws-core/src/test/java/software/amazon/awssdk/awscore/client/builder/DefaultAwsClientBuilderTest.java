@@ -32,32 +32,42 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDiscovery;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
+import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
@@ -66,8 +76,10 @@ import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.internal.BaseRetryStrategy;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
+import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.utils.AttributeMap;
-import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.utils.StringInputStream;
 
 /**
  * Validate the functionality of the {@link AwsDefaultClientBuilder}.
@@ -325,15 +337,15 @@ public class DefaultAwsClientBuilderTest {
     private static Stream<Arguments> retryArguments() {
         return Stream.of(
             Arguments.of("Standard - static method creation",
-                         SdkDefaultRetryStrategy.standardRetryStrategy(), 9),
+                         SdkDefaultRetryStrategy.standardRetryStrategy(), 10),
             Arguments.of("Standard - static builder method",
-                         DefaultRetryStrategy.standardStrategyBuilder().build(), 9),
+                         DefaultRetryStrategy.standardStrategyBuilder().build(), 10),
             Arguments.of("Standard - builder with retryOnException",
                          StandardRetryStrategy.builder()
                                               .retryOnException(TestException.class)
                                               .backoffStrategy(BackoffStrategy.retryImmediately())
                                               .throttlingBackoffStrategy(BackoffStrategy.retryImmediately())
-                                              .build(), 10),
+                                              .build(), 11),
             Arguments.of("Standard - useClientDefaults=false",
                          StandardRetryStrategy.builder()
                                               .retryOnException(TestException.class)
@@ -341,14 +353,16 @@ public class DefaultAwsClientBuilderTest {
                                               .throttlingBackoffStrategy(BackoffStrategy.retryImmediately())
                                               .useClientDefaults(false)
                                               .build(), 1),
+            Arguments.of("Standard 2.0 - deprecated builder gets no 2.1 predicates",
+                         DefaultRetryStrategy.standardStrategyBuilder(false).build(), 9),
             Arguments.of("Adaptive - static method creation",
-                         SdkDefaultRetryStrategy.adaptiveRetryStrategy(), 9),
+                         SdkDefaultRetryStrategy.adaptiveRetryStrategy(), 10),
             Arguments.of("Adaptive - builder with retryOnException",
                          AdaptiveRetryStrategy.builder()
                                               .retryOnException(TestException.class)
                                               .backoffStrategy(BackoffStrategy.retryImmediately())
                                               .throttlingBackoffStrategy(BackoffStrategy.retryImmediately())
-                                              .build(), 10),
+                                              .build(), 11),
             Arguments.of("Adaptive - useClientDefaults=false",
                          AdaptiveRetryStrategy.builder()
                                               .retryOnException(TestException.class)
@@ -397,6 +411,91 @@ public class DefaultAwsClientBuilderTest {
         assertThat(baseRetryStrategy.shouldAddDefaults(AwsRetryStrategy.retryStrategyDefaults().name())).isFalse();
         assertThat(baseRetryStrategy.shouldAddDefaults(SdkDefaultRetryStrategy.retryStrategyDefaults().name())).isFalse();
         assertThat(baseRetryStrategy.retryPredicates()).hasSize(expectedPredicateAmount + 2);
+    }
+
+    @Test
+    void defaultRetryStrategy_usesMaxAttemptsFromClientProfile() {
+        TestClient client = testClientBuilder()
+            .region(Region.US_EAST_1)
+            .overrideConfiguration(c -> c.defaultProfileFile(profile("max_attempts = 7")).defaultProfileName("default"))
+            .build();
+
+        assertThat(client.clientConfiguration.option(SdkClientOption.RETRY_STRATEGY).maxAttempts()).isEqualTo(7);
+    }
+
+    @Test
+    void retryModeOverride_usesMaxAttemptsFromClientProfile() {
+        TestClient client = testClientBuilder()
+            .region(Region.US_EAST_1)
+            .overrideConfiguration(c -> c.defaultProfileFile(profile("max_attempts = 7"))
+                                         .defaultProfileName("default")
+                                         .retryStrategy(RetryMode.ADAPTIVE_V2))
+            .build();
+
+        assertThat(client.clientConfiguration.option(SdkClientOption.RETRY_STRATEGY).maxAttempts()).isEqualTo(7);
+    }
+
+    @Test
+    void retryConfigurator_maxAttemptsWinsOverClientProfile() {
+        TestClient client = testClientBuilder()
+            .region(Region.US_EAST_1)
+            .overrideConfiguration(c -> c.defaultProfileFile(profile("max_attempts = 7"))
+                                         .defaultProfileName("default")
+                                         .retryStrategy(b -> b.maxAttempts(2)))
+            .build();
+
+        assertThat(client.clientConfiguration.option(SdkClientOption.RETRY_STRATEGY).maxAttempts()).isEqualTo(2);
+    }
+
+    @Test
+    void legacyRetryMode_ignoresMaxAttemptsFromClientProfile() {
+        TestClient client = testClientBuilder()
+            .region(Region.US_EAST_1)
+            .overrideConfiguration(c -> c.defaultProfileFile(profile("retry_mode = legacy\nmax_attempts = 7"))
+                                         .defaultProfileName("default"))
+            .build();
+
+        assertThat(client.clientConfiguration.option(SdkClientOption.RETRY_STRATEGY).maxAttempts()).isEqualTo(4);
+    }
+
+    @Test
+    void invalidMaxAttemptsInClientProfile_isIgnored() {
+        TestClient client = testClientBuilder()
+            .region(Region.US_EAST_1)
+            .overrideConfiguration(c -> c.defaultProfileFile(profile("max_attempts = abc")).defaultProfileName("default"))
+            .build();
+
+        assertThat(client.clientConfiguration.option(SdkClientOption.RETRY_STRATEGY).maxAttempts()).isEqualTo(3);
+    }
+
+    @Test
+    void clientProfile_defaultProfileMaxAttemptsIsNotRead(@TempDir Path tempDir) throws Exception {
+        Path defaultConfig = tempDir.resolve("config");
+        Files.write(defaultConfig, "[default]\nmax_attempts = abc".getBytes(StandardCharsets.UTF_8));
+        EnvironmentVariableHelper.run(env -> {
+            env.remove(SdkSystemSetting.AWS_MAX_ATTEMPTS);
+            env.remove(SdkSystemSetting.AWS_RETRY_MODE);
+            env.set(ProfileFileSystemSetting.AWS_CONFIG_FILE, defaultConfig.toString());
+            try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+                TestClient client = testClientBuilder()
+                    .region(Region.US_EAST_1)
+                    .overrideConfiguration(c -> c.defaultProfileFile(profile("max_attempts = 7"))
+                                                 .defaultProfileName("default")
+                                                 .retryStrategy(RetryMode.STANDARD))
+                    .build();
+
+                assertThat(client.clientConfiguration.option(SdkClientOption.RETRY_STRATEGY).maxAttempts()).isEqualTo(7);
+                assertThat(logCaptor.loggedEvents())
+                    .noneMatch(e -> e.getMessage().getFormattedMessage().contains("max_attempts"));
+            }
+        });
+    }
+
+    private static ProfileFile profile(String properties) {
+        return ProfileFile.builder()
+                          .content(new StringInputStream("[default]\n" + properties))
+                          .type(ProfileFile.Type.CONFIGURATION)
+                          .build();
     }
 
     private AwsClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {

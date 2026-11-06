@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.retries.internal;
 
-import java.time.Duration;
-import java.util.Optional;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
@@ -29,12 +27,9 @@ import software.amazon.awssdk.utils.Logger;
 public final class DefaultStandardRetryStrategy
     extends BaseRetryStrategy implements StandardRetryStrategy {
     private static final Logger LOG = Logger.loggerFor(DefaultStandardRetryStrategy.class);
-    private static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
-    private final Boolean retries2026Enabled;
 
     DefaultStandardRetryStrategy(Builder builder) {
         super(LOG, builder);
-        this.retries2026Enabled = builder.retries2026Enabled;
     }
 
     @Override
@@ -46,57 +41,7 @@ public final class DefaultStandardRetryStrategy
         return new Builder();
     }
 
-    @Override
-    protected Duration computeAcquireFailureBackoff(RefreshRetryTokenRequest request) {
-        if (!isRetries2026Enabled() || !request.isLongPolling()) {
-            return super.computeAcquireFailureBackoff(request);
-        }
-
-        DefaultRetryToken attemptIncremented = asDefaultRetryToken(request.token()).toBuilder()
-                                                                                   .increaseAttempt()
-                                                                                   .build();
-        return computeBackoff(request, attemptIncremented);
-    }
-
-    @Override
-    protected Duration computeBackoff(RefreshRetryTokenRequest request, DefaultRetryToken token) {
-        if (!isRetries2026Enabled()) {
-            return super.computeBackoff(request, token);
-        }
-
-        Duration strategyBackoff;
-        if (treatAsThrottling.test(request.failure())) {
-            strategyBackoff = throttlingBackoffStrategy.computeDelay(token.attempt());
-        } else {
-            strategyBackoff = backoffStrategy.computeDelay(token.attempt());
-        }
-
-        Optional<Duration> optionalSuggested = request.suggestedDelay();
-
-        if (!optionalSuggested.isPresent()) {
-            return strategyBackoff;
-        }
-
-        // the suggested delay needs to be at least what the strategy computed, OR
-        // not greater than 5s more than what the strat computed
-        Duration minBackoff = strategyBackoff;
-        Duration maxBackoff = strategyBackoff.plus(FIVE_SECONDS);
-
-        Duration backoff = optionalSuggested.get();
-
-        backoff = maxOf(minBackoff, backoff);
-        backoff = minOf(maxBackoff, backoff);
-
-        return backoff;
-    }
-
-    private boolean isRetries2026Enabled() {
-        return Boolean.TRUE.equals(retries2026Enabled);
-    }
-
     public static class Builder extends BaseRetryStrategy.Builder implements StandardRetryStrategy.Builder {
-        private Boolean retries2026Enabled;
-
         Builder() {
         }
 
@@ -135,6 +80,12 @@ public final class DefaultStandardRetryStrategy
         }
 
         @Override
+        public Builder doNotRetryWhen(Predicate<RefreshRetryTokenRequest> doNotRetry) {
+            setDoNotRetryWhen(doNotRetry);
+            return this;
+        }
+
+        @Override
         public Builder circuitBreakerEnabled(Boolean circuitBreakerEnabled) {
             setCircuitBreakerEnabled(circuitBreakerEnabled);
             return this;
@@ -165,7 +116,7 @@ public final class DefaultStandardRetryStrategy
          * Whether retries 2.1 behavior is enabled.
          */
         public Builder retries2026Enabled(Boolean retries2026Enabled) {
-            this.retries2026Enabled = retries2026Enabled;
+            setRetries2026Enabled(retries2026Enabled);
             return this;
         }
 

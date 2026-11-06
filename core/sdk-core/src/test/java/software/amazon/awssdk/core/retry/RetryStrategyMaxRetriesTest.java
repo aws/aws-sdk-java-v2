@@ -48,8 +48,8 @@ public class RetryStrategyMaxRetriesTest {
     public static Collection<Object> data() {
         return Arrays.asList(new Object[] {
             // Test defaults
-            new TestData(null, null, null, null, null, 4),
-            new TestData(null, null, null, null, "PropertyNotSet", 4),
+            new TestData(null, null, null, null, null, 3),
+            new TestData(null, null, null, null, "PropertyNotSet", 3),
 
 
             // Test precedence
@@ -63,9 +63,23 @@ public class RetryStrategyMaxRetriesTest {
                          "PropertySetToStandard", 3),
             new TestData(null, null, null, null,
                          "PropertySetToStandard", 3),
-            // pre v2.1, we didn't look at the max_attempts profile file property
+            // the default (STANDARD, v2.1) looks at the max_attempts profile file property
             new TestData(null, null, null, null,
+                         "PropertySetMaxAttempts10", 10),
+
+            // LEGACY never looked at the max_attempts profile file property
+            new TestData(null, null, "legacy", null, null, 4),
+            new TestData(null, null, null, "legacy", null, 4),
+            new TestData(null, null, "legacy", null,
                          "PropertySetMaxAttempts10", 4),
+            new TestData("9", null, "legacy", null,
+                         "PropertySetMaxAttempts10", 9),
+            new TestData(null, "8", "legacy", null,
+                         "PropertySetMaxAttempts10", 8),
+
+            // v2.0 constants (explicitly disabled) never looked at the max_attempts profile file property
+            new TestData(false, null, null, "standard", null,
+                         "PropertySetMaxAttempts10", 3),
 
             // Test invalid values
             new TestData("wrongValue", null, null, null, null, null),
@@ -116,15 +130,10 @@ public class RetryStrategyMaxRetriesTest {
         System.clearProperty(SdkSystemSetting.AWS_RETRY_MODE.property());
         System.clearProperty(ProfileFileSystemSetting.AWS_PROFILE.property());
         System.clearProperty(ProfileFileSystemSetting.AWS_CONFIG_FILE.property());
-        System.clearProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property());
     }
 
     @Test
     public void differentCombinationOfConfigs_shouldResolveCorrectly() {
-        if (testData.newRetries2026Enabled != null) {
-            System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), testData.newRetries2026Enabled.toString());
-        }
-
         if (testData.attemptCountEnvVarValue != null) {
             ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_MAX_ATTEMPTS.environmentVariable(),
                                             testData.attemptCountEnvVarValue);

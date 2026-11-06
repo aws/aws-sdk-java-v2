@@ -20,13 +20,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.base.Supplier;
 import java.time.Duration;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
+import software.amazon.awssdk.retries.LegacyRetryStrategy;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
 import software.amazon.awssdk.retries.internal.DefaultRetryToken;
@@ -37,6 +43,64 @@ public class AwsRetryStrategyTest {
     @CsvSource({"true", "false"})
     void standardRetryStrategy_limitExceededException_retryBehaviorCorrect(boolean newRetries2026Enabled) {
         StandardRetryStrategy strategy = AwsRetryStrategy.standardRetryStrategy(newRetries2026Enabled);
+        verifyLimitExceededBehavior(strategy, newRetries2026Enabled);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = RetryMode.class, names = {"STANDARD", "ADAPTIVE_V2"})
+    void forRetryMode_limitExceededException_isRetried(RetryMode mode) {
+        verifyLimitExceededBehavior(AwsRetryStrategy.forRetryMode(mode), true);
+    }
+
+    @Test
+    void noArgFactories_limitExceededException_isRetried() {
+        verifyLimitExceededBehavior(AwsRetryStrategy.standardRetryStrategy(), true);
+        verifyLimitExceededBehavior(AwsRetryStrategy.adaptiveRetryStrategy(), true);
+    }
+
+    @Test
+    void configure_nonLegacyBuilder_limitExceededException_isRetried() {
+        verifyLimitExceededBehavior(AwsRetryStrategy.configure(StandardRetryStrategy.builder()).build(), true);
+        verifyLimitExceededBehavior(AwsRetryStrategy.configure(AdaptiveRetryStrategy.builder()).build(), true);
+    }
+
+    @Test
+    void configure_legacyBuilder_limitExceededException_isNotRetried() {
+        verifyLimitExceededBehavior(AwsRetryStrategy.configure(LegacyRetryStrategy.builder()).build(), false);
+    }
+
+    @Test
+    void configureStrategy_nonLegacyBuilder_limitExceededException_isRetried() {
+        RetryStrategy.Builder<?, ?> builder = StandardRetryStrategy.builder();
+        verifyLimitExceededBehavior(AwsRetryStrategy.configureStrategy(builder).build(), true);
+    }
+
+    @Test
+    void configureStrategy_legacyBuilder_limitExceededException_isNotRetried() {
+        RetryStrategy.Builder<?, ?> builder = LegacyRetryStrategy.builder();
+        verifyLimitExceededBehavior(AwsRetryStrategy.configureStrategy(builder).build(), false);
+    }
+
+    @Test
+    void legacyRetryStrategy_limitExceededException_isNotRetried() {
+        verifyLimitExceededBehavior(AwsRetryStrategy.forRetryMode(RetryMode.LEGACY), false);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = RetryMode.class, names = {"STANDARD", "ADAPTIVE_V2"})
+    void forRetryMode_clampsSuggestedDelay(RetryMode mode) {
+        RetryStrategy strategy = AwsRetryStrategy.forRetryMode(mode);
+        RetryToken token = strategy.acquireInitialToken(AcquireInitialTokenRequest.create("test")).token();
+        RefreshRetryTokenRequest refresh = RefreshRetryTokenRequest.builder()
+                                                                   .failure(createTestException("Throttling"))
+                                                                   .suggestedDelay(Duration.ofSeconds(60))
+                                                                   .token(token)
+                                                                   .build();
+        // throttling backoff is at most 1s, and the suggested delay is clamped to the backoff + 5s
+        assertThat(strategy.refreshRetryToken(refresh).delay()).isBetween(Duration.ofSeconds(5), Duration.ofSeconds(6));
+    }
+
+    private static void verifyLimitExceededBehavior(RetryStrategy strategy, boolean expectRetry) {
 
         RetryToken token = strategy.acquireInitialToken(AcquireInitialTokenRequest.create("test")).token();
         RefreshRetryTokenRequest refresh = RefreshRetryTokenRequest.builder()
@@ -44,7 +108,7 @@ public class AwsRetryStrategyTest {
                                                                    .token(token)
                                                                    .build();
 
-        if (newRetries2026Enabled) {
+        if (expectRetry) {
             assertThat(strategy.refreshRetryToken(refresh).delay()).isGreaterThanOrEqualTo(Duration.ZERO);
         } else {
             assertThatThrownBy(() -> strategy.refreshRetryToken(refresh))
