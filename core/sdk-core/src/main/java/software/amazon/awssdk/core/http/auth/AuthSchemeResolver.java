@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.http.auth;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,22 +28,17 @@ import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.internal.util.MetricUtils;
-import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.IdentityResolutionHelper;
 import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.spi.identity.RequestIdentityProviderResolver;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
-import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
-import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -155,11 +149,12 @@ public final class AuthSchemeResolver {
             AuthSchemeOption.Builder mergedOption = selectedAuthScheme.authSchemeOption().toBuilder();
             existingAuthScheme.authSchemeOption().forEachSignerProperty(mergedOption::putSignerPropertyIfAbsent);
             existingAuthScheme.authSchemeOption().forEachIdentityProperty(mergedOption::putIdentityPropertyIfAbsent);
-            return new SelectedAuthScheme<>(
-                selectedAuthScheme.identity(),
-                selectedAuthScheme.signer(),
-                mergedOption.build()
-            );
+            return SelectedAuthScheme.<T>builder()
+                                   .identity(selectedAuthScheme.identity())
+                                   .signer(selectedAuthScheme.signer())
+                                   .authSchemeOption(mergedOption.build())
+                                   .identityProvider(selectedAuthScheme.identityProvider())
+                                   .build();
         }
 
         // Start with the freshly resolved auth scheme as the base.
@@ -181,11 +176,12 @@ public final class AuthSchemeResolver {
 
         existingAuthScheme.authSchemeOption().forEachIdentityProperty(mergedOption::putIdentityPropertyIfAbsent);
 
-        return new SelectedAuthScheme<>(
-            selectedAuthScheme.identity(),
-            selectedAuthScheme.signer(),
-            mergedOption.build()
-        );
+        return SelectedAuthScheme.<T>builder()
+                               .identity(selectedAuthScheme.identity())
+                               .signer(selectedAuthScheme.signer())
+                               .authSchemeOption(mergedOption.build())
+                               .identityProvider(selectedAuthScheme.identityProvider())
+                               .build();
     }
 
     /**
@@ -241,9 +237,12 @@ public final class AuthSchemeResolver {
         // Only update SELECTED_AUTH_SCHEME if at least one property was re-applied.
         if (changed[0]) {
             attrs.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
-                               new SelectedAuthScheme<>(currentScheme.identity(),
-                                                        currentScheme.signer(),
-                                                        mergedOption.build()));
+                               SelectedAuthScheme.<T>builder()
+                                                 .identity(currentScheme.identity())
+                                                 .signer(currentScheme.signer())
+                                                 .authSchemeOption(mergedOption.build())
+                                                 .identityProvider(currentScheme.identityProvider())
+                                                 .build());
         }
     }
 
@@ -275,35 +274,14 @@ public final class AuthSchemeResolver {
             return null;
         }
 
-        ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
-        authOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
+        CompletableFuture<? extends T> identity = IdentityResolutionHelper.resolveIdentity(
+            identityProvider, IdentityResolutionHelper.resolveIdentityRequest(authOption), metricCollector);
 
-        CompletableFuture<? extends T> identity = resolveIdentity(
-            identityProvider, identityRequestBuilder.build(), metricCollector);
-
-        return new SelectedAuthScheme<>(identity, signer, authOption);
-    }
-
-    private static <T extends Identity> CompletableFuture<? extends T> resolveIdentity(
-            IdentityProvider<T> identityProvider,
-            ResolveIdentityRequest request,
-            MetricCollector metricCollector) {
-
-        SdkMetric<Duration> metric = getIdentityMetric(identityProvider);
-        if (metric == null || metricCollector == null) {
-            return identityProvider.resolveIdentity(request);
-        }
-        return MetricUtils.reportDuration(() -> identityProvider.resolveIdentity(request), metricCollector, metric);
-    }
-
-    private static SdkMetric<Duration> getIdentityMetric(IdentityProvider<?> identityProvider) {
-        Class<?> identityType = identityProvider.identityType();
-        if (identityType == AwsCredentialsIdentity.class) {
-            return CoreMetric.CREDENTIALS_FETCH_DURATION;
-        }
-        if (identityType == TokenIdentity.class) {
-            return CoreMetric.TOKEN_FETCH_DURATION;
-        }
-        return null;
+        return SelectedAuthScheme.<T>builder()
+                               .identity(identity)
+                               .signer(signer)
+                               .authSchemeOption(authOption)
+                               .identityProvider(identityProvider)
+                               .build();
     }
 }

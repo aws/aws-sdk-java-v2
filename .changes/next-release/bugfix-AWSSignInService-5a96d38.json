@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS Sign-In Service",
+    "contributor": "",
+    "description": "`LoginCredentialsProvider` now defaults `asyncCredentialUpdateEnabled` to false, matching its documented behavior and the other credential providers. Credential refreshes happen on the calling thread unless the option is enabled explicitly."
+}

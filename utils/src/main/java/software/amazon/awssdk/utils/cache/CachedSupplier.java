@@ -23,9 +23,9 @@ import java.time.Instant;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -53,6 +53,33 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * refresh. In the ideal case, refresh always occurs in a timely fashion and only one thread actually does the refresh.
      */
     private static final Duration BLOCKING_REFRESH_MAX_WAIT = Duration.ofSeconds(5);
+
+    /**
+     * The lower end of the refresh backoff range (inclusive), for every remaining lifetime.
+     */
+    private static final long BACKOFF_MIN_SECONDS = 60;
+
+    /**
+     * Smallest value of the upper end of the refresh backoff range (inclusive), used when half the cached value's remaining
+     * lifetime is less than this, including when it has expired. It keeps the backoff jittered near and after expiration.
+     */
+    private static final long BACKOFF_UPPER_BOUND_FLOOR_SECONDS = 90;
+
+    /**
+     * Largest value of the upper end of the refresh backoff range (inclusive), used when half the cached value's remaining
+     * lifetime is more than this.
+     */
+    private static final long BACKOFF_UPPER_BOUND_CAP_SECONDS = 600;
+
+    /**
+     * Minimum cache duration for a non-recoverable error (inclusive).
+     */
+    private static final int NON_RECOVERABLE_ERROR_CACHE_MIN_SECONDS = 1;
+
+    /**
+     * Maximum cache duration for a non-recoverable error (inclusive).
+     */
+    private static final int NON_RECOVERABLE_ERROR_CACHE_MAX_SECONDS = 5;
 
 
     /**
@@ -84,11 +111,6 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     private final Clock clock;
 
     /**
-     * The number of consecutive failures encountered when updating a stale value.
-     */
-    private final AtomicInteger consecutiveStaleRetrievalFailures = new AtomicInteger(0);
-
-    /**
      * The name to include with each log message, to differentiate caches.
      */
     private final String cachedValueName;
@@ -108,15 +130,49 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      */
     private final Random jitterRandom = new Random();
 
+    /**
+     * Predicate that determines whether an exception represents a non-recoverable refresh failure
+     * that should bypass static stability (i.e., be re-thrown immediately without applying the refresh backoff).
+     */
+    private final Predicate<RuntimeException> nonRecoverableErrorPredicate;
+
+    /**
+     * Tracks when the next refresh attempt is allowed after a failure. This is set under {@link #refreshLock}
+     * and read without the lock (volatile). When non-null and in the future, {@link #get()} returns the cached
+     * value without contacting the source.
+     *
+     * <p>This field is NEVER modified by {@code invalidate()} — backoff remains independently tracked.
+     */
+    private volatile Instant nextAllowedRefreshTime;
+
+    /**
+     * The most recent non-recoverable error returned by the credential source. While {@link #cachedNonRecoverableErrorExpiresAt}
+     * is in the future, subsequent refresh attempts re-raise this error without contacting the source. This protects the
+     * credential source from callers that catch and retry in a tight loop.
+     *
+     * <p>Set under {@link #refreshLock}. Cleared on successful refresh.
+     */
+    private volatile RuntimeException cachedNonRecoverableError;
+
+    /**
+     * The expiration time for {@link #cachedNonRecoverableError}. After this instant, the next refresh attempt will contact
+     * the credential source again instead of re-raising the cached error.
+     *
+     * <p>Set under {@link #refreshLock}. Cleared on successful refresh.
+     */
+    private volatile Instant cachedNonRecoverableErrorExpiresAt;
+
     private CachedSupplier(Builder<T> builder) {
         Validate.notNull(builder.supplier, "builder.supplier");
-        Validate.notNull(builder.jitterEnabled, "builder.jitterEnabled");
+        Validate.notNull(builder.prefetchJitterEnabled, "builder.prefetchJitterEnabled");
 
-        this.valueSupplier = jitteredPrefetchValueSupplier(builder.supplier, builder.jitterEnabled);
+        this.valueSupplier = jitteredPrefetchValueSupplier(nullStaleTimeAsNeverStaleValueSupplier(builder.supplier),
+                                                           builder.prefetchJitterEnabled);
         this.prefetchStrategy = Validate.notNull(builder.prefetchStrategy, "builder.prefetchStrategy");
         this.staleValueBehavior = Validate.notNull(builder.staleValueBehavior, "builder.staleValueBehavior");
         this.clock = Validate.notNull(builder.clock, "builder.clock");
         this.cachedValueName = Validate.notNull(builder.cachedValueName, "builder.cachedValueName");
+        this.nonRecoverableErrorPredicate = builder.nonRecoverableErrorPredicate;
     }
 
     /**
@@ -131,14 +187,71 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     @Override
     public T get() {
         if (cacheIsStale()) {
+            if (refreshRateLimited()) {
+                return this.cachedValue.value();
+            }
             log.debug(() -> "(" + cachedValueName + ") Cached value is stale and will be refreshed.");
             refreshCache();
         } else if (shouldInitiateCachePrefetch()) {
+            if (refreshRateLimited()) {
+                return this.cachedValue.value();
+            }
             log.debug(() -> "(" + cachedValueName + ") Cached value has reached prefetch time and will be refreshed.");
             prefetchCache();
         }
 
         return this.cachedValue.value();
+    }
+
+    /**
+     * Marks the cached value for mandatory refresh if the predicate matches.
+     * Sets staleTime to now() so the next get() triggers a refresh, subject to
+     * the refresh backoff gate ({@code nextAllowedRefreshTime}). Also sets the cached value's
+     * {@link RefreshResult#expiration()} to now, so that if the refresh fails, the refresh backoff treats the
+     * invalidated value as expired.
+     *
+     * <p>This method MUST NOT discard the cached value.
+     * This method MUST NOT clear or modify {@code nextAllowedRefreshTime}.
+     *
+     * <p>If there is no cached value, this method is a no-op — the predicate will not be called.
+     *
+     * <p>If the lock is not immediately available, this method returns without invalidating.
+     * A held lock means either a refresh or another invalidation is already in progress.
+     * In either case it is safe to skip: a refresh will replace the cached value shortly,
+     * and a concurrent invalidation will mark it stale.
+     *
+     * @param matchesCachedValue A predicate that returns true if the cached value
+     *                           is the one that should be invalidated. The value passed
+     *                           to the predicate is guaranteed to be non-null.
+     */
+    public void invalidate(Predicate<T> matchesCachedValue) {
+        if (!refreshLock.tryLock()) {
+            log.debug(() -> "(" + cachedValueName + ") Refresh lock held by another thread during invalidation; "
+                           + "skipping because either a refresh or another invalidation is already in progress.");
+            return;
+        }
+        try {
+            RefreshResult<T> currentCachedValue = this.cachedValue;
+            if (currentCachedValue == null || currentCachedValue.value() == null) {
+                return;
+            }
+            if (!matchesCachedValue.test(currentCachedValue.value())) {
+                return;
+            }
+            // Set staleTime = now, routing next get() through mandatory refresh
+            // (subject to nextAllowedRefreshTime gate). Set expiration = now so a failed refresh of the
+            // invalidated value uses the refresh backoff for expired values.
+            Instant now = clock.instant();
+            this.cachedValue = currentCachedValue.toBuilder()
+                                                 .staleTime(now)
+                                                 .prefetchTime(now)
+                                                 .expiration(now)
+                                                 .build();
+            log.debug(() -> "(" + cachedValueName + ") Cached value invalidated. "
+                           + "Next get() will attempt mandatory refresh.");
+        } finally {
+            refreshLock.unlock();
+        }
     }
 
     /**
@@ -178,6 +291,43 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     }
 
     /**
+     * Checks whether a refresh backoff is currently active. When a refresh fails, a backoff gate
+     * ({@link #nextAllowedRefreshTime}) is set. While the gate is in the future, the cached value
+     * is returned without contacting the credential source.
+     */
+    private boolean refreshRateLimited() {
+        Instant nextAllowed = this.nextAllowedRefreshTime;
+        return nextAllowed != null && clock.instant().isBefore(nextAllowed);
+    }
+
+    /**
+     * Returns {@code true} if a non-recoverable error is cached and has not yet expired. While this returns
+     * {@code true}, refresh attempts re-raise the cached error without contacting the credential source.
+     *
+     * <p>Normally called under {@link #refreshLock}; tolerates the lock-acquisition timeout in {@link #refreshCache()}, which
+     * proceeds without the lock.
+     */
+    private boolean nonRecoverableErrorCached() {
+        RuntimeException error = this.cachedNonRecoverableError;
+        Instant expiresAt = this.cachedNonRecoverableErrorExpiresAt;
+        return error != null && expiresAt != null && clock.instant().isBefore(expiresAt);
+    }
+
+    /**
+     * Caches a non-recoverable error for a short jittered duration (1-5 seconds). This prevents a caller that catches
+     * and retries in a loop from hammering the credential source with requests that are known to fail.
+     *
+     * <p>Normally called under {@link #refreshLock}; tolerates the lock-acquisition timeout in {@link #refreshCache()}, which
+     * proceeds without the lock.
+     */
+    private void cacheNonRecoverableError(RuntimeException error, Instant now) {
+        this.cachedNonRecoverableError = error;
+        int cacheSeconds = NON_RECOVERABLE_ERROR_CACHE_MIN_SECONDS
+            + jitterRandom.nextInt(NON_RECOVERABLE_ERROR_CACHE_MAX_SECONDS - NON_RECOVERABLE_ERROR_CACHE_MIN_SECONDS + 1);
+        this.cachedNonRecoverableErrorExpiresAt = now.plusSeconds(cacheSeconds);
+    }
+
+    /**
      * Initiate a pre-fetch of the data using the configured {@link #prefetchStrategy}.
      */
     private void prefetchCache() {
@@ -196,6 +346,17 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
             try {
                 // Make sure the value was not refreshed while we waited for the lock.
                 if (cacheIsStale() || shouldInitiateCachePrefetch()) {
+                    // Check if a non-recoverable error is still cached. If so, re-raise it without
+                    // contacting the credential source.
+                    if (nonRecoverableErrorCached()) {
+                        throw cachedNonRecoverableError;
+                    }
+
+                    // Another caller may have set the refresh backoff while this caller waited for the lock.
+                    if (refreshRateLimited()) {
+                        return;
+                    }
+
                     log.debug(() -> "(" + cachedValueName + ") Refreshing cached value.");
 
                     // It wasn't, call the supplier to update it.
@@ -227,30 +388,61 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
     /**
      * Perform necessary transformations of the successfully-fetched value based on the stale value behavior of this supplier.
+     * A fetched value is used as-is if its staleTime is after now. In ALLOW mode, a fetched value whose staleTime has passed
+     * is also used as-is if its {@link RefreshResult#expiration()} is after now: it is inside the mandatory refresh window
+     * but has not expired, so it is used and the next call refreshes again.
+     *
+     * <p>Otherwise the credential source returned credentials that are already expired (expiration, or staleTime if no
+     * expiration is specified, at or before now). In ALLOW mode, if a value is already cached, this is treated the same as a
+     * failed refresh: the SDK retains the previously cached credentials and applies the refresh backoff. If no value is cached
+     * (the initial fetch), this is not a failure: the expired value is cached as-is and returned, and no refresh backoff is
+     * applied. The next call finds the cached value stale and refreshes it; if that refresh fails or returns expired
+     * credentials again, it is a failed refresh and the refresh backoff applies.
      */
     private RefreshResult<T> handleFetchedSuccess(RefreshResult<T> fetch) {
-        consecutiveStaleRetrievalFailures.set(0);
-
         Instant now = clock.instant();
 
-        if (now.isBefore(fetch.staleTime())) {
+        if (now.isBefore(fetch.staleTime()) || isUnexpiredInAllowMode(fetch, now)) {
+            if (!now.isBefore(fetch.staleTime())) {
+                log.debug(() -> "(" + cachedValueName + ") Retrieved value is inside the mandatory refresh window but has "
+                               + "not expired (expiration " + fetch.expiration() + "). Using it; the next call will refresh "
+                               + "again.");
+            }
+            this.nextAllowedRefreshTime = null; // Clear backoff gate on success
+            this.cachedNonRecoverableError = null; // Clear any cached non-recoverable error
+            this.cachedNonRecoverableErrorExpiresAt = null;
             return fetch;
         }
 
         switch (staleValueBehavior) {
             case STRICT:
+                this.nextAllowedRefreshTime = null; // Clear backoff gate on success
                 Instant newStale = now.plusSeconds(1);
-                log.warn(() -> "(" + cachedValueName + ") Retrieved value expiration is in the past (" + fetch.staleTime() +
+                log.debug(() -> "(" + cachedValueName + ") Retrieved value expiration is in the past (" + fetch.staleTime() +
                                "). Using expiration of " + newStale);
                 return fetch.toBuilder().staleTime(newStale).build(); // Refresh again in 1 second
             case ALLOW:
-                Instant newStaleTime = jitterTime(now, Duration.ofMinutes(1), Duration.ofMinutes(10));
-                log.warn(() -> "(" + cachedValueName + ") Cached value expiration has been extended to " + newStaleTime +
-                               " because the downstream service returned a time in the past: " + fetch.staleTime());
-
-                return fetch.toBuilder()
-                            .staleTime(newStaleTime)
-                            .build();
+                // Per spec: when credentials are already cached, a response with Expiration at or before now MUST be treated
+                // the same as a failed refresh. Retain previously cached credentials and apply the refresh backoff.
+                Instant reportedExpiration = fetch.expiration() != null ? fetch.expiration() : fetch.staleTime();
+                RefreshResult<T> previousCachedValue = this.cachedValue;
+                if (previousCachedValue != null) {
+                    applyRefreshBackoff(previousCachedValue,
+                                        now,
+                                        "the credential source returned credentials that expired at " + reportedExpiration,
+                                        null);
+                    return previousCachedValue;
+                }
+                // Initial fetch: this is not a failure. Cache the expired credentials as-is and use them (static stability).
+                // No refresh backoff is applied: the cached value is stale, so the next call refreshes it. If that refresh
+                // fails or returns expired credentials again, a value is cached and it is a failed refresh with backoff.
+                this.nextAllowedRefreshTime = null;
+                this.cachedNonRecoverableError = null;
+                this.cachedNonRecoverableErrorExpiresAt = null;
+                log.warn(() -> "(" + cachedValueName + ") The credential source returned credentials that expired at "
+                               + reportedExpiration + ". No other credentials are cached, so the SDK will use them. The next "
+                               + "call will attempt to refresh these credentials.");
+                return fetch;
             default:
                 throw new IllegalStateException("Unknown stale-value-behavior: " + staleValueBehavior);
         }
@@ -264,35 +456,179 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
         RefreshResult<T> currentCachedValue = cachedValue;
         if (currentCachedValue == null) {
+            // No cached value. Cache the error if it's non-recoverable (protects the source on initial fetch loops).
+            if (nonRecoverableErrorPredicate != null && nonRecoverableErrorPredicate.test(e)) {
+                cacheNonRecoverableError(e, clock.instant());
+            }
             throw e;
         }
 
         Instant now = clock.instant();
         if (!now.isBefore(currentCachedValue.staleTime())) {
-            int numFailures = consecutiveStaleRetrievalFailures.incrementAndGet();
-
             switch (staleValueBehavior) {
                 case STRICT:
                     throw e;
                 case ALLOW:
-                    Instant newStaleTime = jitterTime(now, Duration.ofMillis(1), maxStaleFailureJitter(numFailures));
-                    log.warn(() -> "(" + cachedValueName + ") Cached value expiration has been extended to " +
-                                   newStaleTime + " because calling the downstream service failed (consecutive failures: " +
-                                   numFailures + ").", e);
+                    // Non-recoverable errors bypass static stability but are cached briefly
+                    // to protect the credential source from tight retry loops.
+                    if (nonRecoverableErrorPredicate != null && nonRecoverableErrorPredicate.test(e)) {
+                        cacheNonRecoverableError(e, now);
+                        throw e;
+                    }
 
-                    return currentCachedValue.toBuilder()
-                                             .staleTime(newStaleTime)
-                                             .build();
+                    // Set backoff gate — do NOT modify staleTime/prefetchTime
+                    applyRefreshBackoff(currentCachedValue, now, e.getMessage(), e);
+
+                    return currentCachedValue; // Return unchanged — staleTime/prefetchTime untouched
                 default:
                     throw new IllegalStateException("Unknown stale-value-behavior: " + staleValueBehavior);
             }
+        }
+
+        // Not yet stale — we're in the prefetch window. Handle failure based on mode.
+        if (staleValueBehavior == StaleValueBehavior.ALLOW) {
+            if (nonRecoverableErrorPredicate != null && nonRecoverableErrorPredicate.test(e)) {
+                cacheNonRecoverableError(e, now);
+                throw e;
+            }
+
+            // Set backoff gate — do NOT modify staleTime/prefetchTime
+            applyRefreshBackoff(currentCachedValue, now, e.getMessage(), e);
+
+            return currentCachedValue; // Return unchanged — staleTime/prefetchTime untouched
         }
 
         return currentCachedValue;
     }
 
     /**
-     * Wrap a value supplier with one that jitters its prefetch time.
+     * Returns {@code true} if this supplier is in {@link StaleValueBehavior#ALLOW} mode and the fetched value has an
+     * {@link RefreshResult#expiration()} that is after now.
+     */
+    private boolean isUnexpiredInAllowMode(RefreshResult<T> fetch, Instant now) {
+        return staleValueBehavior == StaleValueBehavior.ALLOW
+               && fetch.expiration() != null
+               && now.isBefore(fetch.expiration());
+    }
+
+    /**
+     * Applies the refresh backoff after a failed refresh: sets {@link #nextAllowedRefreshTime} to now plus
+     * {@link #refreshBackoffSeconds(RefreshResult, Instant)}, and logs a warning that includes the failure and when the next
+     * refresh will be attempted. The cached value is not changed.
+     *
+     * @param cachedValueAfterFailure The value that stays cached after the failure. Its remaining lifetime determines the
+     *                                backoff.
+     * @param now The current time, measured after the call to the credential source returned.
+     * @param failure A description of the failure, included in the log message.
+     * @param cause The exception from the credential source, or {@code null} if there is none.
+     */
+    private void applyRefreshBackoff(RefreshResult<T> cachedValueAfterFailure, Instant now, String failure, Throwable cause) {
+        long backoffSeconds = refreshBackoffSeconds(cachedValueAfterFailure, now);
+        this.nextAllowedRefreshTime = now.plusSeconds(backoffSeconds);
+
+        Supplier<String> message = () -> "(" + cachedValueName + ") Credential refresh failed: " + failure
+                                         + ". The SDK will continue using cached credentials. A refresh of these credentials "
+                                         + "will be attempted again after " + backoffSeconds + " seconds.";
+        if (cause != null) {
+            log.warn(message, cause);
+        } else {
+            log.warn(message);
+        }
+    }
+
+    /**
+     * Computes how long to wait before contacting the credential source again after a failed refresh. The backoff scales with
+     * the remaining lifetime of the cached value, measured at {@code now}:
+     *
+     * <pre>
+     * remaining = max(expiration - now, 0)
+     * upper = max(90 seconds, min(remaining / 2, 600 seconds))
+     * backoff = uniform_random(60 seconds, upper)
+     * </pre>
+     *
+     * That is a uniformly random delay of at least 60 seconds, with an upper bound of half the remaining lifetime, kept between
+     * 90 and 600 seconds. The 90-second floor of the upper bound keeps the backoff jittered near and after expiration.
+     *
+     * <p>The expiration is {@link RefreshResult#expiration()}, or {@link RefreshResult#staleTime()} if no expiration is
+     * specified. Expired values, and a missing cached value, have a remaining lifetime of 0, giving 60-90 seconds. A value
+     * with neither an expiration nor a stale time never expires, so it has the longest remaining lifetime, giving 60-600
+     * seconds. See {@link #remainingLifetimeSeconds(RefreshResult, Instant)}.
+     *
+     * @param cachedValueAfterFailure The value that stays cached after the failure, or {@code null} if there is none.
+     * @param now The current time, measured after the call to the credential source returned.
+     * @return The backoff in seconds, between 60 and 600 inclusive.
+     */
+    private long refreshBackoffSeconds(RefreshResult<T> cachedValueAfterFailure, Instant now) {
+        return refreshBackoffSeconds(remainingLifetimeSeconds(cachedValueAfterFailure, now), jitterRandom);
+    }
+
+    /**
+     * Picks the refresh backoff for the given remaining lifetime: a uniformly random whole number of seconds from 60 to
+     * {@code max(90, min(remainingSeconds / 2, 600))}, both inclusive. Arithmetic is in whole seconds, and
+     * {@code remainingSeconds / 2} rounds down, so the result is always within the range the continuous formula allows. The
+     * caller adds the result to the current time, so the source is contacted again once that many seconds have passed.
+     *
+     * @param remainingSeconds The remaining lifetime of the cached value in whole seconds, from
+     *                         {@link #remainingLifetimeSeconds(RefreshResult, Instant)}.
+     * @param random The source of randomness for the backoff.
+     * @return The backoff in seconds, between 60 and 600 inclusive.
+     */
+    @SdkTestInternalApi
+    static long refreshBackoffSeconds(long remainingSeconds, Random random) {
+        long upper = clamp(remainingSeconds / 2, BACKOFF_UPPER_BOUND_FLOOR_SECONDS, BACKOFF_UPPER_BOUND_CAP_SECONDS);
+        return BACKOFF_MIN_SECONDS + random.nextInt((int) (upper - BACKOFF_MIN_SECONDS + 1));
+    }
+
+    /**
+     * Returns the remaining lifetime of the given value in whole seconds (rounded down), never negative. The expiration is
+     * {@link RefreshResult#expiration()}, or {@link RefreshResult#staleTime()} if no expiration is specified. A {@code null}
+     * value has a remaining lifetime of 0. A value with neither an expiration nor a stale time is treated as never expiring,
+     * and has a remaining lifetime of {@link Long#MAX_VALUE}.
+     */
+    @SdkTestInternalApi
+    static long remainingLifetimeSeconds(RefreshResult<?> value, Instant now) {
+        if (value == null) {
+            return 0;
+        }
+        Instant expiration = value.expiration() != null ? value.expiration() : value.staleTime();
+        if (expiration == null) {
+            // Not reached for cached values, whose null stale time is replaced with Instant.MAX when they are fetched.
+            return Long.MAX_VALUE;
+        }
+        return Math.max(0, Duration.between(now, expiration).getSeconds());
+    }
+
+    private static long clamp(long value, long min, long max) {
+        return Math.max(min, Math.min(value, max));
+    }
+
+    /**
+     * Wrap a value supplier with one that replaces a {@code null} {@link RefreshResult#staleTime()} with {@link Instant#MAX}.
+     * A {@code null} stale time means the value never becomes stale, the same as a stale time that is not specified, which
+     * {@link RefreshResult.Builder} defaults to {@link Instant#MAX}. Credential providers return a {@code null} stale time for
+     * credentials without an expiration. Replacing it as each value is fetched means that the prefetch jitter, the
+     * {@link #prefetchStrategy}, and the handling of the fetched and cached values never see a {@code null} stale time.
+     * As a result, the {@link NonBlocking} prefetch strategy, which schedules background refreshes only for values with a
+     * stale time, schedules a background refresh shortly after the prefetch time of these values too.
+     */
+    private static <T> Supplier<RefreshResult<T>> nullStaleTimeAsNeverStaleValueSupplier(Supplier<RefreshResult<T>> supplier) {
+        return () -> {
+            RefreshResult<T> result = supplier.get();
+            if (result.staleTime() != null) {
+                return result;
+            }
+            return result.toBuilder()
+                         .staleTime(Instant.MAX)
+                         .build();
+        };
+    }
+
+    /**
+     * Wrap a value supplier with one that jitters its prefetch time, spreading refreshes out over the window between the
+     * requested prefetch time and one minute before the stale time.
+     *
+     * <p>Note that this makes the effective prefetch time non-deterministic. Callers that require the prefetch time they
+     * requested to be honored exactly must disable it via {@link Builder#prefetchJitterEnabled(Boolean)}.
      */
     private Supplier<RefreshResult<T>> jitteredPrefetchValueSupplier(Supplier<RefreshResult<T>> supplier,
                                                                      boolean prefetchJitterEnabled) {
@@ -333,6 +669,12 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         return timeBetweenPrefetchAndStale;
     }
 
+    private Instant jitterTime(Instant time, Duration jitterStart, Duration jitterEnd) {
+        long jitterRange = jitterEnd.minus(jitterStart).toMillis();
+        long jitterAmount = Math.abs(jitterRandom.nextLong() % jitterRange);
+        return time.plus(jitterStart).plusMillis(jitterAmount);
+    }
+
     private Duration maxStaleFailureJitter(int numFailures) {
         // prevent cycling back through low values
         if (numFailures > 63) {
@@ -350,12 +692,6 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         return maxStaleFailureJitter(numFailures);
     }
 
-    private Instant jitterTime(Instant time, Duration jitterStart, Duration jitterEnd) {
-        long jitterRange = jitterEnd.minus(jitterStart).toMillis();
-        long jitterAmount = Math.abs(jitterRandom.nextLong() % jitterRange);
-        return time.plus(jitterStart).plusMillis(jitterAmount);
-    }
-
     /**
      * Free any resources consumed by the prefetch strategy this supplier is using.
      */
@@ -370,10 +706,11 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     public static final class Builder<T> {
         private final Supplier<RefreshResult<T>> supplier;
         private PrefetchStrategy prefetchStrategy = new OneCallerBlocks();
-        private Boolean jitterEnabled = true;
+        private Boolean prefetchJitterEnabled = true;
         private StaleValueBehavior staleValueBehavior = StaleValueBehavior.STRICT;
         private Clock clock = Clock.systemUTC();
         private String cachedValueName = "unknown";
+        private Predicate<RuntimeException> nonRecoverableErrorPredicate;
 
         private Builder(Supplier<RefreshResult<T>> supplier) {
             this.supplier = supplier;
@@ -414,6 +751,23 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         }
 
         /**
+         * Configure a predicate that determines whether an exception represents a non-recoverable refresh failure
+         * that should bypass static stability. When the predicate returns {@code true} for a given exception,
+         * the exception will be re-thrown immediately without applying the refresh backoff.
+         *
+         * <p>This is used for errors where the credential source has definitively indicated that the current
+         * authentication state is invalid and requires user intervention (e.g., expired SSO tokens,
+         * changed user credentials).
+         *
+         * <p>By default, no exceptions are considered non-recoverable (all failures trigger static stability
+         * backoff when {@link StaleValueBehavior#ALLOW} is configured).
+         */
+        public Builder<T> nonRecoverableErrorPredicate(Predicate<RuntimeException> nonRecoverableErrorPredicate) {
+            this.nonRecoverableErrorPredicate = nonRecoverableErrorPredicate;
+            return this;
+        }
+
+        /**
          * Configure the clock used for this cached supplier. Configurable for testing.
          */
         @SdkTestInternalApi
@@ -423,11 +777,18 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         }
 
         /**
-         * Whether jitter is enabled on the prefetch time. Can be disabled for testing.
+         * Whether jitter is applied to the {@link RefreshResult#prefetchTime()} returned by the supplier.
+         *
+         * <p>When enabled (the default), the prefetch time is moved later by a uniformly random amount, up to one minute
+         * before the {@link RefreshResult#staleTime()}. This spreads refreshes out so that many suppliers sharing the same
+         * refresh schedule do not all contact the underlying source at the same instant.
+         *
+         * <p>Jitter makes the effective prefetch time non-deterministic, so it must be disabled by callers whose prefetch
+         * time carries meaning of its own. Credential providers disable it because the prefetch time is the advisory refresh
+         * window, which is required to be a fixed, known distance from credential expiration.
          */
-        @SdkTestInternalApi
-        Builder<T> jitterEnabled(Boolean jitterEnabled) {
-            this.jitterEnabled = jitterEnabled;
+        public Builder<T> prefetchJitterEnabled(Boolean prefetchJitterEnabled) {
+            this.prefetchJitterEnabled = prefetchJitterEnabled;
             return this;
         }
 
@@ -488,8 +849,31 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         STRICT,
 
         /**
-         * Allow stale values to be returned from the cache. Value retrieval will never fail, as long as the cache has
-         * succeeded when calling the underlying supplier at least once.
+         * Allow stale values to be returned from the cache with static stability semantics. When a refresh fails, either in
+         * the prefetch window or once the cached value is stale, the cached value is kept and returned, even past its stale
+         * time.
+         *
+         * <p>A failed refresh also sets a separate refresh backoff that scales with the cached value's remaining lifetime
+         * (until its {@link RefreshResult#expiration()}, or its {@link RefreshResult#staleTime()} if no expiration is
+         * specified), measured after the failed call to the underlying supplier returns. The backoff is a uniformly random
+         * delay of at least 60 seconds, with an upper bound of half the remaining lifetime, kept between 90 and 600 seconds.
+         * A cached value with 20 minutes or more left backs off 1-10 minutes, one with 10 minutes left backs off 1-5 minutes,
+         * and one with 3 minutes or less left, or that has expired, backs off 60-90 seconds. A cached value that never
+         * expires backs off 1-10 minutes. Until the backoff has passed, {@link CachedSupplier#get()} returns the cached value
+         * without calling the underlying supplier. The cached value's stale and prefetch times are not changed.
+         *
+         * <p>When a value is already cached, a fetched value whose {@link RefreshResult#expiration()} (or, if not specified,
+         * whose {@link RefreshResult#staleTime()}) is at or before now counts as a failed refresh. On the initial fetch, when
+         * no value is cached, such a value is not a failure: it is cached and returned as-is without a refresh backoff, so the
+         * next {@link CachedSupplier#get()} calls the underlying supplier again. If that call fails or also returns an expired
+         * value, it is a failed refresh and the backoff applies.
+         *
+         * <p>If a {@link Builder#nonRecoverableErrorPredicate(Predicate)} is configured and returns {@code true}
+         * for the exception, it is re-thrown immediately and no backoff is set. The error is cached for 1-5 seconds, during
+         * which refresh attempts re-throw it without calling the underlying supplier.
+         *
+         * <p>Value retrieval will never fail as long as the cache has succeeded at least once,
+         * unless the error is non-recoverable.
          */
         ALLOW
     }

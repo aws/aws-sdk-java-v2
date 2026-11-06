@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -38,20 +37,20 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public class DpopAuthPlugin implements SdkPlugin {
-    private final String dpopKeyPem;
+    private final DpopIdentity dpopIdentity;
 
-    private DpopAuthPlugin(String dpopKeyPem) {
-        this.dpopKeyPem = Validate.paramNotNull(dpopKeyPem, "dpopKeyPem");
+    private DpopAuthPlugin(DpopIdentity dpopIdentity) {
+        this.dpopIdentity = Validate.paramNotNull(dpopIdentity, "dpopIdentity");
     }
 
     /**
-     * Create an instance of the DpopAuthPlugin using the dpopKey from the {@link LoginAccessToken}
-     * @param dpopKeyPem - PEM file contents containing the base64-encoding of the ECPrivateKey format defined by
-     *                   RFC5915: Elliptic Curve Private Key Structure. It MUST include the public key coordinates.
+     * Create an instance of the DpopAuthPlugin using the {@link DpopIdentity} parsed from the dpopKey of the
+     * {@link LoginAccessToken} that was loaded once from disk.
+     * @param dpopIdentity - the public and private keys used to sign the request.
      * @return dpopAuthPlugin
      */
-    public static DpopAuthPlugin create(String dpopKeyPem) {
-        return new DpopAuthPlugin(dpopKeyPem);
+    public static DpopAuthPlugin create(DpopIdentity dpopIdentity) {
+        return new DpopAuthPlugin(dpopIdentity);
     }
 
     @Override
@@ -64,11 +63,7 @@ public class DpopAuthPlugin implements SdkPlugin {
         // the refresh request takes the clientId/refreshToken sourced from the access token on disk as input
         // so we must sign the request with the dpopKey loaded from the same load.  IE: do not read the
         // access token file twice!
-        try {
-            scb.putAuthScheme(DpopAuthScheme.create(StaticDpopIdentityProvider.create(dpopKeyPem)));
-        } catch (Exception e) {
-            throw SdkClientException.create("Unable to refresh Login credentials. Please reauthenticate ", e);
-        }
+        scb.putAuthScheme(DpopAuthScheme.create(StaticDpopIdentityProvider.create(dpopIdentity)));
     }
 
     private static class DpopAuthSchemeProvider implements SigninAuthSchemeProvider {
@@ -89,8 +84,8 @@ public class DpopAuthPlugin implements SdkPlugin {
             this.identity = Validate.paramNotNull(identity, "identity");
         }
 
-        public static StaticDpopIdentityProvider create(String dpopKeyPem) {
-            return new StaticDpopIdentityProvider(DpopIdentity.create(dpopKeyPem));
+        public static StaticDpopIdentityProvider create(DpopIdentity identity) {
+            return new StaticDpopIdentityProvider(identity);
         }
 
         @Override

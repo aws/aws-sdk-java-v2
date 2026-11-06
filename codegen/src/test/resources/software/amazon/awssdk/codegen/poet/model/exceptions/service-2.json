@@ -33,6 +33,12 @@
         },
         {
           "shape": "JsonServiceInternalServerError"
+        },
+        {
+          "shape": "ExpiredTokenException"
+        },
+        {
+          "shape": "JsonServiceTokenExpired"
         }
       ],
       "documentation": "<p>Performs a post operation to the query service and has no output</p>"
@@ -96,6 +102,35 @@
       "fault": true,
       "retryable": {
         "throttling": false
+      },
+      "exception": true
+    },
+    "ExpiredTokenException": {
+      "type": "structure",
+      "members": {
+        "message": {
+          "shape": "String"
+        }
+      },
+      "documentation": "<p>The provided token has expired.</p>",
+      "error": {
+        "httpStatusCode": 400,
+        "senderFault": true
+      },
+      "exception": true
+    },
+    "JsonServiceTokenExpired": {
+      "type": "structure",
+      "members": {
+        "message": {
+          "shape": "String"
+        }
+      },
+      "documentation": "<p>The token passed as input has expired.</p>",
+      "error": {
+        "code": "ExpiredToken",
+        "httpStatusCode": 400,
+        "senderFault": true
       },
       "exception": true
     },

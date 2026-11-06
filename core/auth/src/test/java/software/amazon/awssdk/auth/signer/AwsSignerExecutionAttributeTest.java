@@ -25,8 +25,12 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.core.SelectedAuthScheme;
@@ -44,6 +48,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.RegionScope;
 
@@ -246,6 +251,49 @@ class AwsSignerExecutionAttributeTest {
         assertNewPropertyWrite_canBeReadFromNewAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS,
                                                          AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM, expectedValue, CRC32);
 
+    }
+
+    private static Stream<Arguments> legacyAttributeWrites() {
+        return Stream.of(Arguments.of(AwsSignerExecutionAttribute.SIGNING_REGION, Region.US_EAST_1),
+                         Arguments.of(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE, RegionScope.create("foo")),
+                         Arguments.of(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, "svc"),
+                         Arguments.of(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE, true),
+                         Arguments.of(AwsSignerExecutionAttribute.SIGNER_NORMALIZE_PATH, true),
+                         Arguments.of(AwsSignerExecutionAttribute.SIGNING_CLOCK, Mockito.mock(Clock.class)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("legacyAttributeWrites")
+    public void legacyAttributeWrite_preservesIdentityProvider(ExecutionAttribute<Object> attribute, Object value) {
+        IdentityProvider<Identity> identityProvider = mockIdentityProvider();
+        attributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
+                                EMPTY_SELECTED_AUTH_SCHEME.toBuilder().identityProvider(identityProvider).build());
+
+        attributes.putAttribute(attribute, value);
+
+        SelectedAuthScheme<?> updated = attributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        assertThat(updated.identityProvider()).isSameAs(identityProvider);
+        assertThat(updated.identity()).isSameAs(EMPTY_SELECTED_AUTH_SCHEME.identity());
+        assertThat(updated.signer()).isSameAs(EMPTY_SELECTED_AUTH_SCHEME.signer());
+    }
+
+    @Test
+    public void awsCredentialsWrite_dropsIdentityProvider() {
+        attributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
+                                EMPTY_SELECTED_AUTH_SCHEME.toBuilder().identityProvider(mockIdentityProvider()).build());
+        AwsCredentials creds = Mockito.mock(AwsCredentials.class);
+
+        attributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, creds);
+
+        // Overriding the credentials replaces the identity, so the provider that resolved the old identity no longer applies.
+        SelectedAuthScheme<?> updated = attributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        assertThat(updated.identityProvider()).isNull();
+        assertThat(updated.identity().join()).isSameAs(creds);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static IdentityProvider<Identity> mockIdentityProvider() {
+        return Mockito.mock(IdentityProvider.class);
     }
 
     private void assertOldAndNewBooleanAttributesAreMirrored(ExecutionAttribute<Boolean> attribute,

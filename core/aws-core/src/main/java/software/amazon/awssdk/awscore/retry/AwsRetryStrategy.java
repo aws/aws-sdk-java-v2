@@ -16,6 +16,7 @@
 package software.amazon.awssdk.awscore.retry;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsErrorCode;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -214,12 +215,25 @@ public final class AwsRetryStrategy {
         return builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
     }
 
-    private static boolean retryOnAwsRetryableErrors(Throwable ex) {
-        if (ex instanceof AwsServiceException) {
-            AwsServiceException exception = (AwsServiceException) ex;
-            return AwsErrorCode.RETRYABLE_ERROR_CODES.contains(exception.awsErrorDetails().errorCode());
+    /**
+     * Whether the exception has one of the {@link AwsErrorCode#RETRYABLE_ERROR_CODES}. An authentication error code is
+     * retried only when {@link AwsServiceException#isAuthenticationError()} is true, so that retry agrees with credential
+     * invalidation. Shared by the retry strategies in this class and by the legacy {@link AwsRetryPolicy}.
+     */
+    static boolean retryOnAwsRetryableErrors(Throwable ex) {
+        if (!(ex instanceof AwsServiceException)) {
+            return false;
         }
-        return false;
+        AwsServiceException exception = (AwsServiceException) ex;
+        AwsErrorDetails errorDetails = exception.awsErrorDetails();
+        if (errorDetails == null) {
+            return false;
+        }
+        String errorCode = errorDetails.errorCode();
+        if (AwsErrorCode.isAuthenticationErrorCode(errorCode)) {
+            return exception.isAuthenticationError();
+        }
+        return AwsErrorCode.isRetryableErrorCode(errorCode);
     }
 
     /**

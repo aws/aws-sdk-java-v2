@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.UserHomeDirectoryUtils.userHomeDirect
 
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.internal.LazyTokenProvider;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
@@ -135,6 +137,11 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
         @Override
         public AwsCredentials resolveCredentials() {
             return this.credentialsProvider.resolveCredentials();
+        }
+
+        @Override
+        public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+            return this.credentialsProvider.invalidate(identity);
         }
 
         @Override

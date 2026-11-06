@@ -61,6 +61,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     private ShapeUnmarshaller unmarshaller;
 
     private String errorCode;
+    private String queryCompatibleErrorCode;
     private Integer httpStatusCode;
     private boolean fault;
 
@@ -558,6 +559,20 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     }
 
     /**
+     * Return the error code that an awsQueryCompatible service reports for this exception in the x-amzn-query-error
+     * response header. The client uses that code as the error code of the exception, while it still uses
+     * {@link #getErrorCode()} to choose the exception class. This is the code of the shape's error trait. It is null when
+     * the service is not awsQueryCompatible or the error trait has no code.
+     */
+    public String getQueryCompatibleErrorCode() {
+        return queryCompatibleErrorCode;
+    }
+
+    public void setQueryCompatibleErrorCode(String queryCompatibleErrorCode) {
+        this.queryCompatibleErrorCode = queryCompatibleErrorCode;
+    }
+
+    /**
      * Return the httpStatusCode of the exception shape. This value is present only for modeled exceptions.
      */
     public Integer getHttpStatusCode() {
@@ -709,6 +724,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
                && Objects.equals(marshaller, that.marshaller)
                && Objects.equals(unmarshaller, that.unmarshaller)
                && Objects.equals(errorCode, that.errorCode)
+               && Objects.equals(queryCompatibleErrorCode, that.queryCompatibleErrorCode)
                && Objects.equals(httpStatusCode, that.httpStatusCode)
                && Objects.equals(customization, that.customization)
                && Objects.equals(xmlNamespace, that.xmlNamespace);
@@ -738,6 +754,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
         result = 31 * result + Objects.hashCode(marshaller);
         result = 31 * result + Objects.hashCode(unmarshaller);
         result = 31 * result + Objects.hashCode(errorCode);
+        result = 31 * result + Objects.hashCode(queryCompatibleErrorCode);
         result = 31 * result + Objects.hashCode(httpStatusCode);
         result = 31 * result + Boolean.hashCode(fault);
         result = 31 * result + Objects.hashCode(customization);

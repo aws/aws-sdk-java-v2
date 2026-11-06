@@ -30,11 +30,13 @@ public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.B
     private final T value;
     private final Instant staleTime;
     private final Instant prefetchTime;
+    private final Instant expiration;
 
     private RefreshResult(Builder<T> builder) {
         this.value = builder.value;
         this.staleTime = builder.staleTime;
         this.prefetchTime = builder.prefetchTime;
+        this.expiration = builder.expiration;
     }
 
     /**
@@ -68,6 +70,17 @@ public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.B
         return prefetchTime;
     }
 
+    /**
+     * When the value actually expires, or null if not specified. Unlike {@link #staleTime()}, which can be earlier to force a
+     * blocking refresh before expiry, this is the true expiration. With {@link CachedSupplier.StaleValueBehavior#ALLOW}, a
+     * fetched value is treated as a failed refresh only if this time is at or before now and a value is already cached, and
+     * the remaining time until this expiration of the cached value determines the refresh backoff after a failed refresh. If
+     * not specified, {@link #staleTime()} is used instead.
+     */
+    public Instant expiration() {
+        return expiration;
+    }
+
     @Override
     public RefreshResult.Builder<T> toBuilder() {
         return new RefreshResult.Builder<>(this);
@@ -80,6 +93,7 @@ public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.B
         private final T value;
         private Instant staleTime = Instant.MAX;
         private Instant prefetchTime = Instant.MAX;
+        private Instant expiration;
 
         private Builder(T value) {
             this.value = value;
@@ -89,13 +103,14 @@ public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.B
             this.value = value.value;
             this.staleTime = value.staleTime;
             this.prefetchTime = value.prefetchTime;
+            this.expiration = value.expiration;
         }
 
         /**
          * Specify the time at which the value in this cache is stale, and all calls to {@link CachedSupplier#get()} should block
          * to try to update the value.
          *
-         * If this isn't specified, all threads will never block to update the value.
+         * If this isn't specified, or is {@code null}, all threads will never block to update the value.
          */
         public Builder<T> staleTime(Instant staleTime) {
             this.staleTime = staleTime;
@@ -113,6 +128,23 @@ public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.B
          */
         public Builder<T> prefetchTime(Instant prefetchTime) {
             this.prefetchTime = prefetchTime;
+            return this;
+        }
+
+        /**
+         * Specify the time at which the value actually expires. This can be later than the {@link #staleTime(Instant)}, which
+         * may be set earlier to force a blocking refresh before the value expires.
+         *
+         * <p>With {@link CachedSupplier.StaleValueBehavior#ALLOW}, a fetched value whose stale time has passed is still used
+         * as long as this expiration has not passed. Only a value whose expiration is at or before now, fetched while a value
+         * is already cached, is treated as a failed refresh. The remaining time until the cached value's expiration also
+         * determines how long the supplier waits before trying again after a failed refresh.
+         * {@link CachedSupplier.StaleValueBehavior#STRICT} ignores this value.
+         *
+         * If this isn't specified, the {@link #staleTime(Instant)} is treated as the expiration.
+         */
+        public Builder<T> expiration(Instant expiration) {
+            this.expiration = expiration;
             return this;
         }
 

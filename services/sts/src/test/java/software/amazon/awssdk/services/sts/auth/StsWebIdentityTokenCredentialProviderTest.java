@@ -183,7 +183,7 @@ class StsWebIdentityTokenCredentialProviderTest {
                                                       .build();
 
         try {
-            assertThat(provider.prefetchTime()).isEqualTo(Duration.ofMinutes(5));
+            assertThat(provider.prefetchTime()).isNull();
             assertThat(provider.staleTime()).isEqualTo(Duration.ofMinutes(1));
         } finally {
             provider.close();
