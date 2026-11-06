@@ -16,6 +16,7 @@
 package software.amazon.awssdk.messagemanager.sns.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -24,8 +25,12 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
+import java.net.URI;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Collections;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -35,6 +40,8 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpService;
 import software.amazon.awssdk.messagemanager.sns.SnsMessageManager;
+import software.amazon.awssdk.messagemanager.sns.model.SignatureVersion;
+import software.amazon.awssdk.messagemanager.sns.model.SnsMessage;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -142,6 +149,117 @@ public class DefaultSnsMessageManagerTest {
             .isInstanceOf(SdkClientException.class)
             .hasMessage("SigningCertURL does not match expected host: sns.us-west-2.amazonaws.com");
         verifyNoInteractions(mockRetriever);
+    }
+
+    @Test
+    void parseMessage_minimumVersion2_version1Message_certificateNotRetrieved() {
+        CertificateRetriever mockRetriever = mock(CertificateRetriever.class);
+        SnsMessageManager msgManager = new DefaultSnsMessageManager.BuilderImpl()
+            .certificateRetriever(mockRetriever)
+            .region(Region.US_WEST_2)
+            .minimumSignatureVersion(SignatureVersion.VERSION_2)
+            .build();
+
+        String message = notification(Base64.getEncoder().encodeToString(new byte[256]),
+                                      "https://sns.us-west-2.amazonaws.com/cert.pem");
+
+        assertThatThrownBy(() -> msgManager.parseMessage(message))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("below the minimum");
+        verifyNoInteractions(mockRetriever);
+    }
+
+    @Test
+    void parseMessage_validSha1SignedVersion1Message_acceptedByDefaultRejectedWithMinimumVersion2() throws Exception {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        KeyPair keyPair = generator.generateKeyPair();
+
+        String certUrl = "https://sns.us-west-2.amazonaws.com/cert.pem";
+        String canonical = TestSigningCertificates.notificationCanonical("hello", "id", null, "2026-08-29T00:00:00.000Z",
+                                                                         "arn:aws:sns:us-west-2:1:t");
+        String message = notification(TestSigningCertificates.sign(canonical, keyPair.getPrivate(), "SHA1withRSA"), certUrl);
+
+        CertificateRetriever defaultRetriever = mock(CertificateRetriever.class);
+        when(defaultRetriever.cachedCertificates(URI.create(certUrl))).thenReturn(Collections.emptyList());
+        when(defaultRetriever.retrieveCertificate(URI.create(certUrl))).thenReturn(keyPair.getPublic());
+        SnsMessageManager defaultManager = new DefaultSnsMessageManager.BuilderImpl()
+            .certificateRetriever(defaultRetriever)
+            .region(Region.US_WEST_2)
+            .build();
+
+        SnsMessage parsed = defaultManager.parseMessage(message);
+        assertThat(parsed.signatureVersion()).isEqualTo(SignatureVersion.VERSION_1);
+
+        CertificateRetriever strictRetriever = mock(CertificateRetriever.class);
+        when(strictRetriever.cachedCertificates(URI.create(certUrl))).thenReturn(Collections.emptyList());
+        when(strictRetriever.retrieveCertificate(URI.create(certUrl))).thenReturn(keyPair.getPublic());
+        SnsMessageManager strictManager = new DefaultSnsMessageManager.BuilderImpl()
+            .certificateRetriever(strictRetriever)
+            .region(Region.US_WEST_2)
+            .minimumSignatureVersion(SignatureVersion.VERSION_2)
+            .build();
+
+        assertThatThrownBy(() -> strictManager.parseMessage(message))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("below the minimum");
+        verifyNoInteractions(strictRetriever);
+    }
+
+    @Test
+    void parseMessage_minimumVersion2_version2Message_notRejectedForVersion() throws Exception {
+        CertificateRetriever mockRetriever = mock(CertificateRetriever.class);
+        when(mockRetriever.retrieveCertificate(any())).thenReturn(
+            KeyPairGenerator.getInstance("RSA").generateKeyPair().getPublic());
+        SnsMessageManager msgManager = new DefaultSnsMessageManager.BuilderImpl()
+            .certificateRetriever(mockRetriever)
+            .region(Region.US_WEST_2)
+            .minimumSignatureVersion(SignatureVersion.VERSION_2)
+            .build();
+
+        String message = notification(Base64.getEncoder().encodeToString(new byte[256]),
+                                      "https://sns.us-west-2.amazonaws.com/cert.pem")
+            .replace("\"SignatureVersion\":\"1\"", "\"SignatureVersion\":\"2\"");
+
+        // The version check passes, so the manager goes on to verify against the retrieved certificate.
+        assertThatThrownBy(() -> msgManager.parseMessage(message))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("The computed signature did not match the expected signature");
+        verify(mockRetriever).retrieveCertificate(any());
+    }
+
+    @Test
+    void build_minimumVersionNull_throws() {
+        SnsMessageManager.Builder builder = DefaultSnsMessageManager.builder()
+                                                                    .httpClient(mockHttpClient)
+                                                                    .region(Region.US_WEST_2)
+                                                                    .minimumSignatureVersion(null);
+
+        assertThatThrownBy(builder::build)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("minimumSignatureVersion");
+    }
+
+    @Test
+    void build_minimumVersionUnknown_throws() {
+        SnsMessageManager.Builder builder = DefaultSnsMessageManager.builder()
+                                                                    .httpClient(mockHttpClient)
+                                                                    .region(Region.US_WEST_2)
+                                                                    .minimumSignatureVersion(SignatureVersion.UNKNOWN);
+
+        assertThatThrownBy(builder::build)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("minimumSignatureVersion");
+    }
+
+    @Test
+    void build_minimumVersionSet_builds() {
+        assertThatCode(() -> DefaultSnsMessageManager.builder()
+                                                     .httpClient(mockHttpClient)
+                                                     .region(Region.US_WEST_2)
+                                                     .minimumSignatureVersion(SignatureVersion.VERSION_2)
+                                                     .build())
+            .doesNotThrowAnyException();
     }
 
     private static String notification(String signature, String signingCertUrl) {

@@ -399,6 +399,97 @@ class SignatureValidatorTest {
             .hasMessage("Message signature cannot be null");
     }
 
+    @Test
+    void minimumVersion2_version1Message_rejectedOnEveryEntryPoint() throws Exception {
+        SignatureValidator validator = new SignatureValidator(SignatureVersion.VERSION_2);
+        SnsMessage notification = signedNotification("2024-06-15T12:30:45.123Z", signingKeyPair);
+
+        assertThatThrownBy(() -> validator.validateSignature(notification, signingKeyPair.getPublic()))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("below the minimum");
+        assertThatThrownBy(() -> validator.isSignatureValid(notification, signingKeyPair.getPublic()))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("below the minimum");
+        assertThatThrownBy(() -> validator.prepare(notification))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("below the minimum");
+        assertThatThrownBy(() -> validator.validateSignedFields(notification))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("below the minimum");
+    }
+
+    @Test
+    void minimumVersion2_version1MessageWithShortSignature_reportsVersionError() {
+        SnsNotification notification = SnsNotification.builder()
+                                                      .message("hello world")
+                                                      .messageId("message-id")
+                                                      .topicArn(TOPIC_ARN)
+                                                      .signature(SdkBytes.fromByteArray(new byte[3]))
+                                                      .signatureVersion(SignatureVersion.VERSION_1)
+                                                      .timestamp(Instant.now())
+                                                      .build();
+
+        assertThatThrownBy(() -> new SignatureValidator(SignatureVersion.VERSION_2).validateSignedFields(notification))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("below the minimum");
+    }
+
+    @Test
+    void minimumVersion2_unknownOrMissingVersion_reportsExistingErrors() {
+        SignatureValidator validator = new SignatureValidator(SignatureVersion.VERSION_2);
+        SnsNotification.Builder builder = SnsNotification.builder()
+                                                         .message("hello world")
+                                                         .messageId("message-id")
+                                                         .topicArn(TOPIC_ARN)
+                                                         .signature(SdkBytes.fromByteArray(new byte[256]))
+                                                         .timestamp(Instant.now());
+
+        SnsNotification unknown = builder.signatureVersion(SignatureVersion.UNKNOWN).build();
+        assertThatThrownBy(() -> validator.validateSignedFields(unknown))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Unsupported signature version");
+
+        SnsNotification missing = builder.signatureVersion((SignatureVersion) null).build();
+        assertThatThrownBy(() -> validator.validateSignedFields(missing))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Message signature version cannot be null");
+    }
+
+    @Test
+    void minimumVersion2_version2Message_accepted() throws Exception {
+        SignatureValidator validator = new SignatureValidator(SignatureVersion.VERSION_2);
+        SnsMessage notification = new SnsMessageUnmarshaller().unmarshall(
+            resourceAsStream("test-notification-signature-v2.json"));
+
+        assertThat(notification.signatureVersion()).isEqualTo(SignatureVersion.VERSION_2);
+        assertThatCode(() -> validator.validateSignature(notification, signingCertificate.getPublicKey()))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    void defaultAndMinimumVersion1_version1Message_accepted() throws Exception {
+        SnsMessage notification = signedNotification("2024-06-15T12:30:45.123Z", signingKeyPair);
+
+        assertThat(new SignatureValidator().isSignatureValid(notification, signingKeyPair.getPublic())).isTrue();
+        assertThat(new SignatureValidator(SignatureVersion.VERSION_1).isSignatureValid(notification,
+                                                                                       signingKeyPair.getPublic()))
+            .isTrue();
+    }
+
+    @Test
+    void constructor_minimumVersionNull_throws() {
+        assertThatThrownBy(() -> new SignatureValidator(null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("minimumSignatureVersion");
+    }
+
+    @Test
+    void constructor_minimumVersionUnknown_throws() {
+        assertThatThrownBy(() -> new SignatureValidator(SignatureVersion.UNKNOWN))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("minimumSignatureVersion");
+    }
+
     private static List<TestCase> validMessages() {
         return Stream.of(
                          new TestCase("Notification - No Subject", "test-notification-no-subject.json"),

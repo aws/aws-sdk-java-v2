@@ -67,6 +67,27 @@ public final class SignatureValidator {
     private static final DateTimeFormatter TIMESTAMP_FORMATTER =
         DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ROOT).withZone(ZoneOffset.UTC);
 
+    private final SignatureVersion minimumSignatureVersion;
+
+    /**
+     * Creates a validator that accepts both SignatureVersion 1 and SignatureVersion 2.
+     */
+    public SignatureValidator() {
+        this(SignatureVersion.VERSION_1);
+    }
+
+    /**
+     * Creates a validator that rejects messages declaring a signature version lower than {@code minimumSignatureVersion}.
+     *
+     * @param minimumSignatureVersion VERSION_1 or VERSION_2.
+     */
+    public SignatureValidator(SignatureVersion minimumSignatureVersion) {
+        Validate.paramNotNull(minimumSignatureVersion, "minimumSignatureVersion");
+        Validate.isTrue(minimumSignatureVersion != SignatureVersion.UNKNOWN,
+                        "minimumSignatureVersion must be VERSION_1 or VERSION_2");
+        this.minimumSignatureVersion = minimumSignatureVersion;
+    }
+
     public void validateSignature(SnsMessage message, PublicKey publicKey) {
         Validate.paramNotNull(publicKey, "publicKey");
         prepare(message).verify(publicKey);
@@ -123,6 +144,11 @@ public final class SignatureValidator {
 
         if (signatureVersion == SignatureVersion.UNKNOWN) {
             throw SdkClientException.create("Unsupported signature version");
+        }
+
+        if (rank(signatureVersion) < rank(minimumSignatureVersion)) {
+            throw SdkClientException.create("Message signature version " + signatureVersion
+                                            + " is below the minimum allowed signature version " + minimumSignatureVersion);
         }
 
         int signatureLength = messageSignature.asByteArrayUnsafe().length;
@@ -237,6 +263,17 @@ public final class SignatureValidator {
 
     private static String formatTimestamp(Instant timestamp) {
         return TIMESTAMP_FORMATTER.format(timestamp);
+    }
+
+    private static int rank(SignatureVersion signatureVersion) {
+        switch (signatureVersion) {
+            case VERSION_1:
+                return 1;
+            case VERSION_2:
+                return 2;
+            default:
+                throw new IllegalStateException("Unsupported signature version: " + signatureVersion);
+        }
     }
 
     private static String algorithmFor(SignatureVersion signatureVersion) {

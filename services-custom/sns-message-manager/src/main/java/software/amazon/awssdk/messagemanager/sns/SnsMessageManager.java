@@ -19,6 +19,7 @@ import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.messagemanager.sns.internal.DefaultSnsMessageManager;
+import software.amazon.awssdk.messagemanager.sns.model.SignatureVersion;
 import software.amazon.awssdk.messagemanager.sns.model.SnsMessage;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -29,7 +30,9 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  *
  * <p>This manager provides automatic validation of SNS message signatures received via HTTP/HTTPS endpoints,
  * ensuring that messages originate from Amazon SNS and have not been modified during transmission.
- * It supports both SignatureVersion1 (SHA1) and SignatureVersion2 (SHA256) as per AWS SNS standards.
+ * It supports both SignatureVersion1 (SHA1) and SignatureVersion2 (SHA256) as per AWS SNS standards. By default both
+ * versions are accepted. Use {@link Builder#minimumSignatureVersion(SignatureVersion)} to reject messages that declare a
+ * lower signature version than your SNS topics use.
  *
  * <p>The manager handles certificate retrieval, caching, and validation automatically, supporting different
  * AWS regions and partitions (aws, aws-gov, aws-cn).
@@ -56,6 +59,15 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * {@code
  * SnsMessageManager messageManager = SnsMessageManager.builder()
  *     .httpClient(ApacheHttpClient.create())
+ *     .build();
+ * }
+ * </pre>
+ *
+ * <p>Usage for SNS topics configured with SignatureVersion 2, rejecting messages that declare SignatureVersion 1:
+ * <pre>
+ * {@code
+ * SnsMessageManager messageManager = SnsMessageManager.builder()
+ *     .minimumSignatureVersion(SignatureVersion.VERSION_2)
  *     .build();
  * }
  * </pre>
@@ -124,6 +136,22 @@ public interface SnsMessageManager extends SdkAutoCloseable {
          * @return This builder for method chaining.
          */
         Builder region(Region region);
+
+        /**
+         * Sets the minimum SNS signature version this manager accepts. Messages that declare a lower SignatureVersion are
+         * rejected with {@link software.amazon.awssdk.core.exception.SdkClientException} before the signing certificate is
+         * retrieved or the signature is checked.
+         * <p>
+         * Defaults to {@link SignatureVersion#VERSION_1}, which accepts both SignatureVersion 1 (SHA1withRSA) and
+         * SignatureVersion 2 (SHA256withRSA). If the SNS topics you subscribe to are configured with SignatureVersion 2,
+         * set this to {@link SignatureVersion#VERSION_2} so that a message cannot be downgraded to SHA1withRSA by
+         * declaring SignatureVersion 1.
+         *
+         * @param minimumSignatureVersion {@link SignatureVersion#VERSION_1} or {@link SignatureVersion#VERSION_2};
+         * {@link SignatureVersion#UNKNOWN} is not allowed.
+         * @return This builder for method chaining.
+         */
+        Builder minimumSignatureVersion(SignatureVersion minimumSignatureVersion);
 
         /**
          * Builds an instance of {@link SnsMessageManager} based on the supplied configurations.

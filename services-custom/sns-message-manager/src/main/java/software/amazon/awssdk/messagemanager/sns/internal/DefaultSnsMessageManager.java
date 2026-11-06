@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuil
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.messagemanager.sns.SnsMessageManager;
+import software.amazon.awssdk.messagemanager.sns.model.SignatureVersion;
 import software.amazon.awssdk.messagemanager.sns.model.SnsMessage;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -48,6 +49,7 @@ public final class DefaultSnsMessageManager implements SnsMessageManager {
 
     private DefaultSnsMessageManager(BuilderImpl builder) {
         this.unmarshaller = new SnsMessageUnmarshaller();
+        this.signatureValidator = new SignatureValidator(builder.minimumSignatureVersion);
 
         SnsHostProvider hostProvider = new SnsHostProvider(builder.region);
         URI signingCertEndpoint = hostProvider.regionalEndpoint();
@@ -58,7 +60,6 @@ public final class DefaultSnsMessageManager implements SnsMessageManager {
                         ? builder.certRetriever
                         : new CertificateRetriever(httpClient, signingCertEndpoint.getHost(), signingCertCommonName);
 
-        signatureValidator = new SignatureValidator();
         endpointUrlValidator = new SnsEndpointUrlValidator(signingCertEndpoint.getHost());
     }
 
@@ -114,6 +115,7 @@ public final class DefaultSnsMessageManager implements SnsMessageManager {
     static class BuilderImpl implements SnsMessageManager.Builder {
         private Region region;
         private SdkHttpClient httpClient;
+        private SignatureVersion minimumSignatureVersion = SignatureVersion.VERSION_1;
 
         // Testing only
         private CertificateRetriever certRetriever;
@@ -127,6 +129,12 @@ public final class DefaultSnsMessageManager implements SnsMessageManager {
         @Override
         public Builder region(Region region) {
             this.region = region;
+            return this;
+        }
+
+        @Override
+        public Builder minimumSignatureVersion(SignatureVersion minimumSignatureVersion) {
+            this.minimumSignatureVersion = minimumSignatureVersion;
             return this;
         }
 

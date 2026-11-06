@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SNS Message Manager",
+    "contributor": "",
+    "description": "Added SnsMessageManager.Builder#minimumSignatureVersion. Messages that declare a lower SignatureVersion than the configured minimum are rejected."
+}
