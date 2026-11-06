@@ -300,6 +300,43 @@ class AddSmithyShapesShapeModelTest {
         assertThat(sm.getXmlNamespace().getPrefix()).isEqualTo("ex");
     }
 
+    @Test
+    void xmlNamespaceOnStructureMember_movesToTargetShape() {
+        Model model = modelOf(
+            "structure Grant {\n"
+            + "    @xmlNamespace(uri: \"http://www.w3.org/2001/XMLSchema-instance\", prefix: \"xsi\")\n"
+            + "    Grantee: Grantee\n"
+            + "}\n"
+            + "structure Grantee { ID: String }\n");
+        Probe p = probe(model, "rest-xml");
+
+        ShapeModel grant = p.translate("Grant", shape(model, "Grant"), null);
+        ShapeModel grantee = p.translate("Grantee", shape(model, "Grantee"), null);
+
+        assertThat(grant.getXmlNamespace()).isNull();
+        assertThat(grant.findMemberModelByC2jName("Grantee").getXmlNameSpaceUri()).isNull();
+        assertThat(grantee.getXmlNamespace()).isNotNull();
+        assertThat(grantee.getXmlNamespace().getUri()).isEqualTo("http://www.w3.org/2001/XMLSchema-instance");
+        assertThat(grantee.getXmlNamespace().getPrefix()).isEqualTo("xsi");
+    }
+
+    @Test
+    void xmlNamespaceWithoutPrefixOnStructureMember_staysOnMember() {
+        Model model = modelOf(
+            "structure Parent {\n"
+            + "    @xmlNamespace(uri: \"https://example.com/ns\")\n"
+            + "    Child: Child\n"
+            + "}\n"
+            + "structure Child { ID: String }\n");
+        Probe p = probe(model, "rest-xml");
+
+        ShapeModel parent = p.translate("Parent", shape(model, "Parent"), null);
+        ShapeModel child = p.translate("Child", shape(model, "Child"), null);
+
+        assertThat(parent.findMemberModelByC2jName("Child").getXmlNameSpaceUri()).isEqualTo("https://example.com/ns");
+        assertThat(child.getXmlNamespace()).isNull();
+    }
+
     // ---- Enum shapes ------------------------------------------------------
 
     @Test

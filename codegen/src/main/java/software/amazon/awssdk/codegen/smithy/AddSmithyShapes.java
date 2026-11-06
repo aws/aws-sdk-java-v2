@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.EnumModel;
@@ -261,6 +262,10 @@ abstract class AddSmithyShapes {
 
         smithyShape.getTrait(XmlNamespaceTrait.class)
                    .ifPresent(ns -> shapeModel.withXmlNamespace(adaptXmlNamespace(ns)));
+        if (shapeModel.getXmlNamespace() == null) {
+            namespaceOfReferencingMembers(smithyShape)
+                .ifPresent(ns -> shapeModel.withXmlNamespace(adaptXmlNamespace(ns)));
+        }
 
 
         if (smithyShape.hasTrait(ErrorTrait.class)) {
@@ -324,6 +329,33 @@ abstract class AddSmithyShapes {
         }
 
         return shapeModel;
+    }
+
+    /**
+     * The prefixed {@code @xmlNamespace} that members targeting this structure or union carry.
+     */
+    private Optional<XmlNamespaceTrait> namespaceOfReferencingMembers(Shape shape) {
+        if (!isXmlAggregate(shape)) {
+            return Optional.empty();
+        }
+        List<XmlNamespaceTrait> namespaces = model.getMemberShapesWithTrait(XmlNamespaceTrait.class).stream()
+                                                  .filter(m -> m.getTarget().equals(shape.getId()))
+                                                  .map(m -> m.expectTrait(XmlNamespaceTrait.class))
+                                                  .filter(ns -> movesToTarget(ns, shape))
+                                                  .distinct()
+                                                  .collect(Collectors.toList());
+        if (namespaces.size() > 1) {
+            throw new IllegalStateException("Members targeting " + shape.getId() + " carry different @xmlNamespace values");
+        }
+        return namespaces.stream().findFirst();
+    }
+
+    private static boolean isXmlAggregate(Shape shape) {
+        return shape.isStructureShape() || shape.isUnionShape();
+    }
+
+    private static boolean movesToTarget(XmlNamespaceTrait namespace, Shape target) {
+        return isXmlAggregate(target) && namespace.getPrefix().isPresent();
     }
 
     /**
@@ -442,6 +474,7 @@ abstract class AddSmithyShapes {
         memberModel.setXmlAttribute(member.hasTrait(XmlAttributeTrait.class));
 
         member.getTrait(XmlNamespaceTrait.class)
+              .filter(ns -> !movesToTarget(ns, targetShape))
               .ifPresent(ns -> memberModel.setXmlNameSpaceUri(ns.getUri()));
 
         member.getTrait(ContextParamTrait.class).ifPresent(cp -> {
