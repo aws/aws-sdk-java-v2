@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
@@ -66,6 +67,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
     protected final boolean useClientDefaults;
     protected final boolean retries21;
     protected final List<Predicate<RefreshRetryTokenRequest>> doNotRetryPredicates;
+    private final AtomicBoolean doNotRetryPredicateFailureLogged = new AtomicBoolean(false);
 
     BaseRetryStrategy(Logger log, Builder builder) {
         this.log = log;
@@ -412,7 +414,14 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         try {
             return doNotRetry.test(request);
         } catch (RuntimeException e) {
-            log.warn(() -> "A doNotRetryWhen predicate threw an exception. The request will not be retried.", e);
+            // Warn once per strategy so that a predicate that always throws doesn't log on every failed attempt
+            if (doNotRetryPredicateFailureLogged.compareAndSet(false, true)) {
+                log.warn(() -> "A doNotRetryWhen predicate threw an exception. The request will not be retried. Later "
+                               + "exceptions from doNotRetryWhen predicates of this retry strategy are logged at debug level.",
+                         e);
+            } else {
+                log.debug(() -> "A doNotRetryWhen predicate threw an exception. The request will not be retried.", e);
+            }
             return true;
         }
     }
