@@ -109,7 +109,13 @@ public final class MapperDateUtils {
         } catch (DateTimeException e) {
             throw invalidDate(dateString, e);
         }
-        long offsetMillis = parseOffsetMillis(value, position.getIndex(), dateString);
+        int end = position.getIndex();
+        // Joda-Time requires at least one digit after the decimal point. Java 8's appendFraction accepts a bare '.'
+        // (later JDKs leave it unparsed, and the offset parser rejects it), so reject it here on every JDK.
+        if (value.charAt(end - 1) == '.') {
+            throw invalidDate(dateString, null);
+        }
+        long offsetMillis = parseOffsetMillis(value, end, dateString);
         LocalDateTime local = LocalDateTime.from(parsed);
         try {
             long utcMillis = toEpochMilli(local.toEpochSecond(ZoneOffset.UTC), local.getNano());

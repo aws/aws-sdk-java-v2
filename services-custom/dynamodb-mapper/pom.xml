@@ -105,6 +105,8 @@
                                 <includes combine.self="override">
                                     <include>**/*WithoutJodaTimeTest.java</include>
                                 </includes>
+                                <!-- Set explicitly so that -Dtest=... doesn't run other tests here without Joda-Time. -->
+                                <test>*WithoutJodaTimeTest</test>
                                 <classpathDependencyExcludes>
                                     <classpathDependencyExclude>joda-time:joda-time</classpathDependencyExclude>
                                 </classpathDependencyExcludes>
