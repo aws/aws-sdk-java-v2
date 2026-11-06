@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,6 +51,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
@@ -295,6 +297,99 @@ public class QueryOperationTest {
         assertThat(queryRequest.projectionExpression()).isEqualTo("#AMZN_MAPPED_id,#AMZN_MAPPED_version");
         assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_id")).isEqualTo("id");
         assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_version")).isEqualTo("version");
+    }
+
+    @Test
+    public void generateRequest_projectionExpressionWithListDereference() {
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(k -> k.partitionValue(keyItem.getId())))
+                                                      .addAttributeToProject("tags[0]")
+                                                      .build());
+        QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
+                                                                PRIMARY_CONTEXT,
+                                                                null);
+
+        assertThat(queryRequest.projectionExpression()).isEqualTo("#AMZN_MAPPED_tags[0]");
+        assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_tags")).isEqualTo("tags");
+    }
+
+    @Test
+    public void generateRequest_filterAndListProjection_mergesExpressionNames() {
+        Expression filterExpression = Expression.builder()
+                                                .expression("#status = :status")
+                                                .putExpressionName("#status", "status")
+                                                .putExpressionValue(":status", stringValue("active"))
+                                                .build();
+
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(k -> k.partitionValue(keyItem.getId())))
+                                                      .filterExpression(filterExpression)
+                                                      .addNestedAttributeToProject(
+                                                          NestedAttributeName.create("phoneNumbers[1]", "type"))
+                                                      .build());
+        QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
+                                                                PRIMARY_CONTEXT,
+                                                                null);
+
+        assertThat(queryRequest.filterExpression()).isEqualTo("#status = :status");
+        assertThat(queryRequest.projectionExpression())
+            .isEqualTo("#AMZN_MAPPED_phoneNumbers[1].#AMZN_MAPPED_type");
+        assertThat(queryRequest.expressionAttributeNames().get("#status")).isEqualTo("status");
+        assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_phoneNumbers")).isEqualTo("phoneNumbers");
+        assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_type")).isEqualTo("type");
+        assertThat(queryRequest.expressionAttributeValues().get(":status")).isEqualTo(stringValue("active"));
+    }
+
+    @Test
+    public void generateRequest_filterAndListProjection_sameAttributeCompatibleAliases() {
+        Expression filterExpression = Expression.builder()
+                                                .expression("#AMZN_MAPPED_phoneNumbers[1].#AMZN_MAPPED_type = :type")
+                                                .putExpressionName("#AMZN_MAPPED_phoneNumbers", "phoneNumbers")
+                                                .putExpressionName("#AMZN_MAPPED_type", "type")
+                                                .putExpressionValue(":type", stringValue("cell"))
+                                                .build();
+
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(k -> k.partitionValue(keyItem.getId())))
+                                                      .filterExpression(filterExpression)
+                                                      .addNestedAttributeToProject(
+                                                          NestedAttributeName.create("phoneNumbers[1]", "type"))
+                                                      .build());
+        QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
+                                                                PRIMARY_CONTEXT,
+                                                                null);
+
+        assertThat(queryRequest.filterExpression())
+            .isEqualTo("#AMZN_MAPPED_phoneNumbers[1].#AMZN_MAPPED_type = :type");
+        assertThat(queryRequest.projectionExpression())
+            .isEqualTo("#AMZN_MAPPED_phoneNumbers[1].#AMZN_MAPPED_type");
+        assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_phoneNumbers")).isEqualTo("phoneNumbers");
+        assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_type")).isEqualTo("type");
+        assertThat(queryRequest.expressionAttributeValues().get(":type")).isEqualTo(stringValue("cell"));
+    }
+
+    @Test
+    public void generateRequest_filterAndListProjection_conflictingAliases_throws() {
+        Expression filterExpression = Expression.builder()
+                                                .expression("#AMZN_MAPPED_phoneNumbers = :value")
+                                                .putExpressionName("#AMZN_MAPPED_phoneNumbers", "otherAttr")
+                                                .putExpressionValue(":value", stringValue("x"))
+                                                .build();
+
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(k -> k.partitionValue(keyItem.getId())))
+                                                      .filterExpression(filterExpression)
+                                                      .addNestedAttributeToProject(
+                                                          NestedAttributeName.create("phoneNumbers[1]", "type"))
+                                                      .build());
+
+        assertThatThrownBy(() -> queryToTest.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("#AMZN_MAPPED_phoneNumbers");
     }
 
     @Test
