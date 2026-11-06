@@ -65,8 +65,6 @@ public final class CrtUtils {
         codes.add(2092);
         // AWS_ERROR_HTTP_CONNECTION_MANAGER_ACQUISITION_TIMEOUT
         codes.add(2093);
-        // AWS_ERROR_HTTP_CONNECTION_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED
-        codes.add(2094);
         ADDITIONAL_RETRYABLE_ERROR_CODES = unmodifiableSet(codes);
     }
 
