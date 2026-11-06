@@ -26,11 +26,11 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * Configuration for the client-wide direct buffer pool used by the CRT-based S3 client.
  *
- * <p>Multipart uploads, and all downloads except {@code GetObject} requests that set a part number, use the pool.
+ * <p>Multipart uploads, and all downloads except {@code GetObject} requests that set {@code partNumber}, use the pool.
  * Single-part uploads don't. Each request that uses the pool holds at least one full part of pool memory while it runs, so a
  * 1 KiB download still uses an 8 MiB part with the default part size.
  *
- * <p>Downloads that use {@link S3CrtResponseTransformerFactory#toBlockingInputStreamFromDirectBufferPool()} hold pool memory
+ * <p>Downloads that use {@link S3CrtResponseTransformerProvider#toBlockingInputStreamFromDirectBufferPool()} hold pool memory
  * until the application reads or closes the stream, so a slow reader can delay other requests on the client. A starting
  * size is the number of concurrent downloads that use the pool times ({@code initialReadBufferSizeInBytes} plus one part
  * size), plus headroom for the other downloads and multipart uploads on the client. Each download can have one requested
@@ -43,9 +43,8 @@ import software.amazon.awssdk.utils.Validate;
  * each download can then hold more pool memory.
  *
  * <p>Start with {@link #auto()}, which lets CRT size the pool. Use {@link #elastic(long, long)} to set the ceiling
- * yourself, and {@link #fixed(long)} only when the pool must be a specific amount of memory that never changes. An
- * explicit ceiling, set through either of those or through {@code maxNativeMemoryLimitInBytes}, must fit within 80% of
- * the JVM direct-memory limit ({@code -XX:MaxDirectMemorySize}), or client creation fails. A {@link #fixed(long)} or
+ * yourself. An explicit ceiling, set through {@link #elastic(long, long)} or through {@code maxNativeMemoryLimitInBytes},
+ * must fit within 80% of the JVM direct-memory limit ({@code -XX:MaxDirectMemorySize}), or client creation fails. An
  * {@link #elastic(long, long)} ceiling must also not exceed {@code maxNativeMemoryLimitInBytes} when that is set. For
  * {@link #auto()}, a ceiling set through CRT's {@code AWS_CRT_S3_MEMORY_LIMIT_IN_MB} or
  * {@code AWS_CRT_S3_MEMORY_LIMIT_IN_GIB} environment variable is also explicit. An {@link #auto()} pool without an
@@ -57,8 +56,7 @@ import software.amazon.awssdk.utils.Validate;
  * below S3's 5 MiB minimum for non-final parts or the object needs more than 10,000 parts. Without an explicit part size,
  * a known-size upload that needs larger parts than the pool can provide fails before sending data. This doesn't apply
  * to uploads from a file path, such as {@code putObject(PutObjectRequest, Path)} or Transfer Manager
- * {@code uploadFile}. For those, CRT can raise the part size as it does without a pool, and a {@link #fixed(long)} pool
- * fails the upload if a part doesn't fit.
+ * {@code uploadFile}. For those, CRT can raise the part size as it does without a pool.
  */
 @SdkPublicApi
 @Immutable
@@ -90,24 +88,6 @@ public final class S3CrtDirectBufferPoolConfiguration {
     }
 
     /**
-     * Creates a configuration for a fixed-size pool.
-     *
-     * <p>CRT rounds {@code memoryLimitInBytes} down to whole parts, allocates the resulting capacity when the client is
-     * created, and never grows or shrinks it. When
-     * {@link software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder#minimumPartSizeInBytes(Long)} is not set, a
-     * fixed pool supports known-size multipart uploads up to 312.5 GiB. Use {@link #auto()} or
-     * {@link #elastic(long, long)} for larger uploads.
-     *
-     * @param memoryLimitInBytes requested pool ceiling in bytes, rounded down to whole parts by CRT
-     * @return a fixed-size pool configuration
-     * @throws IllegalArgumentException if {@code memoryLimitInBytes} is not positive
-     */
-    public static S3CrtDirectBufferPoolConfiguration fixed(long memoryLimitInBytes) {
-        Validate.isPositive(memoryLimitInBytes, "memoryLimitInBytes");
-        return new S3CrtDirectBufferPoolConfiguration(null, memoryLimitInBytes);
-    }
-
-    /**
      * Creates a configuration for a pool that grows on demand to its ceiling and releases unused capacity above its
      * floor when the client is idle.
      *
@@ -116,7 +96,7 @@ public final class S3CrtDirectBufferPoolConfiguration {
      * the ceiling, in which case the pool keeps its whole capacity allocated. The ceiling is {@code memoryLimitInBytes}
      * rounded down to whole parts.
      *
-     * @param minimumSizeInBytes requested elastic floor in bytes
+     * @param minimumSizeInBytes requested pool floor in bytes
      * @param memoryLimitInBytes requested pool ceiling in bytes
      * @return an elastic pool configuration
      * @throws IllegalArgumentException if {@code minimumSizeInBytes} is negative, {@code memoryLimitInBytes} is not
@@ -131,9 +111,9 @@ public final class S3CrtDirectBufferPoolConfiguration {
     }
 
     /**
-     * Returns the configured pool ceiling.
+     * Returns the configured elastic pool ceiling.
      *
-     * @return the pool ceiling, or an empty optional when automatic sizing is configured
+     * @return the elastic pool ceiling, or an empty optional when the pool is automatic
      */
     public Optional<Long> memoryLimitInBytes() {
         return Optional.ofNullable(memoryLimitInBytes);
@@ -142,7 +122,7 @@ public final class S3CrtDirectBufferPoolConfiguration {
     /**
      * Returns the configured elastic pool floor.
      *
-     * @return the elastic pool floor, or an empty optional when the pool is automatic or fixed
+     * @return the elastic pool floor, or an empty optional when the pool is automatic
      */
     public Optional<Long> minimumSizeInBytes() {
         return Optional.ofNullable(minimumSizeInBytes);

@@ -34,12 +34,12 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
-import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
-import software.amazon.awssdk.transfer.s3.model.DirectBufferPoolDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.Download;
+import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.utils.Md5Utils;
 
@@ -64,12 +64,12 @@ public class S3TransferManagerDirectBufferPoolDownloadIntegrationTest extends S3
     }
 
     @Test
-    void downloadWithDirectBufferPool_shouldReportProgressAndComplete() throws Exception {
+    void download_withDirectBufferPool_shouldReportProgressAndComplete() throws Exception {
         try (S3AsyncClient client = pooledClient();
              S3TransferManager transferManager = S3TransferManager.builder().s3Client(client).build()) {
             CaptureTransferListener listener = new CaptureTransferListener();
             Download<ResponseInputStream<GetObjectResponse>> download =
-                transferManager.downloadWithDirectBufferPool(pooledRequest(listener));
+                transferManager.download(pooledRequest(listener));
 
             try (ResponseInputStream<GetObjectResponse> stream = download.completionFuture().get(1, TimeUnit.MINUTES).result()) {
                 assertThat(listener.isTransferComplete()).isFalse();
@@ -91,12 +91,12 @@ public class S3TransferManagerDirectBufferPoolDownloadIntegrationTest extends S3
     }
 
     @Test
-    void downloadWithDirectBufferPool_closeEarly_shouldReportCancellationAndAllowNextDownload() throws Exception {
+    void download_withDirectBufferPool_closeEarly_shouldReportCancellationAndAllowNextDownload() throws Exception {
         try (S3AsyncClient client = pooledClient();
              S3TransferManager transferManager = S3TransferManager.builder().s3Client(client).build()) {
             CountingTransferListener listener = new CountingTransferListener();
             Download<ResponseInputStream<GetObjectResponse>> download =
-                transferManager.downloadWithDirectBufferPool(pooledRequest(listener));
+                transferManager.download(pooledRequest(listener));
 
             try (ResponseInputStream<GetObjectResponse> stream = download.completionFuture().get(1, TimeUnit.MINUTES).result()) {
                 assertThat(stream.read()).isGreaterThanOrEqualTo(0);
@@ -105,7 +105,7 @@ public class S3TransferManagerDirectBufferPoolDownloadIntegrationTest extends S3
             assertThatThrownBy(() -> listener.terminalFuture().get(1, TimeUnit.MINUTES))
                 .isInstanceOf(CancellationException.class);
 
-            try (ResponseInputStream<GetObjectResponse> stream = transferManager.downloadWithDirectBufferPool(pooledRequest())
+            try (ResponseInputStream<GetObjectResponse> stream = transferManager.download(pooledRequest())
                                                                                 .completionFuture()
                                                                                 .get(1, TimeUnit.MINUTES)
                                                                                 .result()) {
@@ -125,26 +125,24 @@ public class S3TransferManagerDirectBufferPoolDownloadIntegrationTest extends S3
                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                             .minimumPartSizeInBytes((long) PART_SIZE)
                             .initialReadBufferSizeInBytes((long) PART_SIZE)
-                            .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.fixed(2L * PART_SIZE))
+                            .directBufferPoolConfiguration(
+                                S3CrtDirectBufferPoolConfiguration.elastic(2L * PART_SIZE, 2L * PART_SIZE))
                             .build();
     }
 
-    private static DirectBufferPoolDownloadRequest<ResponseInputStream<GetObjectResponse>> pooledRequest() {
-        return DirectBufferPoolDownloadRequest.builder()
-                                              .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
-                                              .responseTransformer(
-                                                  S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
-                                              .build();
+    private static DownloadRequest<ResponseInputStream<GetObjectResponse>> pooledRequest() {
+        return DownloadRequest.builder()
+                              .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                              .responseTransformer(S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
+                              .build();
     }
 
-    private static DirectBufferPoolDownloadRequest<ResponseInputStream<GetObjectResponse>> pooledRequest(
-        TransferListener listener) {
-        return DirectBufferPoolDownloadRequest.builder()
-                                              .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
-                                              .addTransferListener(listener)
-                                              .responseTransformer(
-                                                  S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
-                                              .build();
+    private static DownloadRequest<ResponseInputStream<GetObjectResponse>> pooledRequest(TransferListener listener) {
+        return DownloadRequest.builder()
+                              .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                              .addTransferListener(listener)
+                              .responseTransformer(S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
+                              .build();
     }
 
     private static void assertStreamMatchesObject(ResponseInputStream<GetObjectResponse> stream) throws IOException {

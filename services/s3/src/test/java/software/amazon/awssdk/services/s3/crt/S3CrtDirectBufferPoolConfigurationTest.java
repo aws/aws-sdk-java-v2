@@ -38,44 +38,24 @@ class S3CrtDirectBufferPoolConfigurationTest {
     }
 
     @Test
-    void fixed_shouldCreateFixedConfiguration() {
-        S3CrtDirectBufferPoolConfiguration configuration = S3CrtDirectBufferPoolConfiguration.fixed(1024);
-
-        assertThat(configuration.minimumSizeInBytes()).isEmpty();
-        assertThat(configuration.memoryLimitInBytes()).contains(1024L);
-        assertThat(configuration.toString()).contains("1024");
-    }
-
-    @Test
     void elastic_shouldCreateElasticConfiguration() {
         S3CrtDirectBufferPoolConfiguration configuration = S3CrtDirectBufferPoolConfiguration.elastic(0, 1024);
 
         assertThat(configuration.minimumSizeInBytes()).contains(0L);
         assertThat(configuration.memoryLimitInBytes()).contains(1024L);
-        assertThat(configuration).isNotEqualTo(S3CrtDirectBufferPoolConfiguration.fixed(1024));
+        assertThat(configuration).isNotEqualTo(S3CrtDirectBufferPoolConfiguration.auto());
         assertThat(configuration.toString()).contains("minimumSizeInBytes=0", "memoryLimitInBytes=1024");
     }
 
     @Test
-    void elastic_whenMinimumEqualsMemoryLimit_shouldRemainDistinctFromFixed() {
+    void elastic_whenMinimumEqualsMemoryLimit_shouldKeepBothSizes() {
         S3CrtDirectBufferPoolConfiguration configuration = S3CrtDirectBufferPoolConfiguration.elastic(1024, 1024);
         S3CrtDirectBufferPoolConfiguration equalConfiguration = S3CrtDirectBufferPoolConfiguration.elastic(1024, 1024);
 
         assertThat(configuration.minimumSizeInBytes()).contains(1024L);
         assertThat(configuration.memoryLimitInBytes()).contains(1024L);
         assertThat(configuration).isEqualTo(equalConfiguration)
-                              .hasSameHashCodeAs(equalConfiguration)
-                              .isNotEqualTo(S3CrtDirectBufferPoolConfiguration.fixed(1024));
-    }
-
-    @Test
-    void fixed_whenMemoryLimitIsNotPositive_shouldFail() {
-        assertThatThrownBy(() -> S3CrtDirectBufferPoolConfiguration.fixed(0))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("memoryLimitInBytes");
-        assertThatThrownBy(() -> S3CrtDirectBufferPoolConfiguration.fixed(-1))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("memoryLimitInBytes");
+                              .hasSameHashCodeAs(equalConfiguration);
     }
 
     @Test

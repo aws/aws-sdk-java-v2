@@ -19,7 +19,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.Copy;
 import software.amazon.awssdk.transfer.s3.model.CopyRequest;
-import software.amazon.awssdk.transfer.s3.model.DirectBufferPoolDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.Download;
@@ -67,11 +66,6 @@ abstract class DelegatingS3TransferManager implements S3TransferManager {
     @Override
     public <ResultT> Download<ResultT> download(DownloadRequest<ResultT> downloadRequest) {
         return delegate.download(downloadRequest);
-    }
-
-    @Override
-    public <ResultT> Download<ResultT> downloadWithDirectBufferPool(DirectBufferPoolDownloadRequest<ResultT> downloadRequest) {
-        return delegate.downloadWithDirectBufferPool(downloadRequest);
     }
 
     @Override

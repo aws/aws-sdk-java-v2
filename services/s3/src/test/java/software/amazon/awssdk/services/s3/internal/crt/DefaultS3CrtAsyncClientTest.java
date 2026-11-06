@@ -42,7 +42,7 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerProvider;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
@@ -172,11 +172,12 @@ class DefaultS3CrtAsyncClientTest {
                                            .credentialsProvider(StaticCredentialsProvider.create(
                                                AwsBasicCredentials.create("key", "secret")))
                                            .directBufferPoolConfiguration(
-                                               S3CrtDirectBufferPoolConfiguration.fixed(
+                                               S3CrtDirectBufferPoolConfiguration.elastic(
+                                                   S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES,
                                                    S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES))
                                            .build()) {
             assertThatThrownBy(() -> client.getObject(
-                request, S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()).join())
+                request, S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool()).join())
                 .hasMessageContaining("STOP");
         }
 

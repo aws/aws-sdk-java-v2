@@ -190,7 +190,7 @@ class S3CrtBorrowedBufferUploadPartSizeWireMockTest {
         }
 
         private S3AsyncClient withPool(long poolBytes) {
-            return base().directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.fixed(poolBytes)).build();
+            return base().directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.elastic(poolBytes, poolBytes)).build();
         }
 
         private S3AsyncClient withoutPool() {
