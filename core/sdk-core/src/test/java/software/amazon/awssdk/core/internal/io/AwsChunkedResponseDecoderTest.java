@@ -17,6 +17,9 @@ package software.amazon.awssdk.core.internal.io;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -25,6 +28,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.http.Abortable;
+import software.amazon.awssdk.http.AbortableInputStream;
 
 /**
  * Tests for {@link AwsChunkedResponseDecoder} against Streaming Operations SEP test vectors.
@@ -256,11 +261,25 @@ class AwsChunkedResponseDecoderTest {
 
     @Test
     void close_whenCalled_closesUnderlyingStream() throws IOException {
-        ByteArrayInputStream underlying = new ByteArrayInputStream(
-            "5\r\nhello\r\n0\r\n\r\n".getBytes(StandardCharsets.UTF_8));
+        InputStream underlying = spy(new ByteArrayInputStream(
+            "5\r\nhello\r\n0\r\n\r\n".getBytes(StandardCharsets.UTF_8)));
         AwsChunkedResponseDecoder decoder = new AwsChunkedResponseDecoder(underlying, -1);
 
         decoder.close();
+
+        verify(underlying).close();
+    }
+
+    @Test
+    void abort_whenUnderlyingStreamIsAbortable_delegatesAbort() {
+        Abortable abortable = mock(Abortable.class);
+        InputStream underlying = AbortableInputStream.create(
+            new ByteArrayInputStream("5\r\nhello\r\n0\r\n\r\n".getBytes(StandardCharsets.UTF_8)), abortable);
+        AwsChunkedResponseDecoder decoder = new AwsChunkedResponseDecoder(underlying, -1);
+
+        decoder.abort();
+
+        verify(abortable).abort();
     }
 
     @Test
