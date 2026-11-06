@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "Amazon Kinesis",
     "contributor": "",
-    "description": "Removed the Kinesis client's 10 second default read timeout override, so Kinesis now uses the SDK-wide 30 second default read timeout. This lets long-polling operations wait up to their full duration on SDK-managed HTTP clients."
+    "description": "Removed the Kinesis client's 10 second default read timeout override, so Kinesis now uses the SDK-wide 30 second default read timeout."
 }
