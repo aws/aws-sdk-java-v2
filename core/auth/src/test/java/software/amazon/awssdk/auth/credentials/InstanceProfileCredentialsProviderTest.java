@@ -81,7 +81,13 @@ public class InstanceProfileCredentialsProviderTest {
     private static final String STUB_CREDENTIALS = "{\"AccessKeyId\":\"ACCESS_KEY_ID\",\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
             + "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)))
             + "\"}";
+    private static final String STUB_CREDENTIALS_WITH_ACCOUNT_ID =
+            "{\"AccessKeyId\":\"ACCESS_KEY_ID\",\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+            + "\"Token\":\"TOKEN_TOKEN_TOKEN\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)))
+            + "\",\"AccountId\":\"123456789012\"}";
     private static final String TOKEN_HEADER = "x-aws-ec2-metadata-token";
+    private static final String EXTENDED_CREDENTIALS_HEADER = "X-amzn-extended";
     private static final String USER_AGENT_HEADER = "User-Agent";
     private static final String TOKEN_STUB = "some-token";
     private static final String PROFILE_NAME = "some-profile";
@@ -159,6 +165,49 @@ public class InstanceProfileCredentialsProviderTest {
         assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
         assertThat(credentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_IMDS.value());
         verifyImdsCallWithToken();
+    }
+
+    // TODO: Once profile name caching is supported, migrate the IMDS credentials tests to a data-driven test that runs
+    //  the shared IMDS credentials provider test suite as-is.
+    @Test
+    void resolveCredentials_sendsExtendedHeaderOnCredentialGet() {
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS_WITH_ACCOUNT_ID));
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+        provider.resolveCredentials();
+
+        // Verify extended header is sent on credential GET
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + PROFILE_NAME))
+                            .withHeader(EXTENDED_CREDENTIALS_HEADER, equalTo("1")));
+
+        // Verify extended header is NOT sent on profile discovery GET
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH))
+                            .withoutHeader(EXTENDED_CREDENTIALS_HEADER));
+
+        // Verify extended header is NOT sent on token PUT
+        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                            .withoutHeader(EXTENDED_CREDENTIALS_HEADER));
+    }
+
+    @Test
+    void resolveCredentials_parsesAccountIdWhenPresent() {
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS_WITH_ACCOUNT_ID));
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+        AwsCredentials credentials = provider.resolveCredentials();
+
+        assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(credentials.accountId()).isPresent().hasValue("123456789012");
+    }
+
+    @Test
+    void resolveCredentials_succeedsWithoutAccountId() {
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+        AwsCredentials credentials = provider.resolveCredentials();
+
+        assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(credentials.accountId()).isNotPresent();
     }
 
     @Test
