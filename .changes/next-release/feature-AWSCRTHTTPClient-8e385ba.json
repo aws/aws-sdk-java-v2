@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Add `maxPendingConnectionAcquires` to `AwsCrtHttpClient.Builder` and `AwsCrtAsyncHttpClient.Builder`. Unbounded by default."
+}
