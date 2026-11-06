@@ -8,20 +8,18 @@ The Maven reactor has about 500 modules. Run Maven through `./mvnw` from the rep
 
 | Step | Command |
 |---|---|
-| Build the module and the modules it depends on | `./mvnw -pl <module> -am -DskipTests -Dmaven.javadoc.skip=true -Dspotbugs.skip=true install` |
-| Run the module's whole unit test suite, without `-am` | `./mvnw -pl <module> -Dmaven.javadoc.skip=true -Dspotbugs.skip=true test` |
-| Run one test class while iterating | `./mvnw -pl <module> -Dtest=<TestClass> -DfailIfNoTests=true -Dmaven.javadoc.skip=true -Dspotbugs.skip=true test` |
-| Run SpotBugs on the module | `./mvnw -pl <module> -Dspotbugs.skip=false process-classes` |
+| Dependency build: the module and the modules it depends on, without checks or tests. Run it once, and again after changing an upstream module. | `./mvnw -pl <module> -am -P quick install` |
+| Single-class run, while iterating | `./mvnw -pl <module> -Dtest=<TestClass> -DfailIfNoTests=true -Dmaven.javadoc.skip=true -Dspotbugs.skip=true test` |
+| Final check, after your last edit | `./mvnw -pl <changed modules> install` |
 
-- Build with `install`, not `compile` or `test`: modules depend on shaded jars that exist only after `package`. After editing a module upstream of the one you test, rerun the build step before testing.
-- Finish with the whole-module test run. A single-class run misses tests that reach your code through other classes.
-- `install` is the step that runs japicmp, so run the build step after your last edit. A passing `test` run says nothing about API compatibility.
-- Checkstyle runs in `validate`, so every command above runs it. There is no auto-formatter.
-- If a `test` run cannot resolve `bom-internal`, run the build step with `-pl bom-internal` first.
+- `<changed modules>` is a comma-separated list of every module you edited, including upstream ones such as `utils` or `core/sdk-core`, because the dependency build skips their checks and tests. After a `utils` or `core/*` change, also add the modules that call the changed code.
+- The final check runs all of the module's unit tests, not just the class you iterated on, so it catches failures in other test classes that your change affects. It also runs Checkstyle, dependency analysis, japicmp, and SpotBugs where the build enables it.
+- On JDK 17 the build skips SpotBugs because it is slow there. To check it before opening a pull request, run `./mvnw -pl <module> -Dspotbugs.skip=false process-classes`.
+- Use `-P quick` only to build dependencies, never to verify a change: it skips unit tests, Checkstyle, SpotBugs, and japicmp and still reports `BUILD SUCCESS`. Do not run `install` or `test` from the root without `-pl`.
+- Build with `install`, not `compile` or `test`: modules depend on shaded jars that exist only after `package`.
+- If the single-class run or the final check cannot resolve `bom-internal`, run the dependency build with `-pl bom-internal` first.
 - If the build fails with `Attempted to clobber existing file`, a `target/` directory holds stale generated sources, for example after switching branches. Add `clean` before `install` and rerun.
-- After a `utils` or `core/*` change, also run the unit test suites of the modules that call the changed code.
-- Unit tests in `services/*`, `services-custom/*`, and `test/*` build clients that need a region and credentials. Nothing calls AWS, so placeholders work: prefix the test command with `AWS_REGION=us-west-2 AWS_ACCESS_KEY_ID=akid AWS_SECRET_ACCESS_KEY=skid`. Leave the two credential variables off any run that includes `core/auth`, whose tests expect them unset.
-- Do not verify a change with `-P quick`: it skips unit tests, Checkstyle, and japicmp and still reports `BUILD SUCCESS`. Do not run `install` or `test` from the root without `-pl`.
+- The final check and the single-class run on `services/*`, `services-custom/*`, and `test/*` build clients that need a region and credentials. Nothing calls AWS, so placeholders work: prefix the command with `AWS_REGION=us-west-2 AWS_ACCESS_KEY_ID=akid AWS_SECRET_ACCESS_KEY=skid`. Leave the two credential variables off any run that includes `core/auth`, whose tests expect them unset; run `core/auth` in its own final check.
 - The commands in `README.md` and `CONTRIBUTING.md` build the whole tree, skip checks with `-P quick`, or use `mvn` instead of `./mvnw`. Use the ones in this section.
 
 ## Generated code
@@ -40,7 +38,7 @@ A change in `codegen/` changes every service client. To fix code that every serv
 
 - JavaPoet specs are under `codegen/src/main/java/software/amazon/awssdk/codegen/poet/`. A new generated class gets `@Generated` from `PoetUtils.generatedAnnotation()`.
 - Test the behavior of generated clients with a functional test in `test/codegen-generated-classes-test`, which generates clients from the test models in its `src/main/resources/codegen-resources/`. Those models are maintained by hand, so edit or add them as the test needs. Marshalling tests for each protocol live in `test/protocol-tests`.
-- To verify a change, build `codegen` and run its unit test suite (when generated output changes on purpose, update the expected-output fixtures its tests compare against), then build and test one affected `services/<service>` module and `test/codegen-generated-classes-test` with the placeholder region and credentials above.
+- To verify a change, run the dependency build for one affected `services/<service>` module and `test/codegen-generated-classes-test`, which installs your `codegen` change for the code generator plugin, then the final check on `codegen`, that service module, and `test/codegen-generated-classes-test` with the placeholder region and credentials above. When generated output changes on purpose, update the expected-output fixtures that the `codegen` tests compare against.
 
 ## Code conventions
 
@@ -68,6 +66,7 @@ A change in `codegen/` changes every service client. To fix code that every serv
 - On an error path, assert the exception type and part of its message.
 - Keep test-only constructors and methods package-private, and annotate them `@SdkTestInternalApi` (`core/annotations`).
 - Prefer unit and functional tests that mock dependencies with Mockito or stub HTTP responses with WireMock over integration tests (`src/it/java`, `*IntegrationTest`), which call real AWS services.
+- Check that each test of new behavior fails without your change.
 
 ## Security considerations
 
@@ -76,8 +75,11 @@ A change in `codegen/` changes every service client. To fix code that every serv
 
 ## Pull request instructions
 
-- Before opening a pull request, run the build step and the whole-module test run for every module you changed.
+- Before opening a pull request, run the final check on every module you changed.
 - A pull request sourced by AI tools must be reviewed by a person before it is opened.
+- Fill in `.github/PULL_REQUEST_TEMPLATE.md` for the pull request description.
+- Work on a branch named `<alias>/<short-kebab-slug>`, where the slug describes the change rather than a ticket, and never commit the change to `master`. External contributors push the branch to their own fork.
+- Write commit messages as Conventional Commits, `<type>: <description>` or `<type>(<scope>): <description>`, with a type such as `fix`, `feat`, `docs`, `refactor`, `test`, or `chore`, and a subject of 50 characters or fewer in the imperative mood with no trailing period. Add a body only when the reason for the change is not obvious from the diff: wrap it at 72 characters and explain the context behind the change. In the rare case that maintainers approve a breaking change, mark it with a `BREAKING CHANGE:` footer. Pull requests are squash-merged with the title as the commit subject, so the title follows the same format.
 - Add a changelog entry, as described next.
 
 ### Changelog entry
