@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.OptionalUtils;
 
 /**
@@ -29,6 +30,8 @@ import software.amazon.awssdk.utils.OptionalUtils;
  */
 @SdkInternalApi
 public class MaxAttemptsResolver {
+    private static final Logger LOG = Logger.loggerFor(MaxAttemptsResolver.class);
+
     private Supplier<ProfileFile> profileFile;
     private String profileName;
 
@@ -64,10 +67,26 @@ public class MaxAttemptsResolver {
 
     private static Optional<Integer> fromProfileFile(Supplier<ProfileFile> profileFile, String profileName) {
         profileFile = profileFile != null ? profileFile : ProfileFile::defaultProfileFile;
-        profileName = profileName != null ? profileName : ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
+        String name = profileName != null ? profileName : ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
         return profileFile.get()
-                          .profile(profileName)
+                          .profile(name)
                           .flatMap(p -> p.property(ProfileProperty.MAX_ATTEMPTS))
-                          .map(Integer::parseInt);
+                          .flatMap(value -> parseMaxAttempts(value, name));
+    }
+
+    // An invalid value is ignored rather than failing client creation, because the SDK did not read this property before
+    // retry behavior 2.1 became the default.
+    private static Optional<Integer> parseMaxAttempts(String value, String profileName) {
+        try {
+            int maxAttempts = Integer.parseInt(value.trim());
+            if (maxAttempts > 0) {
+                return Optional.of(maxAttempts);
+            }
+        } catch (NumberFormatException e) {
+            // Logged below.
+        }
+        LOG.warn(() -> String.format("Ignoring the invalid %s value '%s' in profile '%s'. It must be a positive integer.",
+                                     ProfileProperty.MAX_ATTEMPTS, value, profileName));
+        return Optional.empty();
     }
 }

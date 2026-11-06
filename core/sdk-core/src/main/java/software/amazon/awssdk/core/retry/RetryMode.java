@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.retry;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
@@ -24,16 +25,20 @@ import software.amazon.awssdk.core.retry.conditions.TokenBucketRetryCondition;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.OptionalUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * A retry mode is a collection of retry behaviors encoded under a single value. For example, the {@link #LEGACY} retry mode will
- * retry up to three times, and the {@link #STANDARD} will retry up to two times.
+ * retry up to three times, and the {@link #STANDARD} will retry up to two times for most services.
  *
  * <p>
  * While the {@link #LEGACY} retry mode is specific to Java, the {@link #STANDARD} retry mode is standardized across all of the
  * AWS SDKs.
+ *
+ * <p>
+ * The {@link #STANDARD} retry mode is used when no other mode is configured.
  *
  * <p>
  * The retry mode can be configured:
@@ -55,20 +60,27 @@ public enum RetryMode {
      *     <li>Zero token are subtracted from the {@link TokenBucketRetryCondition} when throttling exceptions are encountered.
      *     </li>
      * </ol>
-     *
-     * <p>
-     * This is the retry mode that is used when no other mode is configured.
      */
     LEGACY,
 
 
     /**
-     * The STANDARD retry mode, shared by all AWS SDK implementations, and characterized by:
+     * The STANDARD retry mode, shared by all AWS SDK implementations. When used with a retry strategy, it follows retry
+     * behavior 2.1, characterized by:
      * <ol>
-     *     <li>Up to 2 retries, regardless of service.</li>
-     *     <li>Throttling exceptions are treated the same as other exceptions for the purposes of the
-     *     {@link TokenBucketRetryCondition}.</li>
+     *     <li>Up to 2 retries, or more for services like DynamoDB (which has up to 3). The {@code max_attempts} profile
+     *     property, the {@code aws.maxAttempts} system property and the {@code AWS_MAX_ATTEMPTS} environment variable
+     *     override this.</li>
+     *     <li>A 50 ms base backoff, or 1 s for throttling errors.</li>
+     *     <li>Each retry costs 14 tokens from the retry quota, or 5 for throttling errors.</li>
      * </ol>
+     *
+     * <p>
+     * When used with a {@link RetryPolicy}, it keeps its previous behavior: up to 2 retries, and throttling exceptions are
+     * treated the same as other exceptions for the purposes of the {@link TokenBucketRetryCondition}.
+     *
+     * <p>
+     * This is the retry mode that is used when no other mode is configured.
      */
     STANDARD,
 
@@ -112,7 +124,7 @@ public enum RetryMode {
     ;
 
     /**
-     * Retrieve the default retry mode by consulting the locations described in {@link RetryMode}, or LEGACY if no value is
+     * Retrieve the default retry mode by consulting the locations described in {@link RetryMode}, or STANDARD if no value is
      * configured.
      */
     public static RetryMode defaultRetryMode() {
@@ -130,10 +142,12 @@ public enum RetryMode {
      * Allows customizing the variables used during determination of a {@link RetryMode}. Created via {@link #resolver()}.
      */
     public static class Resolver {
+        private static final Logger LOG = Logger.loggerFor(RetryMode.class);
+        private static final AtomicBoolean NEW_RETRIES_2026_WARNING_LOGGED = new AtomicBoolean(false);
+
         private Supplier<ProfileFile> profileFile;
         private String profileName;
         private RetryMode defaultRetryMode;
-        private Boolean defaultNewRetries2026;
 
         private Resolver() {
         }
@@ -164,11 +178,13 @@ public enum RetryMode {
         }
 
         /**
-         * Configure whether retry 2.1 behavior is enabled by default if not specified anywhere else (i.e. via
-         * {@link SdkSystemSetting#AWS_NEW_RETRIES_2026}).
+         * This setting is ignored. The standard and adaptive retry modes use retry behavior 2.1, and the SDK default retry
+         * mode is {@link RetryMode#STANDARD}.
+         *
+         * @deprecated The standard and adaptive retry modes use retry behavior 2.1. This method has no effect.
          */
+        @Deprecated
         public Resolver defaultNewRetries2026(Boolean defaultNewRetries2026) {
-            this.defaultNewRetries2026 = defaultNewRetries2026;
             return this;
         }
 
@@ -176,8 +192,24 @@ public enum RetryMode {
          * Resolve which retry mode should be used, based on the configured values.
          */
         public RetryMode resolve() {
+            warnIfNewRetries2026SettingIsSet();
             return OptionalUtils.firstPresent(Resolver.fromSystemSettings(), () -> fromProfileFile(profileFile, profileName))
                                 .orElseGet(this::fromDefaultMode);
+        }
+
+        @SuppressWarnings("deprecation")
+        private static void warnIfNewRetries2026SettingIsSet() {
+            if (NEW_RETRIES_2026_WARNING_LOGGED.get()) {
+                return;
+            }
+
+            if (SdkSystemSetting.AWS_NEW_RETRIES_2026.getStringValue().isPresent()
+                && NEW_RETRIES_2026_WARNING_LOGGED.compareAndSet(false, true)) {
+                LOG.warn(() -> "The AWS_NEW_RETRIES_2026 environment variable and aws.newRetries2026 system property are "
+                               + "ignored. The standard and adaptive retry modes now use retry behavior 2.1. To use the "
+                               + "previous default retry behavior, set the retry mode to legacy, for example with "
+                               + "AWS_RETRY_MODE=legacy.");
+            }
         }
 
         private static Optional<RetryMode> fromSystemSettings() {
@@ -216,10 +248,10 @@ public enum RetryMode {
         }
 
         /**
-         * Resolves the SDK default retry mode dynamically based on the {@code AWS_NEW_RETRIES_2026} gate.
+         * The SDK default retry mode, used when no mode is configured anywhere else.
          */
         private RetryMode sdkDefaultRetryMode() {
-            return new NewRetries2026Resolver().defaultNewRetries2026(defaultNewRetries2026).resolve() ? STANDARD : LEGACY;
+            return STANDARD;
         }
     }
 }

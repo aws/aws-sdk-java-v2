@@ -23,75 +23,76 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 /**
- * Tests for the gated default {@link RetryMode} behavior controlled by
- * {@link SdkSystemSetting#AWS_NEW_RETRIES_2026}.
+ * Tests that the default {@link RetryMode} is {@link RetryMode#STANDARD}, and that the removed retry behavior 2.1 opt-in
+ * setting ({@code aws.newRetries2026} / {@code AWS_NEW_RETRIES_2026}) no longer has any effect.
  */
 class RetryModeGatedDefaultTest {
+    private static final String OLD_GATE_PROPERTY = "aws.newRetries2026";
+    private static final String OLD_GATE_ENV_VAR = "AWS_NEW_RETRIES_2026";
 
     @BeforeEach
     @AfterEach
     void cleanup() {
-        System.clearProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property());
+        System.clearProperty(OLD_GATE_PROPERTY);
         System.clearProperty(SdkSystemSetting.AWS_RETRY_MODE.property());
+        System.clearProperty(ProfileFileSystemSetting.AWS_CONFIG_FILE.property());
     }
 
     @Test
-    void defaultRetryMode_returnsLegacy_whenGateIsUnset() {
-        assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.LEGACY);
+    void defaultRetryMode_returnsStandard_whenGateIsUnset() {
+        assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.STANDARD);
     }
 
-    @ParameterizedTest(name = "gate=\"{0}\" -> {1}")
-    @CsvSource({
-        "false, LEGACY",
-        "true,  STANDARD"
-    })
-    void defaultRetryMode_reflectsGate_whenSetViaSystemProperty(String gateValue, RetryMode expected) {
-        System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), gateValue);
-        assertThat(RetryMode.defaultRetryMode()).isEqualTo(expected);
+    @ParameterizedTest(name = "gate=\"{0}\"")
+    @ValueSource(strings = {"false", "true", "not-a-boolean"})
+    void defaultRetryMode_returnsStandard_whenGateSetViaSystemProperty(String gateValue) {
+        System.setProperty(OLD_GATE_PROPERTY, gateValue);
+        assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.STANDARD);
     }
 
-    @ParameterizedTest(name = "gate=\"{0}\" -> {1}")
-    @CsvSource({
-        "false, LEGACY",
-        "true,  STANDARD"
-    })
-    void defaultRetryMode_reflectsGate_whenSetViaEnvVar(String gateValue, RetryMode expected) {
+    @ParameterizedTest(name = "gate=\"{0}\"")
+    @ValueSource(strings = {"false", "true"})
+    void defaultRetryMode_returnsStandard_whenGateSetViaEnvVar(String gateValue) {
         EnvironmentVariableHelper.run(helper -> {
-            helper.set(SdkSystemSetting.AWS_NEW_RETRIES_2026, gateValue);
-            assertThat(RetryMode.defaultRetryMode()).isEqualTo(expected);
+            helper.set(OLD_GATE_ENV_VAR, gateValue);
+            assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.STANDARD);
         });
     }
 
     @Test
-    void defaultRetryMode_changesDynamically_whenGateSystemPropertyChangesAtRuntime() {
-        // Initially unset — should be LEGACY
-        assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.LEGACY);
-
-        // Enable gate — should switch to STANDARD
-        System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), "true");
+    void defaultRetryMode_returnsStandard_whenGateFalseAndNoProfileFile() {
+        System.setProperty(ProfileFileSystemSetting.AWS_CONFIG_FILE.property(), "/tmp/does-not-exist-aws-config-file");
+        System.setProperty(OLD_GATE_PROPERTY, "false");
         assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.STANDARD);
+    }
 
-        // Disable gate — should revert to LEGACY
-        System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), "false");
-        assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.LEGACY);
+    @Test
+    @SuppressWarnings("deprecation")
+    void resolver_ignoresDefaultNewRetries2026() {
+        assertThat(RetryMode.resolver().defaultNewRetries2026(false).resolve()).isEqualTo(RetryMode.STANDARD);
+        assertThat(RetryMode.resolver().defaultNewRetries2026(true).resolve()).isEqualTo(RetryMode.STANDARD);
+    }
 
-        // Clear gate — should fall back to default (LEGACY)
-        System.clearProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property());
-        assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.LEGACY);
+    @Test
+    void resolver_honorsDefaultRetryMode() {
+        assertThat(RetryMode.resolver().defaultRetryMode(RetryMode.LEGACY).resolve()).isEqualTo(RetryMode.LEGACY);
     }
 
     @ParameterizedTest(name = "gate=\"{0}\" retryMode=\"{1}\" -> {2}")
     @CsvSource({
         "true,  legacy,   LEGACY",
+        "false, legacy,   LEGACY",
         "false, standard, STANDARD",
         "false, adaptive, ADAPTIVE_V2"
     })
     void resolve_honorsExplicitRetryMode_regardlessOfGate(String gateValue, String retryModeValue, RetryMode expected) {
-        System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), gateValue);
+        System.setProperty(OLD_GATE_PROPERTY, gateValue);
         System.setProperty(SdkSystemSetting.AWS_RETRY_MODE.property(), retryModeValue);
         assertThat(RetryMode.defaultRetryMode()).isEqualTo(expected);
     }

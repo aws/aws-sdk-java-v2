@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.retry;
 
+import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -22,6 +24,7 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryUtils;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.retries.LegacyRetryStrategy;
@@ -70,15 +73,19 @@ public final class SdkDefaultRetryStrategy {
      * @return the appropriate retry strategy for the retry mode with AWS-specific conditions added.
      */
     public static RetryStrategy forRetryMode(RetryMode mode) {
-        return forRetryMode(mode, false);
+        return forRetryMode(mode, true);
     }
 
     /**
      * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added.
      *
      * @param mode The retry mode for which we want the retry strategy
+     * @param newRetries2026Enabled Whether the {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} strategies use
+     *                              retry behavior 2.1. Retry behavior 2.1 is the default.
      * @return the appropriate retry strategy for the retry mode with AWS-specific conditions added.
+     * @deprecated Retry behavior 2.1 is the default. Use {@link #forRetryMode(RetryMode)}.
      */
+    @Deprecated
     public static RetryStrategy forRetryMode(RetryMode mode, boolean newRetries2026Enabled) {
         switch (mode) {
             case STANDARD:
@@ -86,7 +93,27 @@ public final class SdkDefaultRetryStrategy {
             case ADAPTIVE:
                 return legacyAdaptiveRetryStrategy();
             case ADAPTIVE_V2:
-                return adaptiveRetryStrategy();
+                return adaptiveRetryStrategyBuilder(newRetries2026Enabled).build();
+            case LEGACY:
+                return legacyRetryStrategy();
+            default:
+                throw new IllegalStateException("unknown retry mode: " + mode);
+        }
+    }
+
+    /**
+     * Retrieve the retry strategy for the retry mode, reading the {@code max_attempts} profile property from the given profile
+     * file and profile name instead of the default profile. Used by client builders.
+     */
+    @SdkInternalApi
+    public static RetryStrategy forRetryMode(RetryMode mode, Supplier<ProfileFile> profileFile, String profileName) {
+        switch (mode) {
+            case STANDARD:
+                return standardRetryStrategyBuilder(profileFile, profileName).build();
+            case ADAPTIVE:
+                return legacyAdaptiveRetryStrategy();
+            case ADAPTIVE_V2:
+                return adaptiveRetryStrategyBuilder(profileFile, profileName).build();
             case LEGACY:
                 return legacyRetryStrategy();
             default:
@@ -122,9 +149,15 @@ public final class SdkDefaultRetryStrategy {
      * @return a {@link StandardRetryStrategy} with generic SDK retry conditions.
      */
     public static StandardRetryStrategy standardRetryStrategy() {
-        return standardRetryStrategyBuilder().build();
+        return standardRetryStrategy(true);
     }
 
+    /**
+     * Returns a {@link StandardRetryStrategy} with generic SDK retry conditions.
+     *
+     * @deprecated Retry behavior 2.1 is the default. Use {@link #standardRetryStrategy()}.
+     */
+    @Deprecated
     public static StandardRetryStrategy standardRetryStrategy(boolean newRetries2026Enabled) {
         return standardRetryStrategyBuilder(newRetries2026Enabled).build();
     }
@@ -153,17 +186,30 @@ public final class SdkDefaultRetryStrategy {
      * @return a {@link StandardRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
      */
     public static StandardRetryStrategy.Builder standardRetryStrategyBuilder() {
-        return standardRetryStrategyBuilder(false);
+        return standardRetryStrategyBuilder(true);
     }
 
     /**
      * Returns a {@link StandardRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
      *
      * @return a {@link StandardRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
+     * @deprecated Retry behavior 2.1 is the default. Use {@link #standardRetryStrategyBuilder()}.
      */
+    @Deprecated
     public static StandardRetryStrategy.Builder standardRetryStrategyBuilder(boolean newRetries2026Enabled) {
         StandardRetryStrategy.Builder builder = DefaultRetryStrategy.standardStrategyBuilder(newRetries2026Enabled);
         return configure(builder, newRetries2026Enabled);
+    }
+
+    /**
+     * Returns a {@link StandardRetryStrategy.Builder} with preconfigured generic SDK retry conditions, reading the
+     * {@code max_attempts} profile property from the given profile file and profile name. Used by client builders.
+     */
+    @SdkInternalApi
+    public static StandardRetryStrategy.Builder standardRetryStrategyBuilder(Supplier<ProfileFile> profileFile,
+                                                                             String profileName) {
+        return configure(DefaultRetryStrategy.standardStrategyBuilder(),
+                         () -> clientMaxAttempts(profileFile, profileName));
     }
 
 
@@ -183,17 +229,30 @@ public final class SdkDefaultRetryStrategy {
      * @return an {@link AdaptiveRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
      */
     public static AdaptiveRetryStrategy.Builder adaptiveRetryStrategyBuilder() {
-        return adaptiveRetryStrategyBuilder(false);
+        return adaptiveRetryStrategyBuilder(true);
     }
 
     /**
      * Returns an {@link AdaptiveRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
      *
      * @return an {@link AdaptiveRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
+     * @deprecated Retry behavior 2.1 is the default. Use {@link #adaptiveRetryStrategyBuilder()}.
      */
+    @Deprecated
     public static AdaptiveRetryStrategy.Builder adaptiveRetryStrategyBuilder(boolean newRetries2026Enabled) {
         AdaptiveRetryStrategy.Builder builder = DefaultRetryStrategy.adaptiveStrategyBuilder(newRetries2026Enabled);
         return configure(builder, newRetries2026Enabled);
+    }
+
+    /**
+     * Returns an {@link AdaptiveRetryStrategy.Builder} with preconfigured generic SDK retry conditions, reading the
+     * {@code max_attempts} profile property from the given profile file and profile name. Used by client builders.
+     */
+    @SdkInternalApi
+    public static AdaptiveRetryStrategy.Builder adaptiveRetryStrategyBuilder(Supplier<ProfileFile> profileFile,
+                                                                             String profileName) {
+        return configure(DefaultRetryStrategy.adaptiveStrategyBuilder(),
+                         () -> clientMaxAttempts(profileFile, profileName));
     }
 
     /**
@@ -204,17 +263,26 @@ public final class SdkDefaultRetryStrategy {
      * @return The given builder
      */
     public static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder) {
-        return configure(builder, false);
+        return configure(builder, usesRetryBehavior21(builder));
+    }
+
+    private static boolean usesRetryBehavior21(RetryStrategy.Builder<?, ?> builder) {
+        return builder instanceof DefaultAwareRetryStrategy.Builder
+               && ((DefaultAwareRetryStrategy.Builder) builder).usesRetryBehavior21();
     }
 
     private static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder, boolean newRetries2026Enabled) {
+        return configure(builder, () -> resolveMaxAttempts(newRetries2026Enabled));
+    }
+
+    private static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder, Supplier<Integer> maxAttemptsSource) {
         builder.retryOnException(SdkDefaultRetryStrategy::retryOnRetryableException)
                .retryOnException(SdkDefaultRetryStrategy::retryOnStatusCodes)
                .retryOnException(SdkDefaultRetryStrategy::retryOnClockSkewException)
                .retryOnException(SdkDefaultRetryStrategy::retryOnThrottlingCondition);
         SdkDefaultRetrySetting.RETRYABLE_EXCEPTIONS.forEach(builder::retryOnExceptionOrCauseInstanceOf);
         builder.treatAsThrottling(SdkDefaultRetryStrategy::treatAsThrottling);
-        Integer maxAttempts = resolveMaxAttempts(newRetries2026Enabled);
+        Integer maxAttempts = maxAttemptsSource.get();
         if (maxAttempts != null) {
             builder.maxAttempts(maxAttempts);
         }
@@ -306,6 +374,10 @@ public final class SdkDefaultRetryStrategy {
 
         // pre 2.1 changes, we never looked at the profile file
         return SdkSystemSetting.AWS_MAX_ATTEMPTS.getIntegerValue().orElse(null);
+    }
+
+    private static Integer clientMaxAttempts(Supplier<ProfileFile> profileFile, String profileName) {
+        return new MaxAttemptsResolver().profileFile(profileFile).profileName(profileName).resolve();
     }
 }
 

@@ -278,6 +278,17 @@ public interface RetryStrategy extends SdkAutoCloseable {
          */
         B treatAsThrottling(Predicate<Throwable> treatAsThrottling);
 
+        /**
+         * Configure the strategy to never retry when the provided predicate returns true, given the refresh request for the
+         * failed attempt. This takes precedence over the predicates configured with {@link #retryOnException(Predicate)} and
+         * its variants. For example, {@link RefreshRetryTokenRequest#operationName()} can be used to never retry a given
+         * operation.
+         *
+         * <p>The default implementation throws {@link UnsupportedOperationException}.
+         */
+        default B doNotRetryWhen(Predicate<RefreshRetryTokenRequest> doNotRetry) {
+            throw new UnsupportedOperationException("This retry strategy builder does not support doNotRetryWhen");
+        }
 
         /**
          * Configure whether the default predicates should be used, or not. When set to false, only user-provided retry
