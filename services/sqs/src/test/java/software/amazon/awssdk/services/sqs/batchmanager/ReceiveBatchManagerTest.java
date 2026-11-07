@@ -161,7 +161,9 @@ class ReceiveBatchManagerTest {
 
         receiveBatchManager.close();
 
-        assertThrows(IllegalStateException.class, () -> receiveBatchManager.processRequest(request));
+        CompletableFuture<ReceiveMessageResponse> afterClose = receiveBatchManager.processRequest(request);
+        ExecutionException thrown = assertThrows(ExecutionException.class, () -> afterClose.get(1, TimeUnit.SECONDS));
+        assertTrue(thrown.getCause() instanceof IllegalStateException);
 
         assertTrue(futureResponse.isDone());
     }

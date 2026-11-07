@@ -130,6 +130,25 @@ public class QueueAttributesManagerTest {
     }
 
 
+    @Test
+    public void getReceiveMessageTimeout_whenGetQueueAttributesThrowsSynchronouslyOnce_failsThenRetries() throws Exception {
+        Map<QueueAttributeName, String> attributes = new HashMap<>();
+        attributes.put(QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS, "10");
+        attributes.put(QueueAttributeName.VISIBILITY_TIMEOUT, "30");
+        when(sqsClient.getQueueAttributes(any(GetQueueAttributesRequest.class)))
+            .thenThrow(new IllegalStateException("synchronous failure"))
+            .thenReturn(CompletableFuture.completedFuture(GetQueueAttributesResponse.builder().attributes(attributes).build()));
+        ReceiveMessageRequest request = ReceiveMessageRequest.builder().build();
+
+        CompletableFuture<Duration> first = queueAttributesManager.getReceiveMessageTimeout(request, Duration.ZERO);
+
+        ExecutionException exception = assertThrows(ExecutionException.class, () -> first.get(1, TimeUnit.SECONDS));
+        assertTrue(exception.getCause() instanceof IllegalStateException);
+        CompletableFuture<Duration> second = queueAttributesManager.getReceiveMessageTimeout(request, Duration.ZERO);
+        assertEquals(Duration.ofSeconds(10), second.get(1, TimeUnit.SECONDS));
+    }
+
+
     private void mockGetQueueAttributesResponse(String receiveMessageWaitTimeSeconds, String visibilityTimeout) {
         Map<QueueAttributeName, String> attributes = new HashMap<>();
         attributes.put(QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS, receiveMessageWaitTimeSeconds);

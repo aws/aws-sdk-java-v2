@@ -17,13 +17,16 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration.MAX_SUPPORTED_SQS_RECEIVE_MSG;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @SdkInternalApi
@@ -53,7 +56,7 @@ public class ReceiveBatchManager implements SdkAutoCloseable {
 
     public CompletableFuture<ReceiveMessageResponse> processRequest(ReceiveMessageRequest rq) {
         if (receiveQueueBuffer.isShutDown()) {
-            throw new IllegalStateException("The client has been shut down.");
+            return CompletableFutureUtils.failedFuture(new IllegalStateException("The client has been shut down."));
         }
         int numMessages = rq.maxNumberOfMessages() != null ? rq.maxNumberOfMessages() : MAX_SUPPORTED_SQS_RECEIVE_MSG;
 
@@ -66,6 +69,13 @@ public class ReceiveBatchManager implements SdkAutoCloseable {
             return receiveMessageFuture;
 
         });
+    }
+
+    /**
+     * Returns the cached queue-attribute lookup, or null if none has started. Never starts a lookup.
+     */
+    CompletableFuture<Map<QueueAttributeName, String>> attributeLookup() {
+        return queueAttributesManager.currentAttributeLookup();
     }
 
     @Override

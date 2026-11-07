@@ -105,6 +105,14 @@ public final class QueueAttributesManager {
     }
 
     /**
+     * Returns the cached attribute lookup, or null if none has started. Unlike the other methods, this never starts a
+     * lookup.
+     */
+    CompletableFuture<Map<QueueAttributeName, String>> currentAttributeLookup() {
+        return queueAttributeMap.get();
+    }
+
+    /**
      * Retrieves the queue attributes based on the predefined attribute names.
      *
      * @return CompletableFuture with the map of attribute names and their values.
@@ -116,7 +124,15 @@ public final class QueueAttributesManager {
             CompletableFuture<Map<QueueAttributeName, String>> newFuture = new CompletableFuture<>();
 
             if (queueAttributeMap.compareAndSet(future, newFuture)) {
-                fetchQueueAttributes().whenComplete((r, t) -> {
+                CompletableFuture<Map<QueueAttributeName, String>> fetch;
+                try {
+                    fetch = fetchQueueAttributes();
+                } catch (RuntimeException e) {
+                    // newFuture is already cached. Fail it so waiting requests complete and the next call fetches again.
+                    newFuture.completeExceptionally(e);
+                    return newFuture;
+                }
+                fetch.whenComplete((r, t) -> {
                     if (t != null) {
                         newFuture.completeExceptionally(t);
                     } else {
