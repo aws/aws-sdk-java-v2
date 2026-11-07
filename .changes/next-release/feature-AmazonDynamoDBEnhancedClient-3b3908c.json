@@ -1,0 +1,6 @@
+{
+  "type": "feature",
+  "category": "Amazon DynamoDB Enhanced Client",
+  "contributor": "",
+  "description": "Added support for @DynamoDbUpdateBehavior on attributes within nested objects. The @DynamoDbUpdateBehavior annotation will only take effect for nested attributes when using IgnoreNullsMode.SCALAR_ONLY."
+}
