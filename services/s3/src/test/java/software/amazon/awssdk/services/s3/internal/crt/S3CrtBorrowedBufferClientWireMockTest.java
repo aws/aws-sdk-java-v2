@@ -65,8 +65,8 @@ import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
@@ -146,7 +146,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
                 .hasRootCauseMessage("A direct buffer pool must be configured with "
                                      + "S3CrtAsyncClientBuilder.directBufferPoolConfiguration("
                                      + "S3CrtDirectBufferPoolConfiguration) when using "
-                                     + "S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()");
+                                     + "S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool()");
         }
         verify(0, anyRequestedFor(anyUrl()));
     }
@@ -166,7 +166,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
         try (S3AsyncClient client = newClient(wireMock);
              ResponseInputStream<GetObjectResponse> stream =
                  client.getObject(r -> r.bucket("bucket").key("key").partNumber(2),
-                                  S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
+                                  S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
                        .get(10, TimeUnit.SECONDS)) {
             assertThat(stream.response().contentRange()).isEqualTo("bytes " + start + "-" + end + "/" + CONTENT.length);
             assertThat(readAll(stream)).containsExactly(part);
@@ -193,7 +193,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
     void reusedTransformer_afterDownload_shouldStartAnotherDownload(WireMockRuntimeInfo wireMock) throws Exception {
         stubMultipartObject(CONTENT);
         AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer =
-            S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool();
+            S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool();
 
         try (S3AsyncClient client = newClient(wireMock)) {
             try (ResponseInputStream<GetObjectResponse> first =
@@ -212,7 +212,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
         throws Exception {
         stubMultipartObject(CONTENT);
         AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer =
-            S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool();
+            S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool();
 
         try (S3AsyncClient client = newClient(wireMock);
              ResponseInputStream<GetObjectResponse> first =
@@ -232,7 +232,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
     void wrappedTransformer_shouldFailBeforeTransmission(WireMockRuntimeInfo wireMock) {
         stubMultipartObject(CONTENT);
         AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> wrapped =
-            new ForwardingTransformer(S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool());
+            new ForwardingTransformer(S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool());
 
         try (S3AsyncClient client = newClient(wireMock)) {
             assertThatThrownBy(() -> client.getObject(r -> r.bucket("bucket").key("key"), wrapped)
@@ -295,7 +295,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
                                                        .overrideConfiguration(c -> c.apiCallTimeout(Duration.ofMillis(100)))
                                                        .build();
             CompletableFuture<ResponseInputStream<GetObjectResponse>> first =
-                client.getObject(request, S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool());
+                client.getObject(request, S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool());
             completionExecutor.awaitTask();
             assertThat(first).isNotDone();
 
@@ -382,7 +382,8 @@ class S3CrtBorrowedBufferClientWireMockTest {
                              AwsBasicCredentials.create("key", "secret")))
                          .minimumPartSizeInBytes((long) PART_SIZE)
                          .initialReadBufferSizeInBytes((long) PART_SIZE)
-                         .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.fixed(poolSizeInBytes));
+                         .directBufferPoolConfiguration(
+                             S3CrtDirectBufferPoolConfiguration.elastic(poolSizeInBytes, poolSizeInBytes));
         if (completionExecutor != null) {
             builder.futureCompletionExecutor(completionExecutor);
         }
@@ -414,7 +415,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
 
     private static CompletableFuture<ResponseInputStream<GetObjectResponse>> getObjectFuture(S3AsyncClient client) {
         return client.getObject(r -> r.bucket("bucket").key("key"),
-                                S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool());
+                                S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool());
     }
 
     private static ResponseInputStream<GetObjectResponse> getObject(S3AsyncClient client) throws Exception {
@@ -430,7 +431,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
         return client.getObject(r -> r.bucket("bucket").key("key")
                                       .overrideConfiguration(o -> o.putExecutionAttribute(
                                           SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES, httpAttributes)),
-                                S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
+                                S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
                      .get(10, TimeUnit.SECONDS);
     }
 

@@ -525,7 +525,6 @@ public class S3CrtAsyncHttpClientTest {
 
     private static Stream<Arguments> directBufferPoolConfigurations() {
         return Stream.of(Arguments.of(S3CrtDirectBufferPoolConfiguration.auto()),
-                         Arguments.of(S3CrtDirectBufferPoolConfiguration.fixed(8L * 1024 * 1024)),
                          Arguments.of(S3CrtDirectBufferPoolConfiguration.elastic(16L * 8 * 1024 * 1024,
                                                                                   32L * 8 * 1024 * 1024)));
     }

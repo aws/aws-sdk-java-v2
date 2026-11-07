@@ -34,7 +34,7 @@ import software.amazon.awssdk.utils.Validate;
  *
  * <p>Body bytes arrive through the borrowed-buffer callbacks from {@link S3CrtBorrowedBufferResponseHandlerAdapter}. The
  * future returned by {@link #prepare()} completes when the response stream is initialized. For a body response, this
- * happens before the first borrowed buffer is delivered. For an empty response, it happens before the stream completes.
+ * happens before the first borrowed buffer is delivered. For an empty response, it happens when CRT finishes the request.
  *
  * <p>A cross-region redirect calls {@link #prepare()} again for the new request. The response stream is created when it
  * is published, so only a successful response creates one.
@@ -102,7 +102,8 @@ public final class S3CrtBorrowedBufferBlockingResponseTransformer
     }
 
     /**
-     * Creates and publishes the response stream, before the first buffer is delivered or after an empty response completes.
+     * Creates and publishes the response stream, before the first buffer is delivered or, for an empty response, when CRT
+     * finishes the request.
      *
      * @param cancellationAction cancels the CRT request when the stream closes before completion
      * @param readWindowAction credits CRT after a fully read buffer is released

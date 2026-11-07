@@ -37,19 +37,19 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 
-class S3CrtResponseTransformerFactoryTest {
+class S3CrtResponseTransformerProviderTest {
     private static final String UNSUPPORTED_CLIENT_MESSAGE =
         "This transformer requires a CRT-based S3 client configured with a direct buffer pool, and cannot be wrapped by "
         + "another transformer.";
 
     @Test
-    void borrowedFactory_withoutCrtClasses_shouldLoadAndFailClearlyWhenExecuted() throws Exception {
-        // Load the transformer locally to detect accidental CRT linkage from the public factory.
-        String factoryClass = S3CrtResponseTransformerFactory.class.getName();
+    void borrowedProvider_withoutCrtClasses_shouldLoadAndFailClearlyWhenExecuted() throws Exception {
+        // Load the transformer locally to detect accidental CRT linkage from the public provider.
+        String providerClass = S3CrtResponseTransformerProvider.class.getName();
         String transformerClass = S3CrtDirectBufferPoolStreamMarker.class.getName();
-        NoCrtClassLoader classLoader = new NoCrtClassLoader(getClass().getClassLoader(), factoryClass, transformerClass);
-        Class<?> factory = Class.forName(factoryClass, true, classLoader);
-        Object transformer = factory.getMethod("toBlockingInputStreamFromDirectBufferPool").invoke(null);
+        NoCrtClassLoader classLoader = new NoCrtClassLoader(getClass().getClassLoader(), providerClass, transformerClass);
+        Class<?> provider = Class.forName(providerClass, true, classLoader);
+        Object transformer = provider.getMethod("toBlockingInputStreamFromDirectBufferPool").invoke(null);
 
         assertThat(transformer.getClass().getClassLoader()).isSameAs(classLoader);
         assertThatThrownBy(() -> invokePrepare(transformer))
@@ -59,7 +59,7 @@ class S3CrtResponseTransformerFactoryTest {
     }
 
     @Test
-    void borrowedFactory_withNonCrtClient_shouldFailBeforeHttpExecution() {
+    void borrowedProvider_withNonCrtClient_shouldFailBeforeHttpExecution() {
         try (MockAsyncHttpClient httpClient = new MockAsyncHttpClient();
              S3AsyncClient client = S3AsyncClient.builder()
                                                  .region(Region.US_EAST_1)
@@ -69,7 +69,7 @@ class S3CrtResponseTransformerFactoryTest {
                                                                      .bucket("bucket")
                                                                      .key("key")
                                                                      .build(),
-                                                       S3CrtResponseTransformerFactory
+                                                       S3CrtResponseTransformerProvider
                                                            .toBlockingInputStreamFromDirectBufferPool()).join())
                 .hasCauseInstanceOf(UnsupportedOperationException.class);
             assertThat(httpClient.getRequests()).isEmpty();
@@ -77,7 +77,7 @@ class S3CrtResponseTransformerFactoryTest {
     }
 
     @Test
-    void borrowedFactory_withMultipartNonCrtClient_shouldFailBeforeHttpExecution() {
+    void borrowedProvider_withMultipartNonCrtClient_shouldFailBeforeHttpExecution() {
         try (MockAsyncHttpClient httpClient = new MockAsyncHttpClient();
              S3AsyncClient client = S3AsyncClient.builder()
                                                  .region(Region.US_EAST_1)
@@ -88,7 +88,7 @@ class S3CrtResponseTransformerFactoryTest {
                                                                      .bucket("bucket")
                                                                      .key("key")
                                                                      .build(),
-                                                       S3CrtResponseTransformerFactory
+                                                       S3CrtResponseTransformerProvider
                                                            .toBlockingInputStreamFromDirectBufferPool()).join())
                 .hasCauseInstanceOf(UnsupportedOperationException.class)
                 .hasRootCauseMessage(UNSUPPORTED_CLIENT_MESSAGE);

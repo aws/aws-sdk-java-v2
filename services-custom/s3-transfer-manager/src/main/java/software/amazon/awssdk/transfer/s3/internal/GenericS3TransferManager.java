@@ -72,7 +72,6 @@ import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.model.Copy;
 import software.amazon.awssdk.transfer.s3.model.CopyRequest;
-import software.amazon.awssdk.transfer.s3.model.DirectBufferPoolDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.Download;
@@ -381,8 +380,7 @@ class GenericS3TransferManager implements S3TransferManager {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
         progressUpdater.transferInitiated();
         if (responseTransformer instanceof S3CrtDirectBufferPoolStreamMarker) {
-            return failedDownload(progressUpdater, new IllegalArgumentException(
-                "Direct buffer pool transformers are not supported by download(). Use downloadWithDirectBufferPool instead."));
+            return doDownloadWithDirectBufferPool(downloadRequest, progressUpdater);
         }
         if (isS3ClientMultipartEnabled()) {
             if (responseTransformer.split(b -> b.bufferSizeInBytes(1L)).parallelSplitSupported()) {
@@ -417,19 +415,11 @@ class GenericS3TransferManager implements S3TransferManager {
         return new DefaultDownload<>(returnFuture, progressUpdater.progress());
     }
 
-    @Override
-    public final <ResultT> Download<ResultT> downloadWithDirectBufferPool(
-        DirectBufferPoolDownloadRequest<ResultT> downloadRequest) {
-        Validate.paramNotNull(downloadRequest, "downloadRequest");
-        return doDownloadWithDirectBufferPool(downloadRequest);
-    }
-
     /**
      * May be overridden by subclasses to provide customized behavior
      */
-    <ResultT> Download<ResultT> doDownloadWithDirectBufferPool(DirectBufferPoolDownloadRequest<ResultT> downloadRequest) {
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
-        progressUpdater.transferInitiated();
+    <ResultT> Download<ResultT> doDownloadWithDirectBufferPool(DownloadRequest<ResultT> downloadRequest,
+                                                               TransferProgressUpdater progressUpdater) {
         return failedDownload(progressUpdater, new UnsupportedOperationException(
             "Direct buffer pool downloads require an S3 CRT async client with a configured direct buffer pool"));
     }

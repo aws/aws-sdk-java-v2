@@ -49,14 +49,14 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions.ResponseFileOption;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerProvider;
 import software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.transfer.s3.model.DirectBufferPoolDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
@@ -153,18 +153,17 @@ public class CrtS3TransferManagerTest {
     }
 
     @Test
-    void downloadWithDirectBufferPool_cancel_shouldForwardCancellation() {
+    void download_withDirectBufferPoolTransformer_cancel_shouldForwardCancellation() {
         CompletableFuture<ResponseInputStream<GetObjectResponse>> clientFuture = new CompletableFuture<>();
         when(s3AsyncClient.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
             .thenReturn(clientFuture);
-        DirectBufferPoolDownloadRequest<ResponseInputStream<GetObjectResponse>> request =
-            DirectBufferPoolDownloadRequest.builder()
-                                           .getObjectRequest(r -> r.bucket("test").key("test"))
-                                           .responseTransformer(
-                                               S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
-                                           .build();
+        DownloadRequest<ResponseInputStream<GetObjectResponse>> request =
+            DownloadRequest.builder()
+                           .getObjectRequest(r -> r.bucket("test").key("test"))
+                           .responseTransformer(S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
+                           .build();
 
-        transferManager.downloadWithDirectBufferPool(request).completionFuture().cancel(true);
+        transferManager.download(request).completionFuture().cancel(true);
 
         assertThat(clientFuture).isCancelled();
     }

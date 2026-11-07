@@ -38,7 +38,6 @@ import software.amazon.awssdk.crt.s3.S3MetaRequestOptions.ResponseFileOption;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer;
-import software.amazon.awssdk.services.s3.internal.crt.S3CrtDirectBufferPoolStreamMarker;
 import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -56,9 +55,9 @@ import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
-import software.amazon.awssdk.transfer.s3.model.DirectBufferPoolDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.Download;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
@@ -171,17 +170,9 @@ class CrtS3TransferManager extends GenericS3TransferManager {
      * receives the response, progress and completion through listeners attached to the request.
      */
     @Override
-    <ResultT> Download<ResultT> doDownloadWithDirectBufferPool(DirectBufferPoolDownloadRequest<ResultT> downloadRequest) {
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
-        progressUpdater.transferInitiated();
-
+    <ResultT> Download<ResultT> doDownloadWithDirectBufferPool(DownloadRequest<ResultT> downloadRequest,
+                                                               TransferProgressUpdater progressUpdater) {
         AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer = downloadRequest.responseTransformer();
-        if (!(responseTransformer instanceof S3CrtDirectBufferPoolStreamMarker)) {
-            return failedDownload(progressUpdater, new IllegalArgumentException(
-                "downloadWithDirectBufferPool() requires an unwrapped direct buffer pool transformer, such as "
-                + "S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()"));
-        }
-
         CompletableFuture<CompletedDownload<ResultT>> returnFuture = new CompletableFuture<>();
         progressUpdater.registerCompletion(returnFuture);
 

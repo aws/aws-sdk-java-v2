@@ -51,8 +51,8 @@ import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
@@ -78,7 +78,7 @@ class S3CrtBorrowedBufferMixedWorkloadWireMockTest {
         try (S3AsyncClient client = newClient(wireMock, 8L * PART_SIZE)) {
             ResponseInputStream<GetObjectResponse> borrowed =
                 client.getObject(r -> r.bucket("bucket").key("download"),
-                                 S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
+                                 S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
                       .get(20, TimeUnit.SECONDS);
 
             // Read one byte, so the first buffer stays leased for the rest of the test.
@@ -117,7 +117,7 @@ class S3CrtBorrowedBufferMixedWorkloadWireMockTest {
             for (int round = 0; round < 3; round++) {
                 try (ResponseInputStream<GetObjectResponse> borrowed =
                          client.getObject(r -> r.bucket("bucket").key("download"),
-                                          S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
+                                          S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
                                .get(20, TimeUnit.SECONDS)) {
                     assertThat(readAll(borrowed)).containsExactly(DOWNLOAD_CONTENT);
                 }
@@ -157,7 +157,7 @@ class S3CrtBorrowedBufferMixedWorkloadWireMockTest {
                             .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
                             // Without this, CRT sends aws-chunked bodies that don't match the source bytes.
                             .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
-                            .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.fixed(poolBytes))
+                            .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.elastic(poolBytes, poolBytes))
                             .build();
     }
 
