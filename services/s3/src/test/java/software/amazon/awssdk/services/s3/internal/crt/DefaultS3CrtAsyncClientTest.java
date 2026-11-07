@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -42,11 +43,12 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerProvider;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerProvider;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.MapUtils;
@@ -192,6 +194,44 @@ class DefaultS3CrtAsyncClientTest {
         assertThat(request.overrideConfiguration().get().executionAttributes()
                           .getAttribute(DefaultS3CrtAsyncClient.BORROWED_BUFFER_RESPONSE_TRANSFORMER))
             .isNull();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void borrowedTransformer_withPool_shouldLogOnlyWhenPartNumberIsSet(boolean partNumberSet) {
+        ExecutionInterceptor stop = new ExecutionInterceptor() {
+            @Override
+            public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+                throw new RuntimeException("STOP");
+            }
+        };
+        GetObjectRequest request = GetObjectRequest.builder()
+                                                   .bucket("bucket")
+                                                   .key("key")
+                                                   .partNumber(partNumberSet ? 1 : null)
+                                                   .build();
+        DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder builder =
+            (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3CrtAsyncClient.builder();
+        builder.addExecutionInterceptor(stop);
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
+             S3AsyncClient client = builder.region(Region.US_EAST_1)
+                                           .credentialsProvider(StaticCredentialsProvider.create(
+                                               AwsBasicCredentials.create("key", "secret")))
+                                           .directBufferPoolConfiguration(
+                                               S3CrtDirectBufferPoolConfiguration.elastic(
+                                                   S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES,
+                                                   S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES))
+                                           .build()) {
+            assertThatThrownBy(() -> client.getObject(
+                request, S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool()).join())
+                .hasMessageContaining("STOP");
+
+            boolean logged = logCaptor.loggedEvents().stream()
+                                      .anyMatch(e -> e.getMessage().getFormattedMessage()
+                                                      .contains("GetObject with partNumber doesn't use the direct buffer pool"));
+            assertThat(logged).isEqualTo(partNumberSet);
+        }
     }
 
     @ParameterizedTest
