@@ -615,4 +615,277 @@ public class ImmutableIntrospectorTest {
             assertThat(p.setter().getParameterTypes()[0]).isSameAs(boolean.class);
         });
     }
+
+    /**
+     * Handwritten equivalent of Lombok {@code @Value}/{@code @Builder} for field {@code __encryption_keyId}
+     * (issue #5589): getter {@code get__encryption_keyId()} and fluent builder {@code __encryption_keyId(...)}.
+     */
+    @DynamoDbImmutable(builder = ImmutableWithLeadingUnderscoreGetter.Builder.class)
+    private static final class ImmutableWithLeadingUnderscoreGetter {
+        public String getId() {
+            throw new UnsupportedOperationException();
+        }
+
+        public String get__encryption_keyId() {
+            throw new UnsupportedOperationException();
+        }
+
+        public static final class Builder {
+            public Builder id(String id) {
+                throw new UnsupportedOperationException();
+            }
+
+            public Builder __encryption_keyId(String encryptionKeyId) {
+                throw new UnsupportedOperationException();
+            }
+
+            public ImmutableWithLeadingUnderscoreGetter build() {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
+
+    @Test
+    public void immutableWithLeadingUnderscoreGetter_matchesFluentBuilder() {
+        ImmutableInfo<ImmutableWithLeadingUnderscoreGetter> immutableInfo =
+            ImmutableIntrospector.getImmutableInfo(ImmutableWithLeadingUnderscoreGetter.class);
+
+        assertThat(immutableInfo.propertyDescriptors()).hasSize(2);
+        assertThat(immutableInfo.propertyDescriptors()).anySatisfy(p -> {
+            assertThat(p.name()).isEqualTo("id");
+            assertThat(p.getter().getName()).isEqualTo("getId");
+            assertThat(p.setter().getName()).isEqualTo("id");
+        });
+        assertThat(immutableInfo.propertyDescriptors()).anySatisfy(p -> {
+            assertThat(p.name()).isEqualTo("__encryption_keyId");
+            assertThat(p.getter().getName()).isEqualTo("get__encryption_keyId");
+            assertThat(p.setter().getName()).isEqualTo("__encryption_keyId");
+        });
+    }
+
+    /**
+     * Handwritten method-name support for {@code $} (not Lombok-generated): {@code get$encryptionKey()} paired
+     * with fluent builder {@code $encryptionKey(...)}.
+     */
+    @DynamoDbImmutable(builder = ImmutableWithDollarGetter.Builder.class)
+    private static final class ImmutableWithDollarGetter {
+        public String getId() {
+            throw new UnsupportedOperationException();
+        }
+
+        public String get$encryptionKey() {
+            throw new UnsupportedOperationException();
+        }
+
+        public static final class Builder {
+            public Builder id(String id) {
+                throw new UnsupportedOperationException();
+            }
+
+            public Builder $encryptionKey(String encryptionKey) {
+                throw new UnsupportedOperationException();
+            }
+
+            public ImmutableWithDollarGetter build() {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
+
+    @Test
+    public void immutableWithDollarGetter_matchesFluentBuilder() {
+        ImmutableInfo<ImmutableWithDollarGetter> immutableInfo =
+            ImmutableIntrospector.getImmutableInfo(ImmutableWithDollarGetter.class);
+
+        assertThat(immutableInfo.propertyDescriptors()).hasSize(2);
+        assertThat(immutableInfo.propertyDescriptors()).anySatisfy(p -> {
+            assertThat(p.name()).isEqualTo("id");
+            assertThat(p.getter().getName()).isEqualTo("getId");
+            assertThat(p.setter().getName()).isEqualTo("id");
+        });
+        assertThat(immutableInfo.propertyDescriptors()).anySatisfy(p -> {
+            assertThat(p.name()).isEqualTo("$encryptionKey");
+            assertThat(p.getter().getName()).isEqualTo("get$encryptionKey");
+            assertThat(p.setter().getName()).isEqualTo("$encryptionKey");
+        });
+    }
+
+    /**
+     * Legacy underscore pairing: builder method uses the getter's original name
+     * {@code get__encryption_keyId(...)} so the property remains {@code get__encryption_keyId}.
+     */
+    @DynamoDbImmutable(builder = ImmutableWithLegacyUnderscoreBuilder.Builder.class)
+    private static final class ImmutableWithLegacyUnderscoreBuilder {
+        public String getId() {
+            throw new UnsupportedOperationException();
+        }
+
+        public String get__encryption_keyId() {
+            throw new UnsupportedOperationException();
+        }
+
+        public static final class Builder {
+            public Builder id(String id) {
+                throw new UnsupportedOperationException();
+            }
+
+            public Builder get__encryption_keyId(String encryptionKeyId) {
+                throw new UnsupportedOperationException();
+            }
+
+            public ImmutableWithLegacyUnderscoreBuilder build() {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
+
+    @Test
+    public void immutableWithLegacyUnderscoreBuilder_usesOriginalGetterNameAsProperty() {
+        ImmutableInfo<ImmutableWithLegacyUnderscoreBuilder> immutableInfo =
+            ImmutableIntrospector.getImmutableInfo(ImmutableWithLegacyUnderscoreBuilder.class);
+
+        assertThat(immutableInfo.propertyDescriptors()).anySatisfy(p -> {
+            assertThat(p.name()).isEqualTo("get__encryption_keyId");
+            assertThat(p.getter().getName()).isEqualTo("get__encryption_keyId");
+            assertThat(p.setter().getName()).isEqualTo("get__encryption_keyId");
+        });
+    }
+
+    /**
+     * Legacy handwritten {@code $} pairing: builder method {@code get$encryptionKey(...)} keeps property
+     * {@code get$encryptionKey}.
+     */
+    @DynamoDbImmutable(builder = ImmutableWithLegacyDollarBuilder.Builder.class)
+    private static final class ImmutableWithLegacyDollarBuilder {
+        public String getId() {
+            throw new UnsupportedOperationException();
+        }
+
+        public String get$encryptionKey() {
+            throw new UnsupportedOperationException();
+        }
+
+        public static final class Builder {
+            public Builder id(String id) {
+                throw new UnsupportedOperationException();
+            }
+
+            public Builder get$encryptionKey(String encryptionKey) {
+                throw new UnsupportedOperationException();
+            }
+
+            public ImmutableWithLegacyDollarBuilder build() {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
+
+    @Test
+    public void immutableWithLegacyDollarBuilder_usesOriginalGetterNameAsProperty() {
+        ImmutableInfo<ImmutableWithLegacyDollarBuilder> immutableInfo =
+            ImmutableIntrospector.getImmutableInfo(ImmutableWithLegacyDollarBuilder.class);
+
+        assertThat(immutableInfo.propertyDescriptors()).anySatisfy(p -> {
+            assertThat(p.name()).isEqualTo("get$encryptionKey");
+            assertThat(p.getter().getName()).isEqualTo("get$encryptionKey");
+            assertThat(p.setter().getName()).isEqualTo("get$encryptionKey");
+        });
+    }
+
+    /**
+     * Both normalized {@code __encryption_keyId(...)} and legacy {@code get__encryption_keyId(...)} builders
+     * exist. Normalized match is preferred; the unused legacy builder remains unmatched and fails validation.
+     */
+    @DynamoDbImmutable(builder = ImmutableWithAmbiguousUnderscoreBuilders.Builder.class)
+    private static final class ImmutableWithAmbiguousUnderscoreBuilders {
+        public String getId() {
+            throw new UnsupportedOperationException();
+        }
+
+        public String get__encryption_keyId() {
+            throw new UnsupportedOperationException();
+        }
+
+        public static final class Builder {
+            public Builder id(String id) {
+                throw new UnsupportedOperationException();
+            }
+
+            public Builder __encryption_keyId(String encryptionKeyId) {
+                throw new UnsupportedOperationException();
+            }
+
+            public Builder get__encryption_keyId(String encryptionKeyId) {
+                throw new UnsupportedOperationException();
+            }
+
+            public ImmutableWithAmbiguousUnderscoreBuilders build() {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
+
+    @Test
+    public void immutableWithAmbiguousUnderscoreBuilders_prefersNormalizedAndRejectsLeftoverLegacy() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("get__encryption_keyId");
+        exception.expectMessage("matching getter");
+        ImmutableIntrospector.getImmutableInfo(ImmutableWithAmbiguousUnderscoreBuilders.class);
+    }
+
+    @DynamoDbImmutable(builder = ImmutableWithUrlAndLowercaseGetter.Builder.class)
+    private static final class ImmutableWithUrlAndLowercaseGetter {
+        public String getId() {
+            throw new UnsupportedOperationException();
+        }
+
+        public String getURL() {
+            throw new UnsupportedOperationException();
+        }
+
+        public String getfoo() {
+            throw new UnsupportedOperationException();
+        }
+
+        public static final class Builder {
+            public Builder id(String id) {
+                throw new UnsupportedOperationException();
+            }
+
+            public Builder uRL(String url) {
+                throw new UnsupportedOperationException();
+            }
+
+            public Builder getfoo(String foo) {
+                throw new UnsupportedOperationException();
+            }
+
+            public ImmutableWithUrlAndLowercaseGetter build() {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
+
+    @Test
+    public void immutableWithUrlAndLowercaseGetter_preservesExistingNormalization() {
+        ImmutableInfo<ImmutableWithUrlAndLowercaseGetter> immutableInfo =
+            ImmutableIntrospector.getImmutableInfo(ImmutableWithUrlAndLowercaseGetter.class);
+
+        assertThat(immutableInfo.propertyDescriptors()).hasSize(3);
+        assertThat(immutableInfo.propertyDescriptors()).anySatisfy(p -> {
+            assertThat(p.name()).isEqualTo("id");
+            assertThat(p.getter().getName()).isEqualTo("getId");
+            assertThat(p.setter().getName()).isEqualTo("id");
+        });
+        assertThat(immutableInfo.propertyDescriptors()).anySatisfy(p -> {
+            assertThat(p.name()).isEqualTo("uRL");
+            assertThat(p.getter().getName()).isEqualTo("getURL");
+            assertThat(p.setter().getName()).isEqualTo("uRL");
+        });
+        assertThat(immutableInfo.propertyDescriptors()).anySatisfy(p -> {
+            assertThat(p.name()).isEqualTo("getfoo");
+            assertThat(p.getter().getName()).isEqualTo("getfoo");
+            assertThat(p.setter().getName()).isEqualTo("getfoo");
+        });
+    }
 }
