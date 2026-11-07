@@ -63,6 +63,11 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
 
     public void receiveMessage(CompletableFuture<ReceiveMessageResponse> receiveMessageFuture, int numMessages) {
         futures.add(new FutureRequestWrapper(receiveMessageFuture, numMessages));
+        if (shutDown.get()) {
+            // close() already ran, so it never failed this future.
+            receiveMessageFuture.completeExceptionally(new CancellationException("Shutdown in progress"));
+            return;
+        }
         satisfyFuturesFromBuffer();
         spawnMoreReceiveTasks();
     }
@@ -185,6 +190,14 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
     private void reportBatchFinished(ReceiveSqsMessageHelper batch) {
         finishedTasks.offer(batch);
         inflightReceiveMessageBatches.decrementAndGet();
+        if (shutDown.get()) {
+            // Closed during this receive: return its messages to the queue.
+            ReceiveSqsMessageHelper finished;
+            while ((finished = finishedTasks.poll()) != null) {
+                finished.clear();
+            }
+            return;
+        }
         satisfyFuturesFromBuffer();
         spawnMoreReceiveTasks();
     }

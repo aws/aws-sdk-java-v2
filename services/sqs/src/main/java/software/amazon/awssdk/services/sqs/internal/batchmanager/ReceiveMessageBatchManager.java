@@ -15,10 +15,13 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
-import java.util.Map;
+import static software.amazon.awssdk.utils.CompletableFutureUtils.failedFuture;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
@@ -26,6 +29,10 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
+/**
+ * Sends batchable receive requests to the queue's buffer and the rest directly to SQS. A queue gets no buffer until its
+ * attributes load, so queue URLs that don't exist never take a slot.
+ */
 @SdkInternalApi
 public class ReceiveMessageBatchManager implements SdkAutoCloseable {
 
@@ -34,48 +41,99 @@ public class ReceiveMessageBatchManager implements SdkAutoCloseable {
     private final SqsAsyncClient sqsClient;
     private final ScheduledExecutorService executor;
     private final ResponseBatchConfiguration config;
-    private final Map<String, ReceiveBatchManager> receiveBatchManagerMap = new ConcurrentHashMap<>();
+    private final ReceiveBufferMap buffers;
+    // In-flight attribute loads, shared by concurrent first requests for a queue.
+    private final ConcurrentMap<String, CompletableFuture<ReceiveBatchManager>> loading = new ConcurrentHashMap<>();
 
     public ReceiveMessageBatchManager(SqsAsyncClient sqsClient,
                                       ScheduledExecutorService executor,
                                       ResponseBatchConfiguration config) {
+        this(sqsClient, executor, config, RequestBatchConfiguration.DEFAULT_MAX_BATCH_KEYS);
+    }
+
+    ReceiveMessageBatchManager(SqsAsyncClient sqsClient,
+                               ScheduledExecutorService executor,
+                               ResponseBatchConfiguration config,
+                               int maxBuffers) {
         this.sqsClient = sqsClient;
         this.executor = executor;
         this.config = config;
-
-
+        this.buffers = new ReceiveBufferMap(maxBuffers);
     }
 
     public CompletableFuture<ReceiveMessageResponse> batchRequest(ReceiveMessageRequest request) {
-        String ineligibleReason = checkBatchingEligibility(request);
-        if (ineligibleReason == null) {
-            return receiveBatchManagerMap.computeIfAbsent(generateBatchKey(request), key -> createReceiveBatchManager(request))
-                                         .processRequest(request);
-        } else {
-            log.debug(() -> String.format("Batching skipped. Reason: %s", ineligibleReason));
-            return sqsClient.receiveMessage(request);
+        if (buffers.isClosed()) {
+            return failedFuture(new IllegalStateException("The client has been shut down."));
         }
+        String ineligibleReason = checkBatchingEligibility(request);
+        if (ineligibleReason != null) {
+            log.debug(() -> String.format("Batching skipped. Reason: %s", ineligibleReason));
+            return failedOnThrow(() -> sqsClient.receiveMessage(request));
+        }
+        String queueUrl = request.queueUrl();
+        return failedOnThrow(() -> {
+            ReceiveBufferMap.Entry entry = buffers.acquire(queueUrl);
+            if (entry != null) {
+                return process(entry, request);
+            }
+            return load(queueUrl).thenCompose(manager -> process(buffers.add(queueUrl, manager), request));
+        });
     }
 
-    /**
-     * Generates a unique key for batch processing based on the queue URL and any override configuration.
-     *
-     * @param request The receive message request.
-     * @return The generated batch key.
-     */
-    private String generateBatchKey(ReceiveMessageRequest request) {
-        return request.overrideConfiguration()
-                      .map(config -> request.queueUrl() + config.hashCode())
-                      .orElse(request.queueUrl());
+    private CompletableFuture<ReceiveBatchManager> load(String queueUrl) {
+        CompletableFuture<ReceiveBatchManager> created = new CompletableFuture<>();
+        CompletableFuture<ReceiveBatchManager> inFlight = loading.putIfAbsent(queueUrl, created);
+        if (inFlight != null) {
+            return inFlight;
+        }
+        // Outside the map operation: the SDK call resolves credentials on this thread.
+        try {
+            ReceiveBatchManager manager = createReceiveBatchManager(queueUrl);
+            manager.loadQueueAttributes().whenComplete((loaded, t) -> {
+                if (t != null) {
+                    created.completeExceptionally(t);
+                } else {
+                    created.complete(manager);
+                }
+                // Remove after completing, so late arrivals share this result.
+                loading.remove(queueUrl, created);
+            });
+        } catch (Throwable e) {
+            created.completeExceptionally(e);
+            loading.remove(queueUrl, created);
+        }
+        return created;
     }
 
-    private ReceiveBatchManager createReceiveBatchManager(ReceiveMessageRequest request) {
-        return new ReceiveBatchManager(sqsClient, executor, config, request.queueUrl());
+    private CompletableFuture<ReceiveMessageResponse> process(ReceiveBufferMap.Entry entry, ReceiveMessageRequest request) {
+        CompletableFuture<ReceiveMessageResponse> response = failedOnThrow(() -> entry.manager().processRequest(request));
+        response.whenComplete((r, t) -> buffers.release(entry));
+        return response;
+    }
+
+    protected ReceiveBatchManager createReceiveBatchManager(String queueUrl) {
+        return new ReceiveBatchManager(sqsClient, executor, config, queueUrl);
+    }
+
+    int batchKeyCount() {
+        return buffers.size();
+    }
+
+    int idleCount() {
+        return buffers.idleCount();
     }
 
     @Override
     public void close() {
-        receiveBatchManagerMap.values().forEach(ReceiveBatchManager::close);
+        buffers.close();
+    }
+
+    private static <T> CompletableFuture<T> failedOnThrow(Supplier<CompletableFuture<T>> call) {
+        try {
+            return call.get();
+        } catch (Throwable e) {
+            return failedFuture(e);
+        }
     }
 
     private String checkBatchingEligibility(ReceiveMessageRequest rq) {
@@ -113,5 +171,4 @@ public class ReceiveMessageBatchManager implements SdkAutoCloseable {
     private boolean isBufferingEnabled() {
         return config.maxInflightReceiveBatches() > 0 && config.maxDoneReceiveBatches() > 0;
     }
-
 }

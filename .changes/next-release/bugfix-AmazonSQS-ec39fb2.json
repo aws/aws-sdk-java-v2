@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon SQS",
+    "contributor": "",
+    "description": "Limit the number of receive buffers the SQS batch manager keeps and release them when the batch manager is closed."
+}

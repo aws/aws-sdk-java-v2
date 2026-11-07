@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.sqs.batchmanager;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -22,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,11 +36,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,12 +55,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ReceiveSqsMessageHelper;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
+import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.services.sqs.model.SqsException;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class ReceiveSqsMessageHelperTest {
@@ -287,6 +298,109 @@ class ReceiveSqsMessageHelperTest {
                                  .build();
 
         verify(sqsClient, times(1)).receiveMessage(eq(expectedRequest));
+    }
+
+    @Test
+    void clear_whenChangeVisibilityReportsFailedEntries_logsWarnWithCount() throws Exception {
+        receiveThreeMessages();
+        ChangeMessageVisibilityBatchResponse partialFailure =
+            ChangeMessageVisibilityBatchResponse.builder()
+                                                .failed(BatchResultErrorEntry.builder().id("0").code("Error").build(),
+                                                        BatchResultErrorEntry.builder().id("2").code("Error").build())
+                                                .build();
+        when(sqsClient.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(partialFailure));
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            assertThatCode(receiveSqsMessageHelper::clear).doesNotThrowAnyException();
+
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event -> {
+                assertThat(event.getLevel()).isEqualTo(Level.WARN);
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("Failed to reset the visibility timeout of 2 unprocessed messages for queueUrl: "
+                              + QUEUE_URL);
+            });
+        }
+    }
+
+    @Test
+    void clear_whenChangeVisibilityFutureFails_logsWarn() throws Exception {
+        receiveThreeMessages();
+        CompletableFuture<ChangeMessageVisibilityBatchResponse> failed = new CompletableFuture<>();
+        failed.completeExceptionally(SqsException.builder().message("SQS error").build());
+        when(sqsClient.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class))).thenReturn(failed);
+
+        assertNackFailureLoggedWithoutThrowing();
+    }
+
+    @Test
+    void clear_whenChangeVisibilityThrowsSynchronously_logsWarnAndDoesNotThrow() throws Exception {
+        receiveThreeMessages();
+        when(sqsClient.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class)))
+            .thenThrow(new IllegalStateException("client closed"));
+
+        assertNackFailureLoggedWithoutThrowing();
+        assertTrue(receiveSqsMessageHelper.isEmpty());
+    }
+
+    @Test
+    void clear_whenRacingRemoveMessage_handlesEveryMessageOnce() throws Exception {
+        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(generateMessageResponse(10)));
+        List<ChangeMessageVisibilityBatchRequest> nacks = Collections.synchronizedList(new ArrayList<>());
+        // Lenient: if removeMessage takes every message, clear() never calls SQS.
+        lenient().when(sqsClient.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class)))
+                 .thenAnswer(invocation -> {
+            nacks.add(invocation.getArgument(0));
+            return CompletableFuture.completedFuture(ChangeMessageVisibilityBatchResponse.builder().build());
+        });
+        ExecutorService racers = Executors.newFixedThreadPool(2);
+        try {
+            for (int round = 0; round < 500; round++) {
+                nacks.clear();
+                ReceiveSqsMessageHelper helper = new ReceiveSqsMessageHelper(QUEUE_URL, sqsClient, visibilityTimeout, config);
+                helper.asyncReceiveMessage().get(1, TimeUnit.SECONDS);
+                CountDownLatch start = new CountDownLatch(1);
+                Future<Integer> removed = racers.submit(() -> {
+                    start.await();
+                    int count = 0;
+                    while (helper.removeMessage() != null) {
+                        count++;
+                    }
+                    return count;
+                });
+                Future<?> cleared = racers.submit(() -> {
+                    start.await();
+                    helper.clear();
+                    return null;
+                });
+                start.countDown();
+
+                cleared.get(5, TimeUnit.SECONDS);
+                int nacked = nacks.stream().mapToInt(r -> r.entries().size()).sum();
+                assertThat(removed.get(5, TimeUnit.SECONDS) + nacked).isEqualTo(10);
+            }
+        } finally {
+            racers.shutdownNow();
+        }
+    }
+
+    private void receiveThreeMessages() throws Exception {
+        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(generateMessageResponse(3)));
+        receiveSqsMessageHelper.asyncReceiveMessage().get(3, TimeUnit.SECONDS);
+    }
+
+    private void assertNackFailureLoggedWithoutThrowing() {
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            assertThatCode(receiveSqsMessageHelper::clear).doesNotThrowAnyException();
+
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event -> {
+                assertThat(event.getLevel()).isEqualTo(Level.WARN);
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("Failed to reset the visibility timeout of unprocessed messages for queueUrl: " + QUEUE_URL);
+            });
+        }
     }
 
 }
