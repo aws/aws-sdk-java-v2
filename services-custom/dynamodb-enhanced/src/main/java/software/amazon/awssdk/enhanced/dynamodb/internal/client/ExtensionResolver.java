@@ -20,6 +20,7 @@ import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.AtomicCounterExtension;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.TimeToLiveExtension;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.ChainExtension;
 
@@ -33,9 +34,10 @@ public final class ExtensionResolver {
         VersionedRecordExtension.builder().build();
     private static final DynamoDbEnhancedClientExtension DEFAULT_ATOMIC_COUNTER_EXTENSION =
         AtomicCounterExtension.builder().build();
-
+    private static final DynamoDbEnhancedClientExtension DEFAULT_TIME_TO_LIVE_EXTENSION =
+        TimeToLiveExtension.builder().build();
     private static final List<DynamoDbEnhancedClientExtension> DEFAULT_EXTENSIONS =
-        Arrays.asList(DEFAULT_VERSIONED_RECORD_EXTENSION, DEFAULT_ATOMIC_COUNTER_EXTENSION);
+        Arrays.asList(DEFAULT_VERSIONED_RECORD_EXTENSION, DEFAULT_ATOMIC_COUNTER_EXTENSION, DEFAULT_TIME_TO_LIVE_EXTENSION);
 
     private ExtensionResolver() {
     }

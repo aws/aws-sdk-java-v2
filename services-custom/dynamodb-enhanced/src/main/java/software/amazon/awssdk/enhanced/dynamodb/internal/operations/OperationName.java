@@ -33,7 +33,9 @@ public enum OperationName {
     SEARCH_VECTORS("SearchVectors"),
     TRANSACT_GET_ITEMS("TransactGetItems"),
     TRANSACT_WRITE_ITEMS("TransactWriteItems"),
-    UPDATE_ITEM("UpdateItem");
+    UPDATE_ITEM("UpdateItem"),
+    DESCRIBE_TIME_TO_LIVE("DescribeTimeToLive"),
+    UPDATE_TIME_TO_LIVE("UpdateTimeToLive");
 
     private final String label;
 
