@@ -75,6 +75,20 @@ class SmithyIntermediateModelPostprocessorTest {
     }
 
     @Test
+    void readWriteTimeoutExemptService_getsItsTimeout() {
+        IntermediateModel model = build(serviceWithSdkId("Neptune Graph"), CustomizationConfig.create());
+
+        assertThat(model.getMetadata().getDefaultReadWriteTimeoutMillis()).isEqualTo(900_000L);
+    }
+
+    @Test
+    void serviceNotInReadWriteTimeoutExemptions_hasNoTimeout() {
+        IntermediateModel model = build(serviceWithSdkId("Demo"), CustomizationConfig.create());
+
+        assertThat(model.getMetadata().getDefaultReadWriteTimeoutMillis()).isNull();
+    }
+
+    @Test
     void legacyEventGenerationScheme_twoMembersSharingAShape_fails() {
         CustomizationConfig config = legacyEventConfig("EventOne", "EventTwo");
 
@@ -147,6 +161,21 @@ class SmithyIntermediateModelPostprocessorTest {
                + "@awsJson1_0\n"
                + "service DemoService { version: \"2024-01-01\", operations: [ReceiveMessage] }\n"
                + "operation ReceiveMessage { input: OpRequest, output: OpResponse }\n"
+               + "structure OpRequest {}\n"
+               + "structure OpResponse {}\n";
+    }
+
+    private static String serviceWithSdkId(String sdkId) {
+        return "$version: \"2.0\"\nnamespace demo\n\n"
+               + "use aws.api#service\n"
+               + "use aws.auth#sigv4\n"
+               + "use aws.protocols#restJson1\n"
+               + "@service(sdkId: \"" + sdkId + "\", arnNamespace: \"demo\")\n"
+               + "@sigv4(name: \"demo\")\n"
+               + "@restJson1\n"
+               + "service DemoService { version: \"2024-01-01\", operations: [Op] }\n"
+               + "@http(method: \"POST\", uri: \"/op\")\n"
+               + "operation Op { input: OpRequest, output: OpResponse }\n"
                + "structure OpRequest {}\n"
                + "structure OpResponse {}\n";
     }

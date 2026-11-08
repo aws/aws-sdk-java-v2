@@ -40,6 +40,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
+import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.naming.DefaultSmithyNamingStrategy;
@@ -81,6 +82,7 @@ public final class SmithyIntermediateModelBuilder {
     private final ServiceIndex serviceIndex;
     private final String protocol;
     private final EndpointRuleSetModel endpointRuleSet;
+    private final EndpointBddModel endpointBdd;
     private final EndpointTestSuiteModel endpointTestSuiteModel;
     private final List<IntermediateModelShapeProcessor> shapeProcessors;
 
@@ -94,6 +96,7 @@ public final class SmithyIntermediateModelBuilder {
         this.serviceIndex = ServiceIndex.of(model);
         this.protocol = ProtocolUtils.resolveProtocol(serviceIndex, service, customConfig);
         this.endpointRuleSet = AddSmithyEndpoints.endpointRuleSet(service);
+        this.endpointBdd = AddSmithyEndpoints.endpointBdd(service);
         this.endpointTestSuiteModel = AddSmithyEndpoints.endpointTests(service);
         this.shapeProcessors = createShapeProcessors();
     }
@@ -183,7 +186,7 @@ public final class SmithyIntermediateModelBuilder {
             AddSmithyMetadata.constructMetadata(model, service, serviceIndex, namingStrategy, customConfig, protocol),
             operations, shapes, customConfig, endpointOperation,
             paginators, namingStrategy, Collections.emptyMap(),
-            endpointRuleSet, endpointTestSuiteModel, null, clientContextParams);
+            endpointRuleSet, endpointTestSuiteModel, endpointBdd, clientContextParams);
 
         SmithyIntermediateModelPostprocessor.create(customConfig).postprocess(fullModel);
 
@@ -202,7 +205,7 @@ public final class SmithyIntermediateModelBuilder {
                                                                fullModel.getWaiters(),
                                                                endpointRuleSet,
                                                                endpointTestSuiteModel,
-                                                               null,
+                                                               endpointBdd,
                                                                clientContextParams);
 
         linkMembersToShapes(trimmedModel);

@@ -54,6 +54,32 @@ class SmithyIntermediateModelBuilderTest {
         + "  ]\n"
         + "})\n";
 
+    /**
+     * The rule set above as Smithy compiles it to a BDD ({@code EndpointBddTrait.from(Cfg.from(ruleSet))}), with its
+     * own URL.
+     */
+    private static final String BDD =
+        "@smithy.rules#clientContextParams(\n"
+        + "  Region: { type: \"string\", documentation: \"The region\" }\n"
+        + ")\n"
+        + "@smithy.rules#endpointBdd({\n"
+        + "  version: \"1.1\"\n"
+        + "  parameters: {\n"
+        + "    Region: { required: false, type: \"string\" }\n"
+        + "  }\n"
+        + "  conditions: []\n"
+        + "  results: [\n"
+        + "    {\n"
+        + "      conditions: []\n"
+        + "      endpoint: { url: \"https://bdd.example.amazonaws.com\", properties: {}, headers: {} }\n"
+        + "      type: \"endpoint\"\n"
+        + "    }\n"
+        + "  ]\n"
+        + "  root: 100000001\n"
+        + "  nodeCount: 1\n"
+        + "  nodes: \"/////wAAAAH/////\"\n"
+        + "})\n";
+
     private static final String TESTS =
         "@smithy.rules#endpointTests({\n"
         + "  version: \"1.0\"\n"
@@ -100,6 +126,23 @@ class SmithyIntermediateModelBuilderTest {
         assertThat(model.getEndpointParameters()).containsOnlyKeys("Region");
         assertThat(model.getEndpointRules()).hasSize(1);
         assertThat(model.getEndpointTestSuiteModel().getTestCases()).hasSize(1);
+        assertThat(model.getEndpointBddModel()).isNull();
+    }
+
+    /**
+     * Without a rule set the parameters can only come from the BDD: the default rules declare more than
+     * {@code Region}.
+     */
+    @Test
+    void endpointBddTraitPresent_reachesTheIntermediateModel() {
+        IntermediateModel model = build(BDD);
+
+        assertThat(model.getEndpointBddModel()).isNotNull();
+        assertThat(model.getEndpointBddModel().getRoot()).isEqualTo(100000001);
+        assertThat(model.getEndpointBddModel().getNodeCount()).isEqualTo(1);
+        assertThat(model.getEndpointBddModel().getNodes()).isEqualTo("/////wAAAAH/////");
+        assertThat(model.getEndpointBddModel().getResults()).hasSize(1);
+        assertThat(model.getEndpointParameters()).containsOnlyKeys("Region");
     }
 
     /**
@@ -115,6 +158,7 @@ class SmithyIntermediateModelBuilderTest {
         assertThat(model.getEndpointRules()).usingRecursiveComparison().isEqualTo(defaultRules.getRules());
         assertThat(model.getEndpointParameters()).usingRecursiveComparison().isEqualTo(defaultRules.getParameters());
         assertThat(model.getEndpointTestSuiteModel().getTestCases()).isEmpty();
+        assertThat(model.getEndpointBddModel()).isNull();
     }
 
     private static IntermediateModel buildPaginated(CustomizationConfig config) {

@@ -18,22 +18,22 @@ package software.amazon.awssdk.codegen.smithy;
 import java.io.IOException;
 import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.shapes.ServiceShape;
+import software.amazon.smithy.rulesengine.traits.EndpointBddTrait;
 import software.amazon.smithy.rulesengine.traits.EndpointRuleSetTrait;
 import software.amazon.smithy.rulesengine.traits.EndpointTestsTrait;
 
 /**
- * Reads the endpoint rule-set and endpoint tests from the service's Smithy traits, where C2J reads
- * them from the {@code endpoint-rule-set.json} and {@code endpoint-tests.json} sidecar files.
+ * Reads the endpoint rule-set, endpoint BDD and endpoint tests from the service's Smithy traits, where C2J reads
+ * them from the {@code endpoint-rule-set.json}, {@code endpoint-bdd-1.json} and {@code endpoint-tests.json} sidecar
+ * files.
  *
  * <p>The trait content already uses the schema these POJOs expect, so this is a parse rather than a
  * translation. It goes through the same {@link Jackson} mapper the sidecar path uses, so the two
  * sources produce the same concrete types and tolerate unknown keys the same way.
- *
- * <p>The {@code endpointBdd} trait encodes the same rules as a binary decision diagram. Every
- * service also carries {@code endpointRuleSet} in tree form, so it is ignored.
  */
 final class AddSmithyEndpoints {
 
@@ -47,6 +47,17 @@ final class AddSmithyEndpoints {
     static EndpointRuleSetModel endpointRuleSet(ServiceShape service) {
         return service.getTrait(EndpointRuleSetTrait.class)
                       .map(trait -> parse(EndpointRuleSetModel.class, trait.getRuleSet(), service))
+                      .orElse(null);
+    }
+
+    /**
+     * Returns null when the service has no BDD trait. When present, {@code IntermediateModel} takes the endpoint
+     * parameters from it and codegen generates the BDD endpoint provider instead of the rule-tree one, as for a C2J
+     * service that ships {@code endpoint-bdd-1.json}.
+     */
+    static EndpointBddModel endpointBdd(ServiceShape service) {
+        return service.getTrait(EndpointBddTrait.class)
+                      .map(trait -> parse(EndpointBddModel.class, trait.toNode(), service))
                       .orElse(null);
     }
 
