@@ -73,10 +73,6 @@
             <version>${smithy.version}</version>
         </dependency>
         <dependency>
-            <artifactId>maven-model</artifactId>
-            <groupId>org.apache.maven</groupId>
-        </dependency>
-        <dependency>
             <artifactId>maven-artifact</artifactId>
             <groupId>org.apache.maven</groupId>
         </dependency>

@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -53,7 +54,7 @@ import software.amazon.smithy.model.validation.ValidatedResult;
 import software.amazon.smithy.model.validation.ValidationEvent;
 
 /**
- * Runs smithy-build for a Smithy-based service module, moves the generated code into the directories the C2J path
+ * Runs smithy-build for a Smithy-based service module, copies the generated code into the directories the C2J path
  * writes to, and registers them with the Maven project.
  *
  * <p>This class is used only when {@link GenerationMojo} builds a module that has a {@code smithy-build.json} at its
@@ -272,31 +273,35 @@ final class SmithyBuildGenerator {
     }
 
     /**
-     * Moves the codegen plugin's output into the directories the C2J path writes to, and registers them the same way.
+     * Copies the codegen plugin's output into the directories the C2J path writes to, and registers them the same way.
      * The root POM, several test modules and the internal Brazil import read generated code only from those
      * directories. The root POM registers the resources directory.
      */
     private void registerOutputDirectories(SmithyBuildResult result) throws MojoExecutionException {
-        List<Path> pluginOutputs = new ArrayList<>();
+        Map<String, Path> pluginOutputs = new TreeMap<>();
         for (ProjectionResult projection : result.getProjectionResults()) {
             projection.getPluginManifest(AwsSdkJavaCodegenPlugin.NAME)
-                      .ifPresent(manifest -> pluginOutputs.add(manifest.getBaseDir()));
+                      .ifPresent(manifest -> pluginOutputs.put(projection.getProjectionName(), manifest.getBaseDir()));
         }
         if (pluginOutputs.isEmpty()) {
             throw new MojoExecutionException(
                 "smithy-build completed without running the '" + AwsSdkJavaCodegenPlugin.NAME + "' plugin. Add it to "
                 + "the 'plugins' block of smithy-build.json.");
         }
-        for (Path pluginOutput : pluginOutputs) {
-            moveFiles(pluginOutput.resolve(SOURCES_DIR), sourcesDirectory);
-            moveFiles(pluginOutput.resolve(RESOURCES_DIR), resourcesDirectory);
-            moveFiles(pluginOutput.resolve(TESTS_DIR), testsDirectory);
+        if (pluginOutputs.size() > 1) {
+            throw new MojoExecutionException(
+                "The '" + AwsSdkJavaCodegenPlugin.NAME + "' plugin ran in projections " + pluginOutputs.keySet()
+                + ", but must run in exactly one.");
         }
+        Path pluginOutput = pluginOutputs.values().iterator().next();
+        copyFiles(pluginOutput.resolve(SOURCES_DIR), sourcesDirectory);
+        copyFiles(pluginOutput.resolve(RESOURCES_DIR), resourcesDirectory);
+        copyFiles(pluginOutput.resolve(TESTS_DIR), testsDirectory);
         project.addCompileSourceRoot(sourcesDirectory.toAbsolutePath().toString());
         project.addTestCompileSourceRoot(testsDirectory.toAbsolutePath().toString());
     }
 
-    private static void moveFiles(Path from, Path to) throws MojoExecutionException {
+    private static void copyFiles(Path from, Path to) throws MojoExecutionException {
         if (!Files.isDirectory(from)) {
             return;
         }
@@ -310,12 +315,12 @@ final class SmithyBuildGenerator {
 
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.move(file, to.resolve(from.relativize(file)), StandardCopyOption.REPLACE_EXISTING);
+                    Files.copy(file, to.resolve(from.relativize(file)), StandardCopyOption.REPLACE_EXISTING);
                     return FileVisitResult.CONTINUE;
                 }
             });
         } catch (IOException e) {
-            throw new MojoExecutionException("Failed to move generated files from " + from + " to " + to, e);
+            throw new MojoExecutionException("Failed to copy generated files from " + from + " to " + to, e);
         }
     }
 }
