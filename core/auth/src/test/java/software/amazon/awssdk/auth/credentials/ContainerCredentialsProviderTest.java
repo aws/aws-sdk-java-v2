@@ -50,6 +50,7 @@ public class ContainerCredentialsProviderTest {
     private static final String SECRET_ACCESS_KEY = "SECRET_ACCESS_KEY";
     private static final String TOKEN = "TOKEN_TOKEN_TOKEN";
     private static final String EXPIRATION_TIME = "3000-05-03T04:55:54Z";
+    private static final String ACCOUNT_ID = "123456789012";
     private ContainerCredentialsProvider credentialsProvider;
     private static EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
 
@@ -101,6 +102,34 @@ public class ContainerCredentialsProviderTest {
     }
 
     /**
+     * Tests that the account ID is attached to the resolved credentials when the endpoint returns it.
+     */
+    @Test
+    public void resolveCredentials_withAccountIdInResponse_returnsCredentialsWithAccountId() {
+        stubFor200Response(getSuccessfulBodyWithAccountId());
+
+        AwsCredentials credentials = credentialsProvider.resolveCredentials();
+
+        assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
+        assertThat(credentials.accountId()).isPresent().hasValue(ACCOUNT_ID);
+    }
+
+    /**
+     * Tests that credentials still resolve without an account ID when the endpoint does not return it.
+     */
+    @Test
+    public void resolveCredentials_withoutAccountIdInResponse_returnsCredentialsWithoutAccountId() {
+        stubForSuccessResponse();
+
+        AwsCredentials credentials = credentialsProvider.resolveCredentials();
+
+        assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
+        assertThat(credentials.accountId()).isNotPresent();
+    }
+
+    /**
      * Tests that the getCredentials won't leak credentials data if the response from ECS is corrupted.
      */
     @Test
@@ -139,5 +168,13 @@ public class ContainerCredentialsProviderTest {
                "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\"," +
                "\"Token\":\"TOKEN_TOKEN_TOKEN\"," +
                "\"Expiration\":\"3000-05-03T04:55:54Z\"}";
+    }
+
+    private String getSuccessfulBodyWithAccountId() {
+        return "{\"AccessKeyId\":\"ACCESS_KEY_ID\"," +
+               "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\"," +
+               "\"Token\":\"TOKEN_TOKEN_TOKEN\"," +
+               "\"Expiration\":\"3000-05-03T04:55:54Z\"," +
+               "\"AccountId\":\"" + ACCOUNT_ID + "\"}";
     }
 }

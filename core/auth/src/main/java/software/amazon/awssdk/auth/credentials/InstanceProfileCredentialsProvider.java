@@ -25,6 +25,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -76,6 +77,8 @@ public final class InstanceProfileCredentialsProvider
     private static final String TOKEN_RESOURCE = "/latest/api/token";
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
     private static final String DEFAULT_TOKEN_TTL = "21600";
+    private static final String EXTENDED_CREDENTIALS_HEADER = "X-amzn-extended";
+    private static final String EXTENDED_CREDENTIALS_VALUE = "1";
 
     private final Clock clock;
     private final String endpoint;
@@ -225,7 +228,7 @@ public final class InstanceProfileCredentialsProvider
         return StaticResourcesEndpointProvider.builder()
                                               .endpoint(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE
                                                                    + securityCredentials[0]))
-                                              .headers(getTokenHeaders(token))
+                                              .headers(getCredentialHeaders(token))
                                               .connectionTimeout(Duration.ofMillis(
                                                   this.configProvider.serviceTimeout()))
                                               .build();
@@ -318,6 +321,19 @@ public final class InstanceProfileCredentialsProvider
         }
 
         return Collections.singletonMap(EC2_METADATA_TOKEN_HEADER, metadataToken);
+    }
+
+    /**
+     * Returns headers for the credential GET request. Includes the extended credentials header to signal IMDS to
+     * return the AccountId field in the response, and the IMDSv2 token if available.
+     */
+    private Map<String, String> getCredentialHeaders(String metadataToken) {
+        Map<String, String> headers = new HashMap<>();
+        if (metadataToken != null) {
+            headers.put(EC2_METADATA_TOKEN_HEADER, metadataToken);
+        }
+        headers.put(EXTENDED_CREDENTIALS_HEADER, EXTENDED_CREDENTIALS_VALUE);
+        return Collections.unmodifiableMap(headers);
     }
 
     @Override
