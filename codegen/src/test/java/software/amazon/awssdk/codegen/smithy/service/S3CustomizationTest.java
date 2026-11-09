@@ -37,6 +37,7 @@ import software.amazon.awssdk.codegen.smithy.SmithyIntermediateModelBuilder;
 import software.amazon.awssdk.codegen.smithy.SmithyModels;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.shapes.MemberShape;
+import software.amazon.smithy.model.shapes.OperationShape;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.shapes.StructureShape;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
@@ -152,6 +153,27 @@ class S3CustomizationTest {
             "{\"endpointParameters\": {\"DeleteObjectKeys\": {\"required\": false, \"type\": \"StringArray\"}}}"));
 
         assertThat(model.getEndpointParameters()).containsOnlyKeys("Region", "DeleteObjectKeys");
+    }
+
+    @Test
+    void headBucketAndHeadObject_listTheC2jErrors() {
+        Model model = new S3Customization().preprocess(s3Model(), CustomizationConfig.create());
+
+        assertThat(model.expectShape(ShapeId.from(NAMESPACE + "HeadBucket"), OperationShape.class).getErrors())
+            .containsExactly(ShapeId.from(NAMESPACE + "NoSuchBucket"));
+        assertThat(model.expectShape(ShapeId.from(NAMESPACE + "HeadObject"), OperationShape.class).getErrors())
+            .containsExactly(ShapeId.from(NAMESPACE + "NoSuchKey"));
+    }
+
+    @Test
+    void notFound_isNotGenerated() {
+        IntermediateModel model = build(CustomizationConfig.create());
+
+        assertThat(model.getShapes()).doesNotContainKey("NotFoundException");
+        assertThat(model.getOperation("HeadBucket").getExceptions())
+            .extracting(e -> e.getExceptionName()).containsExactly("NoSuchBucketException");
+        assertThat(model.getOperation("HeadObject").getExceptions())
+            .extracting(e -> e.getExceptionName()).containsExactly("NoSuchKeyException");
     }
 
     private static IntermediateModel build(CustomizationConfig config) {

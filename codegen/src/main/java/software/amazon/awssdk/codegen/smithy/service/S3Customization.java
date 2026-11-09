@@ -59,6 +59,8 @@ import software.amazon.smithy.model.transform.ModelTransformer;
  *     without {@code x-id}.</li>
  *     <li>Members {@code customization.config} renames, such as {@code CopyObjectRequest.Bucket}, which C2J leaves not
  *     required and, for a URI label, on the old location name and label.</li>
+ *     <li>The HeadBucket and HeadObject errors: {@code NoSuchBucket} and {@code NoSuchKey} in C2J, {@code NotFound} in
+ *     Smithy.</li>
  * </ul>
  */
 @SdkInternalApi
@@ -67,6 +69,15 @@ final class S3Customization implements SmithyServiceCustomization {
     private static final Set<String> INJECTED = new HashSet<>(Arrays.asList(
         "GetObjectOutput.ExpiresString", "HeadObjectOutput.ExpiresString", "UploadPartRequest.SdkPartType"));
     private static final List<String> INTEGER_SHAPES = Arrays.asList("PartNumberMarker", "NextPartNumberMarker");
+    private static final ShapeId NOT_FOUND = ShapeId.fromParts(NAMESPACE, "NotFound");
+    private static final Map<String, String> HEAD_ERRORS;
+
+    static {
+        Map<String, String> errors = new LinkedHashMap<>();
+        errors.put("HeadBucket", "NoSuchBucket");
+        errors.put("HeadObject", "NoSuchKey");
+        HEAD_ERRORS = Collections.unmodifiableMap(errors);
+    }
 
     @Override
     public Set<String> sdkIds() {
@@ -109,6 +120,15 @@ final class S3Customization implements SmithyServiceCustomization {
             Shape string = model.expectShape(ShapeId.fromParts(NAMESPACE, name));
             replaced.add(IntegerShape.builder().id(string.getId()).addTraits(string.getAllTraits().values()).build());
         }
+        HEAD_ERRORS.forEach((operation, error) -> {
+            model.getShape(ShapeId.fromParts(NAMESPACE, operation))
+                 .flatMap(Shape::asOperationShape)
+                 .filter(op -> op.getErrors().contains(NOT_FOUND))
+                 .ifPresent(op -> replaced.add(op.toBuilder().errors(
+                     op.getErrors().stream()
+                       .map(e -> e.equals(NOT_FOUND) ? ShapeId.fromParts(NAMESPACE, error) : e)
+                       .collect(Collectors.toList())).build()));
+        });
         return ModelTransformer.create().replaceShapes(model, replaced);
     }
 
