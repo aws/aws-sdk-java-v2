@@ -84,15 +84,16 @@ final class S3Customization implements SmithyServiceCustomization {
     @Override
     public Model preprocess(Model model, CustomizationConfig config) {
         List<Shape> replaced = new ArrayList<>();
-        Map<String, ShapeModifier> modifiers = config.getShapeModifiers();
+        Map<String, ShapeModifier> modifiers = config.getShapeModifiers() == null ? Collections.emptyMap()
+                                                                                 : config.getShapeModifiers();
         for (String injected : INJECTED) {
             String shapeName = injected.substring(0, injected.indexOf('.'));
             String memberName = injected.substring(injected.indexOf('.') + 1);
+            Member member = injectedMember(modifiers.get(shapeName), memberName);
+            if (member == null) {
+                continue;
+            }
             StructureShape container = model.expectShape(ShapeId.fromParts(NAMESPACE, shapeName), StructureShape.class);
-            Member member = modifiers.get(shapeName).getInject().stream()
-                                     .filter(m -> m.containsKey(memberName)).findFirst()
-                                     .orElseThrow(() -> new IllegalStateException(injected + " is not injected"))
-                                     .get(memberName);
             MemberShape.Builder shape = MemberShape.builder()
                                                    .id(container.getId().withMember(memberName))
                                                    .target(ShapeId.fromParts(NAMESPACE, member.getShape()));
@@ -109,6 +110,17 @@ final class S3Customization implements SmithyServiceCustomization {
             replaced.add(IntegerShape.builder().id(string.getId()).addTraits(string.getAllTraits().values()).build());
         }
         return ModelTransformer.create().replaceShapes(model, replaced);
+    }
+
+    private static Member injectedMember(ShapeModifier modifier, String memberName) {
+        if (modifier == null || modifier.getInject() == null) {
+            return null;
+        }
+        return modifier.getInject().stream()
+                       .filter(m -> m.containsKey(memberName))
+                       .findFirst()
+                       .map(m -> m.get(memberName))
+                       .orElse(null);
     }
 
     @Override

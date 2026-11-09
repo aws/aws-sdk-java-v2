@@ -33,8 +33,46 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.ContextParam;
 import software.amazon.awssdk.codegen.model.service.Location;
+import software.amazon.smithy.model.Model;
+import software.amazon.smithy.model.shapes.MemberShape;
+import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.shapes.StructureShape;
+import software.amazon.smithy.model.traits.HttpHeaderTrait;
 
 class S3CustomizationTest {
+    private static final String NAMESPACE = "com.amazonaws.s3#";
+
+    private static final String S3_MODEL =
+        "$version: \"2.0\"\nnamespace com.amazonaws.s3\n\n"
+        + "use aws.api#service\nuse aws.auth#sigv4\nuse aws.protocols#restXml\n\n"
+        + "@service(sdkId: \"S3\", arnNamespace: \"s3\")\n"
+        + "@sigv4(name: \"s3\")\n"
+        + "@restXml(noErrorWrapping: true)\n"
+        + "@xmlNamespace(uri: \"http://s3.amazonaws.com/doc/2006-03-01/\")\n"
+        + "@smithy.rules#clientContextParams(Region: { type: \"string\", documentation: \"The region\" })\n"
+        + "@smithy.rules#endpointRuleSet({\n"
+        + "  version: \"1.0\"\n"
+        + "  parameters: { Region: { required: false, type: \"string\" } }\n"
+        + "  rules: [{ conditions: [], endpoint: { url: \"https://s3.amazonaws.com\" }, type: \"endpoint\" }]\n"
+        + "})\n"
+        + "service AmazonS3 { version: \"2006-03-01\", operations: [HeadBucket, HeadObject] }\n\n"
+        + "@http(method: \"HEAD\", uri: \"/{Bucket}\")\n"
+        + "operation HeadBucket { input: HeadBucketRequest, output: HeadBucketOutput, errors: [NotFound] }\n\n"
+        + "@http(method: \"HEAD\", uri: \"/{Bucket}/{Key+}\")\n"
+        + "operation HeadObject { input: HeadObjectRequest, output: HeadObjectOutput, errors: [NotFound] }\n\n"
+        + "structure HeadBucketRequest { @required @httpLabel Bucket: String }\n"
+        + "structure HeadBucketOutput {}\n"
+        + "structure HeadObjectRequest { @required @httpLabel Bucket: String, @required @httpLabel Key: String }\n"
+        + "structure HeadObjectOutput {}\n"
+        + "structure GetObjectOutput {}\n"
+        + "structure UploadPartRequest {}\n"
+        + "@error(\"client\") structure NotFound {}\n"
+        + "@error(\"client\") @httpError(404) structure NoSuchBucket {}\n"
+        + "@error(\"client\") @httpError(404) structure NoSuchKey {}\n"
+        + "string Expiration\n"
+        + "string PartNumberMarker\n"
+        + "string NextPartNumberMarker\n";
+
     private static final String RENAMES =
         "{\"shapeModifiers\": {\"CopyObjectRequest\": {\"modify\": [{"
         + "\"Bucket\": {\"emitPropertyName\": \"DestinationBucket\", \"existingNameDeprecated\": true},"
@@ -80,6 +118,42 @@ class S3CustomizationTest {
         assertLocationName(get.getMemberByC2jName("Bucket"), "Bucket");
         assertLocationName(get.getMemberByC2jName("Key"), "Key");
         assertThat(get.getMarshaller().getRequestUri()).isEqualTo("/{Key+}");
+    }
+
+    @Test
+    void preprocess_withoutShapeModifiers_injectsNoMembers() {
+        Model model = new S3Customization().preprocess(s3Model(), CustomizationConfig.create());
+
+        assertThat(structure(model, "GetObjectOutput").getMember("ExpiresString")).isEmpty();
+        assertThat(structure(model, "HeadObjectOutput").getMember("ExpiresString")).isEmpty();
+        assertThat(structure(model, "UploadPartRequest").getMember("SdkPartType")).isEmpty();
+        assertThat(model.expectShape(ShapeId.from(NAMESPACE + "PartNumberMarker")).isIntegerShape()).isTrue();
+    }
+
+    @Test
+    void preprocess_injectsOnlyTheMembersTheConfigInjects() throws IOException {
+        CustomizationConfig config = Jackson.load(CustomizationConfig.class,
+            "{\"shapeModifiers\": {\"HeadObjectOutput\": {\"inject\": [{\"ExpiresString\": "
+            + "{\"shape\": \"Expiration\", \"location\": \"header\", \"locationName\": \"Expires\"}}]}}}");
+
+        Model model = new S3Customization().preprocess(s3Model(), config);
+
+        MemberShape expires = structure(model, "HeadObjectOutput").getMember("ExpiresString").get();
+        assertThat(expires.getTarget()).isEqualTo(ShapeId.from(NAMESPACE + "Expiration"));
+        assertThat(expires.expectTrait(HttpHeaderTrait.class).getValue()).isEqualTo("Expires");
+        assertThat(structure(model, "GetObjectOutput").getMember("ExpiresString")).isEmpty();
+    }
+
+    private static Model s3Model() {
+        return Model.assembler()
+                    .discoverModels(Model.class.getClassLoader())
+                    .addUnparsedModel("s3.smithy", S3_MODEL)
+                    .assemble()
+                    .unwrap();
+    }
+
+    private static StructureShape structure(Model model, String name) {
+        return model.expectShape(ShapeId.from(NAMESPACE + name), StructureShape.class);
     }
 
     private static void assertLocationName(MemberModel member, String locationName) {
