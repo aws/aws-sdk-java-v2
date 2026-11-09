@@ -150,12 +150,6 @@ public final class DefaultAdaptiveRetryStrategy
         }
 
         @Override
-        public Builder doNotRetryWhen(Predicate<RefreshRetryTokenRequest> doNotRetry) {
-            setDoNotRetryWhen(doNotRetry);
-            return this;
-        }
-
-        @Override
         public Builder backoffStrategy(BackoffStrategy backoffStrategy) {
             setBackoffStrategy(backoffStrategy);
             return this;

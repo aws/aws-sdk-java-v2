@@ -38,7 +38,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.arns.Arn;
@@ -84,7 +83,6 @@ import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 public final class ClientClassUtils {
-    private static final ClassName PROFILE_FILE = ClassName.get("software.amazon.awssdk.profiles", "ProfileFile");
 
     private ClientClassUtils() {
     }
@@ -342,18 +340,18 @@ public final class ClientClassUtils {
         builder.addStatement("$T builder = configuration.asOverrideConfigurationBuilder()",
                              ClientOverrideConfiguration.Builder.class);
         builder.addStatement("$T retryMode = builder.retryMode()", RetryMode.class);
-        builder.addStatement("$T<$T> profileFile = configuration.option($T.PROFILE_FILE_SUPPLIER)", Supplier.class,
-                             PROFILE_FILE, SdkClientOption.class);
-        builder.addStatement("$T profileName = configuration.option($T.PROFILE_NAME)", String.class, SdkClientOption.class);
         builder.beginControlFlow("if (retryMode != null)")
-               .addStatement("configuration.option($T.RETRY_STRATEGY, $T.forRetryMode(retryMode, profileFile, profileName))",
-                             SdkClientOption.class, AwsRetryStrategy.class);
+               .addStatement("configuration.option($T.RETRY_STRATEGY, $T.forRetryMode(retryMode, "
+                             + "configuration.option($T.PROFILE_FILE_SUPPLIER), configuration.option($T.PROFILE_NAME)))",
+                             SdkClientOption.class, AwsRetryStrategy.class, SdkClientOption.class, SdkClientOption.class);
         builder.nextControlFlow("else");
         builder.addStatement("$T<$T<?, ?>> configurator = builder.retryStrategyConfigurator()", Consumer.class,
                              RetryStrategy.Builder.class);
         builder.beginControlFlow("if (configurator != null)")
-               .addStatement("$T<?, ?>  defaultBuilder = $T.forRetryMode($T.defaultRetryMode(), profileFile, profileName)"
-                             + ".toBuilder()", RetryStrategy.Builder.class, AwsRetryStrategy.class, RetryMode.class)
+               .addStatement("$T<?, ?>  defaultBuilder = $T.forRetryMode($T.defaultRetryMode(), "
+                             + "configuration.option($T.PROFILE_FILE_SUPPLIER), configuration.option($T.PROFILE_NAME))"
+                             + ".toBuilder()", RetryStrategy.Builder.class, AwsRetryStrategy.class, RetryMode.class,
+                             SdkClientOption.class, SdkClientOption.class)
                .addStatement("configurator.accept(defaultBuilder)")
                .addStatement("configuration.option($T.RETRY_STRATEGY, defaultBuilder.build())", SdkClientOption.class);
         builder.nextControlFlow("else");

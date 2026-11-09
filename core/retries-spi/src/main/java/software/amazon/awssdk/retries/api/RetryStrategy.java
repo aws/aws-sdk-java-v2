@@ -278,27 +278,6 @@ public interface RetryStrategy extends SdkAutoCloseable {
          */
         B treatAsThrottling(Predicate<Throwable> treatAsThrottling);
 
-        /**
-         * Configure the strategy to never retry when the provided predicate returns true, given the refresh request for the
-         * failed attempt. This takes precedence over the predicates configured with {@link #retryOnException(Predicate)} and
-         * its variants. For example, {@link RefreshRetryTokenRequest#operationName()} can be used to never retry a given
-         * operation.
-         *
-         * <p>Calling this more than once adds predicates: the request is not retried if any of them returns true.
-         *
-         * <p>{@link RefreshRetryTokenRequest#operationName()} is the operation name from the service model (for example,
-         * {@code "GetObject"}, not {@code "getObject"}). It is empty when the strategy is not used by an SDK client, so
-         * check it with {@link java.util.Optional#filter} or {@link java.util.Optional#isPresent} rather than
-         * {@link java.util.Optional#get}.
-         *
-         * <p>If the predicate throws an exception, the SDK retry strategies log it and do not retry the request, so the
-         * original failure is returned to the caller.
-         *
-         * <p>The default implementation throws {@link UnsupportedOperationException}.
-         */
-        default B doNotRetryWhen(Predicate<RefreshRetryTokenRequest> doNotRetry) {
-            throw new UnsupportedOperationException("This retry strategy builder does not support doNotRetryWhen");
-        }
 
         /**
          * Configure whether the default predicates should be used, or not. When set to false, only user-provided retry

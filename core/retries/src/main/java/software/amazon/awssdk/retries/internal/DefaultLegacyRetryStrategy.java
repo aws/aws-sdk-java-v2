@@ -102,12 +102,6 @@ public final class DefaultLegacyRetryStrategy
             return this;
         }
 
-        @Override
-        public Builder doNotRetryWhen(Predicate<RefreshRetryTokenRequest> doNotRetry) {
-            setDoNotRetryWhen(doNotRetry);
-            return this;
-        }
-
         public Builder tokenBucketExceptionCost(int exceptionCost) {
             setTokenBucketExceptionCost(exceptionCost);
             return this;

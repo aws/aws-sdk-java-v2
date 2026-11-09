@@ -13,7 +13,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +68,6 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
-import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
@@ -1519,14 +1517,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {
         ClientOverrideConfiguration.Builder builder = configuration.asOverrideConfigurationBuilder();
         RetryMode retryMode = builder.retryMode();
-        Supplier<ProfileFile> profileFile = configuration.option(SdkClientOption.PROFILE_FILE_SUPPLIER);
-        String profileName = configuration.option(SdkClientOption.PROFILE_NAME);
         if (retryMode != null) {
-            configuration.option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.forRetryMode(retryMode, profileFile, profileName));
+            configuration.option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.forRetryMode(retryMode, configuration.option(SdkClientOption.PROFILE_FILE_SUPPLIER), configuration.option(SdkClientOption.PROFILE_NAME)));
         } else {
             Consumer<RetryStrategy.Builder<?, ?>> configurator = builder.retryStrategyConfigurator();
             if (configurator != null) {
-                RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.forRetryMode(RetryMode.defaultRetryMode(), profileFile, profileName).toBuilder();
+                RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.forRetryMode(RetryMode.defaultRetryMode(), configuration.option(SdkClientOption.PROFILE_FILE_SUPPLIER), configuration.option(SdkClientOption.PROFILE_NAME)).toBuilder();
                 configurator.accept(defaultBuilder);
                 configuration.option(SdkClientOption.RETRY_STRATEGY, defaultBuilder.build());
             } else {

@@ -32,7 +32,6 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -67,7 +66,6 @@ public final class RetryableStageHelper {
 
     private final SdkHttpFullRequest request;
     private final boolean isLongPollingOperation;
-    private final String operationName;
     private final RequestExecutionContext context;
     private RetryPolicyAdapter retryPolicyAdapter;
     private final RetryStrategy retryStrategy;
@@ -84,7 +82,6 @@ public final class RetryableStageHelper {
         this.request = request;
         this.context = context;
         this.isLongPollingOperation = isLongPollingOperation(this.context);
-        this.operationName = context.executionAttributes().getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         RetryPolicy retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
         RetryStrategy retryStrategy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_STRATEGY);
         if (retryPolicy != null) {
@@ -206,7 +203,6 @@ public final class RetryableStageHelper {
                                                                           .failure(this.lastException)
                                                                           .token(retryToken)
                                                                           .isLongPolling(isLongPollingOperation)
-                                                                          .operationName(operationName)
                                                                           .suggestedDelay(suggestedDelay)
                                                                           .build();
 
@@ -222,7 +218,6 @@ public final class RetryableStageHelper {
                                                                           .failure(this.lastException)
                                                                           .token(retryToken)
                                                                           .isLongPolling(isLongPollingOperation)
-                                                                          .operationName(operationName)
                                                                           .suggestedDelay(suggestedDelay)
                                                                           .build();
 

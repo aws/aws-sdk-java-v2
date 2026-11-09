@@ -19,7 +19,6 @@ import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
-import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 import software.amazon.awssdk.utils.Logger;
 
@@ -76,12 +75,6 @@ public final class DefaultStandardRetryStrategy
         @Override
         public Builder treatAsThrottling(Predicate<Throwable> treatAsThrottling) {
             setTreatAsThrottling(treatAsThrottling);
-            return this;
-        }
-
-        @Override
-        public Builder doNotRetryWhen(Predicate<RefreshRetryTokenRequest> doNotRetry) {
-            setDoNotRetryWhen(doNotRetry);
             return this;
         }
 
