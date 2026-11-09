@@ -146,7 +146,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         try {
             crtBuffer.close();
         } catch (Throwable cleanupFailure) {
-            log.error(() -> "Failed to release unaccepted borrowed response buffer", cleanupFailure);
+            log.warn(() -> "Failed to release unaccepted borrowed response buffer", cleanupFailure);
         }
     }
 
@@ -154,7 +154,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         try {
             delegate.failResponseHandlerAndFuture(failure);
         } catch (Throwable notificationFailure) {
-            log.error(() -> "Failed to report borrowed response failure", notificationFailure);
+            log.warn(() -> "Failed to report borrowed response failure", notificationFailure);
         }
     }
 
@@ -165,7 +165,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         try {
             progressListener.subscriberOnError(error);
         } catch (Throwable notificationFailure) {
-            log.error(() -> "Failed to notify progress listener of request failure", notificationFailure);
+            log.warn(() -> "Failed to notify progress listener of request failure", notificationFailure);
         }
     }
 
@@ -178,7 +178,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
                     try {
                         transformer.onBorrowedStreamError(error);
                     } catch (Throwable notificationFailure) {
-                        log.error(() -> "Failed to notify borrowed response stream of request failure", notificationFailure);
+                        log.warn(() -> "Failed to notify borrowed response stream of request failure", notificationFailure);
                     }
                     notifyProgressListenerOnError(error);
                 }
