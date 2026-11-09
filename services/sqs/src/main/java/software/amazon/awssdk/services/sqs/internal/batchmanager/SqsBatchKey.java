@@ -31,10 +31,12 @@ public final class SqsBatchKey {
 
     private final String queueUrl;
     private final AwsRequestOverrideConfiguration overrideConfiguration;
+    private final int hashCode;
 
     private SqsBatchKey(String queueUrl, AwsRequestOverrideConfiguration overrideConfiguration) {
         this.queueUrl = queueUrl;
         this.overrideConfiguration = overrideConfiguration;
+        this.hashCode = 31 * Objects.hashCode(queueUrl) + Objects.hashCode(overrideConfiguration);
     }
 
     public static SqsBatchKey create(String queueUrl, Optional<AwsRequestOverrideConfiguration> overrideConfiguration) {
@@ -64,8 +66,6 @@ public final class SqsBatchKey {
 
     @Override
     public int hashCode() {
-        int hashCode = Objects.hashCode(queueUrl);
-        hashCode = 31 * hashCode + Objects.hashCode(overrideConfiguration);
         return hashCode;
     }
 

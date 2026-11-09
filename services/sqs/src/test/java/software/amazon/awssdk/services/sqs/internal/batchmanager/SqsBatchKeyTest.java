@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -90,6 +91,31 @@ class SqsBatchKeyTest {
         assertThat(a).isEqualTo(b);
         assertThat(a.hashCode()).isEqualTo(b.hashCode());
         assertThat(a.queueUrl()).isNull();
+    }
+
+    @Test
+    void hashCode_hashesOverrideConfigurationOnce() {
+        AtomicInteger hashCalls = new AtomicInteger();
+        AwsCredentialsProvider provider = new AwsCredentialsProvider() {
+            @Override
+            public AwsCredentials resolveCredentials() {
+                return AwsBasicCredentials.create("akid", "secret");
+            }
+
+            @Override
+            public int hashCode() {
+                hashCalls.incrementAndGet();
+                return 42;
+            }
+        };
+        SqsBatchKey key = SqsBatchKey.create(QUEUE_URL, Optional.of(configWith(provider)));
+        int callsAfterCreate = hashCalls.get();
+
+        int first = key.hashCode();
+        int second = key.hashCode();
+
+        assertThat(second).isEqualTo(first);
+        assertThat(hashCalls.get()).isEqualTo(callsAfterCreate);
     }
 
     @Test
