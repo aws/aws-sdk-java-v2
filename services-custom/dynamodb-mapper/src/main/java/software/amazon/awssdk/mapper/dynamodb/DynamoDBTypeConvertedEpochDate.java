@@ -22,8 +22,10 @@ import java.lang.annotation.Target;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
- * Annotation to convert a date object ({@link java.util.Date}, {@link java.util.Calendar}, {@link org.joda.time.DateTime})
+ * Annotation to convert a date object ({@link java.util.Date}, {@link java.util.Calendar}, {@code org.joda.time.DateTime})
  * to a {@link software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType#N} stored as epoch time.
+ *
+ * <p>{@code org.joda.time.DateTime} attributes require Joda-Time, which is an optional dependency of the mapper.</p>
  *
  * <p>Alternately, the {@link DynamoDBTyped} annotation may be used,</p>
  * {@snippet :

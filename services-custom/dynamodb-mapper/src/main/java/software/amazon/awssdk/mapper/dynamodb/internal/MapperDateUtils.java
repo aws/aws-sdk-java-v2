@@ -15,43 +15,75 @@
 
 package software.amazon.awssdk.mapper.dynamodb.internal;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import static java.time.temporal.ChronoField.DAY_OF_MONTH;
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
+import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
+import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
+import static java.time.temporal.ChronoField.NANO_OF_SECOND;
+import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
+import static java.time.temporal.ChronoField.YEAR;
 
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
-import org.joda.time.tz.FixedDateTimeZone;
+import java.text.ParsePosition;
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.chrono.IsoChronology;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.ResolverStyle;
+import java.time.format.SignStyle;
+import java.time.temporal.TemporalAccessor;
+import java.util.Date;
+import java.util.Locale;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * A thin port of only the ISO-8601 parse/format methods of the v1 {@code com.amazonaws.util.DateUtils}
- * that the mapper's converter layer uses, kept on the same Joda-Time formatters to preserve byte-for-byte
- * compatibility with dates written by the v1 mapper.
+ * ISO-8601 formatting and parsing for the mapper's {@link Date} and {@link java.util.Calendar} attributes.
+ *
+ * <p>This reproduces the v1 {@code com.amazonaws.util.DateUtils} methods, which used Joda-Time, with
+ * {@code java.time}, so that dates round-trip with data written by the v1 mapper:
+ * <ul>
+ *     <li>Formatting always writes three fractional digits and a {@code Z} suffix, and writes years past 9999
+ *     without a {@code +} sign. Values therefore sort as strings in time order, which matters for key attributes.</li>
+ *     <li>Parsing accepts the same inputs as v1: an optional {@code +} before the year, 1 to 9 fractional digits,
+ *     and a {@code Z} or numeric offset ({@code +HH}, {@code +HHMM}, {@code +HH:MM}, {@code +HHMMSS},
+ *     {@code +HH:MM:SS}, optionally followed by milliseconds). It throws {@link IllegalArgumentException} for
+ *     anything else.</li>
+ * </ul>
+ * One difference from v1: a string outside the range of {@link Date} is rejected. v1 returned a date that had
+ * silently overflowed to an unrelated value.
  */
 @SdkInternalApi
 public final class MapperDateUtils {
 
-    private static final DateTimeZone GMT = new FixedDateTimeZone("GMT", "GMT", 0, 0);
-    private static final long MILLI_SECONDS_OF_365_DAYS = 365L * 24 * 60 * 60 * 1000;
+    /** Matches Joda's {@code ISODateTimeFormat.dateTime()} in UTC for every {@link Date} value. */
+    private static final DateTimeFormatter ISO8601_FORMAT = new DateTimeFormatterBuilder()
+        .appendValue(YEAR, 4, 10, SignStyle.NORMAL)
+        .appendPattern("-MM-dd'T'HH:mm:ss.SSS'Z'")
+        .toFormatter(Locale.ROOT)
+        .withChronology(IsoChronology.INSTANCE)
+        .withZone(ZoneOffset.UTC);
 
-    /** ISO 8601 format. */
-    private static final DateTimeFormatter ISO8601_DATE_FORMAT =
-        ISODateTimeFormat.dateTime().withZone(GMT);
-
-    /** Alternate ISO 8601 format without fractional seconds. */
-    private static final DateTimeFormatter ALTERNATE_ISO8601_DATE_FORMAT =
-        DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(GMT);
-
-    /** ISO 8601 format with a UTC offset. */
-    private static final DateTimeFormatter ISO8601_DATE_FORMAT_WITH_OFFSET =
-        DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ");
-
-    private static final List<DateTimeFormatter> ALTERNATE_ISO8601_FORMATTERS = Arrays.asList(
-        ALTERNATE_ISO8601_DATE_FORMAT, ISO8601_DATE_FORMAT_WITH_OFFSET);
+    /** The date and time part of a parsed value. The offset is parsed separately, see {@link #parseOffsetMillis}. */
+    private static final DateTimeFormatter ISO8601_LOCAL_PARSER = new DateTimeFormatterBuilder()
+        .parseCaseInsensitive()
+        .appendValue(YEAR, 1, 9, SignStyle.NORMAL)
+        .appendLiteral('-')
+        .appendValue(MONTH_OF_YEAR, 1, 2, SignStyle.NOT_NEGATIVE)
+        .appendLiteral('-')
+        .appendValue(DAY_OF_MONTH, 1, 2, SignStyle.NOT_NEGATIVE)
+        .appendLiteral('T')
+        .appendValue(HOUR_OF_DAY, 1, 2, SignStyle.NOT_NEGATIVE)
+        .appendLiteral(':')
+        .appendValue(MINUTE_OF_HOUR, 1, 2, SignStyle.NOT_NEGATIVE)
+        .appendLiteral(':')
+        .appendValue(SECOND_OF_MINUTE, 1, 2, SignStyle.NOT_NEGATIVE)
+        .optionalStart().appendFraction(NANO_OF_SECOND, 1, 9, true).optionalEnd()
+        .toFormatter(Locale.ROOT)
+        .withChronology(IsoChronology.INSTANCE)
+        .withResolverStyle(ResolverStyle.STRICT);
 
     private MapperDateUtils() {
     }
@@ -59,74 +91,136 @@ public final class MapperDateUtils {
     /**
      * Parses the specified date string as an ISO 8601 date and returns the {@link Date} object.
      *
-     * @param dateStringOrig the date string to parse
+     * @param dateString the date string to parse
      * @return the parsed {@link Date} object
+     * @throws IllegalArgumentException if the string is not a supported ISO 8601 date, or is outside the range
+     *                                  of {@link Date}
      */
-    public static Date parseISO8601Date(final String dateStringOrig) {
-        String dateString = dateStringOrig;
-
-        // For EC2 Spot Fleet.
-        if (dateString.endsWith("+0000")) {
-            dateString = dateString
-                    .substring(0, dateString.length() - 5)
-                    .concat("Z");
+    public static Date parseISO8601Date(final String dateString) {
+        String value = dateString;
+        // Joda-Time accepts an explicit '+' before a positive year.
+        if (value.length() > 1 && value.charAt(0) == '+' && isDigit(value.charAt(1))) {
+            value = value.substring(1);
         }
-
-        // https://github.com/aws/aws-sdk-java/issues/233
-        String temp = tempDateStringForJodaTime(dateString);
+        ParsePosition position = new ParsePosition(0);
+        TemporalAccessor parsed;
         try {
-            if (temp.equals(dateString)) {
-                // Normal case: nothing special here
-                return new Date(ISO8601_DATE_FORMAT.parseMillis(dateString));
-            }
-            // Handling edge case:
-            // Joda-time can only handle up to year 292278993 but we are given
-            // 292278994; So we parse the date string by first adjusting
-            // the year to 292278993. Then we add 1 year back afterwards.
-            long milliLess365Days = ISO8601_DATE_FORMAT.parseMillis(temp);
-            long milli = milliLess365Days + MILLI_SECONDS_OF_365_DAYS;
-            if (milli < 0) { // overflow!
-                // re-parse the original date string using JodaTime so as to
-                // throw an exception with a consistent message
-                return new Date(ISO8601_DATE_FORMAT.parseMillis(dateString));
-            }
-            return new Date(milli);
-        } catch (IllegalArgumentException e) {
-            for (DateTimeFormatter dateTimeFormatter : ALTERNATE_ISO8601_FORMATTERS) {
-                try {
-                    // If the first ISO 8601 parser didn't work, try the alternate
-                    // version which doesn't include fractional seconds
-                    return new Date(dateTimeFormatter.parseMillis(dateString));
-                } catch (Exception oops) {
-                    // ignore
-                }
-            }
-
-            throw e;
+            parsed = ISO8601_LOCAL_PARSER.parse(value, position);
+        } catch (DateTimeException e) {
+            throw invalidDate(dateString, e);
+        }
+        int end = position.getIndex();
+        // Joda-Time requires at least one digit after the decimal point. Java 8's appendFraction accepts a bare '.'
+        // (later JDKs leave it unparsed, and the offset parser rejects it), so reject it here on every JDK.
+        if (value.charAt(end - 1) == '.') {
+            throw invalidDate(dateString, null);
+        }
+        long offsetMillis = parseOffsetMillis(value, end, dateString);
+        LocalDateTime local = LocalDateTime.from(parsed);
+        try {
+            long utcMillis = toEpochMilli(local.toEpochSecond(ZoneOffset.UTC), local.getNano());
+            return new Date(Math.subtractExact(utcMillis, offsetMillis));
+        } catch (ArithmeticException e) {
+            throw invalidDate(dateString, e);
         }
     }
 
     /**
-     * Formats the specified date as an ISO 8601 string.
+     * Formats the specified date as an ISO 8601 string, for example {@code 2014-03-06T14:28:58.000Z}.
      *
      * @param date the date to format
      * @return the ISO 8601 string representing the specified date
      */
     public static String formatISO8601Date(final Date date) {
-        return ISO8601_DATE_FORMAT.print(date.getTime());
+        return ISO8601_FORMAT.format(Instant.ofEpochMilli(date.getTime()));
     }
 
     /**
-     * Returns a date string with the prefix temporarily substituted, if applicable, so that
-     * JodaTime can handle it. Otherwise, if not applicable, the original date string is returned.
-     *
-     * <p>See https://github.com/aws/aws-sdk-java/issues/233</p>
+     * Parses the offset that starts at {@code index}, which must end the string: {@code Z}, or {@code +HH},
+     * {@code +HHMM}, {@code +HH:MM}, {@code +HHMMSS} or {@code +HH:MM:SS} with HH up to 23 and MM and SS up to 59,
+     * optionally followed by 1 to 3 millisecond digits (directly in the compact forms, after {@code .} in the colon
+     * forms). These are the offsets Joda-Time's ISO parser accepts.
      */
-    private static String tempDateStringForJodaTime(final String dateString) {
-        String fromPrefix = "292278994-";
-        String toPrefix = "292278993-";
-        return dateString.startsWith(fromPrefix)
-             ? toPrefix + dateString.substring(fromPrefix.length())
-             : dateString;
+    private static long parseOffsetMillis(String value, int index, String original) {
+        int length = value.length();
+        int i = index;
+        if (i == length - 1 && (value.charAt(i) == 'Z' || value.charAt(i) == 'z')) {
+            return 0;
+        }
+        if (i >= length || (value.charAt(i) != '+' && value.charAt(i) != '-')) {
+            throw invalidDate(original, null);
+        }
+        int sign = value.charAt(i) == '-' ? -1 : 1;
+        i++;
+
+        int[] fields = new int[3];
+        int count = 0;
+        Boolean colons = null;
+        while (count < fields.length) {
+            if (count > 0) {
+                if (i == length) {
+                    break;
+                }
+                boolean colon = value.charAt(i) == ':';
+                if (colons == null) {
+                    colons = colon;
+                } else if (colons != colon) {
+                    throw invalidDate(original, null);
+                }
+                if (colon) {
+                    i++;
+                }
+            }
+            if (i + 2 > length || !isDigit(value.charAt(i)) || !isDigit(value.charAt(i + 1))) {
+                throw invalidDate(original, null);
+            }
+            fields[count++] = (value.charAt(i) - '0') * 10 + (value.charAt(i + 1) - '0');
+            i += 2;
+        }
+
+        int millis = 0;
+        if (count == fields.length && i < length) {
+            if (Boolean.TRUE.equals(colons)) {
+                if (value.charAt(i) != '.') {
+                    throw invalidDate(original, null);
+                }
+                i++;
+            }
+            int digits = 0;
+            while (i < length && digits < 3 && isDigit(value.charAt(i))) {
+                millis = millis * 10 + (value.charAt(i++) - '0');
+                digits++;
+            }
+            if (digits == 0) {
+                throw invalidDate(original, null);
+            }
+            for (; digits < 3; digits++) {
+                millis *= 10;
+            }
+        }
+
+        if (i != length || fields[0] > 23 || fields[1] > 59 || fields[2] > 59) {
+            throw invalidDate(original, null);
+        }
+        return sign * ((fields[0] * 3600L + fields[1] * 60L + fields[2]) * 1000L + millis);
+    }
+
+    /**
+     * Same as {@code Instant.ofEpochSecond(epochSecond, nano).toEpochMilli()}, which on Java 8 overflows for values
+     * just above {@link Long#MIN_VALUE} milliseconds even though they fit in a {@link Date}.
+     */
+    private static long toEpochMilli(long epochSecond, int nano) {
+        if (epochSecond < 0 && nano > 0) {
+            return Math.addExact(Math.multiplyExact(epochSecond + 1, 1000L), nano / 1_000_000 - 1000);
+        }
+        return Math.addExact(Math.multiplyExact(epochSecond, 1000L), nano / 1_000_000);
+    }
+
+    private static boolean isDigit(char c) {
+        return c >= '0' && c <= '9';
+    }
+
+    private static IllegalArgumentException invalidDate(String dateString, Exception cause) {
+        return new IllegalArgumentException("Invalid ISO 8601 date: \"" + dateString + "\"", cause);
     }
 }
