@@ -82,16 +82,6 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         asyncRequest.metricCollector()
                     .ifPresent(metricCollector -> metricCollector.reportMetric(HTTP_CLIENT_NAME, clientName()));
 
-        /*
-         * See the note on getOrCreateConnectionPool()
-         *
-         * In particular, this returns a ref-counted object and calling getOrCreateConnectionPool
-         * increments the ref count by one.  We add a try-with-resources to release our ref
-         * once we have successfully submitted a request.  In this way, we avoid a race condition
-         * when close/shutdown is called from another thread while this function is executing (ie.
-         * we have a pool and no one can destroy it underneath us until we've finished submitting the
-         * request)
-         */
         HttpStreamManager streamManager = getOrCreateConnectionPool(poolKey(asyncRequest.request()));
         CrtAsyncRequestContext context = CrtAsyncRequestContext.builder()
                                                                .streamManager(streamManager)

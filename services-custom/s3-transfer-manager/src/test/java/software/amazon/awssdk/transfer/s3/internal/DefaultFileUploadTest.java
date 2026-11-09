@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -176,12 +177,34 @@ class DefaultFileUploadTest {
         DefaultFileUpload fileUpload = new DefaultFileUpload(future, transferProgress, observable, request);
 
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
+        assertThat(future).isNotDone();
         assertThat(resumableFileUpload.totalParts()).isEmpty();
         assertThat(resumableFileUpload.partSizeInBytes()).isEmpty();
         assertThat(resumableFileUpload.multipartUploadId()).isEmpty();
         assertThat(resumableFileUpload.fileLength()).isEqualTo(file.length());
         assertThat(resumableFileUpload.uploadFileRequest()).isEqualTo(request);
         assertThat(resumableFileUpload.fileLastModified()).isEqualTo(Instant.ofEpochMilli(file.lastModified()));
+    }
+
+
+    @Test
+    void pause_futureCompletedExceptionally_shouldReturnTokenAndKeepOriginalFailure() {
+        CompletableFuture<CompletedFileUpload> future = new CompletableFuture<>();
+        RuntimeException uploadFailure = new RuntimeException("upload failed");
+        future.completeExceptionally(uploadFailure);
+        TransferProgress transferProgress = mock(TransferProgress.class);
+        PauseObservable observable = new PauseObservable();
+        PausableUpload pausableUpload = mock(PausableUpload.class);
+        observable.setPausableUpload(pausableUpload);
+        when(pausableUpload.pause()).thenReturn(token);
+
+        DefaultFileUpload fileUpload = new DefaultFileUpload(future, transferProgress, observable, uploadFileRequest());
+
+        ResumableFileUpload resumableFileUpload = fileUpload.pause();
+
+        assertThat(resumableFileUpload.multipartUploadId()).hasValue(MULTIPART_UPLOAD_ID);
+        assertThat(future).isNotCancelled();
+        assertThatThrownBy(future::join).hasCause(uploadFailure);
     }
 
     private UploadFileRequest uploadFileRequest() {
