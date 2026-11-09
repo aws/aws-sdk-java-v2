@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Add support for account ID based endpoints when using IMDS or container credentials, if the account ID is returned in the credentials response. Endpoint host names can change for services that support it, such as DynamoDB. To opt out, set `accountIdEndpointMode` to `disabled`. See https://docs.aws.amazon.com/sdkref/latest/guide/feature-account-endpoints.html"
-}
