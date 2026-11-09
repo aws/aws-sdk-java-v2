@@ -34,7 +34,6 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
@@ -72,11 +71,7 @@ public class S3CrtDirectBufferPoolGetObjectIntegrationTest extends S3Integration
         try {
             deleteBucketAndAllContents(BUCKET);
         } finally {
-            try {
-                S3IntegrationTestBase.cleanUpResources();
-            } finally {
-                CrtResource.waitForNoResources();
-            }
+            S3IntegrationTestBase.cleanUpResources();
         }
     }
 
