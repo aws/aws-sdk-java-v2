@@ -33,6 +33,8 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.ContextParam;
 import software.amazon.awssdk.codegen.model.service.Location;
+import software.amazon.awssdk.codegen.smithy.SmithyIntermediateModelBuilder;
+import software.amazon.awssdk.codegen.smithy.SmithyModels;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.shapes.MemberShape;
 import software.amazon.smithy.model.shapes.ShapeId;
@@ -142,6 +144,21 @@ class S3CustomizationTest {
         assertThat(expires.getTarget()).isEqualTo(ShapeId.from(NAMESPACE + "Expiration"));
         assertThat(expires.expectTrait(HttpHeaderTrait.class).getValue()).isEqualTo("Expires");
         assertThat(structure(model, "GetObjectOutput").getMember("ExpiresString")).isEmpty();
+    }
+
+    @Test
+    void configEndpointParameters_areKeptAfterUnusedShapesAreRemoved() throws IOException {
+        IntermediateModel model = build(Jackson.load(CustomizationConfig.class,
+            "{\"endpointParameters\": {\"DeleteObjectKeys\": {\"required\": false, \"type\": \"StringArray\"}}}"));
+
+        assertThat(model.getEndpointParameters()).containsOnlyKeys("Region", "DeleteObjectKeys");
+    }
+
+    private static IntermediateModel build(CustomizationConfig config) {
+        return new SmithyIntermediateModelBuilder(SmithyModels.builder()
+                                                              .model(s3Model())
+                                                              .customizationConfig(config)
+                                                              .build()).build();
     }
 
     private static Model s3Model() {

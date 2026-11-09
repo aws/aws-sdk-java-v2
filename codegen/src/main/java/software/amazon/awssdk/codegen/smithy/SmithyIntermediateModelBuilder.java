@@ -214,6 +214,8 @@ public final class SmithyIntermediateModelBuilder {
                                                                endpointTestSuiteModel,
                                                                null,
                                                                clientContextParams);
+        // A service customization may have added parameters to the full model.
+        trimmedModel.setEndpointParameters(fullModel.getEndpointParameters());
 
         linkMembersToShapes(trimmedModel);
         MemberShapeTargetValidator.validate(trimmedModel);
