@@ -18,6 +18,10 @@
 <!--- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
+- [ ] Performance improvement (non-breaking change which improves latency, throughput, or resource use)
+- [ ] Deprecation (marks existing functionality as deprecated)
+- [ ] Removal (removes previously deprecated functionality)
+- [ ] Documentation (changes to documentation only)
 
 ## Checklist
 <!--- Go over all the following points, and put an `x` in all the boxes that apply -->
