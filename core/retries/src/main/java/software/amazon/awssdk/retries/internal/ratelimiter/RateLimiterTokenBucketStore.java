@@ -17,6 +17,7 @@ package software.amazon.awssdk.retries.internal.ratelimiter;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ToBuilderIgnoreField;
@@ -41,6 +42,8 @@ public final class RateLimiterTokenBucketStore
     private final RateLimiterClock clock;
     private final ScheduledExecutorService scheduler;
     private final boolean closeScheduler;
+    private final AtomicBoolean closed = new AtomicBoolean();
+    private final RateLimiterTokenBucket closedTokenBucket;
 
     private RateLimiterTokenBucketStore(Builder builder) {
         this(builder.clock,
@@ -52,6 +55,8 @@ public final class RateLimiterTokenBucketStore
         this.clock = Validate.paramNotNull(clock, "clock");
         this.scheduler = Validate.paramNotNull(scheduler, "scheduler");
         this.closeScheduler = closeScheduler;
+        this.closedTokenBucket = new RateLimiterTokenBucket(clock, scheduler);
+        this.closedTokenBucket.close();
         this.scopeToTokenBucket = LruCache.<String, RateLimiterTokenBucket>builder(
                                               x -> new RateLimiterTokenBucket(clock, scheduler))
                                           .maxSize(MAX_ENTRIES)
@@ -60,14 +65,25 @@ public final class RateLimiterTokenBucketStore
 
     @Override
     public void close() {
-        scopeToTokenBucket.evictAll();
-        if (closeScheduler) {
-            scheduler.shutdownNow();
+        if (closed.compareAndSet(false, true)) {
+            scopeToTokenBucket.evictAll();
+            if (closeScheduler) {
+                scheduler.shutdownNow();
+            }
         }
     }
 
     public RateLimiterTokenBucket tokenBucketForScope(String scope) {
-        return scopeToTokenBucket.get(scope);
+        if (closed.get()) {
+            return closedTokenBucket;
+        }
+
+        RateLimiterTokenBucket tokenBucket = scopeToTokenBucket.get(scope);
+        if (closed.get()) {
+            tokenBucket.close();
+            return closedTokenBucket;
+        }
+        return tokenBucket;
     }
 
     @SdkTestInternalApi

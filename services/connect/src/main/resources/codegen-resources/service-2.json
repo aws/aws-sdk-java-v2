@@ -7231,6 +7231,7 @@
         "UPDATE_CASE",
         "ASSIGN_SLA",
         "END_ASSOCIATED_TASKS",
+        "END_ASSOCIATED_EMAILS",
         "SUBMIT_AUTO_EVALUATION",
         "EXTRACT_INFORMATION",
         "SEND_IN_APP_NOTIFICATION"
@@ -10126,6 +10127,35 @@
       "max":100,
       "min":1
     },
+    "CaseEntries":{
+      "type":"list",
+      "member":{"shape":"CaseEntry"},
+      "documentation":"<p>A list of cases associated with the contact.</p>"
+    },
+    "CaseEntry":{
+      "type":"structure",
+      "members":{
+        "CaseId":{
+          "shape":"CaseId",
+          "documentation":"<p>Unique identifier of the case in UUID format.</p>"
+        },
+        "CaseReferenceNumber":{
+          "shape":"CaseReferenceNumber",
+          "documentation":"<p>A friendly number for the case. Reference numbers are not guaranteed to be unique.</p>"
+        }
+      },
+      "documentation":"<p>Information about a case associated with a contact.</p>"
+    },
+    "CaseId":{
+      "type":"string",
+      "max":36,
+      "min":1
+    },
+    "CaseReferenceNumber":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
     "CaseSlaConfiguration":{
       "type":"structure",
       "required":[
@@ -10813,6 +10843,10 @@
         "TaskTemplateInfo":{
           "shape":"TaskTemplateInfoV2",
           "documentation":"<p>If this contact was created using a task template, this contains information about the task template.</p>"
+        },
+        "Cases":{
+          "shape":"CaseEntries",
+          "documentation":"<p>A list of cases associated with the contact. This field is populated when one or more cases have been linked to the contact.</p>"
         },
         "ContactDetails":{
           "shape":"ContactDetails",
@@ -18706,6 +18740,11 @@
     "EncryptionType":{
       "type":"string",
       "enum":["KMS"]
+    },
+    "EndAssociatedEmailsActionDefinition":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>End associated emails related to a case.</p>"
     },
     "EndAssociatedTasksActionDefinition":{
       "type":"structure",
@@ -32908,6 +32947,10 @@
         "EndAssociatedTasksAction":{
           "shape":"EndAssociatedTasksActionDefinition",
           "documentation":"<p>Information about the end associated tasks action.</p> <p>Supported only for <code>TriggerEventSource</code> values: <code>OnCaseUpdate</code>.</p>"
+        },
+        "EndAssociatedEmailsAction":{
+          "shape":"EndAssociatedEmailsActionDefinition",
+          "documentation":"<p>Information about the end associated emails action.</p> <p>Supported only for <code>TriggerEventSource</code> values: <code>OnCaseUpdate</code>.</p>"
         },
         "SubmitAutoEvaluationAction":{
           "shape":"SubmitAutoEvaluationActionDefinition",

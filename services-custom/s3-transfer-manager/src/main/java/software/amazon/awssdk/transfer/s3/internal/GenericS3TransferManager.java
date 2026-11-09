@@ -270,9 +270,13 @@ class GenericS3TransferManager implements S3TransferManager {
         SseCustomerKeyValidator.validateUpload(resumableFileUpload.uploadFileRequest().putObjectRequest());
 
         boolean fileModified = PAUSE_RESUME_HELPER.fileModified(resumableFileUpload, s3AsyncClient);
-        boolean noResumeToken = !PAUSE_RESUME_HELPER.hasResumeToken(resumableFileUpload);
+        if (fileModified) {
+            return uploadFile(resumableFileUpload.uploadFileRequest());
+        }
 
-        if (fileModified || noResumeToken) {
+        PAUSE_RESUME_HELPER.validateResumeToken(resumableFileUpload);
+        boolean noResumeToken = !PAUSE_RESUME_HELPER.hasResumeToken(resumableFileUpload);
+        if (noResumeToken) {
             return uploadFile(resumableFileUpload.uploadFileRequest());
         }
 
@@ -313,9 +317,7 @@ class GenericS3TransferManager implements S3TransferManager {
         if (resumableFileUpload.totalParts().isPresent()) {
             builder.totalNumParts(resumableFileUpload.totalParts().getAsLong());
         }
-        if (resumableFileUpload.transferredParts().isPresent()) {
-            builder.numPartsCompleted(resumableFileUpload.transferredParts().getAsLong());
-        }
+        builder.numPartsCompleted(resumableFileUpload.transferredParts().orElse(0L));
 
         return builder.build();
     }

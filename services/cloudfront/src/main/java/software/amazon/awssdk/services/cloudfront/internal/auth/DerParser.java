@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.cloudfront.internal.auth;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -63,6 +64,8 @@ public class DerParser {
     public static final int UTC_TIME = 0x17;
     public static final int GENERALIZED_TIME = 0x18;
 
+    private static final int READ_CHUNK_SIZE = 8192;
+
     protected final InputStream in;
 
     /**
@@ -99,12 +102,7 @@ public class DerParser {
 
         int length = getLength();
 
-        byte[] value = new byte[length];
-        int n = in.read(value);
-        if (n < length) {
-            throw new IOException(
-                "Invalid DER: stream too short, missing value"); //$NON-NLS-1$
-        }
+        byte[] value = readFully(length, "Invalid DER: stream too short, missing value"); //$NON-NLS-1$
 
         return new Asn1Object(tag, length, value);
 
@@ -146,12 +144,40 @@ public class DerParser {
                                   + i + ")"); //$NON-NLS-1$
         }
 
-        byte[] bytes = new byte[num];
-        int n = in.read(bytes);
-        if (n < num) {
-            throw new IOException("Invalid DER: length too short"); //$NON-NLS-1$
+        byte[] bytes = readFully(num, "Invalid DER: length too short"); //$NON-NLS-1$
+
+        int length = new BigInteger(1, bytes).intValue();
+        if (length < 0) {
+            throw new IOException("Invalid DER: length too large"); //$NON-NLS-1$
+        }
+        return length;
+    }
+
+    /**
+     * Read exactly {@code length} bytes from the stream. The buffer grows with the bytes actually read, so a declared
+     * length larger than the input does not cause a large allocation.
+     *
+     * @param length The number of bytes to read
+     * @param errorMessage The message of the exception thrown if the stream ends before {@code length} bytes are read
+     * @return The bytes read
+     */
+    private byte[] readFully(int length, String errorMessage) throws IOException {
+        if (length == 0) {
+            return new byte[0];
         }
 
-        return new BigInteger(1, bytes).intValue();
+        int bufferSize = Math.min(length, READ_CHUNK_SIZE);
+        ByteArrayOutputStream out = new ByteArrayOutputStream(bufferSize);
+        byte[] buffer = new byte[bufferSize];
+        int remaining = length;
+        while (remaining > 0) {
+            int n = in.read(buffer, 0, Math.min(buffer.length, remaining));
+            if (n == -1) {
+                throw new IOException(errorMessage);
+            }
+            out.write(buffer, 0, n);
+            remaining -= n;
+        }
+        return out.toByteArray();
     }
 }
