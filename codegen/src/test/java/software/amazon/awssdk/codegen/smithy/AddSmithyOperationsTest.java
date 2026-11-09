@@ -287,6 +287,46 @@ class AddSmithyOperationsTest {
     }
 
     @Test
+    void httpChecksum_requestOnly_leavesResponseAlgorithmsNull() {
+        Model model = modelOf(
+            "use aws.protocols#httpChecksum\n\n"
+            + "@service(sdkId: \"Demo\", arnNamespace: \"demo\")\n"
+            + "@restJson1\n"
+            + "@sigv4(name: \"demo\")\n"
+            + "service DemoService { version: \"2024-01-01\", operations: [Op] }\n\n",
+            "@httpChecksum(requestChecksumRequired: true, requestAlgorithmMember: \"checksumAlgorithm\")\n"
+            + "@http(method: \"POST\", uri: \"/op\")\n"
+            + "operation Op { input: OpRequest, output: OpResponse }\n"
+            + "structure OpRequest {\n"
+            + "    checksumAlgorithm: ChecksumAlgorithm\n"
+            + "}\n"
+            + "structure OpResponse {}\n"
+            + "enum ChecksumAlgorithm { CRC32 }\n");
+
+        assertThat(op(model, "rest-json").getHttpChecksum().getResponseAlgorithms()).isNull();
+    }
+
+    @Test
+    void httpChecksum_responseAlgorithmsTranslated() {
+        Model model = modelOf(
+            "use aws.protocols#httpChecksum\n\n"
+            + "@service(sdkId: \"Demo\", arnNamespace: \"demo\")\n"
+            + "@restJson1\n"
+            + "@sigv4(name: \"demo\")\n"
+            + "service DemoService { version: \"2024-01-01\", operations: [Op] }\n\n",
+            "@httpChecksum(requestValidationModeMember: \"checksumMode\", responseAlgorithms: [\"CRC32\", \"SHA256\"])\n"
+            + "@http(method: \"POST\", uri: \"/op\")\n"
+            + "operation Op { input: OpRequest, output: OpResponse }\n"
+            + "structure OpRequest {\n"
+            + "    checksumMode: ChecksumMode\n"
+            + "}\n"
+            + "structure OpResponse {}\n"
+            + "enum ChecksumMode { ENABLED }\n");
+
+        assertThat(op(model, "rest-json").getHttpChecksum().getResponseAlgorithms()).containsExactly("CRC32", "SHA256");
+    }
+
+    @Test
     void requestCompression_encodingsTranslated() {
         Model model = modelOf(
             "@requestCompression(encodings: [\"gzip\"])\n"

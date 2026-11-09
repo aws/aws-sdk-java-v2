@@ -22,15 +22,19 @@ import static software.amazon.awssdk.codegen.smithy.transform.TransformTestSuppo
 import static software.amazon.awssdk.codegen.smithy.transform.TransformTestSupport.apply;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformTestSupport.model;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.shapes.MemberShape;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.DocumentationTrait;
 import software.amazon.smithy.model.traits.EndpointTrait;
+import software.amazon.smithy.model.traits.ExamplesTrait;
 import software.amazon.smithy.model.traits.HttpQueryTrait;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.model.traits.JsonNameTrait;
+import software.amazon.smithy.model.validation.Severity;
+import software.amazon.smithy.model.validation.ValidationEvent;
 
 class RenameMembersTransformerTest {
 
@@ -84,6 +88,61 @@ class RenameMembersTransformerTest {
 
         assertThat(result.expectShape(ShapeId.from("demo#Get")).expectTrait(HttpTrait.class).getUri().toString())
             .isEqualTo("/things/{ThingId}");
+    }
+
+    @Test
+    void renamedMember_isRenamedInOperationExamples() {
+        Model model = model(
+            REST_JSON_PREFIX
+            + "service DemoService { version: \"2024-01-01\", operations: [Get] }\n"
+            + "@http(method: \"POST\", uri: \"/things/{Id}\")\n"
+            + "@examples([{title: \"get\", input: {Id: \"1\", other: \"x\"}, output: {value: \"v\"}}])\n"
+            + "operation Get { input: GetRequest, output: GetResponse }\n"
+            + "structure GetRequest { @required @httpLabel Id: String, other: String }\n"
+            + "structure GetResponse { value: String }\n");
+
+        Model result = apply(transformer, model,
+                             "{\"renamed\": {\"demo#GetRequest$Id\": {\"name\": \"ThingId\"},"
+                             + " \"demo#GetResponse$value\": {\"name\": \"Value\"}}}");
+
+        ExamplesTrait.Example example = result.expectShape(ShapeId.from("demo#Get")).expectTrait(ExamplesTrait.class)
+                                              .getExamples().get(0);
+        assertThat(example.getInput().getStringMap().keySet()).containsExactly("ThingId", "other");
+        assertThat(example.getOutput().get().getStringMap().keySet()).containsExactly("Value");
+        ClassLoader loader = getClass().getClassLoader();
+        assertThat(Model.assembler(loader).discoverModels(loader).addModel(result).assemble()
+                        .getValidationEvents(Severity.ERROR)).isEmpty();
+    }
+
+    @Test
+    void renamedNestedMember_isRenamedInOperationExamples() {
+        Model model = model(
+            REST_JSON_PREFIX
+            + "service DemoService { version: \"2024-01-01\", operations: [Put] }\n"
+            + "@http(method: \"POST\", uri: \"/put\")\n"
+            + "@examples([{title: \"t\", input: {Notification: {NotifyAll: false}},"
+            + " output: {Items: [{NotifyAll: true}]}}])\n"
+            + "operation Put { input: PutRequest, output: PutResponse }\n"
+            + "structure PutRequest { Notification: Notification }\n"
+            + "structure PutResponse { Items: NotificationList }\n"
+            + "list NotificationList { member: Notification }\n"
+            + "structure Notification { @required NotifyAll: Boolean }\n");
+
+        Model result = apply(transformer, model,
+                             "{\"renamed\": {\"demo#Notification$NotifyAll\": {\"name\": \"NotifyAllJobStates\"}}}");
+
+        ExamplesTrait.Example example = result.expectShape(ShapeId.from("demo#Put")).expectTrait(ExamplesTrait.class)
+                                              .getExamples().get(0);
+        assertThat(example.getInput().expectObjectMember("Notification").getStringMap().keySet())
+            .containsExactly("NotifyAllJobStates");
+        assertThat(example.getOutput().get().expectArrayMember("Items").get(0).get().expectObjectNode()
+                          .getStringMap().keySet())
+            .containsExactly("NotifyAllJobStates");
+        ClassLoader loader = getClass().getClassLoader();
+        List<ValidationEvent> events = Model.assembler(loader).discoverModels(loader).addModel(result).assemble()
+                                            .getValidationEvents();
+        assertThat(events).noneMatch(e -> e.getSeverity() == Severity.ERROR);
+        assertThat(events).noneMatch(e -> e.getId().startsWith("ExamplesTrait"));
     }
 
     @Test
