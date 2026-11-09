@@ -30,6 +30,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -60,10 +61,19 @@ public class UploadDirectoryHelper {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
 
     private final TransferManagerConfiguration transferConfiguration;
-    private final Function<UploadFileRequest, FileUpload> uploadFunction;
+    private final BiFunction<UploadFileRequest, Path, FileUpload> uploadFunction;
 
     public UploadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
                                  Function<UploadFileRequest, FileUpload> uploadFunction) {
+        this(transferConfiguration, (request, confineToRoot) -> uploadFunction.apply(request));
+    }
+
+    /**
+     * @param uploadFunction uploads one file. Its second argument, if not null, is the directory below which the file must
+     * be read without following a symbolic link in any path component.
+     */
+    UploadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
+                          BiFunction<UploadFileRequest, Path, FileUpload> uploadFunction) {
 
         this.transferConfiguration = transferConfiguration;
         this.uploadFunction = uploadFunction;
@@ -91,6 +101,7 @@ public class UploadDirectoryHelper {
         Path directory = uploadDirectoryRequest.source();
 
         validateDirectory(uploadDirectoryRequest);
+        boolean followSymbolicLinks = transferConfiguration.resolveUploadDirectoryFollowSymbolicLinks(uploadDirectoryRequest);
 
         Collection<FailedFileUpload> failedFileUploads = new ConcurrentLinkedQueue<>();
 
@@ -113,7 +124,7 @@ public class UploadDirectoryHelper {
 
         AsyncBufferingSubscriber<Path> bufferingSubscriber =
             new AsyncBufferingSubscriber<>(path -> uploadSingleFile(uploadDirectoryRequest, failedFileUploads, keysToPaths,
-                                                                    path),
+                                                                    followSymbolicLinks, path),
                                            allOfFutures, 
                                            transferConfiguration.option(
                                                TransferConfigurationOption.DIRECTORY_TRANSFER_MAX_CONCURRENCY
@@ -150,6 +161,7 @@ public class UploadDirectoryHelper {
     private CompletableFuture<CompletedFileUpload> uploadSingleFile(UploadDirectoryRequest uploadDirectoryRequest,
                                                                     Collection<FailedFileUpload> failedFileUploads,
                                                                     ConcurrentMap<String, Path> keysToPaths,
+                                                                    boolean followSymbolicLinks,
                                                                     Path path) {
         int nameCount = uploadDirectoryRequest.source().getNameCount();
         UploadFileRequest uploadFileRequest = constructUploadRequest(uploadDirectoryRequest, nameCount, path);
@@ -160,8 +172,11 @@ public class UploadDirectoryHelper {
             return skipDuplicateKey(uploadDirectoryRequest, failedFileUploads, uploadFileRequest, earlier, path);
         }
 
+        Path confineToRoot = resolveConfineToRoot(uploadDirectoryRequest, uploadFileRequest, followSymbolicLinks, path);
+
         log.debug(() -> String.format("Sending upload request (%s) for path (%s)", uploadFileRequest, path));
-        CompletableFuture<CompletedFileUpload> executionFuture = uploadFunction.apply(uploadFileRequest).completionFuture();
+        CompletableFuture<CompletedFileUpload> executionFuture =
+            uploadFunction.apply(uploadFileRequest, confineToRoot).completionFuture();
         CompletableFuture<CompletedFileUpload> future = executionFuture.whenComplete((r, t) -> {
             if (t != null) {
                 failedFileUploads.add(FailedFileUpload.builder()
@@ -172,6 +187,30 @@ public class UploadDirectoryHelper {
         });
         CompletableFutureUtils.forwardExceptionTo(future, executionFuture);
         return future;
+    }
+
+    /**
+     * Returns the directory below which the uploader must read {@code path} without following a symbolic link, or
+     * {@code null} if it may read the file normally.
+     *
+     * <p>
+     * With {@code followSymbolicLinks} false, {@link #listFiles} walks without {@link FileVisitOption#FOLLOW_LINKS} and keeps
+     * only regular files that are not links. Confining every read to the source directory applies the same rule each time
+     * the file is opened, including for retries and multipart parts.
+     *
+     * <p>
+     * With {@code followSymbolicLinks} true, links are allowed, so nothing is confined. A source that the
+     * {@code uploadFileRequestTransformer} replaced was chosen by the caller rather than by the walk, so it is not confined
+     * either.
+     */
+    private static Path resolveConfineToRoot(UploadDirectoryRequest uploadDirectoryRequest,
+                                             UploadFileRequest uploadFileRequest,
+                                             boolean followSymbolicLinks,
+                                             Path path) {
+        if (followSymbolicLinks || !uploadFileRequest.source().equals(path)) {
+            return null;
+        }
+        return uploadDirectoryRequest.source();
     }
 
     /**

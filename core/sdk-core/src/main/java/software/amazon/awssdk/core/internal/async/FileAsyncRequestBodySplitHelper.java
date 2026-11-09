@@ -46,6 +46,7 @@ public final class FileAsyncRequestBodySplitHelper {
 
     private final long totalContentLength;
     private final Path path;
+    private final Path confineToRoot;
     private final int bufferPerAsyncRequestBody;
     private final long totalBufferSize;
     private final long chunkSize;
@@ -65,6 +66,7 @@ public final class FileAsyncRequestBodySplitHelper {
         this.totalContentLength = asyncRequestBody.contentLength().get();
         this.remainingBytes = new AtomicLong(totalContentLength);
         this.path = asyncRequestBody.path();
+        this.confineToRoot = asyncRequestBody.confineToRoot();
         this.chunkSize = splitConfiguration.chunkSizeInBytes() == null ?
                          AsyncRequestBodySplitConfiguration.defaultConfiguration().chunkSizeInBytes() :
                          splitConfiguration.chunkSizeInBytes();
@@ -141,6 +143,7 @@ public final class FileAsyncRequestBodySplitHelper {
                                                                         .chunkSizeInBytes(bufferPerAsyncRequestBody)
                                                                         .modifiedTimeAtStart(modifiedTimeAtStart)
                                                                         .sizeAtStart(sizeAtStart)
+                                                                        .confineToRoot(confineToRoot)
                                                                         .build();
         return new FileAsyncRequestBodyWrapper(fileAsyncRequestBody, simplePublisher);
     }

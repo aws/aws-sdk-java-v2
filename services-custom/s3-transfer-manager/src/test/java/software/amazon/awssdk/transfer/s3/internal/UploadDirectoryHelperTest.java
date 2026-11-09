@@ -36,12 +36,15 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -627,6 +630,61 @@ public class UploadDirectoryHelperTest {
 
         assertThat(result.failedTransfers()).hasSize(duplicates);
         verify(singleUploadFunction, times(duplicates)).apply(any(UploadFileRequest.class));
+    }
+
+    @Test
+    void uploadDirectory_defaultNoFollow_passesSourceDirectoryAsConfinementRoot() throws Exception {
+        Map<Path, Path> roots = uploadAndRecordConfinementRoots(UploadDirectoryRequest.builder()
+                                                                                      .source(directory)
+                                                                                      .bucket("bucket"));
+
+        assertThat(roots).containsOnlyKeys(jimfs.getPath("test/1"), jimfs.getPath("test/2"));
+        assertThat(roots.values()).containsOnly(directory);
+    }
+
+    @Test
+    void uploadDirectory_followSymbolicLinks_passesNoConfinementRoot() throws Exception {
+        Map<Path, Path> roots = uploadAndRecordConfinementRoots(UploadDirectoryRequest.builder()
+                                                                                      .source(directory)
+                                                                                      .followSymbolicLinks(true)
+                                                                                      .bucket("bucket"));
+
+        assertThat(roots).containsOnlyKeys(jimfs.getPath("test/1"), jimfs.getPath("test/2"));
+        assertThat(roots.values()).containsOnly(NO_ROOT);
+    }
+
+    @Test
+    void uploadDirectory_transformerReplacesSource_passesNoConfinementRootForThatFile() throws Exception {
+        Path replacement = Files.createFile(jimfs.getPath("replacement"));
+        Map<Path, Path> roots = uploadAndRecordConfinementRoots(
+            UploadDirectoryRequest.builder()
+                                  .source(directory)
+                                  .bucket("bucket")
+                                  .uploadFileRequestTransformer(b -> {
+                                      if (b.build().source().equals(jimfs.getPath("test/2"))) {
+                                          b.source(replacement);
+                                      }
+                                  }));
+
+        assertThat(roots).containsOnlyKeys(jimfs.getPath("test/1"), replacement);
+        assertThat(roots.get(jimfs.getPath("test/1"))).isEqualTo(directory);
+        assertThat(roots.get(replacement)).isEqualTo(NO_ROOT);
+    }
+
+    private static final Path NO_ROOT = Paths.get("no-confinement-root");
+
+    private Map<Path, Path> uploadAndRecordConfinementRoots(UploadDirectoryRequest.Builder request) throws Exception {
+        Map<Path, Path> roots = new ConcurrentHashMap<>();
+        UploadDirectoryHelper helper = new UploadDirectoryHelper(
+            TransferManagerConfiguration.builder().build(),
+            (BiFunction<UploadFileRequest, Path, FileUpload>) (r, root) -> {
+                roots.put(r.source(), root == null ? NO_ROOT : root);
+                return completedUpload();
+            });
+
+        CompletedDirectoryUpload result = helper.uploadDirectory(request.build()).completionFuture().get(10, TimeUnit.SECONDS);
+        assertThat(result.failedTransfers()).isEmpty();
+        return roots;
     }
 
     /**
