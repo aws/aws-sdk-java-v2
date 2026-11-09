@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS S3 Control",
-    "contributor": "",
-    "description": "Adds support for cross-account access grants with InstanceScope parameter for GetDataAccess and ListCallerAccessGrants operations in S3 Access Grants."
-}
