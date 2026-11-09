@@ -53,8 +53,8 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -79,7 +79,7 @@ class S3CrtBorrowedBufferInterceptorWireMockTest {
         try (S3AsyncClient client = newClient(wireMock, interceptor);
              ResponseInputStream<GetObjectResponse> stream =
                  client.getObject(r -> r.bucket("bucket").key("key"),
-                                  S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
+                                  S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
                        .get(10, TimeUnit.SECONDS)) {
             assertThat(readAll(stream)).containsExactly(CONTENT);
             assertThat(stream.read()).isEqualTo(-1);
@@ -134,7 +134,7 @@ class S3CrtBorrowedBufferInterceptorWireMockTest {
         try (S3AsyncClient client = newClient(wireMock, interceptor)) {
             assertThatThrownBy(() -> client.getObject(
                 r -> r.bucket("bucket").key("key"),
-                S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()).get(10, TimeUnit.SECONDS))
+                S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool()).get(10, TimeUnit.SECONDS))
                 .satisfies(throwable -> {
                     Throwable rootCause = throwable;
                     while (rootCause.getCause() != null) {
@@ -157,12 +157,13 @@ class S3CrtBorrowedBufferInterceptorWireMockTest {
             (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3AsyncClient.crtBuilder()
                          .region(Region.US_EAST_1)
                          .endpointOverride(URI.create("http://localhost:" + wireMock.getHttpPort()))
+                         .forcePathStyle(true)
                          .credentialsProvider(StaticCredentialsProvider.create(
                              AwsBasicCredentials.create("key", "secret")))
                          .minimumPartSizeInBytes((long) PART_SIZE)
                          .initialReadBufferSizeInBytes((long) PART_SIZE)
                          .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
-                         .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.fixed(PART_SIZE));
+                         .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.elastic(PART_SIZE, PART_SIZE));
         return builder.addExecutionInterceptor(interceptor).build();
     }
 

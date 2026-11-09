@@ -24,11 +24,11 @@ import software.amazon.awssdk.services.s3.internal.crt.S3CrtDirectBufferPoolStre
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 /**
- * Provides factory methods for CRT-specific S3 asynchronous response transformers.
+ * Provides CRT-specific S3 asynchronous response transformers.
  */
 @SdkPublicApi
-public final class S3CrtResponseTransformerFactory {
-    private S3CrtResponseTransformerFactory() {
+public final class S3CrtResponseTransformerProvider {
+    private S3CrtResponseTransformerProvider() {
     }
 
     /**
@@ -46,11 +46,11 @@ public final class S3CrtResponseTransformerFactory {
      * <p>The future returned by {@code getObject} completes when the response stream is ready. The transformer can be
      * reused across {@code getObject} calls.
      *
-     * <p>Always close the response stream. Closing releases unread buffers, which other requests on the client can't use
-     * until then, and cancels any remaining download work.
-     *
      * <p>Read the stream to the end. A failure after the stream is returned, including a full-object checksum mismatch, is
      * thrown by {@code read}.
+     *
+     * <p>Always close the response stream. Closing releases unread buffers, which other requests on the client can't use
+     * until then, and cancels any remaining download work.
      *
      * <p>Concurrent downloads that share a direct buffer pool can stall if the pool is too small. See
      * {@link S3CrtDirectBufferPoolConfiguration} for how to size it.
@@ -58,8 +58,7 @@ public final class S3CrtResponseTransformerFactory {
      * <p>{@code ExecutionInterceptor.modifyAsyncHttpResponseContent} is not applied to the object body. Don't use this
      * transformer if an interceptor must transform object bytes.
      *
-     * <p>To download through a transfer manager, use {@code S3TransferManager.downloadWithDirectBufferPool} instead of passing
-     * this transformer to {@code S3TransferManager.download}.
+     * <p>To download through a transfer manager, pass this transformer unwrapped to {@code S3TransferManager.download}.
      *
      * @return a transformer that produces a blocking response stream
      */

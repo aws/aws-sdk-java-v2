@@ -32,7 +32,7 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
-import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerProvider;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -152,7 +152,7 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
     /**
      * Configures a client-wide direct buffer pool for the CRT-based S3 client. By default, no pool is configured.
      *
-     * <p>Configure a pool to use {@link S3CrtResponseTransformerFactory#toBlockingInputStreamFromDirectBufferPool()},
+     * <p>Configure a pool to use {@link S3CrtResponseTransformerProvider#toBlockingInputStreamFromDirectBufferPool()},
      * which reads {@code GetObject} body data directly from pool memory instead of copying each part into a new heap
      * array. This can reduce heap allocation and garbage collection pressure for high-throughput downloads. Without that
      * transformer, a pool doesn't avoid heap copies. Its main use is then making CRT's download and multipart-upload

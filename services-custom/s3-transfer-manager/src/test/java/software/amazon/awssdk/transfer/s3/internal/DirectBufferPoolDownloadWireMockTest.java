@@ -47,12 +47,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -64,14 +60,13 @@ import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
-import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerProvider;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.transfer.s3.model.DirectBufferPoolDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.Download;
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
@@ -94,7 +89,7 @@ class DirectBufferPoolDownloadWireMockTest {
 
         try (S3AsyncClient client = crtClient(wireMock);
              CrtS3TransferManager tm = crtTransferManager(client)) {
-            download = tm.downloadWithDirectBufferPool(poolRequest(listener));
+            download = tm.download(poolRequest(listener));
             try (ResponseInputStream<GetObjectResponse> stream = download.completionFuture().get(10, TimeUnit.SECONDS)
                                                                          .result()) {
                 // The one-part pool and read window keep CRT from finishing until the reader consumes the earlier parts.
@@ -123,7 +118,7 @@ class DirectBufferPoolDownloadWireMockTest {
         try (S3AsyncClient client = crtClient(wireMock);
              CrtS3TransferManager tm = crtTransferManager(client)) {
             Download<ResponseInputStream<GetObjectResponse>> download =
-                tm.downloadWithDirectBufferPool(poolRequest(listener));
+                tm.download(poolRequest(listener));
 
             assertThatThrownBy(() -> download.completionFuture().get(10, TimeUnit.SECONDS))
                 .hasCauseInstanceOf(S3Exception.class);
@@ -142,7 +137,7 @@ class DirectBufferPoolDownloadWireMockTest {
         try (S3AsyncClient client = crtClient(wireMock);
              CrtS3TransferManager tm = crtTransferManager(client)) {
             Download<ResponseInputStream<GetObjectResponse>> download =
-                tm.downloadWithDirectBufferPool(poolRequest(listener));
+                tm.download(poolRequest(listener));
 
             download.completionFuture().cancel(true);
             listener.awaitTerminal();
@@ -165,7 +160,7 @@ class DirectBufferPoolDownloadWireMockTest {
         try (S3AsyncClient client = crtClient(wireMock);
              CrtS3TransferManager tm = crtTransferManager(client)) {
             Download<ResponseInputStream<GetObjectResponse>> download =
-                tm.downloadWithDirectBufferPool(poolRequest(listener));
+                tm.download(poolRequest(listener));
             try (ResponseInputStream<GetObjectResponse> stream = download.completionFuture().get(10, TimeUnit.SECONDS)
                                                                          .result()) {
                 byte[] firstPart = new byte[PART_SIZE];
@@ -193,7 +188,7 @@ class DirectBufferPoolDownloadWireMockTest {
         try (S3AsyncClient client = crtClient(wireMock);
              CrtS3TransferManager tm = crtTransferManager(client)) {
             ResponseInputStream<GetObjectResponse> stream =
-                tm.downloadWithDirectBufferPool(poolRequest(listener)).completionFuture().get(10, TimeUnit.SECONDS)
+                tm.download(poolRequest(listener)).completionFuture().get(10, TimeUnit.SECONDS)
                   .result();
             assertThat(stream.read()).isEqualTo(CONTENT[0] & 0xff);
             stream.close();
@@ -201,7 +196,7 @@ class DirectBufferPoolDownloadWireMockTest {
             listener.awaitTerminal();
 
             try (ResponseInputStream<GetObjectResponse> next =
-                     tm.downloadWithDirectBufferPool(poolRequest(nextListener)).completionFuture()
+                     tm.download(poolRequest(nextListener)).completionFuture()
                        .get(10, TimeUnit.SECONDS).result()) {
                 assertThat(readAll(next)).containsExactly(CONTENT);
             }
@@ -223,7 +218,7 @@ class DirectBufferPoolDownloadWireMockTest {
         try (S3AsyncClient client = crtClient(wireMock);
              CrtS3TransferManager tm = crtTransferManager(client)) {
             ResponseInputStream<GetObjectResponse> stream =
-                tm.downloadWithDirectBufferPool(poolRequest(listener)).completionFuture().get(10, TimeUnit.SECONDS)
+                tm.download(poolRequest(listener)).completionFuture().get(10, TimeUnit.SECONDS)
                   .result();
             listener.awaitTerminal();
             stream.close();
@@ -265,11 +260,11 @@ class DirectBufferPoolDownloadWireMockTest {
                  .forcePathStyle(true)
                  .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
                  .retryConfiguration(S3CrtRetryConfiguration.builder().numRetries(0).build())
-                 .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.fixed(PART_SIZE))
+                 .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.elastic(PART_SIZE, PART_SIZE))
                  .build();
              CrtS3TransferManager tm = crtTransferManager(client)) {
             try (ResponseInputStream<GetObjectResponse> stream =
-                     tm.downloadWithDirectBufferPool(poolRequest(request, listener)).completionFuture()
+                     tm.download(poolRequest(request, listener)).completionFuture()
                        .get(10, TimeUnit.SECONDS).result()) {
                 assertThat(readAll(stream)).containsExactly(content);
             }
@@ -290,7 +285,7 @@ class DirectBufferPoolDownloadWireMockTest {
         try (S3AsyncClient client = crtClientBuilder(wireMock).build();
              CrtS3TransferManager tm = crtTransferManager(client)) {
             Download<ResponseInputStream<GetObjectResponse>> download =
-                tm.downloadWithDirectBufferPool(poolRequest(listener));
+                tm.download(poolRequest(listener));
 
             assertThatThrownBy(() -> download.completionFuture().get(10, TimeUnit.SECONDS))
                 .hasRootCauseInstanceOf(IllegalStateException.class);
@@ -307,19 +302,20 @@ class DirectBufferPoolDownloadWireMockTest {
         throws Exception {
         stubObject(CONTENT);
         CountingTransferListener listener = new CountingTransferListener(2);
-        DirectBufferPoolDownloadRequest<ResponseInputStream<GetObjectResponse>> request = poolRequest(listener);
+        DownloadRequest<ResponseInputStream<GetObjectResponse>> request = poolRequest(listener);
 
         // Room for both objects, so the unread second download cannot hold memory the first one needs.
         long poolSize = 2L * PART_SIZE * PART_COUNT;
         Download<ResponseInputStream<GetObjectResponse>> first;
         Download<ResponseInputStream<GetObjectResponse>> second;
         try (S3AsyncClient client =
-                 crtClientBuilder(wireMock).directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.fixed(poolSize))
-                                           .build();
+                 crtClientBuilder(wireMock)
+                     .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.elastic(poolSize, poolSize))
+                     .build();
              CrtS3TransferManager tm = crtTransferManager(client)) {
-            first = tm.downloadWithDirectBufferPool(request);
+            first = tm.download(request);
             try (ResponseInputStream<GetObjectResponse> stream = first.completionFuture().get(10, TimeUnit.SECONDS).result()) {
-                second = tm.downloadWithDirectBufferPool(request);
+                second = tm.download(request);
                 assertThat(readAll(stream)).containsExactly(CONTENT);
             }
             try (ResponseInputStream<GetObjectResponse> stream =
@@ -338,49 +334,15 @@ class DirectBufferPoolDownloadWireMockTest {
         assertThat(listener.failed).hasValue(0);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("transformersThatAreNotUnwrappedPoolTransformers")
-    void notUnwrappedPoolTransformer_shouldFailBeforeTransmission(
-        String description, AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer,
-        WireMockRuntimeInfo wireMock) throws Exception {
-        CountingTransferListener listener = new CountingTransferListener();
-        DirectBufferPoolDownloadRequest<ResponseInputStream<GetObjectResponse>> request =
-            DirectBufferPoolDownloadRequest.builder()
-                                           .getObjectRequest(r -> r.bucket(BUCKET).key(KEY))
-                                           .addTransferListener(listener)
-                                           .responseTransformer(transformer)
-                                           .build();
-
-        try (S3AsyncClient client = crtClient(wireMock);
-             CrtS3TransferManager tm = crtTransferManager(client)) {
-            Download<ResponseInputStream<GetObjectResponse>> download = tm.downloadWithDirectBufferPool(request);
-
-            assertThatThrownBy(() -> download.completionFuture().get(10, TimeUnit.SECONDS))
-                .hasRootCauseInstanceOf(IllegalArgumentException.class)
-                .hasRootCauseMessage("downloadWithDirectBufferPool() requires an unwrapped direct buffer pool transformer, "
-                                     + "such as S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()");
-            listener.awaitTerminal();
-        }
-
-        assertThat(listener.failed).hasValue(1);
-        assertThat(listener.completed).hasValue(0);
-        verify(0, anyRequestedFor(anyUrl()));
-    }
-
-    private static Stream<Arguments> transformersThatAreNotUnwrappedPoolTransformers() {
-        return Stream.of(Arguments.of("ordinary transformer", AsyncResponseTransformer.toBlockingInputStream()),
-                         Arguments.of("wrapped pool transformer", new ForwardingTransformer<>(
-                             S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())));
-    }
-
     @Test
-    void downloadWithPooledTransformer_shouldFailBeforeTransmission(WireMockRuntimeInfo wireMock) throws Exception {
+    void wrappedPoolTransformer_shouldFailBeforeTransmission(WireMockRuntimeInfo wireMock) throws Exception {
         CountingTransferListener listener = new CountingTransferListener();
         DownloadRequest<ResponseInputStream<GetObjectResponse>> request =
             DownloadRequest.builder()
                            .getObjectRequest(r -> r.bucket(BUCKET).key(KEY))
                            .addTransferListener(listener)
-                           .responseTransformer(S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
+                           .responseTransformer(new ForwardingTransformer<>(
+                               S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool()))
                            .build();
 
         try (S3AsyncClient client = crtClient(wireMock);
@@ -388,9 +350,9 @@ class DirectBufferPoolDownloadWireMockTest {
             Download<ResponseInputStream<GetObjectResponse>> download = tm.download(request);
 
             assertThatThrownBy(() -> download.completionFuture().get(10, TimeUnit.SECONDS))
-                .hasRootCauseInstanceOf(IllegalArgumentException.class)
-                .hasRootCauseMessage("Direct buffer pool transformers are not supported by download(). Use "
-                                     + "downloadWithDirectBufferPool instead.");
+                .hasRootCauseInstanceOf(UnsupportedOperationException.class)
+                .hasRootCauseMessage("This transformer requires a CRT-based S3 client configured with a direct buffer pool, "
+                                     + "and cannot be wrapped by another transformer.");
             listener.awaitTerminal();
         }
 
@@ -407,7 +369,7 @@ class DirectBufferPoolDownloadWireMockTest {
              GenericS3TransferManager tm =
                  new GenericS3TransferManager(TransferManagerConfiguration.builder().build(), javaClient, false)) {
             Download<ResponseInputStream<GetObjectResponse>> download =
-                tm.downloadWithDirectBufferPool(poolRequest(listener));
+                tm.download(poolRequest(listener));
 
             assertThatThrownBy(() -> download.completionFuture().get(10, TimeUnit.SECONDS))
                 .hasRootCauseInstanceOf(UnsupportedOperationException.class);
@@ -419,19 +381,18 @@ class DirectBufferPoolDownloadWireMockTest {
         verify(0, anyRequestedFor(anyUrl()));
     }
 
-    private static DirectBufferPoolDownloadRequest<ResponseInputStream<GetObjectResponse>> poolRequest(
+    private static DownloadRequest<ResponseInputStream<GetObjectResponse>> poolRequest(
         TransferListener listener) {
         return poolRequest(GetObjectRequest.builder().bucket(BUCKET).key(KEY).build(), listener);
     }
 
-    private static DirectBufferPoolDownloadRequest<ResponseInputStream<GetObjectResponse>> poolRequest(
+    private static DownloadRequest<ResponseInputStream<GetObjectResponse>> poolRequest(
         GetObjectRequest getObjectRequest, TransferListener listener) {
-        return DirectBufferPoolDownloadRequest.builder()
-                                              .getObjectRequest(getObjectRequest)
-                                              .addTransferListener(listener)
-                                              .responseTransformer(
-                                                  S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
-                                              .build();
+        return DownloadRequest.builder()
+                              .getObjectRequest(getObjectRequest)
+                              .addTransferListener(listener)
+                              .responseTransformer(S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
+                              .build();
     }
 
     private static CrtS3TransferManager crtTransferManager(S3AsyncClient client) {
@@ -439,14 +400,16 @@ class DirectBufferPoolDownloadWireMockTest {
     }
 
     private static S3AsyncClient crtClient(WireMockRuntimeInfo wireMock) {
-        return crtClientBuilder(wireMock).directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.fixed(PART_SIZE))
-                                         .build();
+        return crtClientBuilder(wireMock)
+            .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.elastic(PART_SIZE, PART_SIZE))
+            .build();
     }
 
     private static S3CrtAsyncClientBuilder crtClientBuilder(WireMockRuntimeInfo wireMock) {
         return S3AsyncClient.crtBuilder()
                             .region(Region.US_EAST_1)
                             .endpointOverride(URI.create("http://localhost:" + wireMock.getHttpPort()))
+                            .forcePathStyle(true)
                             .credentialsProvider(StaticCredentialsProvider.create(
                                 AwsBasicCredentials.create("key", "secret")))
                             .minimumPartSizeInBytes((long) PART_SIZE)

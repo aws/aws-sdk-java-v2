@@ -159,10 +159,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             return S3DirectBufferPoolOptions.elastic(minimumSizeInBytes.get(), memoryLimitInBytes.get());
         }
 
-        if (memoryLimitInBytes.isPresent()) {
-            return S3DirectBufferPoolOptions.fixed(memoryLimitInBytes.get());
-        }
-
         return S3DirectBufferPoolOptions.auto();
     }
 

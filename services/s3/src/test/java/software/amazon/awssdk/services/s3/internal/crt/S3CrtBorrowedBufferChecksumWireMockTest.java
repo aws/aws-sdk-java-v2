@@ -41,8 +41,8 @@ import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerProvider;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -131,18 +131,19 @@ class S3CrtBorrowedBufferChecksumWireMockTest {
         return S3AsyncClient.crtBuilder()
                             .region(Region.US_EAST_1)
                             .endpointOverride(URI.create("http://localhost:" + wireMock.getHttpPort()))
+                            .forcePathStyle(true)
                             .credentialsProvider(StaticCredentialsProvider.create(
                                 AwsBasicCredentials.create("key", "secret")))
                             .minimumPartSizeInBytes((long) PART_SIZE)
                             .initialReadBufferSizeInBytes((long) PART_SIZE)
                             .maxConcurrency(1)
                             .responseChecksumValidation(ResponseChecksumValidation.WHEN_SUPPORTED)
-                            .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.fixed(PART_SIZE))
+                            .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.elastic(PART_SIZE, PART_SIZE))
                             .build();
     }
 
     private static ResponseInputStream<GetObjectResponse> borrowedStream(S3AsyncClient client) throws Exception {
-        return client.getObject(request(), S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
+        return client.getObject(request(), S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
                      .get();
     }
 

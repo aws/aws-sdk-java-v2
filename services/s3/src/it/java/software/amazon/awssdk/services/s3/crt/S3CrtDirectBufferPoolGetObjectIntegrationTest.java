@@ -34,7 +34,6 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
@@ -72,11 +71,7 @@ public class S3CrtDirectBufferPoolGetObjectIntegrationTest extends S3Integration
         try {
             deleteBucketAndAllContents(BUCKET);
         } finally {
-            try {
-                S3IntegrationTestBase.cleanUpResources();
-            } finally {
-                CrtResource.waitForNoResources();
-            }
+            S3IntegrationTestBase.cleanUpResources();
         }
     }
 
@@ -86,7 +81,7 @@ public class S3CrtDirectBufferPoolGetObjectIntegrationTest extends S3Integration
         try (S3AsyncClient client = pooledClient(poolConfiguration);
              ResponseInputStream<GetObjectResponse> stream = client.getObject(
                  b -> b.bucket(BUCKET).key(OBJECT_KEY).checksumMode(ChecksumMode.ENABLED),
-                 S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
+                 S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
                                                         .get(1, TimeUnit.MINUTES)) {
             assertThat(stream.response().contentLength()).isEqualTo((long) OBJECT_SIZE);
             assertStreamMatchesObject(stream);
@@ -95,10 +90,10 @@ public class S3CrtDirectBufferPoolGetObjectIntegrationTest extends S3Integration
 
     @Test
     void getObject_emptyObject_shouldReturnEmptyStream() throws Exception {
-        try (S3AsyncClient client = pooledClient(fixedPool());
+        try (S3AsyncClient client = pooledClient(fullyAllocatedPool());
              ResponseInputStream<GetObjectResponse> stream = client.getObject(
                  b -> b.bucket(BUCKET).key(EMPTY_OBJECT_KEY),
-                 S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
+                 S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
                                                         .get(1, TimeUnit.MINUTES)) {
             assertThat(stream.response().contentLength()).isZero();
             assertThat(stream.read()).isEqualTo(-1);
@@ -108,12 +103,12 @@ public class S3CrtDirectBufferPoolGetObjectIntegrationTest extends S3Integration
 
     @Test
     void getObject_closeEarly_shouldReleasePool() throws Exception {
-        try (S3AsyncClient client = pooledClient(fixedPool())) {
+        try (S3AsyncClient client = pooledClient(fullyAllocatedPool())) {
             // If every close leaked its lease, the two-part pool would be empty before the third request.
             for (int i = 0; i < 3; i++) {
                 try (ResponseInputStream<GetObjectResponse> stream = client.getObject(
                     b -> b.bucket(BUCKET).key(OBJECT_KEY),
-                    S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
+                    S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
                                                                    .get(1, TimeUnit.MINUTES)) {
                     assertThat(stream.read()).isGreaterThanOrEqualTo(0);
                 }
@@ -123,7 +118,7 @@ public class S3CrtDirectBufferPoolGetObjectIntegrationTest extends S3Integration
 
     @Test
     void sharedClient_ordinaryRequests_shouldSucceed() throws Exception {
-        try (S3AsyncClient client = pooledClient(fixedPool())) {
+        try (S3AsyncClient client = pooledClient(fullyAllocatedPool())) {
             ResponseBytes<GetObjectResponse> responseBytes = client.getObject(
                 b -> b.bucket(BUCKET).key(OBJECT_KEY), AsyncResponseTransformer.toBytes()).get(1, TimeUnit.MINUTES);
             assertThat(Md5Utils.md5AsBase64(responseBytes.asByteArray())).isEqualTo(Md5Utils.md5AsBase64(object));
@@ -140,12 +135,12 @@ public class S3CrtDirectBufferPoolGetObjectIntegrationTest extends S3Integration
 
     private static Stream<S3CrtDirectBufferPoolConfiguration> poolConfigurations() {
         return Stream.of(S3CrtDirectBufferPoolConfiguration.auto(),
-                         fixedPool(),
+                         fullyAllocatedPool(),
                          S3CrtDirectBufferPoolConfiguration.elastic(0, 2L * PART_SIZE));
     }
 
-    private static S3CrtDirectBufferPoolConfiguration fixedPool() {
-        return S3CrtDirectBufferPoolConfiguration.fixed(2L * PART_SIZE);
+    private static S3CrtDirectBufferPoolConfiguration fullyAllocatedPool() {
+        return S3CrtDirectBufferPoolConfiguration.elastic(2L * PART_SIZE, 2L * PART_SIZE);
     }
 
     private static S3AsyncClient pooledClient(S3CrtDirectBufferPoolConfiguration poolConfiguration) {

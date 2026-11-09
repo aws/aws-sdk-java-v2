@@ -86,6 +86,7 @@ import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtensio
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -100,6 +101,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         new ExecutionAttribute<>("borrowedBufferResponseListener");
     static final ExecutionAttribute<S3CrtBorrowedBufferBlockingResponseTransformer> BORROWED_BUFFER_RESPONSE_TRANSFORMER =
         new ExecutionAttribute<>("borrowedBufferResponseTransformer");
+    private static final Logger log = Logger.loggerFor(DefaultS3CrtAsyncClient.class);
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
     private final CopyObjectHelper copyObjectHelper;
     private final boolean directBufferPoolConfigured;
@@ -160,7 +162,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                 new IllegalStateException(
                     "A direct buffer pool must be configured with S3CrtAsyncClientBuilder.directBufferPoolConfiguration("
                     + "S3CrtDirectBufferPoolConfiguration) when using "
-                    + "S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool()"));
+                    + "S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool()"));
+        }
+
+        if (getObjectRequest.partNumber() != null) {
+            log.debug(() -> "GetObject with partNumber doesn't use the direct buffer pool. CRT holds the response body in "
+                            + "native memory outside the pool and -XX:MaxDirectMemorySize.");
         }
 
         // Listener set by CrtS3TransferManager for direct buffer pool downloads.

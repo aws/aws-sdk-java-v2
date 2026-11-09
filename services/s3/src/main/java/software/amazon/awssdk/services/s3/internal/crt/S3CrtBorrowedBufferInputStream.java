@@ -265,7 +265,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
         try {
             cancellationAction.run();
         } catch (Throwable t) {
-            log.error(() -> "Failed to cancel borrowed response stream", t);
+            log.warn(() -> "Failed to cancel borrowed response stream", t);
         }
     }
 
@@ -283,7 +283,7 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
             try {
                 buffer.close();
             } catch (Throwable t) {
-                log.error(() -> "Failed to release borrowed response buffer", t);
+                log.warn(() -> "Failed to release borrowed response buffer", t);
             }
         }
     }
