@@ -77,7 +77,7 @@ A change in `codegen/` changes every service client. To fix code that every serv
 
 - Before opening a pull request, run the final check on every module you changed.
 - A pull request sourced by AI tools must be reviewed by a person before it is opened.
-- Fill in `.github/PULL_REQUEST_TEMPLATE.md` for the pull request description.
+- Do not write the pull request description. The person opening the pull request writes it from `.github/PULL_REQUEST_TEMPLATE.md`.
 - Work on a branch named `<alias>/<short-kebab-slug>`, where the slug describes the change rather than a ticket, and never commit the change to `master`. External contributors push the branch to their own fork.
 - Write commit messages as Conventional Commits, `<type>: <description>` or `<type>(<scope>): <description>`, with a type such as `fix`, `feat`, `docs`, `refactor`, `test`, or `chore`, and a subject of 50 characters or fewer in the imperative mood with no trailing period. Add a body only when the reason for the change is not obvious from the diff: wrap it at 72 characters and explain the context behind the change. In the rare case that maintainers approve a breaking change, mark it with a `BREAKING CHANGE:` footer. Pull requests are squash-merged with the title as the commit subject, so the title follows the same format.
 - Add a changelog entry, as described next.
