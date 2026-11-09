@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed an issue where multipart uploads failed when configured with minimum part sizes of 2 GiB or larger. Multipart uploads through the S3 multipart client or S3 Transfer Manager now support part sizes up to S3's 5-GiB maximum, and related failures are surfaced correctly to callers."
+}
