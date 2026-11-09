@@ -44,6 +44,7 @@ import software.amazon.smithy.model.traits.HttpHeaderTrait;
 
 class S3CustomizationTest {
     private static final String NAMESPACE = "com.amazonaws.s3#";
+    private static final String XMLNS = "http://s3.amazonaws.com/doc/2006-03-01/";
 
     private static final String S3_MODEL =
         "$version: \"2.0\"\nnamespace com.amazonaws.s3\n\n"
@@ -121,6 +122,54 @@ class S3CustomizationTest {
         assertLocationName(get.getMemberByC2jName("Bucket"), "Bucket");
         assertLocationName(get.getMemberByC2jName("Key"), "Key");
         assertThat(get.getMarshaller().getRequestUri()).isEqualTo("/{Key+}");
+    }
+
+    @Test
+    void requestWhoseBodyMembersAreAllInjected_hasNoXmlRoot() throws IOException {
+        IntermediateModel model = xmlRootModel();
+        new S3Customization().postprocess(model);
+
+        ShapeMarshaller copy = model.getShapes().get("CopyObjectRequest").getMarshaller();
+        assertThat(copy.getLocationName()).isNull();
+        assertThat(copy.getXmlNameSpaceUri()).isNull();
+    }
+
+    @Test
+    void requestWithAModeledBodyMember_keepsItsXmlRoot() throws IOException {
+        IntermediateModel model = xmlRootModel();
+        new S3Customization().postprocess(model);
+
+        ShapeMarshaller select = model.getShapes().get("SelectObjectContentRequest").getMarshaller();
+        assertThat(select.getLocationName()).isEqualTo("SelectObjectContentRequest");
+        assertThat(select.getXmlNameSpaceUri()).isEqualTo(XMLNS);
+    }
+
+    /**
+     * Two requests with an XML root, as the translator builds them: one whose only body member is injected by the
+     * config, and one with a body member from the model.
+     */
+    private static IntermediateModel xmlRootModel() throws IOException {
+        ShapeModel copy = xmlRootShape("CopyObjectRequest");
+        copy.addMember(member("CopySource", Location.HEADER, "x-amz-copy-source", false));
+        copy.addMember(member("SourceBucket", null, "SourceBucket", false));
+        ShapeModel select = xmlRootShape("SelectObjectContentRequest");
+        select.addMember(member("Expression", null, "Expression", false));
+        select.addMember(member("SourceBucket", null, "SourceBucket", false));
+        Map<String, ShapeModel> shapes = new HashMap<>();
+        shapes.put(copy.getC2jName(), copy);
+        shapes.put(select.getC2jName(), select);
+        String config = "{\"shapeModifiers\": {"
+                        + "\"CopyObjectRequest\": {\"inject\": [{\"SourceBucket\": {\"shape\": \"BucketName\"}}]},"
+                        + "\"SelectObjectContentRequest\": {\"inject\": [{\"SourceBucket\": {\"shape\": \"BucketName\"}}]}}}";
+        return new IntermediateModel(new Metadata(), new HashMap<>(), shapes,
+                                     Jackson.load(CustomizationConfig.class, config));
+    }
+
+    private static ShapeModel xmlRootShape(String name) {
+        ShapeModel shape = shape(name, "/{Key+}");
+        shape.getMarshaller().setLocationName(name);
+        shape.getMarshaller().setXmlNameSpaceUri(XMLNS);
+        return shape;
     }
 
     @Test
@@ -233,7 +282,7 @@ class S3CustomizationTest {
                                                  .withMarshallLocationName(locationName)
                                                  .withUnmarshallLocationName(locationName)
                                                  .setIsGreedy(greedy));
-        if (name.endsWith("Bucket")) {
+        if (location == Location.URI && name.endsWith("Bucket")) {
             ContextParam bucket = new ContextParam();
             bucket.setName("Bucket");
             member.setContextParam(bucket);

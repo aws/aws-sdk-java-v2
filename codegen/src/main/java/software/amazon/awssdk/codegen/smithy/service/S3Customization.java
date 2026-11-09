@@ -32,6 +32,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ParameterHttpMapping;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.CustomOperationContextParam;
@@ -61,6 +62,7 @@ import software.amazon.smithy.model.transform.ModelTransformer;
  *     required and, for a URI label, on the old location name and label.</li>
  *     <li>The HeadBucket and HeadObject errors: {@code NoSuchBucket} and {@code NoSuchKey} in C2J, {@code NotFound} in
  *     Smithy.</li>
+ *     <li>No XML root for a request whose only body members are injected, such as {@code CopyObjectRequest}.</li>
  * </ul>
  */
 @SdkInternalApi
@@ -153,6 +155,28 @@ final class S3Customization implements SmithyServiceCustomization {
             if (shape.getMarshaller() != null && shape.getMarshaller().getRequestUri() != null) {
                 shape.getMarshaller().setRequestUri(withoutXId(withoutBucket(shape)));
             }
+            removeXmlRootOfInjectedBody(model, shape);
+        }
+    }
+
+    /**
+     * C2J takes a request's XML root from the model, which has none when every body member is one
+     * {@code customization.config} injects, such as {@code CopyObjectRequest.SourceBucket}.
+     */
+    private static void removeXmlRootOfInjectedBody(IntermediateModel model, ShapeModel shape) {
+        ShapeMarshaller marshaller = shape.getMarshaller();
+        Map<String, ShapeModifier> modifiers = model.getCustomizationConfig().getShapeModifiers();
+        ShapeModifier modifier = modifiers == null ? null : modifiers.get(shape.getC2jName());
+        if (marshaller == null || marshaller.getLocationName() == null || modifier == null
+            || modifier.getInject() == null) {
+            return;
+        }
+        Set<String> injected = modifier.getInject().stream()
+                                       .flatMap(m -> m.keySet().stream())
+                                       .collect(Collectors.toSet());
+        if (shape.getUnboundMembers().stream().allMatch(m -> injected.contains(m.getC2jName()))) {
+            marshaller.setLocationName(null);
+            marshaller.setXmlNameSpaceUri(null);
         }
     }
 
