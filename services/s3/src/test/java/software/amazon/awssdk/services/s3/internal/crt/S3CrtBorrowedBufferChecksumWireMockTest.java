@@ -131,6 +131,7 @@ class S3CrtBorrowedBufferChecksumWireMockTest {
         return S3AsyncClient.crtBuilder()
                             .region(Region.US_EAST_1)
                             .endpointOverride(URI.create("http://localhost:" + wireMock.getHttpPort()))
+                            .forcePathStyle(true)
                             .credentialsProvider(StaticCredentialsProvider.create(
                                 AwsBasicCredentials.create("key", "secret")))
                             .minimumPartSizeInBytes((long) PART_SIZE)

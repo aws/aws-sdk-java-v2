@@ -378,6 +378,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
             (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3AsyncClient.crtBuilder()
                          .region(Region.US_EAST_1)
                          .endpointOverride(URI.create("http://localhost:" + wireMock.getHttpPort()))
+                         .forcePathStyle(true)
                          .credentialsProvider(StaticCredentialsProvider.create(
                              AwsBasicCredentials.create("key", "secret")))
                          .minimumPartSizeInBytes((long) PART_SIZE)
@@ -402,6 +403,7 @@ class S3CrtBorrowedBufferClientWireMockTest {
             (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3AsyncClient.crtBuilder()
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + wireMock.getHttpPort()))
+                .forcePathStyle(true)
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
                 .minimumPartSizeInBytes((long) PART_SIZE)
                 .initialReadBufferSizeInBytes((long) PART_SIZE)
