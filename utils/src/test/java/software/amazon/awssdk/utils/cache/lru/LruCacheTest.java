@@ -16,18 +16,23 @@
 package software.amazon.awssdk.utils.cache.lru;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -40,6 +45,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ExtendWith(MockitoExtension.class)
 public class LruCacheTest {
@@ -246,6 +252,90 @@ public class LruCacheTest {
         }
     }
 
+    @Test
+    void evictAll_noEntries_returnsEmptyList() {
+        LruCache<Integer, String> cache = simpleCache.get();
+        assertThat(cache.evictAll()).isEmpty();
+    }
+
+    @Test
+    void evictAll_maxEntries_returnsAllEntries() {
+        LruCache<Integer, String> cache = simpleCache.get();
+       List<String> expected = new ArrayList<>();
+        for (int i = 0; i < MAX_SIMPLE_CACHE_SIZE; ++i) {
+            expected.add(cache.get(i));
+        }
+        assertThat(cache.evictAll()).containsExactlyInAnyOrder(expected.toArray(new String[0]));
+    }
+
+    @Test
+    void evictAll_closesEvictedEntries() {
+        LruCache<Integer, SdkAutoCloseable> cache = LruCache.
+            <Integer, SdkAutoCloseable>builder(k -> mock(SdkAutoCloseable.class))
+            .maxSize(MAX_SIMPLE_CACHE_SIZE)
+            .build();
+
+        for (int i = 0; i < MAX_SIMPLE_CACHE_SIZE; ++i) {
+            cache.get(i);
+        }
+
+        List<SdkAutoCloseable> evicted = cache.evictAll();
+
+        assertThat(evicted).isNotEmpty();
+        assertThat(evicted).allSatisfy(e -> verify(e).close());
+    }
+
+    @Test
+    void get_whenEvictionCloseReentersCache_completes() throws InterruptedException {
+        AtomicReference<LruCache<Integer, ReentrantCloseable>> cacheReference = new AtomicReference<>();
+        AtomicBoolean reentered = new AtomicBoolean();
+        LruCache<Integer, ReentrantCloseable> cache = LruCache.<Integer, ReentrantCloseable>builder(
+            key -> new ReentrantCloseable(key, cacheReference, reentered))
+                                                               .maxSize(1)
+                                                               .build();
+        cacheReference.set(cache);
+        cache.get(1);
+
+        assertCompletes(() -> cache.get(2));
+
+        assertThat(reentered).isTrue();
+        assertThat(cache.size()).isEqualTo(1);
+    }
+
+    @Test
+    void evictAll_whenCloseReentersCache_completes() throws InterruptedException {
+        AtomicReference<LruCache<Integer, ReentrantCloseable>> cacheReference = new AtomicReference<>();
+        AtomicBoolean reentered = new AtomicBoolean();
+        LruCache<Integer, ReentrantCloseable> cache = LruCache.<Integer, ReentrantCloseable>builder(
+            key -> new ReentrantCloseable(key, cacheReference, reentered))
+                                                               .maxSize(MAX_SIMPLE_CACHE_SIZE)
+                                                               .build();
+        cacheReference.set(cache);
+        cache.get(1);
+
+        assertCompletes(cache::evictAll);
+
+        assertThat(reentered).isTrue();
+        assertThat(cache.size()).isEqualTo(1);
+    }
+
+    private void assertCompletes(Runnable operation) throws InterruptedException {
+        AtomicReference<Throwable> failure = new AtomicReference<>();
+        Thread operationThread = new Thread(() -> {
+            try {
+                operation.run();
+            } catch (Throwable t) {
+                failure.set(t);
+            }
+        }, "lru-cache-test-operation");
+        operationThread.setDaemon(true);
+        operationThread.start();
+        operationThread.join(TimeUnit.SECONDS.toMillis(5));
+
+        assertThat(operationThread.isAlive()).isFalse();
+        assertThat(failure.get()).isNull();
+    }
+
     private static Stream<Arguments> concurrencyTestValues() {
         // numThreads, numGetsPerThreads, sleepDurationMillis, cacheSize
         return Stream.of(Arguments.of(1000, 5000, false, 5),
@@ -287,6 +377,27 @@ public class LruCacheTest {
 
             }
             return value;
+        }
+    }
+
+    private static final class ReentrantCloseable implements AutoCloseable {
+        private final Integer key;
+        private final AtomicReference<LruCache<Integer, ReentrantCloseable>> cacheReference;
+        private final AtomicBoolean reentered;
+
+        private ReentrantCloseable(Integer key,
+                                   AtomicReference<LruCache<Integer, ReentrantCloseable>> cacheReference,
+                                   AtomicBoolean reentered) {
+            this.key = key;
+            this.cacheReference = cacheReference;
+            this.reentered = reentered;
+        }
+
+        @Override
+        public void close() {
+            if (reentered.compareAndSet(false, true)) {
+                cacheReference.get().get(key);
+            }
         }
     }
 

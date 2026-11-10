@@ -36,6 +36,8 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.eventstream.Message;
+import software.amazon.awssdk.eventstream.MessageDecoder;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -46,8 +48,6 @@ import software.amazon.awssdk.services.eventstreamrestjson.model.EventStream;
 import software.amazon.awssdk.services.eventstreamrestjson.model.EventStreamOperationRequest;
 import software.amazon.awssdk.services.eventstreamrestjson.model.EventStreamOperationResponseHandler;
 import software.amazon.awssdk.services.eventstreamrestjson.model.InputEventStream;
-import software.amazon.eventstream.Message;
-import software.amazon.eventstream.MessageDecoder;
 
 @RunWith(MockitoJUnitRunner.class)
 public class EventMarshallingTest {

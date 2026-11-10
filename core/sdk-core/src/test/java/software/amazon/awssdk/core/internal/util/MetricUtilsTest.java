@@ -19,8 +19,10 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -31,8 +33,11 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.utils.Pair;
 
@@ -168,6 +173,113 @@ public class MetricUtilsTest {
             assertThat(caught).isSameAs(e);
             throw caught;
         }
+    }
+
+    @Test
+    public void collectServiceEndpointMetrics_when_standardHttpPort_omitsPort() {
+        MetricCollector mockCollector = mock(MetricCollector.class);
+
+        MetricUtils.collectServiceEndpointMetrics(mockCollector, requestBuilder("http", "example.amazonaws.com", 80).build());
+
+        verify(mockCollector).reportMetric(CoreMetric.SERVICE_ENDPOINT, URI.create("http://example.amazonaws.com"));
+    }
+
+    @Test
+    public void collectServiceEndpointMetrics_when_standardHttpsPort_omitsPort() {
+        MetricCollector mockCollector = mock(MetricCollector.class);
+
+        MetricUtils.collectServiceEndpointMetrics(mockCollector, requestBuilder("https", "example.amazonaws.com", 443).build());
+
+        verify(mockCollector).reportMetric(CoreMetric.SERVICE_ENDPOINT, URI.create("https://example.amazonaws.com"));
+    }
+
+    @Test
+    public void collectServiceEndpointMetrics_when_nonStandardPort_retainsPort() {
+        MetricCollector mockCollector = mock(MetricCollector.class);
+
+        MetricUtils.collectServiceEndpointMetrics(mockCollector, requestBuilder("http", "localhost", 8080).build());
+
+        verify(mockCollector).reportMetric(CoreMetric.SERVICE_ENDPOINT, URI.create("http://localhost:8080"));
+    }
+
+    @Test
+    public void collectServiceEndpointMetrics_when_ipv6LiteralHost_reportsBracketedHost() {
+        MetricCollector mockCollector = mock(MetricCollector.class);
+
+        MetricUtils.collectServiceEndpointMetrics(mockCollector, requestBuilder("https", "[::1]", 8443).build());
+
+        verify(mockCollector).reportMetric(CoreMetric.SERVICE_ENDPOINT, URI.create("https://[::1]:8443"));
+    }
+
+    @Test
+    public void collectServiceEndpointMetrics_when_requestHasPathAndQuery_reportsEndpointOnly() {
+        MetricCollector mockCollector = mock(MetricCollector.class);
+
+        SdkHttpFullRequest request = requestBuilder("https", "example.amazonaws.com", 443)
+            .encodedPath("/some/resource/path")
+            .putRawQueryParameter("marker", "abc123")
+            .putRawQueryParameter("limit", "10")
+            .build();
+
+        MetricUtils.collectServiceEndpointMetrics(mockCollector, request);
+
+        verify(mockCollector).reportMetric(CoreMetric.SERVICE_ENDPOINT, URI.create("https://example.amazonaws.com"));
+    }
+
+    @Test
+    public void collectServiceEndpointMetrics_when_accountIdHost_reportsEndpointOnly() {
+        MetricCollector mockCollector = mock(MetricCollector.class);
+
+        // Account-id hosts route through the SdkUri cache. Assert the cached value is still the endpoint alone.
+        SdkHttpFullRequest request = requestBuilder("https", "123456789012.ddb.us-east-1.amazonaws.com", 443)
+            .encodedPath("/")
+            .build();
+
+        MetricUtils.collectServiceEndpointMetrics(mockCollector, request);
+
+        verify(mockCollector).reportMetric(CoreMetric.SERVICE_ENDPOINT,
+                                          URI.create("https://123456789012.ddb.us-east-1.amazonaws.com"));
+    }
+
+    @Test
+    public void collectServiceEndpointMetrics_when_nullCollector_doesNothing() {
+        // A host that cannot be parsed proves the guard short-circuits before the URI is built.
+        MetricUtils.collectServiceEndpointMetrics(null, requestBuilder("http", "in valid host", 80).build());
+    }
+
+    @Test
+    public void collectServiceEndpointMetrics_when_noOpCollector_doesNothing() {
+        MetricUtils.collectServiceEndpointMetrics(NoOpMetricCollector.create(),
+                                                 requestBuilder("http", "in valid host", 80).build());
+    }
+
+    @Test
+    public void collectServiceEndpointMetrics_when_nullRequest_doesNothing() {
+        MetricCollector mockCollector = mock(MetricCollector.class);
+
+        MetricUtils.collectServiceEndpointMetrics(mockCollector, null);
+
+        verifyNoMoreInteractions(mockCollector);
+    }
+
+    @Test
+    public void collectServiceEndpointMetrics_when_hostIsUnparseable_throwsIllegalArgumentException() {
+        MetricCollector mockCollector = mock(MetricCollector.class);
+        SdkHttpFullRequest request = requestBuilder("http", "in valid host", 80).build();
+
+        // Documents the existing contract: an unparseable endpoint surfaces the IllegalArgumentException from URI
+        // parsing. The previous implementation reached the same outcome, because SdkHttpRequest#getUri() threw this
+        // before its URISyntaxException handler could run.
+        thrown.expect(IllegalArgumentException.class);
+        MetricUtils.collectServiceEndpointMetrics(mockCollector, request);
+    }
+
+    private static SdkHttpFullRequest.Builder requestBuilder(String protocol, String host, int port) {
+        return SdkHttpFullRequest.builder()
+                                 .method(SdkHttpMethod.POST)
+                                 .protocol(protocol)
+                                 .host(host)
+                                 .port(port);
     }
 
     @Test

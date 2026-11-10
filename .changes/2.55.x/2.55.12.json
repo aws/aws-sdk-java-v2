@@ -1,0 +1,30 @@
+{
+    "version": "2.55.12",
+    "date": "2026-10-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Lambda Web",
+            "contributor": "",
+            "description": "Removes operations that are not yet generally available from the Lambda Web."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Upgrade jackson-databind to 2.21.7"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "The internal cache used by `Region.of` now holds regions weakly, so regions with no remaining references are garbage collected."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

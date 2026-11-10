@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.enhanced.dynamodb.model.VectorIndexMetadata;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 /**
@@ -128,6 +129,16 @@ public interface TableMetadata {
      * @return A collection of {@link IndexMetadata} containing information about the indices.
      */
     Collection<IndexMetadata> indices();
+
+    /**
+     * Returns metadata about all the known vector indexes for this table. Vector indexes are distinct from global and local
+     * secondary indexes and are not included in {@link #indices()}.
+     *
+     * @return A collection of {@link VectorIndexMetadata} containing information about the vector indexes.
+     */
+    default Collection<VectorIndexMetadata> vectorIndices() {
+        return Collections.emptyList();
+    }
 
     /**
      * Returns all custom metadata for this table. These entries are used by extensions to the library, therefore the

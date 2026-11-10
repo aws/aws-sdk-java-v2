@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.json.model;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.SdkAdvancedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandler;
 
@@ -10,6 +11,11 @@ import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandler;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
+@SdkAdvancedApi(
+    cautionWhen = SdkAdvancedApi.Usage.IMPLEMENTED,
+    guidance = "onEventStream() receives a reactive-streams Publisher; the implementation must subscribe to it and call Subscription.request(n) to pull events -- a handler that never subscribes or never requests stalls the stream and hangs the operation. On retry the SDK calls onEventStream() again with a new Publisher; the implementation must reset accumulated state or throw to refuse the retry. Free resources in exceptionOccurred().",
+    saferAlternative = "Prefer the generated builder() with subscriber(Consumer) or subscriber(Visitor) which handle subscription, backpressure, and retry-state reset automatically."
+)
 public interface EventStreamOperationResponseHandler extends
         EventStreamResponseHandler<EventStreamOperationResponse, EventStream> {
     /**
@@ -21,8 +27,10 @@ public interface EventStreamOperationResponseHandler extends
 
     /**
      * Builder for {@link EventStreamOperationResponseHandler}. This can be used to create the
-     * {@link EventStreamOperationResponseHandler} in a more functional way, you may also directly implement the
-     * {@link EventStreamOperationResponseHandler} interface if preferred.
+     * {@link EventStreamOperationResponseHandler} in a more functional way. Directly implementing the
+     * {@link EventStreamOperationResponseHandler} interface is possible but requires subscribing to the event
+     * publisher, requesting data via the Subscription, resetting state on retry, and freeing resources on error; the
+     * builder handles all of this automatically.
      */
     @Generated("software.amazon.awssdk:codegen")
     interface Builder extends EventStreamResponseHandler.Builder<EventStreamOperationResponse, EventStream, Builder> {

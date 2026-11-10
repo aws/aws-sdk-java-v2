@@ -21,41 +21,49 @@ import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
-import software.amazon.awssdk.codegen.poet.rules2.EndpointProviderSpec2;
+import software.amazon.awssdk.codegen.poet.rules.EndpointProviderSpec;
 
 class EndpointProviderCompiledRulesClassSpecTest {
 
     @Test
     public void endpointProviderClass() {
-        ClassSpec endpointProviderSpec = new EndpointProviderSpec2(ClientTestModels.queryServiceModels());
+        ClassSpec endpointProviderSpec = new EndpointProviderSpec(ClientTestModels.queryServiceModels());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-class.java"));
     }
 
     @Test
     void knowPropertiesOverride() {
         ClassSpec endpointProviderSpec =
-            new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithOverrideKnowProperties());
+            new EndpointProviderSpec(ClientTestModels.queryServiceModelsWithOverrideKnowProperties());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-know-prop-override-class.java"));
     }
 
     @Test
     void unknownEndpointProperties() {
         ClassSpec endpointProviderSpec =
-            new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithUnknownEndpointProperties());
+            new EndpointProviderSpec(ClientTestModels.queryServiceModelsWithUnknownEndpointProperties());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-unknown-property-class.java"));
     }
 
     @Test
     void endpointProviderClassWithUriCache() {
         ClassSpec endpointProviderSpec =
-            new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithUriCache());
+            new EndpointProviderSpec(ClientTestModels.queryServiceModelsWithUriCache());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-uri-cache-class.java"));
     }
 
     @Test
     void endpointProviderClassWithMetricValues() {
         ClassSpec endpointProviderSpec =
-            new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithUnknownEndpointMetricValues());
+            new EndpointProviderSpec(ClientTestModels.queryServiceModelsWithUnknownEndpointMetricValues());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-metric-values-class.java"));
+    }
+
+    @Test
+    void endpointProviderClass_regionDeclaredButNeverReferenced_compilesSuccessfully() {
+        // Covers the case where region is declared as a parameter but never referenced in any rule.
+        ClassSpec endpointProviderSpec =
+            new EndpointProviderSpec(ClientTestModels.queryServiceModelsWithDelegatingRootRule());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-provider-delegating-root-class.java"));
     }
 }

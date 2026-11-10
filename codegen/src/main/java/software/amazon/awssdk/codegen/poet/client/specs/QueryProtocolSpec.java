@@ -182,7 +182,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
             builder.addStatement("$N = executeFuture$L", whenCompleteFutureName,
                     streamingOutputWhenComplete("finalAsyncResponseTransformer"));
         } else {
-            builder.addStatement("$N = executeFuture$L", whenCompleteFutureName, publishMetricsWhenComplete());
+            builder.addStatement("$N = $L", whenCompleteFutureName, publishMetricsWhenComplete("executeFuture"));
         }
         builder.addStatement("return $T.forwardExceptionTo($N, executeFuture)", CompletableFutureUtils.class,
                 whenCompleteFutureName);

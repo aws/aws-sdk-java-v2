@@ -87,8 +87,9 @@ public class EndpointProviderTestSpec implements ClassSpec {
 
         CustomizationConfig customizationConfig = model.getCustomizationConfig();
         model.getEndpointTestSuiteModel().getTestCases().forEach(test -> {
-            b.addStatement("testCases.add(new $T($L, $L))",
+            b.addStatement("testCases.add(new $T($S, $L, $L))",
                            EndpointProviderTestCase.class,
+                           test.getDocumentation(),
                            createTestCase(test),
                            TestGeneratorUtils.createExpect(customizationConfig, test.getExpect(), null, null));
         });
@@ -142,7 +143,7 @@ public class EndpointProviderTestSpec implements ClassSpec {
     }
 
     private boolean isRegionBuiltIn(String paramName) {
-        Map<String, ParameterModel> parameters = model.getEndpointRuleSetModel().getParameters();
+        Map<String, ParameterModel> parameters = model.getEndpointParameters();
         ParameterModel param = parameters.get(paramName);
         return param.getBuiltInEnum() == BuiltInParameter.AWS_REGION;
     }

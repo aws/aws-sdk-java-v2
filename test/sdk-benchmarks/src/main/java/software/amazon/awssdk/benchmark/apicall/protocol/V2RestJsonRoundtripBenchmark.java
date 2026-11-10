@@ -33,6 +33,7 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.benchmark.utils.MockHttpServer;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.lambda.LambdaClient;
@@ -54,16 +55,14 @@ import software.amazon.awssdk.services.lambda.model.TracingMode;
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class V2RestJsonRoundtripBenchmark {
 
-    private ProtocolRoundtripServer server;
+    private MockHttpServer server;
     private LambdaClient client;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        byte[] response = ProtocolRoundtripServer.loadFixture("rest-json-protocol/createfunction-response.json");
+        byte[] response = MockHttpServer.loadFixture("rest-json-protocol/createfunction-response.json");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "application/json");
-
-        server = new ProtocolRoundtripServer(servlet);
+        server = new MockHttpServer(response, "application/json");
         server.start();
 
         client = LambdaClient.builder()

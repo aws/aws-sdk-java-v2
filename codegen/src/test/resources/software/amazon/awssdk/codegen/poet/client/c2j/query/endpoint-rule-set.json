@@ -416,10 +416,20 @@
                 }
               ],
               "assign": "ParsedArn"
+            },
+            {
+              "fn": "getAttr",
+              "argv": [
+                {
+                  "ref": "ParsedArn"
+                },
+                "resourceId[0]"
+              ],
+              "assign": "ArnResourceId"
             }
           ],
           "endpoint": {
-            "url": "https://{endpointId}.query.{partitionResult#dualStackDnsSuffix}",
+            "url": "https://{ArnResourceId}.{endpointId}.query.{partitionResult#dualStackDnsSuffix}",
             "properties": {
               "authSchemes": [
                 {

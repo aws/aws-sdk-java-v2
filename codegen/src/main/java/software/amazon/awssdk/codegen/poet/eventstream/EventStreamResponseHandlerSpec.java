@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.codegen.poet.eventstream;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.annotations.SdkAdvancedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandler;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
@@ -60,12 +62,29 @@ public class EventStreamResponseHandlerSpec implements ClassSpec {
         return PoetUtils.createInterfaceBuilder(className())
                         .addModifiers(Modifier.PUBLIC)
                         .addAnnotation(SdkPublicApi.class)
+                        .addAnnotation(advancedApiAnnotation())
                         .addSuperinterface(superResponseHandlerInterface)
                         .addJavadoc("Response handler for the $L API.", apiName)
                         .addMethod(builderMethodSpec())
                         .addType(new EventStreamResponseHandlerBuilderInterfaceSpec(poetExt, operationModel).poetSpec())
                         .addType(new EventStreamVisitorInterfaceSpec(intermediateModel, poetExt, operationModel).poetSpec())
                         .build();
+    }
+
+    private AnnotationSpec advancedApiAnnotation() {
+        return AnnotationSpec.builder(SdkAdvancedApi.class)
+                             .addMember("cautionWhen", "$T.$L", SdkAdvancedApi.Usage.class, "IMPLEMENTED")
+                             .addMember("guidance", "$S",
+                                        "onEventStream() receives a reactive-streams Publisher; the implementation must "
+                                        + "subscribe to it and call Subscription.request(n) to pull events -- a handler "
+                                        + "that never subscribes or never requests stalls the stream and hangs the "
+                                        + "operation. On retry the SDK calls onEventStream() again with a new Publisher; "
+                                        + "the implementation must reset accumulated state or throw to refuse the retry. "
+                                        + "Free resources in exceptionOccurred().")
+                             .addMember("saferAlternative", "$S",
+                                        "Prefer the generated builder() with subscriber(Consumer) or subscriber(Visitor) "
+                                        + "which handle subscription, backpressure, and retry-state reset automatically.")
+                             .build();
     }
 
     @Override

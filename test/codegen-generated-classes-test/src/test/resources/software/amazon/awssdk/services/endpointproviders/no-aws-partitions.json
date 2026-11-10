@@ -1,0 +1,19 @@
+{
+  "partitions" : [
+    {
+      "id": "aws-cn",
+      "outputs": {
+        "dnsSuffix": "amazonaws.com.cn",
+        "dualStackDnsSuffix": "api.amazonwebservices.com.cn",
+        "implicitGlobalRegion": "cn-northwest-1",
+        "name": "aws-cn",
+        "supportsDualStack": true,
+        "supportsFIPS": true
+      },
+      "regionRegex": "^cn\\-\\w+\\-\\d+$",
+      "regions": {
+        "cn-north-1": {}
+      }
+    }
+  ]
+}

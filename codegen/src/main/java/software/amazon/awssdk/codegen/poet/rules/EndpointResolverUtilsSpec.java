@@ -22,11 +22,15 @@ import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.NameAllocator;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -34,6 +38,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
@@ -49,6 +55,7 @@ import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.ContextParam;
 import software.amazon.awssdk.codegen.model.service.EndpointTrait;
 import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
+import software.amazon.awssdk.codegen.model.service.OperationContextParam;
 import software.amazon.awssdk.codegen.model.service.StaticContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
@@ -86,6 +93,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
     private final EndpointParamsKnowledgeIndex endpointParamsKnowledgeIndex;
     private final PoetExtension poetExtension;
     private final JmesPathAcceptorGenerator jmesPathGenerator;
+    private final JmesPathTypedGetterGenerator jmesPathTypedGetterGenerator;
     private final boolean dependsOnHttpAuthAws;
     private final boolean multiAuthSigv4a;
     private final boolean legacyAuthFromEndpointRulesService;
@@ -96,6 +104,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
         this.endpointParamsKnowledgeIndex = EndpointParamsKnowledgeIndex.of(model);
         this.poetExtension = new PoetExtension(model);
         this.jmesPathGenerator = new JmesPathAcceptorGenerator(poetExtension.jmesPathRuntimeClass());
+        this.jmesPathTypedGetterGenerator = new JmesPathTypedGetterGenerator(model);
 
         Set<Class<?>> supportedAuthSchemes =
             ModelAuthSchemeClassesKnowledgeIndex.of(model).serviceConcreteAuthSchemeClasses();
@@ -119,6 +128,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
 
         b.addMethod(setStaticContextParamsMethod());
         addStaticContextParamMethods(b);
+        addStaticListFields(b);
 
         b.addMethod(authSchemeWithEndpointSignerPropertiesMethod());
 
@@ -156,7 +166,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
 
         b.addStatement("$T builder = $T.builder()", paramsBuilderClass(), endpointRulesSpecUtils.parametersClassName());
 
-        Map<String, ParameterModel> parameters = model.getEndpointRuleSetModel().getParameters();
+        Map<String, ParameterModel> parameters = model.getEndpointParameters();
         parameters.forEach((n, m) -> {
             if (m.getBuiltInEnum() == null) {
                 return;
@@ -342,9 +352,8 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
                     b.addStatement("params.$N($L)", setterName, ((JrsBoolean) value).booleanValue());
                     break;
                 case START_ARRAY:
-                    JrsArray arrayValue = (JrsArray) value;
-                    CodeBlock arrayCode = endpointRulesSpecUtils.treeNodeToLiteral(arrayValue);
-                    b.addStatement("params.$N($L)", setterName, arrayCode);
+                    String fieldName = staticListFieldName(opModel, n);
+                    b.addStatement("params.$N($N)", setterName, fieldName);
                     break;
                 default:
                     throw new RuntimeException("Don't know how to set parameter of type " + value.asToken());
@@ -356,6 +365,57 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
 
     private String staticContextParamsMethodName(OperationModel opModel) {
         return opModel.getMethodName() + "StaticContextParams";
+    }
+
+    /**
+     * Generates the name of the {@code static final List<String>} field holding the static array value of
+     * {@code paramName} for {@code opModel}.
+     *
+     * <p>Format: {@code STATIC_LIST_{OPERATION}_{PARAM}}
+     */
+    private static String staticListFieldName(OperationModel opModel, String paramName) {
+        return "STATIC_LIST_" + screamCase(opModel.getOperationName()) + "_" + screamCase(paramName);
+    }
+
+    private static String screamCase(String word) {
+        return Stream.of(CodegenNamingUtils.splitOnWordBoundaries(word))
+                     .map(s -> s.toUpperCase(Locale.US))
+                     .collect(Collectors.joining("_"));
+    }
+
+    /**
+     * Generates a {@code private static final List<String>} field for every {@code staticContextParams} entry whose
+     * value is an array, so that {@code setStaticContextParams} hands the same list reference to the endpoint params
+     * builder on every call rather than constructing a new list each time.
+     */
+    private void addStaticListFields(TypeSpec.Builder classBuilder) {
+        ParameterizedTypeName listOfString = ParameterizedTypeName.get(List.class, String.class);
+
+        model.getOperations().forEach((opName, opModel) -> {
+            Map<String, StaticContextParam> statics = opModel.getStaticContextParams();
+            if (CollectionUtils.isNullOrEmpty(statics)) {
+                return;
+            }
+            statics.forEach((paramName, scp) -> {
+                TreeNode value = scp.getValue();
+                if (value.asToken() != JsonToken.START_ARRAY) {
+                    return;
+                }
+                JrsArray arrayValue = (JrsArray) value;
+                CodeBlock initializer;
+                if (arrayValue.size() == 0) {
+                    initializer = CodeBlock.of("$T.emptyList()", Collections.class);
+                } else {
+                    initializer = CodeBlock.of("$T.unmodifiableList($L)", Collections.class,
+                                               endpointRulesSpecUtils.treeNodeToLiteral(arrayValue));
+                }
+                FieldSpec field = FieldSpec.builder(listOfString, staticListFieldName(opModel, paramName),
+                                                    Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                                           .initializer(initializer)
+                                           .build();
+                classBuilder.addField(field);
+            });
+        });
     }
 
     private boolean hasStaticContextParams(OperationModel opModel) {
@@ -412,26 +472,62 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
                                          .addParameter(requestClass, "request")
                                          .returns(void.class);
 
-        b.addStatement("$1T input = new $1T(request)", poetExtension.jmesPathRuntimeClass().nestedClass("Value"));
+        Map<String, OperationContextParam> operationContextParams = opModel.getOperationContextParams();
 
-        opModel.getOperationContextParams().forEach((key, value) -> {
-            if (Objects.requireNonNull(value.getPath().asToken()) == JsonToken.VALUE_STRING) {
-                String setterName = endpointRulesSpecUtils.paramMethodName(key);
-                String jmesPathString = ((JrsString) value.getPath()).getValue();
-                CodeBlock addParam = CodeBlock.builder()
-                                              .add("params.$N(", setterName)
-                                              .add(jmesPathGenerator.interpret(jmesPathString, "input"))
-                                              .add(matchToParameterType(key))
-                                              .add(")")
-                                              .build();
-                b.addStatement(addParam);
-            } else {
+        // Validated up front rather than while lowering, so a malformed path is reported even when an earlier binding
+        // sends the operation down the reflective path.
+        for (OperationContextParam value : operationContextParams.values()) {
+            JsonToken token = Objects.requireNonNull(value.getPath().asToken());
+            if (token != JsonToken.VALUE_STRING) {
                 throw new RuntimeException("Invalid operation context parameter path for " + opModel.getOperationName() +
-                                           ". Expected VALUE_STRING, but got " + value.getPath().asToken());
+                                           ". Expected VALUE_STRING, but got " + token);
             }
-        });
+        }
 
+        List<CodeBlock> loweredBindings = new ArrayList<>();
+        NameAllocator names = jmesPathTypedGetterGenerator.newNameAllocator();
+        boolean allBindingsLowered = true;
+        for (Map.Entry<String, OperationContextParam> entry : operationContextParams.entrySet()) {
+            String key = entry.getKey();
+            OperationContextParam value = entry.getValue();
+            String jmesPathString = ((JrsString) value.getPath()).getValue();
+            String setterName = endpointRulesSpecUtils.paramMethodName(key);
+            try {
+                loweredBindings.add(jmesPathTypedGetterGenerator.lower(opModel.getInputShape(), jmesPathString,
+                                                                       operationContextParamType(key), setterName, names));
+            } catch (JmesPathTypedGetterGenerator.UnsupportedLoweringException e) {
+                allBindingsLowered = false;
+                break;
+            }
+        }
+
+        if (allBindingsLowered) {
+            loweredBindings.forEach(b::addCode);
+            return b.build();
+        }
+
+        b.addStatement("$1T input = new $1T(request)", poetExtension.jmesPathRuntimeClass().nestedClass("Value"));
+        operationContextParams.forEach((key, value) -> {
+            String setterName = endpointRulesSpecUtils.paramMethodName(key);
+            String jmesPathString = ((JrsString) value.getPath()).getValue();
+            CodeBlock addParam = CodeBlock.builder()
+                                          .add("params.$N(", setterName)
+                                          .add(jmesPathGenerator.interpret(jmesPathString, "input"))
+                                          .add(matchToParameterType(key))
+                                          .add(")")
+                                          .build();
+            b.addStatement(addParam);
+        });
         return b.build();
+    }
+
+    private String operationContextParamType(String paramName) {
+        Map<String, ParameterModel> parameters = model.getEndpointParameters();
+        return parameters.entrySet().stream()
+                         .filter(e -> e.getKey().toLowerCase(Locale.US).equals(paramName.toLowerCase(Locale.US)))
+                         .map(e -> e.getValue().getType())
+                         .findFirst()
+                         .orElse(null);
     }
 
     private boolean hasOperationContextParams(OperationModel opModel) {
@@ -439,7 +535,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
     }
 
     private CodeBlock matchToParameterType(String paramName) {
-        Map<String, ParameterModel> parameters = model.getEndpointRuleSetModel().getParameters();
+        Map<String, ParameterModel> parameters = model.getEndpointParameters();
         Optional<ParameterModel> endpointParameter = parameters.entrySet().stream()
                                                                .filter(e -> e.getKey().toLowerCase(Locale.US)
                                                                              .equals(paramName.toLowerCase(Locale.US)))

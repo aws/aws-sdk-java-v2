@@ -243,4 +243,19 @@ public class ParametersTest {
         assertThat(params.stringClientContextParam()).isEqualTo("foobar");
         assertThat(params.booleanClientContextParam()).isTrue();
     }
+
+    @Test
+    public void regionId_whenRegionIsSet_returnsRegionIdString() {
+        RestJsonEndpointProvidersEndpointParams params = RestJsonEndpointProvidersEndpointParams.builder()
+                                                                                               .region(Region.of("us-west-2"))
+                                                                                               .build();
+        assertThat(params.regionId()).isEqualTo("us-west-2");
+    }
+
+    @Test
+    public void regionId_whenRegionIsNull_returnsNull() {
+        RestJsonEndpointProvidersEndpointParams params = RestJsonEndpointProvidersEndpointParams.builder()
+                                                                                               .build();
+        assertThat(params.regionId()).isNull();
+    }
 }

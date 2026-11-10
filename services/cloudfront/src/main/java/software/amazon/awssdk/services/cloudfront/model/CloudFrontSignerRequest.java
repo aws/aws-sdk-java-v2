@@ -20,6 +20,7 @@ import java.time.Instant;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.services.cloudfront.utils.SigningHashAlgorithm;
 
 /**
  * Base interface class for requests to generate a CloudFront signed URL or signed cookie
@@ -50,4 +51,11 @@ public interface CloudFrontSignerRequest {
      * private content
      */
     Instant expirationDate();
+
+    /**
+     * Returns the hash algorithm used to sign the policy. Defaults to {@link SigningHashAlgorithm#SHA1}.
+     */
+    default SigningHashAlgorithm hashAlgorithm() {
+        return SigningHashAlgorithm.SHA1;
+    }
 }

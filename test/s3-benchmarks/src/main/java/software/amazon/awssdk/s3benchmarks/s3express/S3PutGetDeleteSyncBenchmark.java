@@ -26,8 +26,9 @@ public class S3PutGetDeleteSyncBenchmark extends BaseJavaS3ClientBenchmark {
     private static final Logger LOG = Logger.loggerFor(S3PutGetDeleteSyncBenchmark.class);
     private final S3Client s3Client;
 
-    public S3PutGetDeleteSyncBenchmark(BenchmarkConfig config, S3Client s3Client) {
-        super(config);
+    public S3PutGetDeleteSyncBenchmark(BenchmarkConfig config, S3Client s3Client,
+                                       InMemoryMetricPublisher metricPublisher) {
+        super(config, metricPublisher);
         this.s3Client = s3Client;
     }
 

@@ -16,6 +16,8 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsQueryCompatibleJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.cborServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContentTypeModels;
@@ -33,6 +35,7 @@ import org.junit.Test;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
+import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 public class SyncClientClassTest {
     @Test
@@ -81,6 +84,18 @@ public class SyncClientClassTest {
     public void syncClientClassRpcV2() {
         ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(rpcv2ServiceModels());
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-rpcv2-sync.java"));
+    }
+
+    @Test
+    public void syncClientClassRpcV2_longPollingOperation_emitsLongPollingFlag() {
+        IntermediateModel model = rpcv2ServiceModels();
+        model.getOperation("SimpleScalarProperties").setLongPolling(true);
+
+        String generated = PoetUtils.buildJavaFile(createSyncClientClass(model)).toString();
+
+        assertThat(generated, containsString(".withLongPolling(true)"));
+        assertThat("Long polling flag should only be emitted for the flagged operation",
+                   generated.indexOf(".withLongPolling(true)"), equalTo(generated.lastIndexOf(".withLongPolling(true)")));
     }
 
     @Test

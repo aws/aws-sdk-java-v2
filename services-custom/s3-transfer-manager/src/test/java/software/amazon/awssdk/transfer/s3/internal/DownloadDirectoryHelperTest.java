@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -62,6 +64,7 @@ import software.amazon.awssdk.services.s3.model.EncodingType;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
@@ -71,6 +74,7 @@ import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.FailedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
@@ -171,14 +175,10 @@ public class DownloadDirectoryHelperTest {
                             "blah/../../object.dat",
                             "blah/../object/../../blah/another/object.dat",
                             "../{directory-name}-2/object.dat"})
-    void invalidKey_shouldThrowException(String testingString) throws Exception {
-        assertExceptionThrownForInvalidKeys(testingString);
-    }
-
-    private void assertExceptionThrownForInvalidKeys(String key) throws IOException {
+    void invalidKey_shouldReportFailedDownloadAndContinue(String testingString) throws Exception {
         Path destinationDirectory = Files.createTempDirectory("test");
         String lastElement = destinationDirectory.getName(destinationDirectory.getNameCount() - 1).toString();
-        key = key.replace("{directory-name}", lastElement);
+        String key = testingString.replace("{directory-name}", lastElement);
         stubSuccessfulListObjects(listObjectsHelper, key);
         DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
@@ -186,8 +186,142 @@ public class DownloadDirectoryHelperTest {
                                                                               .bucket("bucket")
                                                                               .build());
 
-        assertThatThrownBy(() -> downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(SdkClientException.class).getRootCause().hasMessageContaining("Cannot download key");
+        CompletedDirectoryDownload completed = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+
+        assertThat(completed.failedTransfers()).hasSize(1);
+        assertRefused(completed.failedTransfers().get(0), destinationDirectory, key);
+        verify(singleDownloadFunction, never()).apply(any(DownloadFileRequest.class));
+    }
+
+    @Test
+    void downloadDirectory_destinationDoesNotExistAndOnlyKeyRefused_shouldReportFailureAndNotCreateDestination()
+        throws Exception {
+        stubSuccessfulListObjects(listObjectsHelper, "../escape.txt");
+
+        CompletedDirectoryDownload completed =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destination(directory)
+                                                                              .bucket("bucket")
+                                                                              .build())
+                                   .completionFuture().get(5, TimeUnit.SECONDS);
+
+        assertThat(completed.failedTransfers()).hasSize(1);
+        assertRefused(completed.failedTransfers().get(0), directory, "../escape.txt");
+        assertThat(Files.exists(directory)).isFalse();
+        verify(singleDownloadFunction, never()).apply(any(DownloadFileRequest.class));
+    }
+
+    @Test
+    void downloadDirectory_twoRefusedKeys_shouldReportDifferentPlaceholders() throws Exception {
+        stubSuccessfulListObjects(listObjectsHelper, "../one.txt", "/two.txt");
+
+        CompletedDirectoryDownload completed =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destination(directory)
+                                                                              .bucket("bucket")
+                                                                              .build())
+                                   .completionFuture().get(5, TimeUnit.SECONDS);
+
+        assertThat(completed.failedTransfers()).hasSize(2);
+        List<Path> placeholders = completed.failedTransfers().stream()
+                                           .map(f -> f.request().destination())
+                                           .collect(Collectors.toList());
+        assertThat(placeholders.get(0)).isNotEqualTo(placeholders.get(1));
+        assertThat(placeholders.get(0).getParent()).isNotEqualTo(placeholders.get(1).getParent());
+    }
+
+    @Test
+    void downloadDirectory_manyRefusedKeysInOneListingPage_shouldReportEachWithoutStackOverflow() throws Exception {
+        // S3 returns at most 1,000 keys per page. A real ListObjectsHelper is used because the listing publisher delivers the
+        // items of one page from a recursive drain, which a Flowable-based stub would not exercise.
+        int numKeys = 1_000;
+        List<S3Object> contents = IntStream.range(0, numKeys)
+                                           .mapToObj(i -> S3Object.builder().key("../escape-" + i + ".txt").size(1L).build())
+                                           .collect(Collectors.toList());
+        ListObjectsV2Response page = ListObjectsV2Response.builder().contents(contents).isTruncated(false).build();
+        ListObjectsHelper realListObjectsHelper = new ListObjectsHelper(r -> CompletableFuture.completedFuture(page));
+        DownloadDirectoryHelper helper = new DownloadDirectoryHelper(TransferManagerConfiguration.builder().build(),
+                                                                     realListObjectsHelper,
+                                                                     singleDownloadFunction);
+
+        CompletedDirectoryDownload completed =
+            helper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                             .destination(directory)
+                                                             .bucket("bucket")
+                                                             .build())
+                  .completionFuture().get(30, TimeUnit.SECONDS);
+
+        assertThat(completed.failedTransfers()).hasSize(numKeys);
+        assertThat(completed.failedTransfers()).allSatisfy(f -> assertThat(f.exception())
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Cannot download key"));
+        verify(singleDownloadFunction, never()).apply(any(DownloadFileRequest.class));
+        assertThat(Files.exists(directory)).isFalse();
+    }
+
+    @Test
+    void downloadDirectory_refusedKeyAmongBenignKeys_shouldDownloadOthersAndReportOneFailure() throws Exception {
+        stubSuccessfulListObjects(listObjectsHelper, "a.txt", "b.txt", "c/../../escape.txt", "d.txt");
+        ArgumentCaptor<DownloadFileRequest> requestCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
+        when(singleDownloadFunction.apply(requestCaptor.capture())).thenReturn(completedDownload());
+        DownloadDirectoryHelper helper =
+            new DownloadDirectoryHelper(TransferManagerConfiguration.builder().transferDirectoryMaxConcurrency(1).build(),
+                                        listObjectsHelper,
+                                        singleDownloadFunction);
+
+        CompletedDirectoryDownload completed =
+            helper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                             .destination(directory)
+                                                             .bucket("bucket")
+                                                             .build())
+                  .completionFuture().get(5, TimeUnit.SECONDS);
+
+        assertThat(requestCaptor.getAllValues()).extracting(r -> r.getObjectRequest().key())
+                                                .containsExactly("a.txt", "b.txt", "d.txt");
+        assertThat(completed.failedTransfers()).hasSize(1);
+        assertRefused(completed.failedTransfers().get(0), directory, "c/../../escape.txt");
+    }
+
+    @Test
+    void downloadDirectory_keyInvalidOnWindowsFileSystem_shouldReportFailedDownloadAndContinue() throws Exception {
+        String invalidKey = "a?b.txt";
+        try (FileSystem windows = Jimfs.newFileSystem(Configuration.windows())) {
+            Path windowsDirectory = windows.getPath("test");
+            assertThatThrownBy(() -> windowsDirectory.resolve(invalidKey)).isInstanceOf(InvalidPathException.class);
+
+            stubSuccessfulListObjects(listObjectsHelper, "ok.txt", invalidKey);
+            ArgumentCaptor<DownloadFileRequest> requestCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
+            when(singleDownloadFunction.apply(requestCaptor.capture())).thenReturn(completedDownload());
+
+            CompletedDirectoryDownload completed =
+                downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                                  .destination(windowsDirectory)
+                                                                                  .bucket("bucket")
+                                                                                  .build())
+                                       .completionFuture().get(5, TimeUnit.SECONDS);
+
+            assertThat(requestCaptor.getAllValues()).extracting(r -> r.getObjectRequest().key()).containsExactly("ok.txt");
+            assertThat(completed.failedTransfers()).hasSize(1);
+            FailedFileDownload failed = completed.failedTransfers().get(0);
+            assertRefused(failed, windowsDirectory, invalidKey);
+            assertThat(failed.exception()).hasMessageContaining("not a valid path on this file system")
+                                          .hasCauseInstanceOf(InvalidPathException.class);
+        }
+    }
+
+    private static void assertRefused(FailedFileDownload failed, Path destinationDirectory, String key) {
+        assertThat(failed.exception()).isInstanceOf(SdkClientException.class)
+                                      .hasMessageContaining("Cannot download key " + key);
+        assertThat(failed.request().getObjectRequest().bucket()).isEqualTo("bucket");
+        assertThat(failed.request().getObjectRequest().key()).isEqualTo(key);
+
+        Path placeholder = failed.request().destination();
+        assertThat(placeholder.getParent().getParent()).isEqualTo(destinationDirectory);
+        assertThat(placeholder).isNotEqualTo(destinationDirectory);
+        assertThat(placeholder.getParent()).isNotEqualTo(destinationDirectory);
+        assertThat(placeholder.getParent().getFileName().toString()).startsWith(".s3tm-refused-");
+        assertThat(Files.exists(placeholder.getParent())).isFalse();
+        assertThat(Files.exists(placeholder)).isFalse();
     }
 
     @Test

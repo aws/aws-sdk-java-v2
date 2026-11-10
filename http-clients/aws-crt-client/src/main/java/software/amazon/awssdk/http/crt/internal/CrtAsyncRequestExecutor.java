@@ -63,11 +63,12 @@ public final class CrtAsyncRequestExecutor {
             acquireStartTime = System.nanoTime();
         }
 
-        HttpRequestBase crtRequest = toAsyncCrtRequest(executionContext);
         HttpStreamManager streamManager = executionContext.streamManager();
 
         CrtResponseAdapter crtResponseHandler =
             CrtResponseAdapter.toCrtResponseHandler(requestFuture, asyncRequest.responseHandler());
+
+        HttpRequestBase crtRequest = toAsyncCrtRequest(executionContext, crtResponseHandler::failRequest);
 
         CompletableFuture<HttpStreamBase> streamFuture =
             streamManager.acquireStream(crtRequest, crtResponseHandler);
@@ -82,22 +83,31 @@ public final class CrtAsyncRequestExecutor {
         // are available during pool exhaustion timeouts.
         requestFuture.whenComplete((r, t) -> {
             if (t != null) {
-                if (shouldPublishMetrics && metricsReported.compareAndSet(false, true)) {
-                    reportMetrics(streamManager, metricCollector, finalAcquireStartTime);
+                try {
+                    if (shouldPublishMetrics && metricsReported.compareAndSet(false, true)) {
+                        reportMetrics(streamManager, metricCollector, finalAcquireStartTime);
+                    }
+                } catch (RuntimeException e) {
+                    log.debug(() -> "Failed to report HTTP client metrics.", e);
+                } finally {
+                    crtResponseHandler.closeConnection();
                 }
-                crtResponseHandler.closeConnection();
             }
         });
 
         streamFuture.whenComplete((stream, throwable) -> {
             crtResponseHandler.onAcquireStream(stream);
-            if (shouldPublishMetrics && metricsReported.compareAndSet(false, true)) {
-                reportMetrics(streamManager, metricCollector, finalAcquireStartTime);
-            }
-
-            if (throwable != null) {
-                Throwable toThrow = wrapCrtException(throwable);
-                reportAsyncFailure(toThrow, requestFuture, asyncRequest.responseHandler());
+            try {
+                if (shouldPublishMetrics && metricsReported.compareAndSet(false, true)) {
+                    reportMetrics(streamManager, metricCollector, finalAcquireStartTime);
+                }
+            } catch (RuntimeException e) {
+                log.debug(() -> "Failed to report HTTP client metrics.", e);
+            } finally {
+                if (throwable != null) {
+                    Throwable toThrow = wrapCrtException(throwable);
+                    reportAsyncFailure(toThrow, requestFuture, asyncRequest.responseHandler());
+                }
             }
         });
     }

@@ -905,7 +905,7 @@
       },
       "input":{"shape":"GetDataAccessRequest"},
       "output":{"shape":"GetDataAccessResult"},
-      "documentation":"<p>Returns a temporary access credential from S3 Access Grants to the grantee or client application. The <a href=\"https://docs.aws.amazon.com/STS/latest/APIReference/API_Credentials.html\">temporary credential</a> is an Amazon Web Services STS token that grants them access to the S3 data. </p> <dl> <dt>Permissions</dt> <dd> <p>You must have the <code>s3:GetDataAccess</code> permission to use this operation. </p> </dd> <dt>Additional Permissions</dt> <dd> <p>The IAM role that S3 Access Grants assumes must have the following permissions specified in the trust policy when registering the location: <code>sts:AssumeRole</code>, for directory users or groups <code>sts:SetContext</code>, and for IAM users or roles <code>sts:SetSourceIdentity</code>. </p> </dd> </dl>",
+      "documentation":"<p>Returns a temporary access credential from S3 Access Grants to the grantee or client application. The <a href=\"https://docs.aws.amazon.com/STS/latest/APIReference/API_Credentials.html\">temporary credential</a> is an Amazon Web Services STS token that grants them access to the S3 data. By default, S3 Access Grants searches for a matching grant in the instance of the Amazon Web Services account ID in the request. To also search instances shared with the caller through Amazon Web Services Resource Access Manager (RAM), set the <code>InstanceScope</code> parameter to <code>ALL</code>.</p> <dl> <dt>Permissions</dt> <dd> <p>You must have the <code>s3:GetDataAccess</code> permission to use this operation. </p> </dd> <dt>Additional Permissions</dt> <dd> <p>The IAM role that S3 Access Grants assumes must have the following permissions specified in the trust policy when registering the location: <code>sts:AssumeRole</code>, for directory users or groups <code>sts:SetContext</code>, and for IAM users or roles <code>sts:SetSourceIdentity</code>. </p> </dd> </dl>",
       "endpoint":{
         "hostPrefix":"{AccountId}."
       },
@@ -1175,7 +1175,7 @@
       },
       "input":{"shape":"ListCallerAccessGrantsRequest"},
       "output":{"shape":"ListCallerAccessGrantsResult"},
-      "documentation":"<p>Use this API to list the access grants that grant the caller access to Amazon S3 data through S3 Access Grants. The caller (grantee) can be an Identity and Access Management (IAM) identity or Amazon Web Services Identity Center corporate directory identity. You must pass the Amazon Web Services account of the S3 data owner (grantor) in the request. You can, optionally, narrow the results by <code>GrantScope</code>, using a fragment of the data's S3 path, and S3 Access Grants will return only the grants with a path that contains the path fragment. You can also pass the <code>AllowedByApplication</code> filter in the request, which returns only the grants authorized for applications, whether the application is the caller's Identity Center application or any other application (<code>ALL</code>). For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-grants-list-grants.html\">List the caller's access grants</a> in the <i>Amazon S3 User Guide</i>.</p> <dl> <dt>Permissions</dt> <dd> <p>You must have the <code>s3:ListCallerAccessGrants</code> permission to use this operation. </p> </dd> </dl>",
+      "documentation":"<p>Use this API to list the access grants that grant the caller access to Amazon S3 data through S3 Access Grants. The caller (grantee) can be an Identity and Access Management (IAM) identity or Amazon Web Services Identity Center corporate directory identity. You must pass the Amazon Web Services account of the S3 data owner (grantor) in the request. By default, S3 Access Grants returns grants from the instance of the Amazon Web Services account ID in the request. To return grants from all instances shared with the caller's account through Amazon Web Services Resource Access Manager (RAM), set the <code>InstanceScope</code> parameter to <code>ALL</code>. You can, optionally, narrow the results by <code>GrantScope</code>, using a fragment of the data's S3 path, and S3 Access Grants will return only the grants with a path that contains the path fragment. You can also pass the <code>AllowedByApplication</code> filter in the request, which returns only the grants authorized for applications, whether the application is the caller's Identity Center application or any other application (<code>ALL</code>). For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-grants-list-grants.html\">List the caller's access grants</a> in the <i>Amazon S3 User Guide</i>.</p> <dl> <dt>Permissions</dt> <dd> <p>You must have the <code>s3:ListCallerAccessGrants</code> permission to use this operation. </p> </dd> </dl>",
       "endpoint":{
         "hostPrefix":"{AccountId}."
       },
@@ -4360,6 +4360,12 @@
           "documentation":"<p>The context to identify the job or query associated with the credential request. This information will be displayed in CloudTrail log in your account.</p>",
           "location":"querystring",
           "locationName":"auditContext"
+        },
+        "InstanceScope":{
+          "shape":"InstanceScope",
+          "documentation":"<p>The scope of S3 Access Grants instances to search for a grant matching the requested S3 URI path.</p> <ul> <li> <p> <code>SELF</code> – Searches only the instance of the Amazon Web Services account ID in the request.</p> </li> <li> <p> <code>ALL</code> – Searches the instance of the Amazon Web Services account ID in the request and all instances shared with the caller's account through Amazon Web Services Resource Access Manager (RAM).</p> </li> </ul>",
+          "location":"querystring",
+          "locationName":"instanceScope"
         }
       }
     },
@@ -4377,6 +4383,10 @@
         "Grantee":{
           "shape":"Grantee",
           "documentation":"<p>The user, group, or role that was granted access to the S3 location scope. For directory identities, this API also returns the grants of the IAM role used for the identity-aware request. For more information on identity-aware sessions, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_control-access_sts-setcontext.html\">Granting permissions to use identity-aware console sessions</a>. </p>"
+        },
+        "MatchedInstanceArn":{
+          "shape":"AccessGrantsInstanceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the S3 Access Grants instance containing the grant that matched the requested S3 URI path.</p>"
         }
       }
     },
@@ -4731,6 +4741,13 @@
         }
       },
       "documentation":"<p>A container for what Amazon S3 Storage Lens configuration includes.</p>"
+    },
+    "InstanceScope":{
+      "type":"string",
+      "enum":[
+        "SELF",
+        "ALL"
+      ]
     },
     "InternalServiceException":{
       "type":"structure",
@@ -5842,9 +5859,13 @@
         "ApplicationArn":{
           "shape":"IdentityCenterApplicationArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of an Amazon Web Services IAM Identity Center application associated with your Identity Center instance. If the grant includes an application ARN, the grantee can only access the S3 data through this application. </p>"
+        },
+        "AccessGrantsInstanceArn":{
+          "shape":"AccessGrantsInstanceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the S3 Access Grants instance in which the grant was created.</p>"
         }
       },
-      "documentation":"<p>Part of <code>ListCallerAccessGrantsResult</code>. Each entry includes the permission level (READ, WRITE, or READWRITE) and the grant scope of the access grant. If the grant also includes an application ARN, the grantee can only access the S3 data through this application.</p>"
+      "documentation":"<p>Part of <code>ListCallerAccessGrantsResult</code>. Each entry includes the permission level (READ, WRITE, or READWRITE) and the grant scope of the access grant. Each entry also includes the ARN of the S3 Access Grants instance in which the grant was created. If the grant also includes an application ARN, the grantee can only access the S3 data through this application.</p>"
     },
     "ListCallerAccessGrantsRequest":{
       "type":"structure",
@@ -5881,6 +5902,12 @@
           "documentation":"<p>If this optional parameter is passed in the request, a filter is applied to the results. The results will include only the access grants for the caller's Identity Center application or for any other applications (<code>ALL</code>).</p>",
           "location":"querystring",
           "locationName":"allowedByApplication"
+        },
+        "InstanceScope":{
+          "shape":"InstanceScope",
+          "documentation":"<p>The scope of S3 Access Grants instances to list grants from.</p> <ul> <li> <p> <code>SELF</code> – Lists grants from the instance of the Amazon Web Services account ID in the request.</p> </li> <li> <p> <code>ALL</code> – Lists grants from the instance of the Amazon Web Services account ID in the request and all instances shared with the caller's account through Amazon Web Services Resource Access Manager (RAM).</p> </li> </ul>",
+          "location":"querystring",
+          "locationName":"instanceScope"
         }
       }
     },
@@ -7723,6 +7750,13 @@
       "max":128,
       "min":4
     },
+    "S3AnnotationDirective":{
+      "type":"string",
+      "enum":[
+        "COPY",
+        "EXCLUDE"
+      ]
+    },
     "S3BucketArnString":{
       "type":"string",
       "max":128,
@@ -7831,6 +7865,10 @@
           "shape":"S3MetadataDirective",
           "documentation":"<p/>"
         },
+        "AnnotationDirective":{
+          "shape":"S3AnnotationDirective",
+          "documentation":"<p>Specifies whether the Batch Operations copy job copies object annotations from the source object or skips them. If this property isn't specified, <code>COPY</code> is the default behavior.</p> <p>Valid Values: <code>COPY | EXCLUDE</code> </p> <note> <p>This functionality is not supported by directory buckets.</p> </note>"
+        },
         "ModifiedSinceConstraint":{
           "shape":"TimeStamp",
           "documentation":"<p/>"
@@ -7886,6 +7924,14 @@
         "ChecksumAlgorithm":{
           "shape":"S3ChecksumAlgorithm",
           "documentation":"<p>Indicates the algorithm that you want Amazon S3 to use to create the checksum. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html\"> Checking object integrity</a> in the <i>Amazon S3 User Guide</i>.</p>"
+        },
+        "ObjectLockEventHold":{
+          "shape":"S3ObjectLockEventHold",
+          "documentation":"<p>The event hold status to be applied to all objects in the Batch Operations copy job. Set to <code>ON</code> to enable an event hold or <code>OFF</code> to disable it.</p> <note> <p>This functionality is not supported by directory buckets.</p> </note>"
+        },
+        "ObjectLockEventHoldDuration":{
+          "shape":"S3ObjectLockEventHoldDuration",
+          "documentation":"<p>The event hold duration to be applied to all objects in the Batch Operations copy job. The duration specifies how long the object remains protected after the event hold is released.</p> <note> <p>This functionality is not supported by directory buckets.</p> </note>"
         }
       },
       "documentation":"<p>Contains the configuration parameters for a PUT Copy object operation. S3 Batch Operations passes every object to the underlying <code>CopyObject</code> API operation. For more information about the parameters for this operation, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/RESTObjectCOPY.html\">CopyObject</a>.</p>"
@@ -7986,7 +8032,7 @@
       "members":{
         "ExpectedBucketOwner":{
           "shape":"AccountId",
-          "documentation":"<p>The Amazon Web Services account ID that owns the bucket the generated manifest is written to. If provided the generated manifest bucket's owner Amazon Web Services account ID must match this value, else the job fails.</p>"
+          "documentation":"<p>The Amazon Web Services account ID that owns the source bucket specified in <code>SourceBucket</code>. If provided, the manifest source bucket owner's Amazon Web Services account ID must match this value, else the job fails.</p>"
         },
         "SourceBucket":{
           "shape":"S3BucketArnString",
@@ -8050,6 +8096,41 @@
         "REPLACE"
       ]
     },
+    "S3ObjectLockEventHold":{
+      "type":"string",
+      "enum":[
+        "ON",
+        "OFF"
+      ]
+    },
+    "S3ObjectLockEventHoldDuration":{
+      "type":"structure",
+      "members":{
+        "Days":{
+          "shape":"S3ObjectLockEventHoldDurationDays",
+          "documentation":"<p>The number of days for the event hold duration. The minimum value is 1 and the maximum value is 36,500.</p>",
+          "box":true
+        },
+        "Years":{
+          "shape":"S3ObjectLockEventHoldDurationYears",
+          "documentation":"<p>The number of years for the event hold duration. The minimum value is 1 and the maximum value is 100.</p>",
+          "box":true
+        }
+      },
+      "documentation":"<p>Contains the duration configuration for an event hold, specified in either days or years.</p>"
+    },
+    "S3ObjectLockEventHoldDurationDays":{
+      "type":"integer",
+      "box":true,
+      "max":36500,
+      "min":1
+    },
+    "S3ObjectLockEventHoldDurationYears":{
+      "type":"integer",
+      "box":true,
+      "max":100,
+      "min":1
+    },
     "S3ObjectLockLegalHold":{
       "type":"structure",
       "required":["Status"],
@@ -8074,6 +8155,41 @@
         "COMPLIANCE",
         "GOVERNANCE"
       ]
+    },
+    "S3ObjectLockRetentionEventHold":{
+      "type":"string",
+      "enum":[
+        "ON",
+        "OFF"
+      ]
+    },
+    "S3ObjectLockRetentionEventHoldDuration":{
+      "type":"structure",
+      "members":{
+        "Days":{
+          "shape":"S3ObjectLockRetentionEventHoldDurationDays",
+          "documentation":"<p>The number of days for the event hold duration. The minimum value is 1 and the maximum value is 36,500.</p>",
+          "box":true
+        },
+        "Years":{
+          "shape":"S3ObjectLockRetentionEventHoldDurationYears",
+          "documentation":"<p>The number of years for the event hold duration. The minimum value is 1 and the maximum value is 100.</p>",
+          "box":true
+        }
+      },
+      "documentation":"<p>Contains the duration configuration for an event hold, specified in either days or years.</p>"
+    },
+    "S3ObjectLockRetentionEventHoldDurationDays":{
+      "type":"integer",
+      "box":true,
+      "max":36500,
+      "min":1
+    },
+    "S3ObjectLockRetentionEventHoldDurationYears":{
+      "type":"integer",
+      "box":true,
+      "max":100,
+      "min":1
     },
     "S3ObjectLockRetentionMode":{
       "type":"string",
@@ -8203,6 +8319,14 @@
         "Mode":{
           "shape":"S3ObjectLockRetentionMode",
           "documentation":"<p>The Object Lock retention mode to be applied to all objects in the Batch Operations job.</p>"
+        },
+        "EventHold":{
+          "shape":"S3ObjectLockRetentionEventHold",
+          "documentation":"<p>The event hold status to be applied to all objects in the Batch Operations job. Set to <code>ON</code> to enable an event hold or <code>OFF</code> to disable it.</p>"
+        },
+        "EventHoldDuration":{
+          "shape":"S3ObjectLockRetentionEventHoldDuration",
+          "documentation":"<p>The event hold duration to be applied to all objects in the Batch Operations job. The duration specifies how long the object remains protected after the event hold is released.</p>"
         }
       },
       "documentation":"<p>Contains the S3 Object Lock retention mode to be applied to all objects in the S3 Batch Operations job. If you don't provide <code>Mode</code> and <code>RetainUntilDate</code> data types in your operation, you will remove the retention from your objects. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/batch-ops-retention-date.html\">Using S3 Object Lock retention with S3 Batch Operations</a> in the <i>Amazon S3 User Guide</i>.</p>"
@@ -8444,7 +8568,7 @@
         },
         "MinStorageBytesPercentage":{
           "shape":"MinStorageBytesPercentage",
-          "documentation":"<p>The minimum number of storage bytes percentage whose metrics will be selected.</p> <note> <p>You must choose a value greater than or equal to <code>1.0</code>.</p> </note>"
+          "documentation":"<p>The minimum percentage of total bucket storage that a prefix must hold for its metrics to be included.</p>"
         }
       },
       "documentation":"<p/>"

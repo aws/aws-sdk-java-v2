@@ -154,7 +154,12 @@ public class HandlerSubscriber<T> extends ChannelDuplexHandler implements Subscr
 
     @Override
     public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-        maybeRequestMore();
+        // Only request demand once RUNNING. A writability change can arrive while the subscription is still pending
+        // (the Expect: 100-continue deferral window, where the subscribe is held back until the server answers), when
+        // maybeRequestMore() would dereference a null subscription. See #7271.
+        if (state == HandlerSubscriber.State.RUNNING) {
+            maybeRequestMore();
+        }
         ctx.fireChannelWritabilityChanged();
     }
 

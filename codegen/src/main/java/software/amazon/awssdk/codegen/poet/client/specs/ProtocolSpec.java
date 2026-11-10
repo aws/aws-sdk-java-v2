@@ -70,6 +70,15 @@ public interface ProtocolSpec {
         return Optional.empty();
     }
 
+    /**
+     * The per-client field holding the non-streaming {@code exceptionMetadataMapper}, when the protocol emits one. The
+     * mapper switches over the whole model's exceptions and is identical for every operation, so it is generated once as
+     * a client field instead of once per operation body.
+     */
+    default Optional<FieldSpec> errorResponseMapperField() {
+        return Optional.empty();
+    }
+
     default List<MethodSpec> additionalMethods() {
         return new ArrayList<>();
     }
@@ -96,12 +105,24 @@ public interface ProtocolSpec {
 
         Protocol protocol = model.getMetadata().getProtocol();
 
-        if (statusCode == null
-            && (protocol == Protocol.AWS_JSON || protocol == Protocol.CBOR)) {
-            if (shapeModel.isFault()) {
-                statusCode = 500;
-            } else {
-                statusCode = 400;
+        if (statusCode == null && protocol != null) {
+            switch (protocol) {
+                case AWS_JSON:
+                case CBOR:
+                case SMITHY_RPC_V2_CBOR:
+                    if (shapeModel.isFault()) {
+                        statusCode = 500;
+                    } else {
+                        statusCode = 400;
+                    }
+                    break;
+                case EC2:
+                case QUERY:
+                case REST_XML:
+                case REST_JSON:
+                    break;
+                default:
+                    throw new RuntimeException("Don't know how to map default error status code for protocol " + protocol);
             }
         }
         return statusCode != null ? String.format(".httpStatusCode(%d)", statusCode) : "";
@@ -210,13 +231,19 @@ public interface ProtocolSpec {
         return poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
     }
 
-    default String publishMetricsWhenComplete() {
-        return String.format(".whenComplete((r, e) -> {%n"
-                             + "%s%n"
-                             + "})", publishMetrics());
+    /**
+     * Invocation of the client's shared {@code publishMetrics} helper. Emitted instead of an inline
+     * {@code metricPublishers.forEach(...)} so the operation body carries no synthetic lambda.
+     */
+    default String publishMetrics() {
+        return "publishMetrics(metricPublishers, apiCallMetricCollector);";
     }
 
-    default String publishMetrics() {
-        return "metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));";
+    /**
+     * Invocation of the client's shared {@code publishMetricsWhenComplete} helper, which holds the {@code whenComplete}
+     * callback that non-streaming async operations would otherwise each declare as a lambda.
+     */
+    default String publishMetricsWhenComplete(String futureName) {
+        return String.format("publishMetricsWhenComplete(%s, metricPublishers, apiCallMetricCollector)", futureName);
     }
 }

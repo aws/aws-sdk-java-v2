@@ -23,7 +23,11 @@ import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -44,61 +48,44 @@ import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Either;
 
 public class RetryableStageHelperTest {
+    private RetryStrategy mockRetryStrategy;
+
+    @BeforeEach
+    void setup() {
+        mockRetryStrategy = mock(RetryStrategy.class);
+    }
 
     @ParameterizedTest(name = "IS_LONG_POLLING = {0}, expected = {1}")
     @MethodSource("longPollingValueTestParams")
     void tryRefreshToken_forwardsLongPollingAttrValue(Boolean attribute, boolean expected) {
-        SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
-                                                           .method(SdkHttpMethod.GET)
-                                                           .uri(URI.create("https://my-service.amazonaws.com"))
-                                                           .build();
-
         ExecutionAttributes.Builder attributes = ExecutionAttributes.builder();
         if (attribute != null) {
             attributes.put(SdkInternalExecutionAttribute.IS_LONG_POLLING, attribute);
         }
 
-        ExecutionContext executionContext = ExecutionContext.builder().executionAttributes(attributes.build()).build();
-
-        RequestExecutionContext requestExecutionContext = RequestExecutionContext.builder()
-                                                                                 .originalRequest(mock(SdkRequest.class))
-                                                                                 .executionContext(executionContext)
-                                                                          .build();
-
-        RetryStrategy retryStrategy = mock(RetryStrategy.class);
-
-        SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
-                                                                    .option(SdkClientOption.RETRY_STRATEGY, retryStrategy)
-                                                                    .build();
-
-        HttpClientDependencies dependencies = HttpClientDependencies.builder()
-                                                                    .clientConfiguration(clientConfig)
-                                                                    .build();
-
-        RetryableStageHelper helper = new RetryableStageHelper(httpRequest,
-                                                               requestExecutionContext,
-                                                               dependencies);
+        RetryableStageHelper helper = makeTestHelper(attributes.build());
 
         AcquireInitialTokenResponse mockAcquireResponse = mock(AcquireInitialTokenResponse.class);
         RetryToken token = mock(RetryToken.class);
         when(mockAcquireResponse.token()).thenReturn(token);
-        when(retryStrategy.acquireInitialToken(any())).thenReturn(mockAcquireResponse);
+        when(mockRetryStrategy.acquireInitialToken(any())).thenReturn(mockAcquireResponse);
 
         RefreshRetryTokenResponse mockRefreshResponse = mock(RefreshRetryTokenResponse.class);
         when(mockRefreshResponse.delay()).thenReturn(Duration.ZERO);
         ArgumentCaptor<RefreshRetryTokenRequest> refreshRequestCaptor = ArgumentCaptor.forClass(RefreshRetryTokenRequest.class);
 
-        when(retryStrategy.refreshRetryToken(any())).thenReturn(mockRefreshResponse);
+        when(mockRetryStrategy.refreshRetryToken(any())).thenReturn(mockRefreshResponse);
 
         helper.acquireInitialToken();
 
         helper.setLastException(new RuntimeException());
         helper.tryRefreshToken(Duration.ZERO);
 
-        verify(retryStrategy).refreshRetryToken(refreshRequestCaptor.capture());
+        verify(mockRetryStrategy).refreshRetryToken(refreshRequestCaptor.capture());
 
         assertThat(refreshRequestCaptor.getValue().isLongPolling()).isEqualTo(expected);
     }
@@ -106,45 +93,19 @@ public class RetryableStageHelperTest {
     @ParameterizedTest(name = "delay on successful refresh = {0}, delay on failed refresh = {1}")
     @MethodSource("refreshBackoffTestParams")
     void tryRefreshToken_returnsCorrectBackoff(Duration successDelay, Duration failureDelay) {
-        SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
-                                                           .method(SdkHttpMethod.GET)
-                                                           .uri(URI.create("https://my-service.amazonaws.com"))
-                                                           .build();
-
-        ExecutionAttributes.Builder attributes = ExecutionAttributes.builder();
-
-        ExecutionContext executionContext = ExecutionContext.builder().executionAttributes(attributes.build()).build();
-
-        RequestExecutionContext requestExecutionContext = RequestExecutionContext.builder()
-                                                                                 .originalRequest(mock(SdkRequest.class))
-                                                                                 .executionContext(executionContext)
-                                                                                 .build();
-
-        RetryStrategy retryStrategy = mock(RetryStrategy.class);
-
-        SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
-                                                                    .option(SdkClientOption.RETRY_STRATEGY, retryStrategy)
-                                                                    .build();
-
-        HttpClientDependencies dependencies = HttpClientDependencies.builder()
-                                                                    .clientConfiguration(clientConfig)
-                                                                    .build();
-
-        RetryableStageHelper helper = new RetryableStageHelper(httpRequest,
-                                                               requestExecutionContext,
-                                                               dependencies);
+        RetryableStageHelper helper = makeTestHelper(ExecutionAttributes.builder().build());
 
         AcquireInitialTokenResponse mockAcquireResponse = mock(AcquireInitialTokenResponse.class);
         RetryToken token = mock(RetryToken.class);
         when(mockAcquireResponse.token()).thenReturn(token);
-        when(retryStrategy.acquireInitialToken(any())).thenReturn(mockAcquireResponse);
+        when(mockRetryStrategy.acquireInitialToken(any())).thenReturn(mockAcquireResponse);
 
         if (successDelay != null) {
             RefreshRetryTokenResponse mockRefreshResponse = mock(RefreshRetryTokenResponse.class);
             when(mockRefreshResponse.delay()).thenReturn(successDelay);
-            when(retryStrategy.refreshRetryToken(any())).thenReturn(mockRefreshResponse);
+            when(mockRetryStrategy.refreshRetryToken(any())).thenReturn(mockRefreshResponse);
         } else {
-            when(retryStrategy.refreshRetryToken(any())).thenThrow(
+            when(mockRetryStrategy.refreshRetryToken(any())).thenThrow(
                 new TokenAcquisitionFailedException("failed", token, null, failureDelay)
             );
         }
@@ -159,6 +120,89 @@ public class RetryableStageHelperTest {
         } else {
             assertThat(backoff.right().get()).isEqualTo(failureDelay);
         }
+    }
+
+    @Test
+    void tryRefreshTokenAsync_refreshThrowsAcquireFailure_wrappedInCompletionException_acquireFailureDurationReturned() {
+        RetryableStageHelper helper = makeTestHelper(ExecutionAttributes.builder().build());
+
+        Duration failureAcquireDuration = Duration.ofSeconds(1);
+        TokenAcquisitionFailedException acquireException = new TokenAcquisitionFailedException("could not acquire",
+                                                                                               mock(RetryToken.class), null,
+                                                                                               failureAcquireDuration);
+
+        // This chaining is important to make sure whenComplete sees a CompletionException instead of the
+        // TokenAcquisitionFailedException directly
+        CompletableFuture<RefreshRetryTokenResponse> future1 = CompletableFutureUtils.failedFuture(acquireException);
+        CompletableFuture<RefreshRetryTokenResponse> toReturn = future1.thenApply(Function.identity());
+
+        when(mockRetryStrategy.refreshRetryTokenAsync(any(RefreshRetryTokenRequest.class)))
+            .thenReturn(toReturn);
+
+        AcquireInitialTokenResponse mockAcquireResponse = mock(AcquireInitialTokenResponse.class);
+        RetryToken token = mock(RetryToken.class);
+        when(mockAcquireResponse.token()).thenReturn(token);
+        when(mockRetryStrategy.acquireInitialToken(any())).thenReturn(mockAcquireResponse);
+
+        helper.acquireInitialToken();
+
+        helper.setLastException(new RuntimeException());
+
+        assertThat(helper.tryRefreshTokenAsync(Duration.ZERO).join().right()).hasValue(failureAcquireDuration);
+    }
+
+    @Test
+    void tryRefreshTokenAsync_refreshThrowsAcquireFailure__acquireFailureDurationReturned() {
+        RetryableStageHelper helper = makeTestHelper(ExecutionAttributes.builder().build());
+
+        Duration failureAcquireDuration = Duration.ofSeconds(1);
+        TokenAcquisitionFailedException acquireException = new TokenAcquisitionFailedException("could not acquire",
+                                                                                               mock(RetryToken.class), null,
+                                                                                               failureAcquireDuration);
+
+        CompletableFuture<RefreshRetryTokenResponse> future = CompletableFutureUtils.failedFuture(acquireException);
+
+        when(mockRetryStrategy.refreshRetryTokenAsync(any(RefreshRetryTokenRequest.class)))
+            .thenReturn(future);
+
+        AcquireInitialTokenResponse mockAcquireResponse = mock(AcquireInitialTokenResponse.class);
+        RetryToken token = mock(RetryToken.class);
+        when(mockAcquireResponse.token()).thenReturn(token);
+        when(mockRetryStrategy.acquireInitialToken(any())).thenReturn(mockAcquireResponse);
+
+        helper.acquireInitialToken();
+
+        helper.setLastException(new RuntimeException());
+
+        assertThat(helper.tryRefreshTokenAsync(Duration.ZERO).join().right()).hasValue(failureAcquireDuration);
+    }
+
+    RetryableStageHelper makeTestHelper(ExecutionAttributes executionAttributes) {
+        SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .uri(URI.create("https://my-service.amazonaws.com"))
+                                                           .build();
+
+        ExecutionContext executionContext = ExecutionContext.builder()
+                                                            .executionAttributes(executionAttributes)
+                                                            .build();
+
+        RequestExecutionContext requestExecutionContext = RequestExecutionContext.builder()
+                                                                                 .originalRequest(mock(SdkRequest.class))
+                                                                                 .executionContext(executionContext)
+                                                                                 .build();
+
+        RetryStrategy retryStrategy = mockRetryStrategy;
+
+        SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
+                                                                    .option(SdkClientOption.RETRY_STRATEGY, retryStrategy)
+                                                                    .build();
+
+        HttpClientDependencies dependencies = HttpClientDependencies.builder()
+                                                                    .clientConfiguration(clientConfig)
+                                                                    .build();
+
+        return new RetryableStageHelper(httpRequest, requestExecutionContext, dependencies);
     }
 
     private static Stream<Arguments> longPollingValueTestParams() {

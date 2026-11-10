@@ -183,7 +183,7 @@ public final class SmithyIntermediateModelBuilder {
             AddSmithyMetadata.constructMetadata(model, service, serviceIndex, namingStrategy, customConfig, protocol),
             operations, shapes, customConfig, endpointOperation,
             paginators, namingStrategy, Collections.emptyMap(),
-            endpointRuleSet, endpointTestSuiteModel, clientContextParams);
+            endpointRuleSet, endpointTestSuiteModel, null, clientContextParams);
 
         SmithyIntermediateModelPostprocessor.create(customConfig).postprocess(fullModel);
 
@@ -202,6 +202,7 @@ public final class SmithyIntermediateModelBuilder {
                                                                fullModel.getWaiters(),
                                                                endpointRuleSet,
                                                                endpointTestSuiteModel,
+                                                               null,
                                                                clientContextParams);
 
         linkMembersToShapes(trimmedModel);

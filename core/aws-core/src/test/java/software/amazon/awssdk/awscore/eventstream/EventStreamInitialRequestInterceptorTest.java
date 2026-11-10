@@ -36,12 +36,12 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context.ModifyHttpRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.eventstream.HeaderValue;
+import software.amazon.awssdk.eventstream.Message;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.ImmutableMap;
-import software.amazon.eventstream.HeaderValue;
-import software.amazon.eventstream.Message;
 
 public class EventStreamInitialRequestInterceptorTest {
     static final String RPC_CONTENT_TYPE = "rpc-format";
