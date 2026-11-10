@@ -29,16 +29,18 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 /**
  * Outer map maps a batchKey (ex. queueUrl, overrideConfig etc.) to a {@link RequestBatchBuffer}
  *
- * @param <RequestT> the type of an outgoing response
+ * @param <RequestT> the type of an outgoing request
+ * @param <ResponseT> the type of the response to each request
+ * @param <KeyT> the type of the batch key
  */
 @SdkInternalApi
-public final class BatchingMap<RequestT, ResponseT> {
+public final class BatchingMap<RequestT, ResponseT, KeyT> {
 
     private final int maxBatchKeys;
     private final int maxBatchBytesSize;
     private final int maxBatchSize;
     private final int maxBufferSize;
-    private final ConcurrentMap<String, RequestBatchBuffer<RequestT, ResponseT>> batchContextMap;
+    private final ConcurrentMap<KeyT, RequestBatchBuffer<RequestT, ResponseT>> batchContextMap;
     private final AtomicInteger keyCount = new AtomicInteger();
 
     public BatchingMap(RequestBatchConfiguration overrideConfiguration) {
@@ -49,7 +51,7 @@ public final class BatchingMap<RequestT, ResponseT> {
         this.maxBufferSize = overrideConfiguration.maxBufferSize();
     }
 
-    public void put(String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
+    public void put(KeyT batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
                     CompletableFuture<ResponseT> response) throws IllegalStateException {
         // The put runs inside the per-key compute, so it is serialized with evictIfEmpty for the same key.
         batchContextMap.compute(batchKey, (k, buffer) -> {
@@ -83,7 +85,7 @@ public final class BatchingMap<RequestT, ResponseT> {
     /**
      * Removes the buffer for the given key and cancels its scheduled flush if the buffer holds no requests.
      */
-    public void evictIfEmpty(String batchKey) {
+    public void evictIfEmpty(KeyT batchKey) {
         batchContextMap.computeIfPresent(batchKey, (k, buffer) -> {
             if (buffer.isEmpty()) {
                 buffer.cancelScheduledFlush();
@@ -94,39 +96,39 @@ public final class BatchingMap<RequestT, ResponseT> {
         });
     }
 
-    public boolean contains(String batchKey) {
+    public boolean contains(KeyT batchKey) {
         return batchContextMap.containsKey(batchKey);
     }
 
-    public void cancelAndReplaceScheduledFlush(String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush) {
+    public void cancelAndReplaceScheduledFlush(KeyT batchKey, Supplier<ScheduledFuture<?>> scheduleFlush) {
         batchContextMap.computeIfPresent(batchKey, (k, buffer) -> {
             buffer.cancelAndReplaceScheduledFlush(scheduleFlush.get());
             return buffer;
         });
     }
 
-    public void forEach(BiConsumer<String, RequestBatchBuffer<RequestT, ResponseT>> action) {
+    public void forEach(BiConsumer<KeyT, RequestBatchBuffer<RequestT, ResponseT>> action) {
         batchContextMap.forEach(action);
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractBatchIfReady(String batchKey) {
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractBatchIfReady(KeyT batchKey) {
         RequestBatchBuffer<RequestT, ResponseT> buffer = batchContextMap.get(batchKey);
         return buffer == null ? Collections.emptyMap() : buffer.extractBatchIfReady();
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractBatchIfSizeExceeded(String batchKey,
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractBatchIfSizeExceeded(KeyT batchKey,
                                                                                                             RequestT request) {
         RequestBatchBuffer<RequestT, ResponseT> buffer = batchContextMap.get(batchKey);
         return buffer == null ? Collections.emptyMap() : buffer.extractBatchIfSizeExceeded(request);
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractEntriesForScheduledFlush(String batchKey,
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractEntriesForScheduledFlush(KeyT batchKey,
                                                                                                  int maxBatchItems) {
         RequestBatchBuffer<RequestT, ResponseT> buffer = batchContextMap.get(batchKey);
         return buffer == null ? Collections.emptyMap() : buffer.extractEntriesForScheduledFlush(maxBatchItems);
     }
 
-    public void cancelScheduledFlush(String batchKey) {
+    public void cancelScheduledFlush(KeyT batchKey) {
         RequestBatchBuffer<RequestT, ResponseT> buffer = batchContextMap.get(batchKey);
         if (buffer != null) {
             buffer.cancelScheduledFlush();
@@ -134,7 +136,7 @@ public final class BatchingMap<RequestT, ResponseT> {
     }
 
     public void clear() {
-        for (Map.Entry<String, RequestBatchBuffer<RequestT, ResponseT>> entry : batchContextMap.entrySet()) {
+        for (Map.Entry<KeyT, RequestBatchBuffer<RequestT, ResponseT>> entry : batchContextMap.entrySet()) {
             RequestBatchBuffer<RequestT, ResponseT> buffer = entry.getValue();
             if (batchContextMap.remove(entry.getKey(), buffer)) {
                 buffer.cancelScheduledFlush();
