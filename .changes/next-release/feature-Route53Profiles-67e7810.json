@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Route 53 Profiles",
-    "contributor": "",
-    "description": "Adds support for having multiple profiles on one VPC. This is done using a priority system to handle conflicts on the dataplane."
-}

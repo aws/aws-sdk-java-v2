@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3 Tables",
-    "contributor": "",
-    "description": "Adds support for server access logging for Amazon S3 table buckets with the new PutTableBucketLogging and GetTableBucketLogging APIs."
-}
