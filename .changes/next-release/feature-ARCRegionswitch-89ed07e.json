@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "ARC - Region switch",
+    "contributor": "",
+    "description": "Adds RetryableConflictException to UpdatePlan so AWS SDKs automatically retry updates that conflict with a concurrent change."
+}
