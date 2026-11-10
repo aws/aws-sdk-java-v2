@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis",
+    "contributor": "",
+    "description": "Add back Kinesis default read timeout of 10 seconds."
+}
