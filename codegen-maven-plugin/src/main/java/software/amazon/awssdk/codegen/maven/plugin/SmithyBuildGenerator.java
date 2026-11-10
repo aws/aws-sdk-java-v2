@@ -20,19 +20,22 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -51,7 +54,8 @@ import software.amazon.smithy.model.validation.ValidatedResult;
 import software.amazon.smithy.model.validation.ValidationEvent;
 
 /**
- * Runs smithy-build for a Smithy-based service module and registers the generated directories with the Maven project.
+ * Runs smithy-build for a Smithy-based service module, copies the generated code into the directories the C2J path
+ * writes to, and registers them with the Maven project.
  *
  * <p>This class is used only when {@link GenerationMojo} builds a module that has a {@code smithy-build.json} at its
  * root. The {@code maven} block of {@code smithy-build.json} is ignored here, because Maven has already resolved the
@@ -71,10 +75,17 @@ final class SmithyBuildGenerator {
 
     private final MavenProject project;
     private final Log log;
+    private final Path sourcesDirectory;
+    private final Path resourcesDirectory;
+    private final Path testsDirectory;
 
-    SmithyBuildGenerator(MavenProject project, Log log) {
+    SmithyBuildGenerator(MavenProject project, Log log, Path sourcesDirectory, Path resourcesDirectory,
+                         Path testsDirectory) {
         this.project = project;
         this.log = log;
+        this.sourcesDirectory = sourcesDirectory;
+        this.resourcesDirectory = resourcesDirectory;
+        this.testsDirectory = testsDirectory;
     }
 
     void generate(Path smithyBuildFile, Path outputDirectory) throws MojoExecutionException {
@@ -262,55 +273,54 @@ final class SmithyBuildGenerator {
     }
 
     /**
-     * Registers the codegen plugin's output directories. Unlike the C2J output, the root POM does not add them.
+     * Copies the codegen plugin's output into the directories the C2J path writes to, and registers them the same way.
+     * The root POM, several test modules and the internal Brazil import read generated code only from those
+     * directories. The root POM registers the resources directory.
      */
     private void registerOutputDirectories(SmithyBuildResult result) throws MojoExecutionException {
-        List<Path> pluginOutputs = new ArrayList<>();
+        Map<String, Path> pluginOutputs = new TreeMap<>();
         for (ProjectionResult projection : result.getProjectionResults()) {
             projection.getPluginManifest(AwsSdkJavaCodegenPlugin.NAME)
-                      .ifPresent(manifest -> pluginOutputs.add(manifest.getBaseDir()));
+                      .ifPresent(manifest -> pluginOutputs.put(projection.getProjectionName(), manifest.getBaseDir()));
         }
         if (pluginOutputs.isEmpty()) {
             throw new MojoExecutionException(
                 "smithy-build completed without running the '" + AwsSdkJavaCodegenPlugin.NAME + "' plugin. Add it to "
                 + "the 'plugins' block of smithy-build.json.");
         }
-        for (Path pluginOutput : pluginOutputs) {
-            addCompileSourceRoot(pluginOutput.resolve(SOURCES_DIR));
-            addTestCompileSourceRoot(pluginOutput.resolve(TESTS_DIR));
-            addResource(pluginOutput.resolve(RESOURCES_DIR));
+        if (pluginOutputs.size() > 1) {
+            throw new MojoExecutionException(
+                "The '" + AwsSdkJavaCodegenPlugin.NAME + "' plugin ran in projections " + pluginOutputs.keySet()
+                + ", but must run in exactly one.");
         }
+        Path pluginOutput = pluginOutputs.values().iterator().next();
+        copyFiles(pluginOutput.resolve(SOURCES_DIR), sourcesDirectory);
+        copyFiles(pluginOutput.resolve(RESOURCES_DIR), resourcesDirectory);
+        copyFiles(pluginOutput.resolve(TESTS_DIR), testsDirectory);
+        project.addCompileSourceRoot(sourcesDirectory.toAbsolutePath().toString());
+        project.addTestCompileSourceRoot(testsDirectory.toAbsolutePath().toString());
     }
 
-    private void addCompileSourceRoot(Path directory) throws MojoExecutionException {
-        if (containsFiles(directory)) {
-            project.addCompileSourceRoot(directory.toAbsolutePath().toString());
+    private static void copyFiles(Path from, Path to) throws MojoExecutionException {
+        if (!Files.isDirectory(from)) {
+            return;
         }
-    }
+        try {
+            Files.walkFileTree(from, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    Files.createDirectories(to.resolve(from.relativize(dir)));
+                    return FileVisitResult.CONTINUE;
+                }
 
-    private void addTestCompileSourceRoot(Path directory) throws MojoExecutionException {
-        if (containsFiles(directory)) {
-            project.addTestCompileSourceRoot(directory.toAbsolutePath().toString());
-        }
-    }
-
-    private void addResource(Path directory) throws MojoExecutionException {
-        if (containsFiles(directory)) {
-            Resource resource = new Resource();
-            resource.setDirectory(directory.toAbsolutePath().toString());
-            project.addResource(resource);
-        }
-    }
-
-    // The plugin always creates all three output directories; empty ones are not registered.
-    private static boolean containsFiles(Path directory) throws MojoExecutionException {
-        if (!Files.isDirectory(directory)) {
-            return false;
-        }
-        try (Stream<Path> files = Files.walk(directory)) {
-            return files.anyMatch(Files::isRegularFile);
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.copy(file, to.resolve(from.relativize(file)), StandardCopyOption.REPLACE_EXISTING);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
         } catch (IOException e) {
-            throw new MojoExecutionException("Failed to inspect generated directory " + directory, e);
+            throw new MojoExecutionException("Failed to copy generated files from " + from + " to " + to, e);
         }
     }
 }

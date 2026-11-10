@@ -48,10 +48,7 @@ class GenerationMojoSmithyRoutingTest {
 
         mojo.execute();
 
-        Path generatedSources = outputDirectory.resolve("smithyprojections")
-                                               .resolve("sdk")
-                                               .resolve(PLUGIN)
-                                               .resolve("generated-sources");
+        Path generatedSources = outputDirectory.resolve("generated-sources").resolve("sdk");
         assertTrue(project.getCompileSourceRoots().contains(generatedSources.toAbsolutePath().toString()),
                    "expected " + generatedSources + " in " + project.getCompileSourceRoots());
         assertTrue(containsFileEndingWith(generatedSources, "Client.java"),

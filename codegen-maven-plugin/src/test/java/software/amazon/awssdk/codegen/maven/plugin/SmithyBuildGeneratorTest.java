@@ -136,6 +136,19 @@ class SmithyBuildGeneratorTest {
     }
 
     @Test
+    void pluginInTopLevelPlugins_runsInTwoProjectionsAndFails() throws Exception {
+        write(moduleDir.resolve("model.smithy"), SERVICE + REQUEST);
+        // Top-level plugins also run in smithy-build's 'source' projection.
+        Path configFile = write(moduleDir.resolve("smithy-build.json"),
+                                "{ \"version\": \"1.0\", " + SOURCES + ", \"plugins\": { \"" + PLUGIN + "\": {} }, "
+                                + "\"projections\": { \"sdk\": {} } }");
+
+        MojoExecutionException e = assertThrows(MojoExecutionException.class,
+                                                () -> generate(project(moduleDir), configFile));
+        assertTrue(e.getMessage().contains("ran in projections [sdk, source]"), e.getMessage());
+    }
+
+    @Test
     void sdkVersionPlaceholder_isReplacedWithoutSettingSystemProperty() throws Exception {
         write(moduleDir.resolve("model.smithy"), SERVICE + REQUEST);
         // project() sets version 2.0.0, so the placeholder must resolve to this file for generation to succeed.
@@ -151,11 +164,15 @@ class SmithyBuildGeneratorTest {
     }
 
     private void generate(MavenProject project, Path configFile) throws MojoExecutionException {
-        new SmithyBuildGenerator(project, new SystemStreamLog()).generate(configFile, outputDirectory());
+        Path target = moduleDir.resolve("target");
+        new SmithyBuildGenerator(project, new SystemStreamLog(), outputDirectory(),
+                                 target.resolve("generated-resources").resolve("sdk-resources"),
+                                 target.resolve("generated-test-sources").resolve("sdk-tests"))
+            .generate(configFile, target.resolve("smithyprojections"));
     }
 
     private Path outputDirectory() {
-        return moduleDir.resolve("target").resolve("smithyprojections");
+        return moduleDir.resolve("target").resolve("generated-sources").resolve("sdk");
     }
 
     private static String pluginSettings(String settings) {
