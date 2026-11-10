@@ -18,9 +18,11 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages.utils;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -35,11 +37,15 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
@@ -177,7 +183,50 @@ public class RetryableStageHelperTest {
         assertThat(helper.tryRefreshTokenAsync(Duration.ZERO).join().right()).hasValue(failureAcquireDuration);
     }
 
+    @Test
+    void tryRefreshToken_nonRetryableExceptionWithIoCause_doesNotConsultRetryStrategy() {
+        RetryableStageHelper helper = makeTestHelper(ExecutionAttributes.builder().build());
+        helper.setLastException(NonRetryableException.create("callback failed", new IOException("boom")));
+
+        assertThat(helper.tryRefreshToken(Duration.ZERO).right()).hasValue(Duration.ZERO);
+        verify(mockRetryStrategy, never()).refreshRetryToken(any());
+    }
+
+    @Test
+    void tryRefreshTokenAsync_nonRetryableExceptionWithIoCause_doesNotConsultRetryStrategy() {
+        RetryableStageHelper helper = makeTestHelper(ExecutionAttributes.builder().build());
+        helper.setLastException(NonRetryableException.create("callback failed", new IOException("boom")));
+
+        assertThat(helper.tryRefreshTokenAsync(Duration.ZERO).join().right()).hasValue(Duration.ZERO);
+        verify(mockRetryStrategy, never()).refreshRetryTokenAsync(any());
+    }
+
+    @Test
+    void tryRefreshToken_nonRetryableExceptionWithLegacyPolicy_doesNotConsultPolicy() {
+        RetryCondition retryCondition = mock(RetryCondition.class);
+        RetryPolicy retryPolicy = RetryPolicy.builder().retryCondition(retryCondition).build();
+        SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
+                                                                    .option(SdkClientOption.RETRY_POLICY, retryPolicy)
+                                                                    .build();
+        RetryableStageHelper helper = makeTestHelper(ExecutionAttributes.builder().build(), clientConfig);
+        helper.setLastException(NonRetryableException.create("callback failed", new IOException("boom")));
+
+        assertThat(helper.tryRefreshToken(Duration.ZERO).right()).hasValue(Duration.ZERO);
+        assertThat(helper.tryRefreshTokenAsync(Duration.ZERO).join().right()).hasValue(Duration.ZERO);
+        verify(retryCondition, never()).shouldRetry(any(RetryPolicyContext.class));
+        verify(retryCondition, never()).requestWillNotBeRetried(any(RetryPolicyContext.class));
+    }
+
     RetryableStageHelper makeTestHelper(ExecutionAttributes executionAttributes) {
+        SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
+                                                                    .option(SdkClientOption.RETRY_STRATEGY,
+                                                                            mockRetryStrategy)
+                                                                    .build();
+        return makeTestHelper(executionAttributes, clientConfig);
+    }
+
+    RetryableStageHelper makeTestHelper(ExecutionAttributes executionAttributes,
+                                        SdkClientConfiguration clientConfig) {
         SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
                                                            .method(SdkHttpMethod.GET)
                                                            .uri(URI.create("https://my-service.amazonaws.com"))
@@ -191,12 +240,6 @@ public class RetryableStageHelperTest {
                                                                                  .originalRequest(mock(SdkRequest.class))
                                                                                  .executionContext(executionContext)
                                                                                  .build();
-
-        RetryStrategy retryStrategy = mockRetryStrategy;
-
-        SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
-                                                                    .option(SdkClientOption.RETRY_STRATEGY, retryStrategy)
-                                                                    .build();
 
         HttpClientDependencies dependencies = HttpClientDependencies.builder()
                                                                     .clientConfiguration(clientConfig)

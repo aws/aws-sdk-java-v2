@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.FunctionalUtils;
@@ -40,15 +41,18 @@ public abstract class EventStreamResponseHandlerFromBuilder<ResponseT, EventT>
     private final Consumer<ResponseT> responseConsumer;
     private final Consumer<Throwable> errorConsumer;
     private final Runnable onComplete;
+    private final Supplier<Subscriber<EventT>> subscriber;
+    private final Consumer<EventT> eventConsumer;
     private final Consumer<SdkPublisher<EventT>> onEventStream;
     private final Function<SdkPublisher<EventT>, SdkPublisher<EventT>> publisherTransformer;
 
     protected EventStreamResponseHandlerFromBuilder(DefaultEventStreamResponseHandlerBuilder<ResponseT, EventT, ?> builder) {
         mutuallyExclusive("onEventStream and subscriber are mutually exclusive, set only one on the Builder",
-                          builder.onEventStream(), builder.subscriber());
-        Supplier<Subscriber<EventT>> subscriber = builder.subscriber();
-        this.onEventStream = subscriber != null ? p -> p.subscribe(subscriber.get()) : builder.onEventStream();
-        if (this.onEventStream == null) {
+                          builder.onEventStream(), builder.subscriber(), builder.eventConsumer());
+        this.subscriber = builder.subscriber();
+        this.eventConsumer = builder.eventConsumer();
+        this.onEventStream = builder.onEventStream();
+        if (this.subscriber == null && this.eventConsumer == null && this.onEventStream == null) {
             throw new IllegalArgumentException("Must provide either a subscriber or set onEventStream "
                                                + "and subscribe to the publisher in the callback method");
         }
@@ -64,8 +68,26 @@ public abstract class EventStreamResponseHandlerFromBuilder<ResponseT, EventT>
     }
 
     @Override
-    public void onEventStream(SdkPublisher<EventT> p) {
-        onEventStream.accept(publisherTransformer.apply(p));
+    public void onEventStream(SdkPublisher<EventT> publisher) {
+        onEventStream(publisher, FunctionalUtils.noOpConsumer());
+    }
+
+    void onEventStream(SdkPublisher<EventT> publisher, Consumer<Throwable> failureReporter) {
+        SdkPublisher<EventT> transformedPublisher = publisherTransformer.apply(publisher);
+
+        if (eventConsumer != null) {
+            transformedPublisher.subscribe(sequentialConsumerSubscriber(eventConsumer, failureReporter));
+        } else if (subscriber != null) {
+            transformedPublisher.subscribe(subscriber.get());
+        } else {
+            onEventStream.accept(transformedPublisher);
+        }
+    }
+
+    // Keeps the subscriber implementation private while allowing package-level Reactive Streams verification.
+    static <T> Subscriber<T> sequentialConsumerSubscriber(Consumer<T> eventConsumer,
+                                                           Consumer<Throwable> failureReporter) {
+        return new SequentialConsumerSubscriber<>(eventConsumer, failureReporter);
     }
 
     @Override
@@ -76,5 +98,75 @@ public abstract class EventStreamResponseHandlerFromBuilder<ResponseT, EventT>
     @Override
     public void complete() {
         this.onComplete.run();
+    }
+
+    /**
+     * Reports consumer failures before cancelling upstream so cancellation cannot mask the failure.
+     */
+    private static final class SequentialConsumerSubscriber<T> implements Subscriber<T> {
+        private final Consumer<T> eventConsumer;
+        private final Consumer<Throwable> failureReporter;
+        private Subscription subscription;
+        private boolean terminated;
+
+        private SequentialConsumerSubscriber(Consumer<T> eventConsumer, Consumer<Throwable> failureReporter) {
+            this.eventConsumer = eventConsumer;
+            this.failureReporter = failureReporter;
+        }
+
+        @Override
+        public void onSubscribe(Subscription subscription) {
+            if (subscription == null) {
+                throw new NullPointerException("subscription must not be null.");
+            }
+            if (this.subscription != null) {
+                subscription.cancel();
+                return;
+            }
+
+            this.subscription = subscription;
+            subscription.request(1);
+        }
+
+        @Override
+        public void onNext(T event) {
+            if (event == null) {
+                NullPointerException exception = new NullPointerException("onNext(null) is not allowed.");
+                fail(exception);
+                throw exception;
+            }
+            if (terminated) {
+                return;
+            }
+
+            try {
+                eventConsumer.accept(event);
+                subscription.request(1);
+            } catch (Throwable throwable) {
+                fail(throwable);
+            }
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+            if (throwable == null) {
+                throw new NullPointerException("throwable must not be null.");
+            }
+            terminated = true;
+        }
+
+        @Override
+        public void onComplete() {
+            terminated = true;
+        }
+
+        private void fail(Throwable throwable) {
+            terminated = true;
+            try {
+                failureReporter.accept(throwable);
+            } finally {
+                subscription.cancel();
+            }
+        }
     }
 }
