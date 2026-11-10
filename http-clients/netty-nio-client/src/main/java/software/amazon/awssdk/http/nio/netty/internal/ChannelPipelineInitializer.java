@@ -216,8 +216,10 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     }
 
     /**
-     * Fails {@link ChannelAttributeKey#PROTOCOL_FUTURE} and releases the channel, as {@code Http2SettingsFrameHandler}
-     * does. No-op if the future is already complete, so the channel is released once.
+     * Fails {@link ChannelAttributeKey#PROTOCOL_FUTURE} and closes the channel. No-op if the future is already complete.
+     *
+     * <p>Failing the future is what returns the pool permit: the pools waiting on it fail their acquire. Unlike
+     * {@code Http2SettingsFrameHandler}, this does not release the channel, because the release does not return a permit.
      */
     private void failBeforeProtocolDetermined(Channel ch, Throwable cause) {
         IOException exception = new IOException("The channel was closed before the protocol could be determined.", cause);
@@ -225,14 +227,10 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
             return;
         }
 
-        log.debug(ch, () -> "ALPN negotiation did not complete, closing and releasing " + ch, exception);
+        log.debug(ch, () -> "ALPN negotiation did not complete, closing " + ch, exception);
         ch.eventLoop().submit(() -> {
-            try {
-                if (ch.isActive()) {
-                    ch.close();
-                }
-            } finally {
-                channelPoolRef.get().release(ch);
+            if (ch.isActive()) {
+                ch.close();
             }
         });
     }

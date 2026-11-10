@@ -68,6 +68,7 @@ class TlsHandshakeFailureConnectionPoolTest {
     private static final Duration TLS_NEGOTIATION_TIMEOUT = Duration.ofMillis(300);
     private static final Duration CONNECTION_ACQUIRE_TIMEOUT = Duration.ofSeconds(2);
     private static final long TIMEOUT_SECONDS = 10;
+    private static final int MAX_FAULTED_REQUEST_ATTEMPTS = 3;
     private static final String CLOSED_BEFORE_PROTOCOL = "closed before the protocol could be determined";
     // The JDK reports a reset as "Connection reset" or "Connection reset by peer", and the SDK can reword it as
     // "The connection was closed during the request".
@@ -153,18 +154,27 @@ class TlsHandshakeFailureConnectionPoolTest {
     /**
      * Sends a request that must open exactly one new connection and fail within the TLS negotiation timeout plus one
      * second, and returns its failure. A slower failure means the request waited for the acquire timeout.
+     *
+     * <p>The proxy sees the client's FIN before the client pool drops the closed connection's record, so a request can
+     * fail on that stale record without opening a connection. Such a request is sent again.
      */
     private Throwable executeOnNewConnectionExpectingFailure() throws Exception {
-        int acceptedBefore = proxy.acceptedConnections();
-        long start = System.nanoTime();
-        Throwable failure = executeExpectingFailure();
-        assertThat(Duration.ofNanos(System.nanoTime() - start))
-            .as("Time until the faulted request failed")
-            .isLessThan(TLS_NEGOTIATION_TIMEOUT.plusSeconds(1));
-        assertThat(proxy.acceptedConnections())
-            .as("New connections opened by the faulted request")
-            .isEqualTo(acceptedBefore + 1);
-        return failure;
+        for (int attempt = 0; attempt < MAX_FAULTED_REQUEST_ATTEMPTS; attempt++) {
+            int acceptedBefore = proxy.acceptedConnections();
+            long start = System.nanoTime();
+            Throwable failure = executeExpectingFailure();
+            if (proxy.acceptedConnections() == acceptedBefore) {
+                continue;
+            }
+            assertThat(Duration.ofNanos(System.nanoTime() - start))
+                .as("Time until the faulted request failed")
+                .isLessThan(TLS_NEGOTIATION_TIMEOUT.plusSeconds(1));
+            assertThat(proxy.acceptedConnections())
+                .as("New connections opened by the faulted request")
+                .isEqualTo(acceptedBefore + 1);
+            return failure;
+        }
+        return fail("No faulted request opened a new connection in " + MAX_FAULTED_REQUEST_ATTEMPTS + " attempts");
     }
 
     private void assertRecoveryRequestSucceeds(MetricCollector metrics) {
