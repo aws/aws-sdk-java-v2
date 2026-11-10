@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth.source;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.RETRY_MODE_STANDARD;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -101,7 +102,7 @@ class ProfileCredentialProviderUserAgentTest {
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
         String userAgent = userAgentHeaders.get(0);
 
-        assertUserAgentHasFeatureIds(userAgent, Arrays.asList("D", "n"));
+        assertUserAgentHasFeatureIds(userAgent, Arrays.asList(RETRY_MODE_STANDARD.value(), "n"));
 
         credentialsProvider.close();
         stsClient.close();
@@ -143,7 +144,7 @@ class ProfileCredentialProviderUserAgentTest {
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
         String userAgent = userAgentHeaders.get(0);
 
-        assertUserAgentHasFeatureIds(userAgent, Arrays.asList("D", "v", "w"));
+        assertUserAgentHasFeatureIds(userAgent, Arrays.asList(RETRY_MODE_STANDARD.value(), "v", "w"));
 
         credentialsProvider.close();
         stsClient.close();
