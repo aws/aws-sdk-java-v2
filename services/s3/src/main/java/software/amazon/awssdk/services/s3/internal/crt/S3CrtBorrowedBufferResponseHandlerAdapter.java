@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
+
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -28,6 +30,7 @@ import software.amazon.awssdk.crt.s3.S3BorrowedBufferDelivery;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
+import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.ContentRangeParser;
@@ -56,8 +59,16 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
 
     private S3CrtBorrowedBufferResponseHandlerAdapter(Builder builder) {
         this.executeFuture = builder.executeFuture;
-        this.delegate = new S3CrtResponseHandlerAdapter(this.executeFuture, builder.responseHandler, builder.progressListener,
-                                                       builder.metaRequestFuture);
+        SdkHttpExecutionAttributes delegateAttributes = SdkHttpExecutionAttributes.builder()
+                                                                                .put(CRT_PROGRESS_LISTENER,
+                                                                                     builder.progressListener)
+                                                                                .build();
+        this.delegate = S3CrtResponseHandlerAdapter.builder()
+                                                   .executeFuture(this.executeFuture)
+                                                   .responseHandler(builder.responseHandler)
+                                                   .httpExecutionAttributes(delegateAttributes)
+                                                   .metaRequestFuture(builder.metaRequestFuture)
+                                                   .build();
         this.transformer = Validate.paramNotNull(builder.transformer, "transformer");
         this.progressListener = builder.progressListener;
         this.metaRequestFuture = builder.metaRequestFuture;

@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Improve how `uploadDirectory` applies `followSymbolicLinks` when it reads the files it lists."
+}
