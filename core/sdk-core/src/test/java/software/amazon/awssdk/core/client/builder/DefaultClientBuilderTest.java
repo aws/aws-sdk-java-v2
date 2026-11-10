@@ -72,6 +72,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -89,6 +90,10 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.retries.LegacyRetryStrategy;
+import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -518,6 +523,32 @@ public class DefaultClientBuilderTest {
         ProfileFile secondGet = defaultProfileFileSupplier.get();
 
         assertThat(secondGet).isSameAs(firstGet);
+    }
+
+    @Test
+    public void retryConfigurator_usesRetryModeFromClientProfile() throws IOException {
+        // The default profile file has no retry_mode, so only the client's profile can select legacy
+        File defaultConfig = tempFolder.newFile("config");
+        Files.write(defaultConfig.toPath(), "[default]\n".getBytes(StandardCharsets.UTF_8));
+        EnvironmentVariableHelper.run(env -> {
+            env.remove(SdkSystemSetting.AWS_RETRY_MODE);
+            env.remove(SdkSystemSetting.AWS_MAX_ATTEMPTS);
+            env.set(ProfileFileSystemSetting.AWS_CONFIG_FILE, defaultConfig.getAbsolutePath());
+            ProfileFile clientProfile = ProfileFile.builder()
+                                                   .content(new StringInputStream("[default]\nretry_mode = legacy"))
+                                                   .type(ProfileFile.Type.CONFIGURATION)
+                                                   .build();
+            SdkClientConfiguration config =
+                testClientBuilder().overrideConfiguration(o -> o.defaultProfileFile(clientProfile)
+                                                                .defaultProfileName("default")
+                                                                .retryStrategy(b -> b.maxAttempts(5)))
+                                   .build()
+                                   .clientConfiguration;
+
+            RetryStrategy strategy = config.option(SdkClientOption.RETRY_STRATEGY);
+            assertThat(strategy).isInstanceOf(LegacyRetryStrategy.class);
+            assertThat(strategy.maxAttempts()).isEqualTo(5);
+        });
     }
 
     private SdkDefaultClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {

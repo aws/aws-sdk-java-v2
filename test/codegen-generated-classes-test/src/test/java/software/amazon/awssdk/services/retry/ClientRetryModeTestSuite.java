@@ -188,6 +188,36 @@ public abstract class ClientRetryModeTestSuite<ClientT, BuilderT extends AwsClie
         verifyRequestCount(2);
     }
 
+    @Test
+    public void retryStrategyConfigurator_usesRetryModeFromClientProfile() {
+        stubThrottlingResponse();
+        ClientT client = clientBuilder().overrideConfiguration(o -> o.defaultProfileFile(legacyProfile())
+                                                                     .defaultProfileName("foo")
+                                                                     .retryStrategy(b -> { }))
+                                        .build();
+        assertThatThrownBy(() -> callAllTypes(client)).isInstanceOf(SdkException.class);
+        // The LEGACY retry mode from the client's profile makes four attempts
+        verifyRequestCount(4);
+    }
+
+    @Test
+    public void retryStrategyConfiguratorFromClientPlugin_usesRetryModeFromClientProfile() {
+        stubThrottlingResponse();
+        ClientT client = clientBuilder().overrideConfiguration(o -> o.defaultProfileFile(legacyProfile())
+                                                                     .defaultProfileName("foo"))
+                                        .addPlugin(c -> c.overrideConfiguration(o -> o.retryStrategy(b -> { })))
+                                        .build();
+        assertThatThrownBy(() -> callAllTypes(client)).isInstanceOf(SdkException.class);
+        verifyRequestCount(4);
+    }
+
+    private static ProfileFile legacyProfile() {
+        return ProfileFile.builder()
+                          .content(new StringInputStream("[profile foo]\nretry_mode = legacy"))
+                          .type(ProfileFile.Type.CONFIGURATION)
+                          .build();
+    }
+
     protected long timeCallMillis(ClientT client) {
         long start = System.nanoTime();
         callAllTypes(client);

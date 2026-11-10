@@ -348,9 +348,15 @@ public final class ClientClassUtils {
         builder.addStatement("$T<$T<?, ?>> configurator = builder.retryStrategyConfigurator()", Consumer.class,
                              RetryStrategy.Builder.class);
         builder.beginControlFlow("if (configurator != null)")
-               .addStatement("$T<?, ?>  defaultBuilder = $T.forRetryMode($T.defaultRetryMode(), "
+               .addStatement("$T defaultRetryMode = $T.resolver()"
+                             + ".profileFile(configuration.option($T.PROFILE_FILE_SUPPLIER))"
+                             + ".profileName(configuration.option($T.PROFILE_NAME))"
+                             + ".defaultRetryMode(configuration.option($T.DEFAULT_RETRY_MODE))"
+                             + ".resolve()", RetryMode.class, RetryMode.class, SdkClientOption.class, SdkClientOption.class,
+                             SdkClientOption.class)
+               .addStatement("$T<?, ?>  defaultBuilder = $T.forRetryMode(defaultRetryMode, "
                              + "configuration.option($T.PROFILE_FILE_SUPPLIER), configuration.option($T.PROFILE_NAME))"
-                             + ".toBuilder()", RetryStrategy.Builder.class, AwsRetryStrategy.class, RetryMode.class,
+                             + ".toBuilder()", RetryStrategy.Builder.class, AwsRetryStrategy.class,
                              SdkClientOption.class, SdkClientOption.class)
                .addStatement("configurator.accept(defaultBuilder)")
                .addStatement("configuration.option($T.RETRY_STRATEGY, defaultBuilder.build())", SdkClientOption.class);

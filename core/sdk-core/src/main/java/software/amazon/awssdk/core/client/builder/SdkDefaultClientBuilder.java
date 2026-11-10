@@ -259,9 +259,13 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         overrideConfig.retryMode().ifPresent(retryMode -> builder.option(
             RETRY_STRATEGY, SdkDefaultRetryStrategy.forRetryMode(retryMode, overrideProfileFile, overrideProfileName)));
         overrideConfig.retryStrategyConfigurator().ifPresent(configurator -> {
+            // Take the retry mode from the same profile as max attempts
+            RetryMode retryMode = RetryMode.resolver()
+                                           .profileFile(overrideProfileFile)
+                                           .profileName(overrideProfileName)
+                                           .resolve();
             RetryStrategy.Builder<?, ?> defaultBuilder =
-                SdkDefaultRetryStrategy.forRetryMode(RetryMode.defaultRetryMode(), overrideProfileFile, overrideProfileName)
-                                       .toBuilder();
+                SdkDefaultRetryStrategy.forRetryMode(retryMode, overrideProfileFile, overrideProfileName).toBuilder();
             configurator.accept(defaultBuilder);
             builder.option(RETRY_STRATEGY, defaultBuilder.build());
         });

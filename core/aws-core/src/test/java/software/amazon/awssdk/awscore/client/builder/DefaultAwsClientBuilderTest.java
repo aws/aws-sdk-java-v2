@@ -448,6 +448,28 @@ public class DefaultAwsClientBuilderTest {
     }
 
     @Test
+    void retryConfigurator_usesRetryModeFromClientProfile(@TempDir Path tempDir) throws Exception {
+        // The default profile file has no retry_mode, so only the client's profile can select legacy
+        Path defaultConfig = tempDir.resolve("config");
+        Files.write(defaultConfig, "[default]\n".getBytes(StandardCharsets.UTF_8));
+        EnvironmentVariableHelper.run(env -> {
+            env.remove(SdkSystemSetting.AWS_RETRY_MODE);
+            env.remove(SdkSystemSetting.AWS_MAX_ATTEMPTS);
+            env.set(ProfileFileSystemSetting.AWS_CONFIG_FILE, defaultConfig.toString());
+            TestClient client = testClientBuilder()
+                .region(Region.US_EAST_1)
+                .overrideConfiguration(c -> c.defaultProfileFile(profile("retry_mode = legacy"))
+                                             .defaultProfileName("default")
+                                             .retryStrategy(b -> b.maxAttempts(5)))
+                .build();
+
+            RetryStrategy strategy = client.clientConfiguration.option(SdkClientOption.RETRY_STRATEGY);
+            assertThat(strategy).isInstanceOf(LegacyRetryStrategy.class);
+            assertThat(strategy.maxAttempts()).isEqualTo(5);
+        });
+    }
+
+    @Test
     void legacyRetryMode_ignoresMaxAttemptsFromClientProfile() {
         TestClient client = testClientBuilder()
             .region(Region.US_EAST_1)
