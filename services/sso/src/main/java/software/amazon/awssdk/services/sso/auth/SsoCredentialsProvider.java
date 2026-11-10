@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.sso.model.RoleCredentials;
 import software.amazon.awssdk.services.sso.model.UnauthorizedException;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.cache.CacheRefreshUtils;
@@ -64,6 +65,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
 
     private static final String ASYNC_THREAD_NAME = "sdk-sso-credentials-provider";
+    private static final String CLASS_NAME = "SsoCredentialsProvider";
 
     private final Supplier<GetRoleCredentialsRequest> getRoleCredentialsRequestSupplier;
     private final String sourceChain;
@@ -99,7 +101,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder =
             CachedSupplier.builder(this::updateSsoCredentials)
-                          .cachedValueName(toString())
+                          .cachedValueName(ToString.create(CLASS_NAME))
                           .staleValueBehavior(ALLOW)
                           .prefetchJitterEnabled(false)
                           .nonRecoverableErrorPredicate(

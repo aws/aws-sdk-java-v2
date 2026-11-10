@@ -57,6 +57,7 @@ import software.amazon.awssdk.services.signin.model.ValidationException;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -91,6 +92,7 @@ public final class LoginCredentialsProvider implements
     private static final Path DEFAULT_TOKEN_LOCATION = Paths.get(userHomeDirectory(), ".aws", "login", "cache");
 
     private static final String ASYNC_THREAD_NAME = "sdk-login-credentials-provider";
+    private static final String CLASS_NAME = "LoginCredentialsProvider";
 
     private final String loginSession;
     private final String sourceChain;
@@ -143,7 +145,7 @@ public final class LoginCredentialsProvider implements
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<AwsCredentials> cacheBuilder =
             CachedSupplier.builder(this::updateSigninCredentials)
-                          .cachedValueName(toString())
+                          .cachedValueName(ToString.create(CLASS_NAME))
                           .staleValueBehavior(ALLOW)
                           .prefetchJitterEnabled(false)
                           .nonRecoverableErrorPredicate(LoginCredentialsProvider::isNonRecoverableError);

@@ -104,7 +104,8 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<AwsSessionCredentials> cacheBuilder =
             CachedSupplier.builder(this::updateSessionCredentials)
-                          .cachedValueName(toString())
+                          // Not toString(): subclass fields that it reads are not set yet.
+                          .cachedValueName(ToString.create(getClass().getSimpleName()))
                           .staleValueBehavior(CachedSupplier.StaleValueBehavior.ALLOW)
                           .prefetchJitterEnabled(false)
                           .nonRecoverableErrorPredicate(StsCredentialsProvider::isNonRecoverableError);

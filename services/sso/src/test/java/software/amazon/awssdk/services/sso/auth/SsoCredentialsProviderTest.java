@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Supplier;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.services.sso.model.GetRoleCredentialsRequest;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsResponse;
 import software.amazon.awssdk.services.sso.model.RoleCredentials;
 import software.amazon.awssdk.services.sso.model.UnauthorizedException;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
  * Validates the functionality of {@link SsoCredentialsProvider}.
@@ -161,7 +163,8 @@ public class SsoCredentialsProviderTest {
         try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
                                                                                .refreshRequest(supplier)
                                                                                .ssoClient(ssoClient)
-                                                                               .build()) {
+                                                                               .build();
+             LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
             // First call succeeds and caches credentials
             AwsSessionCredentials firstResult = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
             assertThat(firstResult.accessKeyId()).isEqualTo("a");
@@ -171,6 +174,14 @@ public class SsoCredentialsProviderTest {
             assertThat(secondResult.accessKeyId()).isEqualTo("a");
             assertThat(secondResult.secretAccessKey()).isEqualTo("b");
             assertThat(secondResult.sessionToken()).isEqualTo("c");
+
+            // The refresh failure warning names the provider.
+            assertThat(logCaptor.loggedEvents())
+                .map(event -> event.getMessage().getFormattedMessage())
+                .filteredOn(message -> message.contains("Credential refresh failed"))
+                .singleElement()
+                .asString()
+                .startsWith("(SsoCredentialsProvider()) ");
         }
     }
 

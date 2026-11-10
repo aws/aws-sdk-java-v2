@@ -298,8 +298,12 @@ public class CachedSupplierTest {
         // this because values may become stale from disuse in sync prefetch strategies. If there's a new value available, we'd
         // still like to hold threads a little to give them a chance at a non-stale value.
 
+        //
+        // Only one of the blocked "get"s calls the underlying supplier. The other waits for that refresh and reuses its result.
+
         AdjustableClock clock = new AdjustableClock();
-        try (WaitingSupplier waitingSupplier = new WaitingSupplier(() -> now().plus(1, ChronoUnit.MINUTES), this::future)) {
+        AtomicReference<Instant> staleTime = new AtomicReference<>(now().plus(1, ChronoUnit.MINUTES));
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(staleTime::get, this::future)) {
             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                   .clock(clock)
                                                                   .staleValueBehavior(ALLOW)
@@ -309,20 +313,23 @@ public class CachedSupplierTest {
             waitingSupplier.permits.release(1);
             clock.time = now();
             waitFor(performAsyncGet(cachedSupplier));
+            staleTime.set(now().plus(1, ChronoUnit.HOURS));
 
             // Perform two "get"s that will attempt to refresh the value, and wait for them to get stuck.
             clock.time = now().plus(61, ChronoUnit.SECONDS);
             List<Future<?>> futures = performAsyncGets(cachedSupplier, 2);
-            waitingSupplier.waitForGetsToHaveStarted(3);
+            waitingSupplier.waitForGetsToHaveStarted(2);
             Thread.sleep(1_000);
             assertThat(futures).allMatch(f -> !f.isDone());
+            assertThat(waitingSupplier.startedGetPermits.availablePermits()).isZero();
 
-            // Release any "gets" that blocked and wait for them to finish.
+            // Release the "get" in the supplier and wait for both to finish.
             waitingSupplier.permits.release(50);
             waitForAsyncGetsToFinish();
 
-            // Make extra sure all 3 "gets" actually happened.
-            waitingSupplier.waitForGetsToHaveFinished(3);
+            // The waiting "get" reused the refreshed value instead of calling the supplier.
+            waitingSupplier.waitForGetsToHaveFinished(2);
+            assertThat(waitingSupplier.startedGetPermits.availablePermits()).isZero();
         }
     }
 
@@ -1734,7 +1741,7 @@ public class CachedSupplierTest {
             clock.time = now.plusSeconds(refreshDelaySeconds);
             source.set(() -> {
                 refreshCalls.incrementAndGet();
-                // Must be shorter than the 5 second refresh lock wait, so waiting callers are still waiting when this returns.
+                // Bounded so that the test can't hang: waiting callers wait for this refresh however long it takes.
                 invokeSafely(() -> releaseSource.await(3, TimeUnit.SECONDS));
                 return refreshOutcome.get();
             });
@@ -1765,6 +1772,94 @@ public class CachedSupplierTest {
     private static boolean isWaiting(Thread thread) {
         Thread.State state = thread.getState();
         return state == Thread.State.WAITING || state == Thread.State.TIMED_WAITING;
+    }
+
+    // --- advisory refresh concurrency and non-recoverable error tests ---
+
+    @Test
+    public void get_allowModeAdvisoryWindowWithRefreshInFlight_returnsCachedValueWithoutWaiting() throws Exception {
+        // A prefetch strategy that refreshes on every caller's thread, so that a second advisory caller reaches the refresh
+        // lock while the first is in the supplier.
+        CachedSupplier.PrefetchStrategy everyCallerRefreshes = Runnable::run;
+        try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
+             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .prefetchStrategy(everyCallerRefreshes)
+                                                                   .prefetchJitterEnabled(false)
+                                                                   .build()) {
+            waitingSupplier.permits.release(1);
+            assertThat(cachedSupplier.get()).isEqualTo("value");
+
+            // The first advisory caller blocks in the supplier, holding the refresh lock.
+            Future<?> refreshingCaller = performAsyncGet(cachedSupplier);
+            waitingSupplier.waitForGetsToHaveStarted(2);
+
+            // The second advisory caller returns the cached value at once, without calling the supplier.
+            Future<String> advisoryCaller = executorService.submit(cachedSupplier::get);
+            assertThat(advisoryCaller.get(1, TimeUnit.SECONDS)).isEqualTo("value");
+            assertThat(waitingSupplier.startedGetPermits.availablePermits()).isZero();
+            assertThat(refreshingCaller.isDone()).isFalse();
+
+            waitingSupplier.permits.release(1);
+            waitFor(refreshingCaller);
+        }
+    }
+
+    @Test
+    public void get_nonBlockingAdvisoryWindowAfterNonRecoverableError_surfacesErrorAndRefreshesOnCallerThread() {
+        AdjustableClock clock = new AdjustableClock();
+        Instant now = Instant.now();
+        clock.time = now;
+        AtomicInteger supplierCalls = new AtomicInteger(0);
+        CacheInvalidatingRuntimeException error = new CacheInvalidatingRuntimeException("access denied");
+        AtomicReference<Supplier<RefreshResult<String>>> source = new AtomicReference<>(
+            () -> RefreshResult.builder("cached-creds")
+                               .staleTime(now.plusSeconds(3600))
+                               .prefetchTime(now.plusSeconds(60))
+                               .build());
+
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(() -> {
+                                                                       supplierCalls.incrementAndGet();
+                                                                       return source.get().get();
+                                                                   })
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .prefetchStrategy(new NonBlocking("test-nre"))
+                                                                   .nonRecoverableErrorPredicate(
+                                                                       e -> e instanceof CacheInvalidatingRuntimeException)
+                                                                   .clock(clock)
+                                                                   .prefetchJitterEnabled(false)
+                                                                   .build()) {
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+
+            // In the advisory window, the first refresh runs in the background and fails with a non-recoverable error.
+            clock.time = now.plusSeconds(61);
+            source.set(() -> {
+                throw error;
+            });
+
+            // Callers keep getting the cached value until the background refresh records the error. After that, the next
+            // caller refreshes on its own thread and gets the cached error, without calling the supplier again.
+            RuntimeException thrown = null;
+            Instant deadline = Instant.now().plusSeconds(10);
+            while (thrown == null && Instant.now().isBefore(deadline)) {
+                try {
+                    assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+                } catch (CacheInvalidatingRuntimeException e) {
+                    thrown = e;
+                }
+            }
+            assertThat(thrown).isSameAs(error);
+            assertThat(supplierCalls).hasValue(2);
+
+            // Once the error cache expires, the next caller refreshes on its own thread and gets the new value at once.
+            clock.time = now.plusSeconds(61 + PAST_NON_RECOVERABLE_ERROR_CACHE);
+            source.set(() -> RefreshResult.builder("new-creds")
+                                          .staleTime(now.plusSeconds(7200))
+                                          .prefetchTime(now.plusSeconds(3600))
+                                          .build());
+            assertThat(cachedSupplier.get()).isEqualTo("new-creds");
+            assertThat(supplierCalls).hasValue(3);
+        }
     }
 
     // --- fetched value inside the mandatory refresh window tests ---

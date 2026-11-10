@@ -475,7 +475,9 @@ public class LoginCredentialsProviderTest {
             try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
                 assertEquals("new-akid", provider.resolveCredentials().accessKeyId());
                 assertEquals(2, mockHttpClient.getRequests().size());
-                assertEquals(1, refreshBackoffWarnings(logCaptor).size());
+                List<String> warnings = refreshBackoffWarnings(logCaptor);
+                assertEquals(1, warnings.size());
+                assertTrue(warnings.get(0).startsWith("(LoginCredentialsProvider()) "), warnings.get(0));
 
                 // Inside the backoff, the cached credentials are returned without another Sign-In request.
                 assertEquals("new-akid", provider.resolveCredentials().accessKeyId());
