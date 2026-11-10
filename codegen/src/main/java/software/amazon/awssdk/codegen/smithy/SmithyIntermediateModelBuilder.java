@@ -44,6 +44,8 @@ import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.naming.DefaultSmithyNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.codegen.smithy.service.SmithyServiceCustomization;
+import software.amazon.awssdk.codegen.smithy.service.SmithyServiceCustomizations;
 import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.awssdk.codegen.validation.MemberShapeTargetValidator;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -83,12 +85,19 @@ public final class SmithyIntermediateModelBuilder {
     private final EndpointRuleSetModel endpointRuleSet;
     private final EndpointTestSuiteModel endpointTestSuiteModel;
     private final List<IntermediateModelShapeProcessor> shapeProcessors;
+    private final List<SmithyServiceCustomization> serviceCustomizations;
 
     public SmithyIntermediateModelBuilder(SmithyModels models) {
-        // Shipped models still use Smithy 1.0 enums (string with @enum); the translator reads only enum shapes.
-        this.model = ModelTransformer.create().changeStringEnumsToEnumShapes(nameUnconvertibleEnums(models.model()), true);
-        this.service = resolveService(model);
         this.customConfig = models.customizationConfig();
+        // Shipped models still use Smithy 1.0 enums (string with @enum); the translator reads only enum shapes.
+        Model converted =
+            ModelTransformer.create().changeStringEnumsToEnumShapes(nameUnconvertibleEnums(models.model()), true);
+        this.serviceCustomizations = SmithyServiceCustomizations.forService(resolveService(converted));
+        for (SmithyServiceCustomization customization : serviceCustomizations) {
+            converted = customization.preprocess(converted, customConfig);
+        }
+        this.model = converted;
+        this.service = resolveService(model);
         this.namingStrategy = new DefaultSmithyNamingStrategy(model, service, customConfig);
         this.typeUtils = new TypeUtils(namingStrategy);
         this.serviceIndex = ServiceIndex.of(model);
@@ -186,6 +195,7 @@ public final class SmithyIntermediateModelBuilder {
             endpointRuleSet, endpointTestSuiteModel, null, clientContextParams);
 
         SmithyIntermediateModelPostprocessor.create(customConfig).postprocess(fullModel);
+        serviceCustomizations.forEach(customization -> customization.postprocess(fullModel));
 
         Map<String, ShapeModel> trimmedShapes = removeUnusedShapes(fullModel);
         trimmedShapes.entrySet().removeIf(e -> customConfig.getDeprecatedShapes().contains(e.getKey()));
