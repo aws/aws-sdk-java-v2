@@ -79,8 +79,6 @@ public class SubscribeToShardUnmarshallingTest {
                                         .credentialsProvider(() -> CREDENTIALS)
                                         .region(Region.US_EAST_1)
                                         .httpClient(sdkHttpClient)
-                                        // The stubbed response stream can only be read once, so a retry would hide the error
-                                        .overrideConfiguration(o -> o.retryStrategy(r -> r.maxAttempts(1)))
                                         .build();
     }
 

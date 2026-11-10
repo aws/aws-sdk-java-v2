@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
@@ -65,6 +66,8 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
     protected final Set<String> defaultsAdded;
     protected final boolean useClientDefaults;
     protected final boolean retries21;
+    protected final List<Predicate<RefreshRetryTokenRequest>> doNotRetryPredicates;
+    private final AtomicBoolean doNotRetryPredicateFailureLogged = new AtomicBoolean(false);
 
     BaseRetryStrategy(Logger log, Builder builder) {
         this.log = log;
@@ -83,6 +86,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
             Validate.paramNotNull(new HashSet<>(builder.defaultsAdded), "defaultsAdded"));
         this.useClientDefaults = builder.useClientDefaults == null || builder.useClientDefaults;
         this.retries21 = Boolean.TRUE.equals(builder.retries2026Enabled);
+        this.doNotRetryPredicates = Collections.unmodifiableList(new ArrayList<>(builder.doNotRetryPredicates));
     }
 
     /**
@@ -405,7 +409,29 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         return token.attempt() >= maxAttempts;
     }
 
+    // A predicate that throws must not replace the failure the caller should see, so treat it as "do not retry".
+    private boolean doNotRetryOrFailSafe(Predicate<RefreshRetryTokenRequest> doNotRetry, RefreshRetryTokenRequest request) {
+        try {
+            return doNotRetry.test(request);
+        } catch (RuntimeException e) {
+            // Warn once per strategy so that a predicate that always throws doesn't log on every failed attempt
+            if (doNotRetryPredicateFailureLogged.compareAndSet(false, true)) {
+                log.warn(() -> "A doNotRetryWhen predicate threw an exception. The request will not be retried. Later "
+                               + "exceptions from doNotRetryWhen predicates of this retry strategy are logged at debug level.",
+                         e);
+            } else {
+                log.debug(() -> "A doNotRetryWhen predicate threw an exception. The request will not be retried.", e);
+            }
+            return true;
+        }
+    }
+
     private boolean isNonRetryableException(RefreshRetryTokenRequest request) {
+        for (Predicate<RefreshRetryTokenRequest> doNotRetry : doNotRetryPredicates) {
+            if (doNotRetryOrFailSafe(doNotRetry, request)) {
+                return true;
+            }
+        }
         Throwable failure = request.failure();
         for (Predicate<Throwable> retryPredicate : retryPredicates) {
             if (retryPredicate.test(failure)) {
@@ -471,6 +497,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                        .add("useClientDefaults", useClientDefaults)
                        .add("throttlingExceptionCost", throttlingExceptionCost)
                        .add("retries21", retries21)
+                       .add("doNotRetryPredicates", doNotRetryPredicates)
                        .build();
     }
 
@@ -488,10 +515,12 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         private Predicate<Throwable> treatAsThrottling = throwable -> false;
         private TokenBucketStore tokenBucketStore;
         private Boolean retries2026Enabled;
+        private List<Predicate<RefreshRetryTokenRequest>> doNotRetryPredicates;
 
         Builder() {
             retryPredicates = new ArrayList<>();
             defaultsAdded = new HashSet<>();
+            doNotRetryPredicates = new ArrayList<>();
         }
 
         Builder(BaseRetryStrategy strategy) {
@@ -507,10 +536,15 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
             this.defaultsAdded = new HashSet<>(strategy.defaultsAdded);
             this.useClientDefaults = strategy.useClientDefaults;
             this.retries2026Enabled = strategy.retries21;
+            this.doNotRetryPredicates = new ArrayList<>(strategy.doNotRetryPredicates);
         }
 
         void setRetryOnException(Predicate<Throwable> shouldRetry) {
             this.retryPredicates.add(shouldRetry);
+        }
+
+        void setDoNotRetryWhen(Predicate<RefreshRetryTokenRequest> doNotRetry) {
+            this.doNotRetryPredicates.add(Validate.paramNotNull(doNotRetry, "doNotRetry"));
         }
 
         void setMaxAttempts(int maxAttempts) {

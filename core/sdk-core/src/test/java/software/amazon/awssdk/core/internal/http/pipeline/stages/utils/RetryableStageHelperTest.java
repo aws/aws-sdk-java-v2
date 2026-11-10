@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -31,12 +32,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -91,6 +95,55 @@ public class RetryableStageHelperTest {
         verify(mockRetryStrategy).refreshRetryToken(refreshRequestCaptor.capture());
 
         assertThat(refreshRequestCaptor.getValue().isLongPolling()).isEqualTo(expected);
+    }
+
+    @ParameterizedTest(name = "OPERATION_NAME = {0}")
+    @NullSource
+    @ValueSource(strings = "SubscribeToShard")
+    void tryRefreshToken_forwardsOperationName(String operationName) {
+        ExecutionAttributes.Builder attributes = ExecutionAttributes.builder();
+        if (operationName != null) {
+            attributes.put(SdkExecutionAttribute.OPERATION_NAME, operationName);
+        }
+
+        ArgumentCaptor<RefreshRetryTokenRequest> captor = refreshOnce(makeTestHelper(attributes.build()), false);
+
+        assertThat(captor.getValue().operationName()).isEqualTo(Optional.ofNullable(operationName));
+    }
+
+    @Test
+    void tryRefreshTokenAsync_forwardsOperationName() {
+        ExecutionAttributes attributes = ExecutionAttributes.builder()
+                                                            .put(SdkExecutionAttribute.OPERATION_NAME, "SubscribeToShard")
+                                                            .build();
+
+        ArgumentCaptor<RefreshRetryTokenRequest> captor = refreshOnce(makeTestHelper(attributes), true);
+
+        assertThat(captor.getValue().operationName()).hasValue("SubscribeToShard");
+    }
+
+    private ArgumentCaptor<RefreshRetryTokenRequest> refreshOnce(RetryableStageHelper helper, boolean async) {
+        AcquireInitialTokenResponse mockAcquireResponse = mock(AcquireInitialTokenResponse.class);
+        when(mockAcquireResponse.token()).thenReturn(mock(RetryToken.class));
+        when(mockRetryStrategy.acquireInitialToken(any())).thenReturn(mockAcquireResponse);
+
+        RefreshRetryTokenResponse mockRefreshResponse = mock(RefreshRetryTokenResponse.class);
+        when(mockRefreshResponse.delay()).thenReturn(Duration.ZERO);
+        when(mockRetryStrategy.refreshRetryToken(any())).thenReturn(mockRefreshResponse);
+        when(mockRetryStrategy.refreshRetryTokenAsync(any())).thenReturn(CompletableFuture.completedFuture(mockRefreshResponse));
+
+        helper.acquireInitialToken();
+        helper.setLastException(new RuntimeException());
+
+        ArgumentCaptor<RefreshRetryTokenRequest> captor = ArgumentCaptor.forClass(RefreshRetryTokenRequest.class);
+        if (async) {
+            helper.tryRefreshTokenAsync(Duration.ZERO).join();
+            verify(mockRetryStrategy).refreshRetryTokenAsync(captor.capture());
+        } else {
+            helper.tryRefreshToken(Duration.ZERO);
+            verify(mockRetryStrategy).refreshRetryToken(captor.capture());
+        }
+        return captor;
     }
 
     @ParameterizedTest(name = "delay on successful refresh = {0}, delay on failed refresh = {1}")
