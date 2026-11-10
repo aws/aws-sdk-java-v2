@@ -1,4 +1,127 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.57.12__ __2026-11-09__
+## __AWS Batch__
+  - ### Features
+    - Adds support for additional Amazon EKS security context settings in AWS Batch. Pod-level settings include fsGroup, runAsUser, runAsGroup, runAsNonRoot, and seccompProfile. Container-level settings add Linux capabilities and seccompProfile to existing runAsUser, runAsGroup, and runAsNonRoot support.
+
+## __AWS Glue__
+  - ### Features
+    - We are releasing five new APIs to allow customers to enable Catalog-level data quality monitoring in AWS Glue Data Catalog, a new feature to perform data quality evaluation on collections of GDC tables selected by the customer, on a schedule or event-driven basis, using a custom or managed ruleset.
+
+## __AWS S3 Control__
+  - ### Features
+    - Adds support for cross-account access grants with InstanceScope parameter for GetDataAccess and ListCallerAccessGrants operations in S3 Access Grants.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for account ID based endpoints when using IMDS or container credentials, if the account ID is returned in the credentials response. Endpoint host names can change for services that support it, such as DynamoDB. To opt out, set `accountIdEndpointMode` to `disabled`. See https://docs.aws.amazon.com/sdkref/latest/guide/feature-account-endpoints.html
+    - Updated endpoint and partition metadata.
+
+## __AWS Sign-In Service__
+  - ### Features
+    - Adds the CreateBearerToken API, which exchanges your IAM credentials for a bearer token that can be used to access supported AWS services.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds the InvokeWebSearch API, which searches the web using the AWS-managed web search and returns ranked results with a text extract from each page. Results can be filtered by domain and by publication time.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for Workday Data Connect and Workday Live Data Query connection types in Amazon DataZone connection APIs.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS Managed Instances now supports isolated and confidential tasks, which run in AWS Nitro Sandboxes. Configure them with trustedExecutionConfiguration in task definitions and nitroEnclavesEnabled in capacity providers.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - Amazon EVS adds support for r7i.metal-24xl and r7i.metal-48xl EC2 bare metal instance types for self-deployed VMware Cloud Foundation environments. These diskless instance types use customer-connected external NFS storage, such as Amazon FSx for NetApp ONTAP, instead of local NVMe and vSAN.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Adds cloned blue-green upgrades for Amazon OpenSearch Service domains. UpgradeElasticsearchDomain accepts DeploymentStrategyOptions to upgrade on a cloned cluster, the new UpdateClone API shifts search traffic, cuts over and sets retention, and DescribeDomainChangeProgress reports upgrade details.
+
+## __Amazon Kinesis__
+  - ### Bugfixes
+    - Removed the Kinesis client's 10 second default read timeout override, so Kinesis now uses the SDK-wide 30 second default read timeout.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Adds cloned blue-green upgrades for Amazon OpenSearch Service domains. UpgradeDomain accepts DeploymentStrategyOptions to upgrade on a cloned cluster, the new UpdateClone API shifts search traffic, cuts over and sets retention, and DescribeDomainChangeProgress reports the upgrade details.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for pipelines that AWS manages, filter ListPipelines by ManagedBy and run them with your own role via RoleArn on StartPipelineExecution. Adds pipeline version aliases to reference versions by name. Adds HubContent step metadata to ListPipelineExecutionSteps.
+
+# __2.57.11__ __2026-11-06__
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Fixed an issue where a request on `AwsCrtHttpClient` or `AwsCrtAsyncHttpClient` could hang instead of failing when metrics were enabled and the client was closed while the request was acquiring a connection.
+
+## __AWS CRT-based S3 Client__
+  - ### Features
+    - Added support for publishing SDK metrics from the AWS CRT-based S3 async client through client-level and request-level `MetricPublisher` configurations. This feature requires AWS CRT Java 0.48.5 or later.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Smart subtitling uses AWS Elemental Inference to generate captions from your content's audio, in embedded, burn-in, DVB-Sub, IMSC, SMI, SRT, teletext, TTML, or WebVTT outputs. Also fixes HEVC passthrough writing an incomplete codecs string to DASH and HLS manifests.
+
+## __AWS Glue__
+  - ### Features
+    - Adds support for user-defined functions governed by AWS Lake Formation.
+
+## __AWS Resource Access Manager__
+  - ### Features
+    - Adds support for using managed permission template parameters, discovering shared customer-managed permissions, and managing customer-managed permission deprecation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Add support for configuring searchability for metadata fields via UpdateKnowledgeBase request for Managed Knowledge Base. Once a field is marked as searchable it can be queried via query text and is factored into Managed Knowledge Base's ranking algorithm.
+
+## __Amazon Athena__
+  - ### Features
+    - Added support for Athena System Tables which writes Athena usage data to AWS S3 managed tables in Apache Iceberg format. Adds CreateSystemTableConfiguration, UpdateSystemTableConfiguration, DeleteSystemTableConfiguration, GetSystemTableConfiguration, and ListSystemTableStatuses.
+
+## __Amazon CloudFront__
+  - ### Bugfixes
+    - Improve the validation of private key files loaded for CloudFront signing.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Amazon Connect Cases adds two Bulk Case Actions operations. BatchCreateRelatedItem adds a Comment-type related item to up to 100 cases per request, BatchUpdateCase updates fields (title, status, customer ID, custom) on up to 100 cases. Same domain, per-case success and failure results returned.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Rules in Amazon Connect now support ending email contacts associated to a case based on case events.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for updating OAuth 2.0 connection settings with UpdateConnection.
+
+## __Amazon EKS Auth__
+  - ### Features
+    - Added workloadIdentityProviderArn to the AssumeRoleForPodIdentity API response.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Marking fields as sensitive in GetInstanceAccessDetails, CreateKeyPair, DownloadDefaultKeyPair, CreateBucketAccessKey, CreateContainerServiceRegistryLogin, and GetRelationalDatabase responses.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager now provides two new APIs - RegisterDefaultHostManagementConfiguration and DeregisterDefaultHostManagementConfiguration - along with a new DefaultHostManagementConfiguration CloudFormation resource type.
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling now lets you exclude managed resources from describe API responses using the new optional IncludeManagedResources parameter. Set this parameter to false to exclude managed resources from the response. By default, managed resources are included.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fixed FileUpload.pause() with a Java-based multipart-enabled S3AsyncClient. completionFuture() no longer stays pending after a pause, and a pause after CompleteMultipartUpload has started no longer aborts the upload or returns resume information for it.
+
 # __2.57.10__ __2026-11-05__
 ## __AWS DataSync__
   - ### Features
