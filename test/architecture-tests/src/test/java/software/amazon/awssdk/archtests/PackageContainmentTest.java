@@ -63,7 +63,8 @@ public class PackageContainmentTest {
      * began as internal but moved to protected at a later time.
      */
     private static final Set<Pattern> ALLOWED_PROTECTED_APIS_IN_INTERNAL_PACKAGE = Stream.of(
-        Pattern.compile(".*/software/amazon/awssdk/core/internal/http/loader/DefaultSdkHttpClientBuilder\\.class")
+        Pattern.compile(".*/software/amazon/awssdk/core/internal/http/loader/DefaultSdkHttpClientBuilder\\.class"),
+        Pattern.compile(".*/software/amazon/awssdk/core/internal/retry/MaxAttemptsResolver\\.class")
     ).collect(Collectors.toSet());
 
     @Test
