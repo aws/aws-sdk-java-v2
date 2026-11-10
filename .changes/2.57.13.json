@@ -1,0 +1,114 @@
+{
+    "version": "2.57.13",
+    "date": "2026-11-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis",
+            "contributor": "",
+            "description": "Add back Kinesis default read timeout of 10 seconds."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon SQS",
+            "contributor": "",
+            "description": "Update DEBUG logging in Amazon SQS MD5 checksum validation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Agreement Service",
+            "contributor": "",
+            "description": "This release adds the freeTrialSummary.trialEndTime field to DescribeAgreement and the freeTrialEndTime field to SearchAgreements results, so you can see when an agreement's free trial ends."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed an issue where multipart uploads failed when configured with minimum part sizes of 2 GiB or larger. Multipart uploads through the S3 multipart client or S3 Transfer Manager now support part sizes up to S3's 5-GiB maximum, and related failures are surfaced correctly to callers."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "Firewall Policy V2 for Network Firewall"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect now returns Contact Lens conversational analytics configuration in the DescribeContact API. Customers can retrieve a contact's analytics, redaction, summarization, and sentiment settings, consistent with the configuration already available in contact trace records and contact events."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Parallel Computing Service",
+            "contributor": "",
+            "description": "Added support for configuring AMIs, Amazon EC2 security groups, SSH key pairs, and launch template modes when creating or updating AWS PCS compute node groups."
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Improve how `uploadDirectory` applies `followSymbolicLinks` when it reads the files it lists."
+        },
+        {
+            "type": "feature",
+            "category": "Route 53 Profiles",
+            "contributor": "",
+            "description": "Adds support for having multiple profiles on one VPC. This is done using a priority system to handle conflicts on the dataplane."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Amazon Bedrock AgentCore Gateway now supports domainOverride so JWT-authorized gateways can advertise your public domain in OAuth discovery behind a proxy or custom domain. AgentCore Runtime adds warmup lifecycle hooks and specifying runtime memory via hooksConfiguration and resourceConfigurations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "Inconsequential changes to model formatting"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Device Farm",
+            "contributor": "",
+            "description": "Adds the NONE insights type to disable insights generation for a run, a testPackageArn field in run details, and a new artifact type for device connect command logs."
+        },
+        {
+            "type": "feature",
+            "category": "ARC - Region switch",
+            "contributor": "",
+            "description": "Adds RetryableConflictException to UpdatePlan so AWS SDKs automatically retry updates that conflict with a concurrent change."
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch Omni",
+            "contributor": "",
+            "description": "Release of GetSpaceDataAccess API - Used to get temporary credentials, limited to the requested actions, for working with data in a space."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "contributor": "",
+            "description": "Adds support for governing AWS Glue user-defined functions with Lake Formation permissions. This release adds the UserDefinedFunction and AnyResource resources, the EXECUTE permission, and the GetTemporaryGlueFunctionCredentials and GetGlueFunctionSessionContext APIs."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon SQS",
+            "contributor": "",
+            "description": "Fixed SqsAsyncBatchManager sending an incorrect queueUrl for batched requests with an override configuration, and grouping requests with different override configurations into the same batch when their hash codes collided."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift",
+            "contributor": "",
+            "description": "Amazon GameLift Servers adds game session placement insights. Logs show how the queue's priority configuration, along with player latency and cost data, are applied to each placement request. Use game session placement insights to diagnose why game session placements succeed, fail, or time out."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3 Tables",
+            "contributor": "",
+            "description": "Adds support for server access logging for Amazon S3 table buckets with the new PutTableBucketLogging and GetTableBucketLogging APIs."
+        }
+    ]
+}

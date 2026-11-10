@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon SQS",
-    "contributor": "",
-    "description": "Fixed SqsAsyncBatchManager sending an incorrect queueUrl for batched requests with an override configuration, and grouping requests with different override configurations into the same batch when their hash codes collided."
-}

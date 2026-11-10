@@ -1,4 +1,74 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.57.13__ __2026-11-10__
+## __ARC - Region switch__
+  - ### Features
+    - Adds RetryableConflictException to UpdatePlan so AWS SDKs automatically retry updates that conflict with a concurrent change.
+
+## __AWS Device Farm__
+  - ### Features
+    - Adds the NONE insights type to disable insights generation for a run, a testPackageArn field in run details, and a new artifact type for device connect command logs.
+
+## __AWS Lake Formation__
+  - ### Features
+    - Adds support for governing AWS Glue user-defined functions with Lake Formation permissions. This release adds the UserDefinedFunction and AnyResource resources, the EXECUTE permission, and the GetTemporaryGlueFunctionCredentials and GetGlueFunctionSessionContext APIs.
+
+## __AWS Marketplace Agreement Service__
+  - ### Features
+    - This release adds the freeTrialSummary.trialEndTime field to DescribeAgreement and the freeTrialEndTime field to SearchAgreements results, so you can see when an agreement's free trial ends.
+
+## __AWS Network Firewall__
+  - ### Features
+    - Firewall Policy V2 for Network Firewall
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Added support for configuring AMIs, Amazon EC2 security groups, SSH key pairs, and launch template modes when creating or updating AWS PCS compute node groups.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue where multipart uploads failed when configured with minimum part sizes of 2 GiB or larger. Multipart uploads through the S3 multipart client or S3 Transfer Manager now support part sizes up to S3's 5-GiB maximum, and related failures are surfaced correctly to callers.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Amazon Bedrock AgentCore Gateway now supports domainOverride so JWT-authorized gateways can advertise your public domain in OAuth discovery behind a proxy or custom domain. AgentCore Runtime adds warmup lifecycle hooks and specifying runtime memory via hooksConfiguration and resourceConfigurations.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect now returns Contact Lens conversational analytics configuration in the DescribeContact API. Customers can retrieve a contact's analytics, redaction, summarization, and sentiment settings, consistent with the configuration already available in contact trace records and contact events.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift Servers adds game session placement insights. Logs show how the queue's priority configuration, along with player latency and cost data, are applied to each placement request. Use game session placement insights to diagnose why game session placements succeed, fail, or time out.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Add back Kinesis default read timeout of 10 seconds.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - Adds support for server access logging for Amazon S3 table buckets with the new PutTableBucketLogging and GetTableBucketLogging APIs.
+
+## __Amazon SQS__
+  - ### Bugfixes
+    - Fixed SqsAsyncBatchManager sending an incorrect queueUrl for batched requests with an override configuration, and grouping requests with different override configurations into the same batch when their hash codes collided.
+    - Update DEBUG logging in Amazon SQS MD5 checksum validation.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Inconsequential changes to model formatting
+
+## __CloudWatch Omni__
+  - ### Features
+    - Release of GetSpaceDataAccess API - Used to get temporary credentials, limited to the requested actions, for working with data in a space.
+
+## __Route 53 Profiles__
+  - ### Features
+    - Adds support for having multiple profiles on one VPC. This is done using a priority system to handle conflicts on the dataplane.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Improve how `uploadDirectory` applies `followSymbolicLinks` when it reads the files it lists.
+
 # __2.57.12__ __2026-11-09__
 ## __AWS Batch__
   - ### Features
