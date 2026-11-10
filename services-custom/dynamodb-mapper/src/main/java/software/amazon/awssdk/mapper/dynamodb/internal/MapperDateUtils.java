@@ -17,6 +17,7 @@ package software.amazon.awssdk.mapper.dynamodb.internal;
 
 import static java.time.temporal.ChronoField.DAY_OF_MONTH;
 import static java.time.temporal.ChronoField.HOUR_OF_DAY;
+import static java.time.temporal.ChronoField.MILLI_OF_SECOND;
 import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
 import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
 import static java.time.temporal.ChronoField.NANO_OF_SECOND;
@@ -26,6 +27,7 @@ import static java.time.temporal.ChronoField.YEAR;
 import java.text.ParsePosition;
 import java.time.DateTimeException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.chrono.IsoChronology;
@@ -46,7 +48,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * {@code java.time}, so that dates round-trip with data written by the v1 mapper:
  * <ul>
  *     <li>Formatting always writes three fractional digits and a {@code Z} suffix, and writes years past 9999
- *     without a {@code +} sign. Values therefore sort as strings in time order, which matters for key attributes.</li>
+ *     without a {@code +} sign. Values with four-digit years sort as strings in time order, which matters for key
+ *     attributes.</li>
  *     <li>Parsing accepts the same inputs as v1: an optional {@code +} before the year, 1 to 9 fractional digits,
  *     and a {@code Z} or numeric offset ({@code +HH}, {@code +HHMM}, {@code +HH:MM}, {@code +HHMMSS},
  *     {@code +HH:MM:SS}, optionally followed by milliseconds). It throws {@link IllegalArgumentException} for
@@ -58,16 +61,41 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class MapperDateUtils {
 
-    /** Matches Joda's {@code ISODateTimeFormat.dateTime()} in UTC for every {@link Date} value. */
-    private static final DateTimeFormatter ISO8601_FORMAT = new DateTimeFormatterBuilder()
+    private static final String CANONICAL_DATE_TEMPLATE = "0000-00-00T00:00:00.000Z";
+    private static final int CANONICAL_DATE_LENGTH = CANONICAL_DATE_TEMPLATE.length();
+
+    // Field offsets in yyyy-MM-ddTHH:mm:ss.SSSZ:
+    // 0    5  8  11 14 17  20
+    private static final int YEAR_OFFSET = 0;
+    private static final int MONTH_OFFSET = 5;
+    private static final int DAY_OFFSET = 8;
+    private static final int HOUR_OFFSET = 11;
+    private static final int MINUTE_OFFSET = 14;
+    private static final int SECOND_OFFSET = 17;
+    private static final int MILLISECOND_OFFSET = 20;
+
+    private static final int MIN_CANONICAL_YEAR = 0;
+    private static final int MAX_CANONICAL_YEAR = 9999;
+    private static final int HOURS_PER_DAY = 24;
+    private static final int MINUTES_PER_HOUR = 60;
+    private static final int SECONDS_PER_MINUTE = 60;
+    private static final int MILLIS_PER_SECOND = 1000;
+    private static final int MILLIS_PER_MINUTE = SECONDS_PER_MINUTE * MILLIS_PER_SECOND;
+    private static final int MILLIS_PER_HOUR = MINUTES_PER_HOUR * MILLIS_PER_MINUTE;
+    private static final long MILLIS_PER_DAY = (long) HOURS_PER_DAY * MILLIS_PER_HOUR;
+
+    /** Formats dates with years outside the four-digit fast path. */
+    private static final DateTimeFormatter ISO8601_FALLBACK_FORMAT = new DateTimeFormatterBuilder()
         .appendValue(YEAR, 4, 10, SignStyle.NORMAL)
-        .appendPattern("-MM-dd'T'HH:mm:ss.SSS'Z'")
+        .appendPattern("-MM-dd'T'HH:mm:ss.")
+        .appendValue(MILLI_OF_SECOND, 3)
+        .appendLiteral('Z')
         .toFormatter(Locale.ROOT)
         .withChronology(IsoChronology.INSTANCE)
         .withZone(ZoneOffset.UTC);
 
     /** The date and time part of a parsed value. The offset is parsed separately, see {@link #parseOffsetMillis}. */
-    private static final DateTimeFormatter ISO8601_LOCAL_PARSER = new DateTimeFormatterBuilder()
+    private static final DateTimeFormatter ISO8601_FALLBACK_PARSER = new DateTimeFormatterBuilder()
         .parseCaseInsensitive()
         .appendValue(YEAR, 1, 9, SignStyle.NORMAL)
         .appendLiteral('-')
@@ -96,7 +124,13 @@ public final class MapperDateUtils {
      * @throws IllegalArgumentException if the string is not a supported ISO 8601 date, or is outside the range
      *                                  of {@link Date}
      */
-    public static Date parseISO8601Date(final String dateString) {
+    public static Date parseISO8601Date(String dateString) {
+        Date canonicalDate = parseCanonicalDate(dateString);
+        return canonicalDate != null ? canonicalDate : parseISO8601DateFallback(dateString);
+    }
+
+    /** Parses supported inputs not handled by the fixed 24-character parser. */
+    private static Date parseISO8601DateFallback(String dateString) {
         String value = dateString;
         // Joda-Time accepts an explicit '+' before a positive year.
         if (value.length() > 1 && value.charAt(0) == '+' && isDigit(value.charAt(1))) {
@@ -105,7 +139,7 @@ public final class MapperDateUtils {
         ParsePosition position = new ParsePosition(0);
         TemporalAccessor parsed;
         try {
-            parsed = ISO8601_LOCAL_PARSER.parse(value, position);
+            parsed = ISO8601_FALLBACK_PARSER.parse(value, position);
         } catch (DateTimeException e) {
             throw invalidDate(dateString, e);
         }
@@ -131,8 +165,91 @@ public final class MapperDateUtils {
      * @param date the date to format
      * @return the ISO 8601 string representing the specified date
      */
-    public static String formatISO8601Date(final Date date) {
-        return ISO8601_FORMAT.format(Instant.ofEpochMilli(date.getTime()));
+    public static String formatISO8601Date(Date date) {
+        long epochMillis = date.getTime();
+        long epochDay = Math.floorDiv(epochMillis, MILLIS_PER_DAY);
+        LocalDate localDate = LocalDate.ofEpochDay(epochDay);
+        int year = localDate.getYear();
+        if (year < MIN_CANONICAL_YEAR || year > MAX_CANONICAL_YEAR) {
+            return ISO8601_FALLBACK_FORMAT.format(Instant.ofEpochMilli(epochMillis));
+        }
+
+        int millisOfDay = (int) Math.floorMod(epochMillis, MILLIS_PER_DAY);
+        return formatCanonicalDate(localDate, millisOfDay);
+    }
+
+    /** Formats a date in the fixed 24-character form used for four-digit years. */
+    private static String formatCanonicalDate(LocalDate date, int millisOfDay) {
+        int hour = millisOfDay / MILLIS_PER_HOUR;
+        millisOfDay %= MILLIS_PER_HOUR;
+        int minute = millisOfDay / MILLIS_PER_MINUTE;
+        millisOfDay %= MILLIS_PER_MINUTE;
+        int second = millisOfDay / MILLIS_PER_SECOND;
+        int millisecond = millisOfDay % MILLIS_PER_SECOND;
+
+        char[] result = CANONICAL_DATE_TEMPLATE.toCharArray();
+        writeFourDigits(result, YEAR_OFFSET, date.getYear());
+        writeTwoDigits(result, MONTH_OFFSET, date.getMonthValue());
+        writeTwoDigits(result, DAY_OFFSET, date.getDayOfMonth());
+        writeTwoDigits(result, HOUR_OFFSET, hour);
+        writeTwoDigits(result, MINUTE_OFFSET, minute);
+        writeTwoDigits(result, SECOND_OFFSET, second);
+        writeThreeDigits(result, MILLISECOND_OFFSET, millisecond);
+        return new String(result);
+    }
+
+    /**
+     * Parses the fixed 24-character format, or returns {@code null} if it does not match.
+     */
+    private static Date parseCanonicalDate(String value) {
+        if (!hasCanonicalDateShape(value)) {
+            return null;
+        }
+
+        int year = parseFourDigits(value, YEAR_OFFSET);
+        int month = parseTwoDigits(value, MONTH_OFFSET);
+        int day = parseTwoDigits(value, DAY_OFFSET);
+        int hour = parseTwoDigits(value, HOUR_OFFSET);
+        int minute = parseTwoDigits(value, MINUTE_OFFSET);
+        int second = parseTwoDigits(value, SECOND_OFFSET);
+        int millisecond = parseThreeDigits(value, MILLISECOND_OFFSET);
+        if (year < MIN_CANONICAL_YEAR || month < 0 || day < 0
+            || !isValidTimeOfDay(hour, minute, second, millisecond)) {
+            return null;
+        }
+
+        try {
+            long epochDay = LocalDate.of(year, month, day).toEpochDay();
+            long millisOfDay = hour * (long) MILLIS_PER_HOUR
+                               + minute * (long) MILLIS_PER_MINUTE
+                               + second * (long) MILLIS_PER_SECOND
+                               + millisecond;
+            return new Date(Math.addExact(Math.multiplyExact(epochDay, MILLIS_PER_DAY), millisOfDay));
+        } catch (DateTimeException | ArithmeticException e) {
+            return null;
+        }
+    }
+
+    private static boolean hasCanonicalDateShape(String value) {
+        return value.length() == CANONICAL_DATE_LENGTH
+               && hasCanonicalCharacter(value, MONTH_OFFSET - 1)
+               && hasCanonicalCharacter(value, DAY_OFFSET - 1)
+               && hasCanonicalCharacter(value, HOUR_OFFSET - 1)
+               && hasCanonicalCharacter(value, MINUTE_OFFSET - 1)
+               && hasCanonicalCharacter(value, SECOND_OFFSET - 1)
+               && hasCanonicalCharacter(value, MILLISECOND_OFFSET - 1)
+               && hasCanonicalCharacter(value, CANONICAL_DATE_LENGTH - 1);
+    }
+
+    private static boolean hasCanonicalCharacter(String value, int index) {
+        return value.charAt(index) == CANONICAL_DATE_TEMPLATE.charAt(index);
+    }
+
+    private static boolean isValidTimeOfDay(int hour, int minute, int second, int millisecond) {
+        return hour >= 0 && hour < HOURS_PER_DAY
+               && minute >= 0 && minute < MINUTES_PER_HOUR
+               && second >= 0 && second < SECONDS_PER_MINUTE
+               && millisecond >= 0 && millisecond < MILLIS_PER_SECOND;
     }
 
     /**
@@ -218,6 +335,51 @@ public final class MapperDateUtils {
 
     private static boolean isDigit(char c) {
         return c >= '0' && c <= '9';
+    }
+
+    private static int parseTwoDigits(String value, int index) {
+        char first = value.charAt(index);
+        char second = value.charAt(index + 1);
+        if (!isDigit(first) || !isDigit(second)) {
+            return -1;
+        }
+        return (first - '0') * 10 + second - '0';
+    }
+
+    private static int parseThreeDigits(String value, int index) {
+        int firstTwo = parseTwoDigits(value, index);
+        char third = value.charAt(index + 2);
+        if (firstTwo < 0 || !isDigit(third)) {
+            return -1;
+        }
+        return firstTwo * 10 + third - '0';
+    }
+
+    private static int parseFourDigits(String value, int index) {
+        int firstTwo = parseTwoDigits(value, index);
+        int secondTwo = parseTwoDigits(value, index + 2);
+        if (firstTwo < 0 || secondTwo < 0) {
+            return -1;
+        }
+        return firstTwo * 100 + secondTwo;
+    }
+
+    private static void writeTwoDigits(char[] target, int index, int value) {
+        target[index] = (char) ('0' + value / 10);
+        target[index + 1] = (char) ('0' + value % 10);
+    }
+
+    private static void writeThreeDigits(char[] target, int index, int value) {
+        target[index] = (char) ('0' + value / 100);
+        target[index + 1] = (char) ('0' + value / 10 % 10);
+        target[index + 2] = (char) ('0' + value % 10);
+    }
+
+    private static void writeFourDigits(char[] target, int index, int value) {
+        target[index] = (char) ('0' + value / 1000);
+        target[index + 1] = (char) ('0' + value / 100 % 10);
+        target[index + 2] = (char) ('0' + value / 10 % 10);
+        target[index + 3] = (char) ('0' + value % 10);
     }
 
     private static IllegalArgumentException invalidDate(String dateString, Exception cause) {
