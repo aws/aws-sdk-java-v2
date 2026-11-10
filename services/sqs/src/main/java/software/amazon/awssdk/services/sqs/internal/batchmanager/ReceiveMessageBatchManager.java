@@ -58,15 +58,14 @@ public class ReceiveMessageBatchManager implements SdkAutoCloseable {
     }
 
     /**
-     * Generates a unique key for batch processing based on the queue URL and any override configuration.
+     * Generates the key for batch processing. Requests with an override configuration are ineligible for batching
+     * (see {@code checkBatchingEligibility}), so they never reach this point and the queue URL alone is the key.
      *
      * @param request The receive message request.
      * @return The generated batch key.
      */
     private String generateBatchKey(ReceiveMessageRequest request) {
-        return request.overrideConfiguration()
-                      .map(config -> request.queueUrl() + config.hashCode())
-                      .orElse(request.queueUrl());
+        return request.queueUrl();
     }
 
     private ReceiveBatchManager createReceiveBatchManager(ReceiveMessageRequest request) {
