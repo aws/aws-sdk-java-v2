@@ -18,6 +18,8 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,8 +32,10 @@ import software.amazon.awssdk.crt.s3.S3BorrowedBufferDelivery;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
+import software.amazon.awssdk.crt.s3.S3RequestMetrics;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.ContentRangeParser;
 import software.amazon.awssdk.utils.Logger;
@@ -59,18 +63,19 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
 
     private S3CrtBorrowedBufferResponseHandlerAdapter(Builder builder) {
         this.executeFuture = builder.executeFuture;
-        SdkHttpExecutionAttributes delegateAttributes = SdkHttpExecutionAttributes.builder()
-                                                                                .put(CRT_PROGRESS_LISTENER,
-                                                                                     builder.progressListener)
-                                                                                .build();
+        SdkHttpExecutionAttributes httpExecutionAttributes =
+            Validate.paramNotNull(builder.httpExecutionAttributes, "httpExecutionAttributes");
         this.delegate = S3CrtResponseHandlerAdapter.builder()
                                                    .executeFuture(this.executeFuture)
                                                    .responseHandler(builder.responseHandler)
-                                                   .httpExecutionAttributes(delegateAttributes)
+                                                   .httpExecutionAttributes(httpExecutionAttributes)
                                                    .metaRequestFuture(builder.metaRequestFuture)
+                                                   .metricPublishers(builder.metricPublishers)
+                                                   .metricPublisherDispatcher(builder.metricPublisherDispatcher)
+                                                   .maxConcurrency(builder.maxConcurrency)
                                                    .build();
         this.transformer = Validate.paramNotNull(builder.transformer, "transformer");
-        this.progressListener = builder.progressListener;
+        this.progressListener = httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER);
         this.metaRequestFuture = builder.metaRequestFuture;
     }
 
@@ -132,7 +137,10 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         delegate.onProgress(progress);
     }
 
-    // TODO: Forward onTelemetry() to the delegate once S3CrtResponseHandlerAdapter publishes metrics from it.
+    @Override
+    public void onTelemetry(S3RequestMetrics requestMetrics) {
+        delegate.onTelemetry(requestMetrics);
+    }
 
     private static long initialRangeStart(HttpHeader[] headers) {
         if (headers == null) {
@@ -219,9 +227,12 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
     static final class Builder {
         private CompletableFuture<Void> executeFuture;
         private SdkAsyncHttpResponseHandler responseHandler;
-        private PublisherListener<S3MetaRequestProgress> progressListener;
+        private SdkHttpExecutionAttributes httpExecutionAttributes;
         private CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
         private S3CrtBorrowedBufferBlockingResponseTransformer transformer;
+        private List<MetricPublisher> metricPublishers = Collections.emptyList();
+        private S3CrtMetricPublisherDispatcher metricPublisherDispatcher;
+        private Integer maxConcurrency;
 
         Builder executeFuture(CompletableFuture<Void> executeFuture) {
             this.executeFuture = executeFuture;
@@ -233,8 +244,8 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
             return this;
         }
 
-        Builder progressListener(PublisherListener<S3MetaRequestProgress> progressListener) {
-            this.progressListener = progressListener;
+        Builder httpExecutionAttributes(SdkHttpExecutionAttributes httpExecutionAttributes) {
+            this.httpExecutionAttributes = httpExecutionAttributes;
             return this;
         }
 
@@ -245,6 +256,21 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
 
         Builder transformer(S3CrtBorrowedBufferBlockingResponseTransformer transformer) {
             this.transformer = transformer;
+            return this;
+        }
+
+        Builder metricPublishers(List<MetricPublisher> metricPublishers) {
+            this.metricPublishers = metricPublishers;
+            return this;
+        }
+
+        Builder metricPublisherDispatcher(S3CrtMetricPublisherDispatcher metricPublisherDispatcher) {
+            this.metricPublisherDispatcher = metricPublisherDispatcher;
+            return this;
+        }
+
+        Builder maxConcurrency(Integer maxConcurrency) {
+            this.maxConcurrency = maxConcurrency;
             return this;
         }
 

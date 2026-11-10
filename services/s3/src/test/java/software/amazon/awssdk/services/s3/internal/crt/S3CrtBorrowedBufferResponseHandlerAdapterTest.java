@@ -26,6 +26,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CancellationException;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3BorrowedBuffer;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
+import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 
 class S3CrtBorrowedBufferResponseHandlerAdapterTest {
@@ -227,7 +229,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
         S3CrtBorrowedBufferBlockingResponseTransformer transformer = mock(S3CrtBorrowedBufferBlockingResponseTransformer.class);
         PublisherListener<S3MetaRequestProgress> progressListener = progressListener();
-        adapterBuilder(executeFuture, transformer).progressListener(progressListener).build();
+        adapterBuilder(executeFuture, transformer).httpExecutionAttributes(attributesWith(progressListener)).build();
 
         executeFuture.completeExceptionally(new RuntimeException("request failed"));
 
@@ -286,7 +288,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
             return null;
         }).when(transformer).onBorrowedStreamStart(any(), any());
         S3CrtBorrowedBufferResponseHandlerAdapter handler =
-            adapterBuilder(executeFuture, transformer).progressListener(progressListener).build();
+            adapterBuilder(executeFuture, transformer).httpExecutionAttributes(attributesWith(progressListener)).build();
         handler.onResponseBodyBorrowed(directCrtBuffer(3), 0, 3);
 
         cancellation.get().run();
@@ -304,7 +306,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         S3CrtBorrowedBufferBlockingResponseTransformer transformer = mock(S3CrtBorrowedBufferBlockingResponseTransformer.class);
         when(transformer.onBorrowedBuffer(any())).thenReturn(true);
         S3CrtBorrowedBufferResponseHandlerAdapter handler =
-            adapterBuilder(executeFuture, transformer).progressListener(progressListener).build();
+            adapterBuilder(executeFuture, transformer).httpExecutionAttributes(attributesWith(progressListener)).build();
         handler.onResponseBodyBorrowed(directCrtBuffer(3), 0, 3);
         RuntimeException failure = new RuntimeException("late failure");
 
@@ -365,12 +367,17 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         return S3CrtBorrowedBufferResponseHandlerAdapter.builder()
                                                          .executeFuture(executeFuture)
                                                          .responseHandler(mock(SdkAsyncHttpResponseHandler.class))
+                                                         .httpExecutionAttributes(SdkHttpExecutionAttributes.builder().build())
                                                          .metaRequestFuture(
                                                              CompletableFuture.completedFuture(mock(S3MetaRequestWrapper.class)))
                                                          .transformer(transformer);
     }
 
     @SuppressWarnings("unchecked")
+    private static SdkHttpExecutionAttributes attributesWith(PublisherListener<S3MetaRequestProgress> progressListener) {
+        return SdkHttpExecutionAttributes.builder().put(CRT_PROGRESS_LISTENER, progressListener).build();
+    }
+
     private static PublisherListener<S3MetaRequestProgress> progressListener() {
         return mock(PublisherListener.class);
     }
@@ -380,7 +387,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         PublisherListener<S3MetaRequestProgress> progressListener) {
         S3CrtBorrowedBufferBlockingResponseTransformer transformer = mock(S3CrtBorrowedBufferBlockingResponseTransformer.class);
         when(transformer.onBorrowedBuffer(any())).thenReturn(true);
-        return adapterBuilder(executeFuture, transformer).progressListener(progressListener).build();
+        return adapterBuilder(executeFuture, transformer).httpExecutionAttributes(attributesWith(progressListener)).build();
     }
 
     private static S3BorrowedBuffer directCrtBuffer(int size) {

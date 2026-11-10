@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -61,8 +62,12 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
+import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
+import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
@@ -187,6 +192,30 @@ class S3CrtBorrowedBufferClientWireMockTest {
         assertThat(progressListener.completed.await(5, TimeUnit.SECONDS)).isTrue();
         assertThat(progressListener.bytesTransferred).hasValue(CONTENT.length);
         assertThat(progressListener.error).hasValue(null);
+    }
+
+    @Test
+    void multipartDownload_withMetricPublisher_shouldPublishMetricsForHeadAndEachPart(WireMockRuntimeInfo wireMock)
+        throws Exception {
+        stubMultipartObject(CONTENT);
+        CapturingMetricPublisher publisher = new CapturingMetricPublisher();
+
+        try (S3AsyncClient client = newClient(wireMock, null, null, PART_SIZE, publisher);
+             ResponseInputStream<GetObjectResponse> stream = getObject(client)) {
+            assertThat(readAll(stream)).containsExactly(CONTENT);
+        }
+
+        List<MetricCollection> collections = publisher.awaitAtLeast(PART_COUNT + 1, Duration.ofSeconds(10));
+        assertThat(collections).hasSize(PART_COUNT + 1);
+        assertThat(collections).flatExtracting(apiCall -> apiCall.metricValues(CoreMetric.OPERATION_NAME))
+                               .containsExactlyInAnyOrder("HeadObject", "GetObject", "GetObject", "GetObject");
+        assertThat(collections).allSatisfy(apiCall -> {
+            assertThat(apiCall.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(true);
+            MetricCollection attempt = child(apiCall, "ApiCallAttempt");
+            int expectedStatus = apiCall.metricValues(CoreMetric.OPERATION_NAME).contains("HeadObject") ? 200 : 206;
+            assertThat(attempt.metricValues(HttpMetric.HTTP_STATUS_CODE)).containsExactly(expectedStatus);
+            assertThat(child(attempt, "HttpClient").metricValues(HttpMetric.HTTP_CLIENT_NAME)).containsExactly("s3crt");
+        });
     }
 
     @Test
@@ -374,6 +403,14 @@ class S3CrtBorrowedBufferClientWireMockTest {
                                            Executor completionExecutor,
                                            ExecutionInterceptor executionInterceptor,
                                            long poolSizeInBytes) {
+        return newClient(wireMock, completionExecutor, executionInterceptor, poolSizeInBytes, null);
+    }
+
+    private static S3AsyncClient newClient(WireMockRuntimeInfo wireMock,
+                                           Executor completionExecutor,
+                                           ExecutionInterceptor executionInterceptor,
+                                           long poolSizeInBytes,
+                                           MetricPublisher metricPublisher) {
         DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder builder =
             (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3AsyncClient.crtBuilder()
                          .region(Region.US_EAST_1)
@@ -390,6 +427,9 @@ class S3CrtBorrowedBufferClientWireMockTest {
         }
         if (executionInterceptor != null) {
             builder.addExecutionInterceptor(executionInterceptor);
+        }
+        if (metricPublisher != null) {
+            builder.addMetricPublisher(metricPublisher);
         }
         return builder.build();
     }
@@ -482,6 +522,34 @@ class S3CrtBorrowedBufferClientWireMockTest {
                 throw new IOException("Unexpected end of stream");
             }
             offset += read;
+        }
+    }
+
+    private static MetricCollection child(MetricCollection parent, String name) {
+        return parent.children().stream()
+                     .filter(c -> c.name().equals(name))
+                     .findFirst()
+                     .orElseThrow(() -> new AssertionError("Missing child metric collection " + name));
+    }
+
+    private static final class CapturingMetricPublisher implements MetricPublisher {
+        private final List<MetricCollection> collections = new CopyOnWriteArrayList<>();
+
+        @Override
+        public void publish(MetricCollection metricCollection) {
+            collections.add(metricCollection);
+        }
+
+        @Override
+        public void close() {
+        }
+
+        private List<MetricCollection> awaitAtLeast(int count, Duration timeout) throws InterruptedException {
+            long deadline = System.nanoTime() + timeout.toNanos();
+            while (collections.size() < count && System.nanoTime() < deadline) {
+                Thread.sleep(10);
+            }
+            return collections;
         }
     }
 

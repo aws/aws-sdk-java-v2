@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
-import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.CrtChecksumUtils.checksumConfig;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.BORROWED_BUFFER_RESPONSE_TRANSFORMER;
@@ -282,6 +281,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         SdkHttpExecutionAttributes httpExecutionAttributes = asyncRequest.httpExecutionAttributes();
         S3CrtBorrowedBufferBlockingResponseTransformer borrowedBufferResponseTransformer =
             httpExecutionAttributes.getAttribute(BORROWED_BUFFER_RESPONSE_TRANSFORMER);
+        Integer maxConcurrency = effectivePublishers.isEmpty() ? null : crtS3Client.getMaxActiveConnections();
         if (borrowedBufferResponseTransformer == null) {
             return S3CrtResponseHandlerAdapter.builder()
                                               .executeFuture(executeFuture)
@@ -290,17 +290,18 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                               .metaRequestFuture(s3MetaRequestFuture)
                                               .metricPublishers(effectivePublishers)
                                               .metricPublisherDispatcher(metricPublisherDispatcher)
-                                              .maxConcurrency(effectivePublishers.isEmpty() ?
-                                                              null : crtS3Client.getMaxActiveConnections())
+                                              .maxConcurrency(maxConcurrency)
                                               .build();
         }
         return S3CrtBorrowedBufferResponseHandlerAdapter.builder()
                                                          .executeFuture(executeFuture)
                                                          .responseHandler(asyncRequest.responseHandler())
-                                                         .progressListener(
-                                                             httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER))
+                                                         .httpExecutionAttributes(httpExecutionAttributes)
                                                          .metaRequestFuture(s3MetaRequestFuture)
                                                          .transformer(borrowedBufferResponseTransformer)
+                                                         .metricPublishers(effectivePublishers)
+                                                         .metricPublisherDispatcher(metricPublisherDispatcher)
+                                                         .maxConcurrency(maxConcurrency)
                                                          .build();
     }
 
