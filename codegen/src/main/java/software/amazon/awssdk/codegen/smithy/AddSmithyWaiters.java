@@ -34,7 +34,6 @@ import software.amazon.awssdk.codegen.smithy.traits.WaiterOverridesTrait.WaiterO
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.knowledge.TopDownIndex;
 import software.amazon.smithy.model.node.Node;
-import software.amazon.smithy.model.node.NumberNode;
 import software.amazon.smithy.model.shapes.OperationShape;
 import software.amazon.smithy.model.shapes.ServiceShape;
 import software.amazon.smithy.waiters.Matcher;
@@ -43,13 +42,12 @@ import software.amazon.smithy.waiters.WaitableTrait;
 import software.amazon.smithy.waiters.Waiter;
 
 /**
- * Builds a service's waiter definitions, keyed by waiter name as in {@code waiters-2.json}. Smithy counterpart to
- * loading that file.
+ * Builds a service's waiter definitions, keyed by waiter name as in {@code waiters-2.json}.
  *
  * <p>Each {@code @waitable} waiter is translated, with {@code maxAttempts} from the operation's
  * {@link WaiterOverridesTrait}, because Smithy waiters have no attempt limit. An override entry with acceptors replaces
  * the waiter, and one with {@code skip} drops it. The fixed delay is {@code minDelay}; {@code maxDelay},
- * documentation, and deprecation have no C2J field and are dropped.
+ * documentation, and deprecation have no field in {@link WaiterDefinition} and are dropped.
  */
 final class AddSmithyWaiters {
 
@@ -103,11 +101,11 @@ final class AddSmithyWaiters {
                 + "from the %s trait, which smithy-build.json adds; regenerate smithy-build.json.",
                 name, operationName, service.getId(), WaiterOverridesTrait.ID));
         }
-        return translate(service, operationName, name, waiter, override.getMaxAttempts().get());
+        return fromWaitable(service, operationName, name, waiter, override.getMaxAttempts().get());
     }
 
-    private static WaiterDefinition translate(ServiceShape service, String operationName, String name, Waiter waiter,
-                                              int maxAttempts) {
+    private static WaiterDefinition fromWaitable(ServiceShape service, String operationName, String name, Waiter waiter,
+                                                 int maxAttempts) {
         List<Acceptor> acceptors = new ArrayList<>();
         for (software.amazon.smithy.waiters.Acceptor acceptor : waiter.getAcceptors()) {
             Acceptor translated = acceptor.getMatcher().accept(new AcceptorTranslator(service, operationName, name));
@@ -141,24 +139,20 @@ final class AddSmithyWaiters {
     }
 
     /**
-     * The value types the C2J loader produces for {@code expected}, which the waiter emitter checks by class.
+     * The waiter generators check {@code expected} by class.
      */
     private static JrsValue toJrs(Node node) {
         if (node.isBooleanNode()) {
             return node.expectBooleanNode().getValue() ? JrsBoolean.TRUE : JrsBoolean.FALSE;
         }
         if (node.isNumberNode()) {
-            NumberNode number = node.expectNumberNode();
-            return new JrsNumber(number.isNaturalNumber() ? Long.valueOf(number.getValue().longValue())
-                                                          : number.getValue());
+            return new JrsNumber(node.expectNumberNode().getValue());
         }
         return new JrsString(node.expectStringNode().getValue());
     }
 
     /**
-     * Maps a Smithy matcher to the C2J acceptor that generates the same Java: {@code success} to {@code error} with
-     * the negated boolean, {@code errorType} to {@code error} with the type copied as written, and each output
-     * comparator to {@code path}, {@code pathAll}, or {@code pathAny}.
+     * Translates a Smithy matcher to an {@link Acceptor}.
      */
     private static final class AcceptorTranslator implements Matcher.Visitor<Acceptor> {
         private final ServiceShape service;

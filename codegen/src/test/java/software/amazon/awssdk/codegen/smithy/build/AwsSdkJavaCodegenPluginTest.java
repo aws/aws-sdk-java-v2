@@ -229,12 +229,10 @@ class AwsSdkJavaCodegenPluginTest {
                                                                       (first, second) -> first));
         assertThat(generated).containsKeys("DemoWaiter.java", "DefaultDemoWaiter.java", "DemoAsyncWaiter.java");
         String waiter = new String(Files.readAllBytes(generated.get("DefaultDemoWaiter.java")), StandardCharsets.UTF_8);
-        // Translated waiter: maxAttempts from the override, fixed delay from minDelay.
         assertThat(waiter).contains("waitUntilThingReady(")
                           .contains(".orElse(7)")
                           .contains("Duration.ofSeconds(15)")
                           .contains("\"READY\"");
-        // Replacing override: its delay and status acceptors.
         assertThat(waiter).contains("waitUntilThingExists(")
                           .contains(".orElse(20)")
                           .contains("Duration.ofSeconds(5)")
