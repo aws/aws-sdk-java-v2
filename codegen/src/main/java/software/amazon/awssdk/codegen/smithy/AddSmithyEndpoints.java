@@ -51,9 +51,8 @@ final class AddSmithyEndpoints {
     }
 
     /**
-     * Returns null when the service has no BDD trait. When present, {@code IntermediateModel} takes the endpoint
-     * parameters from it and codegen generates the BDD endpoint provider instead of the rule-tree one, as for a C2J
-     * service that ships {@code endpoint-bdd-1.json}.
+     * Returns null when the service has no BDD trait; otherwise codegen generates the BDD endpoint provider, as C2J does
+     * from {@code endpoint-bdd-1.json}.
      */
     static EndpointBddModel endpointBdd(ServiceShape service) {
         return service.getTrait(EndpointBddTrait.class)

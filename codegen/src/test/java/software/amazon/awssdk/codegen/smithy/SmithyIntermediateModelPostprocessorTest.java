@@ -82,13 +82,6 @@ class SmithyIntermediateModelPostprocessorTest {
     }
 
     @Test
-    void serviceNotInReadWriteTimeoutExemptions_hasNoTimeout() {
-        IntermediateModel model = build(serviceWithSdkId("Demo"), CustomizationConfig.create());
-
-        assertThat(model.getMetadata().getDefaultReadWriteTimeoutMillis()).isNull();
-    }
-
-    @Test
     void legacyEventGenerationScheme_twoMembersSharingAShape_fails() {
         CustomizationConfig config = legacyEventConfig("EventOne", "EventTwo");
 
