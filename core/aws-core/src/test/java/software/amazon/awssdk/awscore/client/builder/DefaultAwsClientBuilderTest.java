@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
 import static software.amazon.awssdk.awscore.client.config.AwsClientOption.SERVICE_SIGNING_NAME;
 import static software.amazon.awssdk.awscore.client.config.AwsClientOption.SIGNING_REGION;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
 
 import java.beans.BeanInfo;
@@ -37,6 +38,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +55,7 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -99,6 +102,32 @@ public class DefaultAwsClientBuilderTest {
     public void setup() {
         when(defaultHttpClientBuilder.buildWithDefaults(any())).thenReturn(mock(SdkHttpClient.class));
         when(defaultAsyncHttpClientFactory.buildWithDefaults(any())).thenReturn(mock(SdkAsyncHttpClient.class));
+        System.clearProperty(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION.property());
+    }
+
+    @AfterEach
+    public void cleanup() {
+        System.clearProperty(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION.property());
+    }
+
+    @Test
+    public void disableHostPrefixInjection_nothingSet_defaultsToFalse() {
+        TestClient client = testClientBuilder().region(Region.US_WEST_1).build();
+        assertThat(client.clientConfiguration.option(DISABLE_HOST_PREFIX_INJECTION)).isFalse();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_systemPropertyTrue_resolvesTrue() {
+        System.setProperty(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION.property(), "true");
+        TestClient client = testClientBuilder().region(Region.US_WEST_1).build();
+        assertThat(client.clientConfiguration.option(DISABLE_HOST_PREFIX_INJECTION)).isTrue();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_asyncClient_systemPropertyTrue_resolvesTrue() {
+        System.setProperty(SdkSystemSetting.AWS_DISABLE_HOST_PREFIX_INJECTION.property(), "true");
+        TestAsyncClient client = testAsyncClientBuilder().region(Region.US_WEST_1).build();
+        assertThat(client.clientConfiguration.option(DISABLE_HOST_PREFIX_INJECTION)).isTrue();
     }
 
     @Test
