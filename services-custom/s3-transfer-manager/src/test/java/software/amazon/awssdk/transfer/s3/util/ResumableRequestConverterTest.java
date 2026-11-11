@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import io.reactivex.Flowable;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -197,6 +198,38 @@ class ResumableRequestConverterTest {
                 .contains("The ETag of the requested object in bucket (bucket) with key (key)"
                           + " has changed since the last pause. The SDK will download the S3 object from the beginning");
         }
+    }
+
+    @Test
+    void toDownloadFileAndTransformer_s3ObjectModifiedKeyWithControlCharacters_debugLogIsOneEscapedLine() {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket("bucket")
+                                                            .key("key\r\nFORGED level=ERROR")
+                                                            .build();
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+        ResumableFileDownload resumableFileDownload =
+            ResumableFileDownload.builder()
+                                 .bytesTransferred(1000L)
+                                 .s3ObjectLastModified(Instant.now().minusSeconds(5))
+                                 .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                 .downloadFileRequest(downloadFileRequest)
+                                 .build();
+        List<String> messages;
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse(Instant.now()),
+                                                downloadFileRequest);
+            messages = logCaptor.loggedEvents()
+                                .stream()
+                                .map(e -> e.getMessage().getFormattedMessage())
+                                .collect(Collectors.toList());
+        }
+
+        assertThat(messages).allSatisfy(m -> assertThat(m).doesNotContain("\r", "\n"));
+        assertThat(messages).anySatisfy(m -> assertThat(m).contains(
+            "The requested object in bucket (bucket) with key (key\\r\\nFORGED level=ERROR) has been modified"));
     }
 
     @Test

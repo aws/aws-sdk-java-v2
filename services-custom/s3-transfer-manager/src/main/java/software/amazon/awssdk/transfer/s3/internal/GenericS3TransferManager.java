@@ -64,6 +64,7 @@ import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgr
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.internal.progress.ResumeTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
+import software.amazon.awssdk.transfer.s3.internal.utils.LogSanitizer;
 import software.amazon.awssdk.transfer.s3.internal.utils.SseCustomerKeyValidator;
 import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
 import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
@@ -526,7 +527,7 @@ class GenericS3TransferManager implements S3TransferManager {
             DownloadFileRequest newDownloadFileRequest = requestPair.left();
             requestToSaveOnPauseRef.set(requestToSaveOnPause(originalDownloadRequest, newDownloadFileRequest));
             newDownloadFileRequestFuture.complete(newDownloadFileRequest);
-            log.debug(() -> "Sending downloadFileRequest " + newDownloadFileRequest);
+            log.debug(() -> LogSanitizer.escapeControlCharacters("Sending downloadFileRequest " + newDownloadFileRequest));
 
             TransferProgressUpdater progressUpdater = initiateDownload(newDownloadFileRequest,
                                                                       requestPair.right(),

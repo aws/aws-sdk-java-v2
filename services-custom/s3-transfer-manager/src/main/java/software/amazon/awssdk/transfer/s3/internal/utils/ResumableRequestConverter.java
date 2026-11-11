@@ -104,9 +104,10 @@ public final class ResumableRequestConverter {
                                                                                 getObjectRequest,
                                                                                 headObjectResponse);
         if (newDownloadFileRequest == null) {
-            log.debug(() -> "Could not compute resumed range for the original range '"
-                            + getObjectRequest.range()
-                            + "'. The SDK will re-download the object from the beginning.");
+            log.debug(() -> LogSanitizer.escapeControlCharacters(
+                "Could not compute resumed range for the original range '"
+                + getObjectRequest.range()
+                + "'. The SDK will re-download the object from the beginning."));
             newDownloadFileRequest = newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
                 fileAsyncResponseTransformer(newDownloadFileRequest, false);
@@ -182,9 +183,10 @@ public final class ResumableRequestConverter {
         DownloadFileRequest resumed = resumedDownloadFileRequest(resumableFileDownload, originalDownloadRequest,
                                                                   getObjectRequest, headObjectResponse);
         if (resumed == null) {
-            log.debug(() -> "Could not compute resumed range for the original range '"
-                            + getObjectRequest.range()
-                            + "'. The SDK will re-download the object from the beginning.");
+            log.debug(() -> LogSanitizer.escapeControlCharacters(
+                "Could not compute resumed range for the original range '"
+                + getObjectRequest.range()
+                + "'. The SDK will re-download the object from the beginning."));
             return newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
         }
         return resumed;
@@ -258,30 +260,33 @@ public final class ResumableRequestConverter {
                                     boolean s3ObjectEtagModified) {
         if (log.logger().isDebugEnabled()) {
             if (s3ObjectModified) {
-                log.debug(() -> String.format("The requested object in bucket (%s) with key (%s) "
-                                              + "has been modified on Amazon S3 since the last "
-                                              + "pause. The SDK will download the S3 object from "
-                                              + "the beginning",
-                                              getObjectRequest.bucket(), getObjectRequest.key()));
+                log.debug(() -> LogSanitizer.escapeControlCharacters(
+                    String.format("The requested object in bucket (%s) with key (%s) "
+                                  + "has been modified on Amazon S3 since the last "
+                                  + "pause. The SDK will download the S3 object from "
+                                  + "the beginning",
+                                  getObjectRequest.bucket(), getObjectRequest.key())));
             }
 
             if (fileModified) {
-                log.debug(() -> String.format("The file (%s) has been modified since "
-                                              + "the last pause. " +
-                                              "The SDK will download the requested object in bucket"
-                                              + " (%s) with key (%s) from "
-                                              + "the "
-                                              + "beginning.",
-                                              downloadRequest.destination(),
-                                              getObjectRequest.bucket(),
-                                              getObjectRequest.key()));
+                log.debug(() -> LogSanitizer.escapeControlCharacters(
+                    String.format("The file (%s) has been modified since "
+                                  + "the last pause. " +
+                                  "The SDK will download the requested object in bucket"
+                                  + " (%s) with key (%s) from "
+                                  + "the "
+                                  + "beginning.",
+                                  downloadRequest.destination(),
+                                  getObjectRequest.bucket(),
+                                  getObjectRequest.key())));
             }
             if (s3ObjectEtagModified) {
-                log.debug(() -> String.format("The ETag of the requested object in bucket (%s) with key (%s) "
-                                              + "has changed since the last "
-                                              + "pause. The SDK will download the S3 object from "
-                                              + "the beginning",
-                                              getObjectRequest.bucket(), getObjectRequest.key()));
+                log.debug(() -> LogSanitizer.escapeControlCharacters(
+                    String.format("The ETag of the requested object in bucket (%s) with key (%s) "
+                                  + "has changed since the last "
+                                  + "pause. The SDK will download the S3 object from "
+                                  + "the beginning",
+                                  getObjectRequest.bucket(), getObjectRequest.key())));
             }
 
         }
