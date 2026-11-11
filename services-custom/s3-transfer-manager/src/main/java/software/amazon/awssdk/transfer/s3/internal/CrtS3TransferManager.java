@@ -25,6 +25,7 @@ import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequest
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.isObjectOrFileModified;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toCrtDownloadFileRequest;
 
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -101,6 +102,14 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         doUpload(putObjectRequest, requestBody, returnFuture);
 
         return new DefaultUpload(returnFuture, progressUpdater.progress());
+    }
+
+    /**
+     * The CRT-based upload reads the file by path.
+     */
+    @Override
+    FileUpload uploadFile(UploadFileRequest uploadFileRequest, Path confineToRoot) {
+        return uploadFile(uploadFileRequest);
     }
 
     @Override
