@@ -15,17 +15,16 @@
 
 package software.amazon.awssdk.codegen.smithy.service;
 
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.smithy.model.Model;
 
 /**
- * Service-specific customization on the Smithy path, for differences from C2J that a validated smithy-build transform
- * cannot express. {@code SmithyIntermediateModelBuilder} runs the customizations whose {@link #sdkIds()} include the
- * service's sdkId: {@link #preprocess} on the model smithy-build validated, before translation, and
- * {@link #postprocess} on the intermediate model, before unused shapes are removed. Neither result is validated by
- * Smithy, so each customization needs its own tests.
+ * Service-specific customizations that a smithy-build transform cannot make. {@code SmithyIntermediateModelBuilder}
+ * runs the customizations whose {@link #sdkIds()} contain the service's sdkId. Smithy does not validate their results,
+ * so each customization needs its own tests.
  */
 @SdkInternalApi
 public interface SmithyServiceCustomization {
@@ -33,23 +32,27 @@ public interface SmithyServiceCustomization {
     /**
      * The sdkIds of the services this customization applies to.
      */
-    java.util.Set<String> sdkIds();
+    Set<String> sdkIds();
 
     /**
-     * True when this customization applies a {@code customization.config} setting itself, so the
-     * {@code smithy-build.json} generator must not convert it. Keys are {@code endpointParameters},
-     * {@code customOperationContextParams} and {@code shapeModifiers.<shape>.inject.<member>}. For
-     * {@code shapeModifiers.<shape>.modify.<member>.required}, the generator still renames the member, and the
-     * customization drops {@code required} from it as C2J does.
+     * Whether this customization applies the given {@code customization.config} setting itself. The
+     * {@code smithy-build.json} generator reads this and leaves such settings out of the file it writes.
+     * {@code shapeModifiers.<shape>.modify.<member>.required} stands for making a renamed member optional.
      */
     default boolean appliesConfig(String key) {
         return false;
     }
 
+    /**
+     * Edits the Smithy model after smithy-build has validated it, before translation.
+     */
     default Model preprocess(Model model, CustomizationConfig config) {
         return model;
     }
 
+    /**
+     * Edits the intermediate model before unused shapes are removed.
+     */
     default void postprocess(IntermediateModel model) {
     }
 }

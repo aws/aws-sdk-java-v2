@@ -68,7 +68,8 @@ import software.amazon.smithy.rulesengine.traits.ClientContextParamsTrait;
  * {@link software.amazon.awssdk.codegen.IntermediateModelBuilder}.
  *
  * <p>Source-model customizations are expected to have been applied to the model as smithy-build
- * transforms. Paginators come from {@code @paginated} and codegen overrides; waiters are not applied yet.
+ * transforms; edits a transform cannot make come from a {@code SmithyServiceCustomization}. Paginators come from
+ * {@code @paginated} and codegen overrides; waiters are not applied yet.
  */
 public final class SmithyIntermediateModelBuilder {
 
@@ -214,7 +215,7 @@ public final class SmithyIntermediateModelBuilder {
                                                                endpointTestSuiteModel,
                                                                null,
                                                                clientContextParams);
-        // A service customization may have added parameters to the full model.
+
         trimmedModel.setEndpointParameters(fullModel.getEndpointParameters());
 
         linkMembersToShapes(trimmedModel);

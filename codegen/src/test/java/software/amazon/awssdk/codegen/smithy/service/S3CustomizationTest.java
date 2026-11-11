@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.smithy.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,13 +32,12 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ParameterHttpMapping;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.model.service.ContextParam;
+import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.Location;
 import software.amazon.awssdk.codegen.smithy.SmithyIntermediateModelBuilder;
 import software.amazon.awssdk.codegen.smithy.SmithyModels;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.shapes.MemberShape;
-import software.amazon.smithy.model.shapes.OperationShape;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.shapes.StructureShape;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
@@ -83,10 +83,26 @@ class S3CustomizationTest {
         + "\"Key\": {\"emitPropertyName\": \"DestinationKey\", \"existingNameDeprecated\": true}}]}}}";
 
     @Test
-    void appliesTheRequiredDropOfRenamedMembers() {
+    void appliesConfig_claimsTheSettingsThisClassApplies() {
         S3Customization s3 = new S3Customization();
-        assertThat(s3.appliesConfig("shapeModifiers.CopyObjectRequest.modify.Bucket.required")).isTrue();
-        assertThat(s3.appliesConfig("shapeModifiers.CopyObjectRequest.inject.Bucket")).isFalse();
+
+        assertThat(Arrays.asList("endpointParameters",
+                                 "customOperationContextParams",
+                                 "shapeModifiers.GetObjectOutput.inject.ExpiresString",
+                                 "shapeModifiers.HeadObjectOutput.inject.ExpiresString",
+                                 "shapeModifiers.UploadPartRequest.inject.SdkPartType",
+                                 "shapeModifiers.CopyObjectRequest.modify.Bucket.required"))
+            .allMatch(s3::appliesConfig);
+    }
+
+    @Test
+    void appliesConfig_leavesOtherSettingsToTheGenerator() {
+        S3Customization s3 = new S3Customization();
+
+        assertThat(Arrays.asList("shapeModifiers.CopyObjectRequest.inject.SourceBucket",
+                                 "shapeModifiers.CopyObjectRequest.modify.Bucket.emitPropertyName",
+                                 "renameShapes"))
+            .noneMatch(s3::appliesConfig);
     }
 
     @Test
@@ -205,13 +221,44 @@ class S3CustomizationTest {
     }
 
     @Test
-    void headBucketAndHeadObject_listTheC2jErrors() {
-        Model model = new S3Customization().preprocess(s3Model(), CustomizationConfig.create());
+    void configOperationContextParams_areSetOnTheOperation() throws IOException {
+        IntermediateModel model = build(Jackson.load(CustomizationConfig.class,
+            "{\"customOperationContextParams\": [{\"operationName\": \"HeadBucket\", "
+            + "\"operationContextParamsMap\": {\"Keys\": {\"path\": \"Bucket\"}}}]}"));
 
-        assertThat(model.expectShape(ShapeId.from(NAMESPACE + "HeadBucket"), OperationShape.class).getErrors())
-            .containsExactly(ShapeId.from(NAMESPACE + "NoSuchBucket"));
-        assertThat(model.expectShape(ShapeId.from(NAMESPACE + "HeadObject"), OperationShape.class).getErrors())
-            .containsExactly(ShapeId.from(NAMESPACE + "NoSuchKey"));
+        assertThat(model.getOperation("HeadBucket").getOperationContextParams()).containsOnlyKeys("Keys");
+    }
+
+    @Test
+    void injectedMemberWithUnsupportedLocation_fails() throws IOException {
+        CustomizationConfig config = Jackson.load(CustomizationConfig.class,
+            "{\"shapeModifiers\": {\"UploadPartRequest\": {\"inject\": [{\"SdkPartType\": "
+            + "{\"shape\": \"Expiration\", \"location\": \"querystring\", \"locationName\": \"part-type\"}}]}}}");
+
+        assertThatThrownBy(() -> new S3Customization().preprocess(s3Model(), config))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("UploadPartRequest$SdkPartType");
+    }
+
+    @Test
+    void requestUris_loseTheBucketLabelAndXIdButKeepOtherQueryParameters() {
+        ShapeModel create = shape("CreateMultipartUploadRequest", "/{Bucket}/{Key+}?uploads&x-id=CreateMultipartUpload");
+        ShapeModel head = shape("HeadBucketRequest", "/{Bucket}");
+        Map<String, ShapeModel> shapes = new HashMap<>();
+        shapes.put(create.getC2jName(), create);
+        shapes.put(head.getC2jName(), head);
+        IntermediateModel model = new IntermediateModel(new Metadata(), new HashMap<>(), shapes,
+                                                        CustomizationConfig.create());
+
+        new S3Customization().postprocess(model);
+
+        assertThat(create.getMarshaller().getRequestUri()).isEqualTo("/{Key+}?uploads");
+        assertThat(head.getMarshaller().getRequestUri()).isEmpty();
+    }
+
+    @Test
+    void signsWithTheS3VariantOfSigV4() {
+        assertThat(build(CustomizationConfig.create()).getMetadata().getAuthType()).isEqualTo(AuthType.S3);
     }
 
     @Test
@@ -282,11 +329,6 @@ class S3CustomizationTest {
                                                  .withMarshallLocationName(locationName)
                                                  .withUnmarshallLocationName(locationName)
                                                  .setIsGreedy(greedy));
-        if (location == Location.URI && name.endsWith("Bucket")) {
-            ContextParam bucket = new ContextParam();
-            bucket.setName("Bucket");
-            member.setContextParam(bucket);
-        }
         return member;
     }
 }

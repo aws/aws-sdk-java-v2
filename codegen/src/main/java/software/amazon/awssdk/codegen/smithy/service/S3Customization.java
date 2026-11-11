@@ -17,14 +17,19 @@ package software.amazon.awssdk.codegen.smithy.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.ModifyModelShapeModifier;
 import software.amazon.awssdk.codegen.model.config.customization.ShapeModifier;
@@ -34,12 +39,15 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ParameterHttpMapping;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.CustomOperationContextParam;
 import software.amazon.awssdk.codegen.model.service.Member;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.shapes.IntegerShape;
 import software.amazon.smithy.model.shapes.MemberShape;
+import software.amazon.smithy.model.shapes.OperationShape;
 import software.amazon.smithy.model.shapes.Shape;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.shapes.StructureShape;
@@ -48,38 +56,36 @@ import software.amazon.smithy.model.traits.HttpHeaderTrait;
 import software.amazon.smithy.model.transform.ModelTransformer;
 
 /**
- * The S3 differences from C2J that a validated smithy-build transform cannot express:
+ * S3 edits that a smithy-build transform cannot make, because Smithy rejects the result or the value exists only in
+ * the intermediate model:
  * <ul>
- *     <li>Members {@code customization.config} injects with bindings Smithy rejects: {@code ExpiresString} shares the
- *     {@code Expires} header, and {@code SdkPartType} is unbound next to an {@code @httpPayload} member.</li>
- *     <li>{@code endpointParameters} and {@code customOperationContextParams}, applied to the intermediate model as on
- *     C2J.</li>
- *     <li>The part-number markers, integers in C2J and strings in Smithy, where Smithy requires a pagination token to be a
- *     string.</li>
- *     <li>The s3 variant of SigV4, and request URIs without the bucket label, which the endpoint rules place, and
- *     without {@code x-id}.</li>
- *     <li>Members {@code customization.config} renames, such as {@code CopyObjectRequest.Bucket}, which C2J leaves not
- *     required and, for a URI label, on the old location name and label.</li>
- *     <li>The HeadBucket and HeadObject errors: {@code NoSuchBucket} and {@code NoSuchKey} in C2J, {@code NotFound} in
- *     Smithy.</li>
- *     <li>No XML root for a request whose only body members are injected, such as {@code CopyObjectRequest}.</li>
+ *     <li>Injects {@code ExpiresString}, a second member on the {@code Expires} header, and {@code SdkPartType}, an
+ *     unbound member, as {@code customization.config} defines them.</li>
+ *     <li>Keeps {@code PartNumberMarker} and {@code NextPartNumberMarker} integers; Smithy requires pagination tokens
+ *     to be strings.</li>
+ *     <li>Has HeadBucket and HeadObject throw {@code NoSuchBucket} and {@code NoSuchKey} instead of
+ *     {@code NotFound}.</li>
+ *     <li>Signs with the S3 variant of SigV4.</li>
+ *     <li>Adds the endpoint parameters and operation context parameters from {@code customization.config}.</li>
+ *     <li>Keeps members that {@code customization.config} renames, such as {@code CopyObjectRequest.Bucket}, optional
+ *     and on their old URI label.</li>
+ *     <li>Removes the bucket label and {@code x-id} from request URIs; the endpoint rules place the bucket.</li>
+ *     <li>Sends no XML body for a request whose only body members are injected, such as
+ *     {@code CopyObjectRequest}.</li>
  * </ul>
  */
 @SdkInternalApi
 final class S3Customization implements SmithyServiceCustomization {
     private static final String NAMESPACE = "com.amazonaws.s3";
-    private static final Set<String> INJECTED = new HashSet<>(Arrays.asList(
-        "GetObjectOutput.ExpiresString", "HeadObjectOutput.ExpiresString", "UploadPartRequest.SdkPartType"));
-    private static final List<String> INTEGER_SHAPES = Arrays.asList("PartNumberMarker", "NextPartNumberMarker");
-    private static final ShapeId NOT_FOUND = ShapeId.fromParts(NAMESPACE, "NotFound");
-    private static final Map<String, String> HEAD_ERRORS;
-
-    static {
-        Map<String, String> errors = new LinkedHashMap<>();
-        errors.put("HeadBucket", "NoSuchBucket");
-        errors.put("HeadObject", "NoSuchKey");
-        HEAD_ERRORS = Collections.unmodifiableMap(errors);
-    }
+    private static final List<ShapeId> INJECTED = Arrays.asList(s3Member("GetObjectOutput", "ExpiresString"),
+                                                                s3Member("HeadObjectOutput", "ExpiresString"),
+                                                                s3Member("UploadPartRequest", "SdkPartType"));
+    private static final Set<String> APPLIED_CONFIG = appliedConfig();
+    private static final Pattern RENAMED_MEMBER_REQUIRED =
+        Pattern.compile("shapeModifiers\\.[^.]+\\.modify\\.[^.]+\\.required");
+    private static final List<ShapeId> INTEGER_MARKERS = Arrays.asList(s3("PartNumberMarker"),
+                                                                       s3("NextPartNumberMarker"));
+    private static final ShapeId NOT_FOUND = s3("NotFound");
 
     @Override
     public Set<String> sdkIds() {
@@ -88,61 +94,76 @@ final class S3Customization implements SmithyServiceCustomization {
 
     @Override
     public boolean appliesConfig(String key) {
-        return key.equals("endpointParameters") || key.equals("customOperationContextParams")
-               || key.startsWith("shapeModifiers.") && key.contains(".inject.")
-                  && INJECTED.contains(key.substring("shapeModifiers.".length()).replace(".inject.", "."))
-               || key.startsWith("shapeModifiers.") && key.contains(".modify.") && key.endsWith(".required");
+        return APPLIED_CONFIG.contains(key) || RENAMED_MEMBER_REQUIRED.matcher(key).matches();
+    }
+
+    private static Set<String> appliedConfig() {
+        Set<String> keys = new HashSet<>(Arrays.asList("endpointParameters", "customOperationContextParams"));
+        INJECTED.forEach(id -> keys.add("shapeModifiers." + id.getName() + ".inject." + id.getMember().get()));
+        return Collections.unmodifiableSet(keys);
     }
 
     @Override
     public Model preprocess(Model model, CustomizationConfig config) {
-        List<Shape> replaced = new ArrayList<>();
-        Map<String, ShapeModifier> modifiers = config.getShapeModifiers() == null ? Collections.emptyMap()
-                                                                                 : config.getShapeModifiers();
-        for (String injected : INJECTED) {
-            String shapeName = injected.substring(0, injected.indexOf('.'));
-            String memberName = injected.substring(injected.indexOf('.') + 1);
-            Member member = injectedMember(modifiers.get(shapeName), memberName);
-            if (member == null) {
-                continue;
-            }
-            StructureShape container = model.expectShape(ShapeId.fromParts(NAMESPACE, shapeName), StructureShape.class);
-            MemberShape.Builder shape = MemberShape.builder()
-                                                   .id(container.getId().withMember(memberName))
-                                                   .target(ShapeId.fromParts(NAMESPACE, member.getShape()));
-            if (member.getDocumentation() != null) {
-                shape.addTrait(new DocumentationTrait(member.getDocumentation()));
-            }
-            if ("header".equals(member.getLocation())) {
-                shape.addTrait(new HttpHeaderTrait(member.getLocationName()));
-            }
-            replaced.add(container.toBuilder().addMember(shape.build()).build());
-        }
-        for (String name : INTEGER_SHAPES) {
-            Shape string = model.expectShape(ShapeId.fromParts(NAMESPACE, name));
-            replaced.add(IntegerShape.builder().id(string.getId()).addTraits(string.getAllTraits().values()).build());
-        }
-        HEAD_ERRORS.forEach((operation, error) -> {
-            model.getShape(ShapeId.fromParts(NAMESPACE, operation))
-                 .flatMap(Shape::asOperationShape)
-                 .filter(op -> op.getErrors().contains(NOT_FOUND))
-                 .ifPresent(op -> replaced.add(op.toBuilder().errors(
-                     op.getErrors().stream()
-                       .map(e -> e.equals(NOT_FOUND) ? ShapeId.fromParts(NAMESPACE, error) : e)
-                       .collect(Collectors.toList())).build()));
-        });
+        List<Shape> replaced = new ArrayList<>(injectMembers(model, config));
+        INTEGER_MARKERS.forEach(id -> replaced.add(integerShape(model.expectShape(id))));
+        replaceNotFound(model, "HeadBucket", "NoSuchBucket").ifPresent(replaced::add);
+        replaceNotFound(model, "HeadObject", "NoSuchKey").ifPresent(replaced::add);
         return ModelTransformer.create().replaceShapes(model, replaced);
     }
 
-    private static Member injectedMember(ShapeModifier modifier, String memberName) {
+    private static Collection<StructureShape> injectMembers(Model model, CustomizationConfig config) {
+        Map<ShapeId, StructureShape.Builder> containers = new LinkedHashMap<>();
+        for (ShapeId memberId : INJECTED) {
+            Member member = injectedMember(config, memberId);
+            if (member != null) {
+                containers.computeIfAbsent(memberId.withoutMember(),
+                                           id -> model.expectShape(id, StructureShape.class).toBuilder())
+                          .addMember(memberShape(memberId, member));
+            }
+        }
+        return containers.values().stream().map(StructureShape.Builder::build).collect(Collectors.toList());
+    }
+
+    private static Member injectedMember(CustomizationConfig config, ShapeId memberId) {
+        Map<String, ShapeModifier> modifiers = config.getShapeModifiers();
+        ShapeModifier modifier = modifiers == null ? null : modifiers.get(memberId.getName());
         if (modifier == null || modifier.getInject() == null) {
             return null;
         }
-        return modifier.getInject().stream()
-                       .filter(m -> m.containsKey(memberName))
-                       .findFirst()
-                       .map(m -> m.get(memberName))
-                       .orElse(null);
+        String name = memberId.getMember().get();
+        return modifier.getInject().stream().map(m -> m.get(name)).filter(Objects::nonNull).findFirst().orElse(null);
+    }
+
+    private static MemberShape memberShape(ShapeId memberId, Member member) {
+        MemberShape.Builder shape = MemberShape.builder().id(memberId).target(s3(member.getShape()));
+        if (member.getDocumentation() != null) {
+            shape.addTrait(new DocumentationTrait(member.getDocumentation()));
+        }
+        if ("header".equals(member.getLocation())) {
+            shape.addTrait(new HttpHeaderTrait(member.getLocationName()));
+        } else if (member.getLocation() != null) {
+            throw new IllegalStateException(memberId + ": location '" + member.getLocation() + "' is not supported");
+        }
+        return shape.build();
+    }
+
+    private static IntegerShape integerShape(Shape shape) {
+        return IntegerShape.builder().id(shape.getId()).addTraits(shape.getAllTraits().values()).build();
+    }
+
+    /**
+     * Does nothing when the operation does not list {@code NotFound}.
+     */
+    private static Optional<OperationShape> replaceNotFound(Model model, String operation, String error) {
+        return model.getShape(s3(operation))
+                    .flatMap(Shape::asOperationShape)
+                    .filter(op -> op.getErrors().contains(NOT_FOUND))
+                    .map(op -> op.toBuilder()
+                                 .errors(op.getErrors().stream()
+                                           .map(e -> e.equals(NOT_FOUND) ? s3(error) : e)
+                                           .collect(Collectors.toList()))
+                                 .build());
     }
 
     @Override
@@ -150,49 +171,27 @@ final class S3Customization implements SmithyServiceCustomization {
         model.getMetadata().setAuthType(AuthType.S3);
         addEndpointParameters(model);
         addOperationContextParams(model);
+        // Before the URI edit, which looks for the {Bucket} label this puts back.
         restoreRenamedMembers(model);
         for (ShapeModel shape : model.getShapes().values()) {
-            if (shape.getMarshaller() != null && shape.getMarshaller().getRequestUri() != null) {
-                shape.getMarshaller().setRequestUri(withoutXId(withoutBucket(shape)));
+            ShapeMarshaller marshaller = shape.getMarshaller();
+            if (marshaller != null && marshaller.getRequestUri() != null) {
+                marshaller.setRequestUri(withoutBucketAndXId(marshaller.getRequestUri()));
             }
-            removeXmlRootOfInjectedBody(model, shape);
         }
-    }
-
-    /**
-     * C2J takes a request's XML root from the model, which has none when every body member is one
-     * {@code customization.config} injects, such as {@code CopyObjectRequest.SourceBucket}.
-     */
-    private static void removeXmlRootOfInjectedBody(IntermediateModel model, ShapeModel shape) {
-        ShapeMarshaller marshaller = shape.getMarshaller();
-        Map<String, ShapeModifier> modifiers = model.getCustomizationConfig().getShapeModifiers();
-        ShapeModifier modifier = modifiers == null ? null : modifiers.get(shape.getC2jName());
-        if (marshaller == null || marshaller.getLocationName() == null || modifier == null
-            || modifier.getInject() == null) {
-            return;
-        }
-        Set<String> injected = modifier.getInject().stream()
-                                       .flatMap(m -> m.keySet().stream())
-                                       .collect(Collectors.toSet());
-        if (shape.getUnboundMembers().stream().allMatch(m -> injected.contains(m.getC2jName()))) {
-            marshaller.setLocationName(null);
-            marshaller.setXmlNameSpaceUri(null);
-        }
+        removeXmlRootOfInjectedBodies(model);
     }
 
     private static void addEndpointParameters(IntermediateModel model) {
-        Map<String, software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel> parameters =
-            model.getCustomizationConfig().getEndpointParameters();
+        Map<String, ParameterModel> parameters = model.getCustomizationConfig().getEndpointParameters();
         if (parameters == null) {
             return;
         }
-        Map<String, software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel> merged =
-            new LinkedHashMap<>(model.getEndpointParameters());
+        Map<String, ParameterModel> merged = new LinkedHashMap<>(model.getEndpointParameters());
         parameters.forEach((name, parameter) -> {
-            if (merged.containsKey(name)) {
+            if (merged.putIfAbsent(name, parameter) != null) {
                 throw new IllegalStateException("Duplicate endpoint parameter " + name);
             }
-            merged.put(name, parameter);
         });
         model.setEndpointParameters(merged);
     }
@@ -212,9 +211,8 @@ final class S3Customization implements SmithyServiceCustomization {
     }
 
     /**
-     * C2J's {@code ShapeModifiersProcessor} renames a member but leaves the shape's required list on the old name, so the
-     * renamed member is not required, and keeps the old name as the location name, so a URI label keeps it too. The
-     * {@code renameMembers} transform moves both to the new name; this moves them back.
+     * A member that {@code customization.config} renames stays optional, with its old name in the shape's required
+     * list, and a URI label keeps the old name.
      */
     private static void restoreRenamedMembers(IntermediateModel model) {
         Map<String, ShapeModifier> modifiers = model.getCustomizationConfig().getShapeModifiers();
@@ -228,18 +226,12 @@ final class S3Customization implements SmithyServiceCustomization {
             for (Map<String, ModifyModelShapeModifier> modify : modifier.getModify()) {
                 modify.forEach((oldName, value) -> {
                     if (value.getEmitPropertyName() != null) {
-                        restoreRenamedMember(shape(model, shapeName), oldName, value.getEmitPropertyName());
+                        restoreRenamedMember(Utils.findShapeModelByC2jName(model, shapeName), oldName,
+                                             value.getEmitPropertyName());
                     }
                 });
             }
         });
-    }
-
-    private static ShapeModel shape(IntermediateModel model, String c2jName) {
-        return model.getShapes().values().stream()
-                    .filter(s -> c2jName.equals(s.getC2jName()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("shapeModifiers." + c2jName + ": no such shape"));
     }
 
     private static void restoreRenamedMember(ShapeModel shape, String oldName, String newName) {
@@ -263,29 +255,8 @@ final class S3Customization implements SmithyServiceCustomization {
         }
     }
 
-    /**
-     * C2J's {@code S3RemoveBucketFromUriProcessor} edit: the bucket label removed once, found through its context
-     * param so it follows the CopyObject and UploadPartCopy rename.
-     */
-    private static String withoutBucket(ShapeModel shape) {
-        String uri = shape.getMarshaller().getRequestUri();
-        if (shape.getMembers() == null) {
-            return uri;
-        }
-        for (MemberModel member : shape.getMembers()) {
-            if (member.getContextParam() != null && "Bucket".equals(member.getContextParam().getName())
-                && member.getHttp() != null && member.getHttp().isUri()) {
-                String label = "/{" + member.getHttp().getMarshallLocationName() + "}";
-                int index = uri.indexOf(label);
-                if (index >= 0) {
-                    return uri.substring(0, index) + uri.substring(index + label.length());
-                }
-            }
-        }
-        return uri;
-    }
-
-    private static String withoutXId(String uri) {
+    private static String withoutBucketAndXId(String requestUri) {
+        String uri = StringUtils.replaceOnce(requestUri, "/{Bucket}", "");
         int queryStart = uri.indexOf('?');
         if (queryStart < 0) {
             return uri;
@@ -294,5 +265,42 @@ final class S3Customization implements SmithyServiceCustomization {
                             .filter(p -> !p.startsWith("x-id="))
                             .collect(Collectors.joining("&"));
         return uri.substring(0, queryStart) + (kept.isEmpty() ? "" : "?" + kept);
+    }
+
+    /**
+     * A request whose unbound members are all injected loses its XML root, so it is sent without a body.
+     */
+    private static void removeXmlRootOfInjectedBodies(IntermediateModel model) {
+        Map<String, ShapeModifier> modifiers = model.getCustomizationConfig().getShapeModifiers();
+        if (modifiers == null) {
+            return;
+        }
+        modifiers.forEach((shapeName, modifier) -> {
+            if (modifier.getInject() == null) {
+                return;
+            }
+            ShapeModel shape = Utils.findShapeModelByC2jNameIfExists(model, shapeName);
+            ShapeMarshaller marshaller = shape == null ? null : shape.getMarshaller();
+            // Checked before getUnboundMembers, which throws for a shape with a payload member, such as
+            // UploadPartRequest.
+            if (marshaller == null || marshaller.getLocationName() == null) {
+                return;
+            }
+            Set<String> injected = modifier.getInject().stream()
+                                           .flatMap(m -> m.keySet().stream())
+                                           .collect(Collectors.toSet());
+            if (shape.getUnboundMembers().stream().allMatch(m -> injected.contains(m.getC2jName()))) {
+                marshaller.setLocationName(null);
+                marshaller.setXmlNameSpaceUri(null);
+            }
+        });
+    }
+
+    private static ShapeId s3(String name) {
+        return ShapeId.fromParts(NAMESPACE, name);
+    }
+
+    private static ShapeId s3Member(String shape, String member) {
+        return ShapeId.fromParts(NAMESPACE, shape, member);
     }
 }
