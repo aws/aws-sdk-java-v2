@@ -21,6 +21,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGUR
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +35,6 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
-import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
 import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.eventstream.EventStreamInitialRequestInterceptor;
@@ -51,6 +51,7 @@ import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.http.EnableDefaultSocketTimeout2026Resolver;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
@@ -58,13 +59,13 @@ import software.amazon.awssdk.core.retry.NewRetries2026Resolver;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.retries.api.RetryStrategy;
@@ -75,6 +76,7 @@ import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * An SDK-internal implementation of the methods in {@link AwsClientBuilder}, {@link AwsAsyncClientBuilder} and
@@ -97,9 +99,14 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     extends SdkDefaultClientBuilder<BuilderT, ClientT>
     implements AwsClientBuilder<BuilderT, ClientT> {
     private static final Logger log = Logger.loggerFor(AwsClientBuilder.class);
-    private static final String DEFAULT_ENDPOINT_PROTOCOL = "https";
     private static final String[] FIPS_SEARCH = {"fips-", "-fips"};
     private static final String[] FIPS_REPLACE = {"", ""};
+
+    /**
+     * The flat default read/write inactivity timeout applied when the rollout gate is on and the service is not listed in the
+     * codegen exemption artifact.
+     */
+    private static final Duration DEFAULT_READ_WRITE_TIMEOUT = Duration.ofMinutes(5);
 
     private final AutoDefaultsModeDiscovery autoDefaultsModeDiscovery;
 
@@ -188,11 +195,10 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                                 this::resolveCredentialsIdentityProvider)
                             // Set CREDENTIALS_PROVIDER, because older clients may be relying on it
                             .lazyOptionIfAbsent(AwsClientOption.CREDENTIALS_PROVIDER, this::resolveCredentialsProvider)
-                            .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, this::resolveClientEndpointProvider)
                             // Set ENDPOINT and ENDPOINT_OVERRIDDEN, because older clients may be relying on it
                             .lazyOptionIfAbsent(SdkClientOption.ENDPOINT, this::resolveEndpoint)
                             .lazyOptionIfAbsent(SdkClientOption.ENDPOINT_OVERRIDDEN, this::resolveEndpointOverridden)
-                            .lazyOption(AwsClientOption.SIGNING_REGION, this::resolveSigningRegion)
+                            .lazyOptionIfAbsent(AwsClientOption.SIGNING_REGION, this::resolveSigningRegion)
                             .lazyOption(SdkClientOption.HTTP_CLIENT_CONFIG, this::resolveHttpClientConfig)
                             .applyMutation(this::configureRetryPolicy)
                             .applyMutation(this::configureRetryStrategy)
@@ -252,8 +258,45 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * </ol>
      */
     private AttributeMap resolveHttpClientConfig(LazyValueSource config) {
-        AttributeMap attributeMap = serviceHttpConfig();
+        AttributeMap attributeMap = applyDefaultReadWriteTimeout(config, serviceHttpConfig());
         return mergeSmartHttpDefaults(config, attributeMap);
+    }
+
+    /**
+     * Applies the {@code AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026} rollout gate to the codegen-baked
+     * {@link SdkHttpConfigurationOption#SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT} contributed by {@link #serviceHttpConfig()}.
+     * The gate resolves from the {@code AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026} environment variable/system property, else the
+     * codegen-baked {@link SdkClientOption#DEFAULT_ENABLE_SOCKET_TIMEOUT_2026} default, else off.
+     *
+     * <p>When the gate is on, an unlisted service (nothing baked) gets the flat 5-minute default and a baked tier is kept as-is
+     * ({@link Duration#ZERO} for fully-exempt, 15 minutes for partial). When the gate is off, a baked positive tier (partial)
+     * is forced to {@link Duration#ZERO} so it cannot apply; otherwise the option is left untouched. Leaving it absent for an
+     * unlisted, gated-off service is equivalent to {@link Duration#ZERO}: the gate being off means the environment variable is
+     * not truthy, so the HTTP client's option-absent path applies nothing either way.
+     */
+    private AttributeMap applyDefaultReadWriteTimeout(LazyValueSource config, AttributeMap serviceHttpConfig) {
+        boolean gateEnabled = new EnableDefaultSocketTimeout2026Resolver()
+            .defaultEnableSocketTimeout2026(config.get(SdkClientOption.DEFAULT_ENABLE_SOCKET_TIMEOUT_2026))
+            .resolve();
+
+        Duration bakedTier = serviceHttpConfig.get(SdkHttpConfigurationOption.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT);
+
+        if (gateEnabled) {
+            if (bakedTier != null) {
+                return serviceHttpConfig;
+            }
+            return serviceHttpConfig.toBuilder()
+                                    .put(SdkHttpConfigurationOption.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT,
+                                         DEFAULT_READ_WRITE_TIMEOUT)
+                                    .build();
+        }
+
+        if (bakedTier != null && !bakedTier.isZero()) {
+            return serviceHttpConfig.toBuilder()
+                                    .put(SdkHttpConfigurationOption.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT, Duration.ZERO)
+                                    .build();
+        }
+        return serviceHttpConfig;
     }
 
     /**
@@ -313,32 +356,12 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     /**
-     * Resolve the signing region from the default-applied configuration.
+     * Fallback signing region resolution. Returns the client region as-is.
+     * Generated service builders resolve the signing region from endpoint rules in finalizeServiceConfiguration,
+     * which takes precedence over this fallback via lazyOptionIfAbsent ordering.
      */
     private Region resolveSigningRegion(LazyValueSource config) {
-        return ServiceMetadata.of(serviceEndpointPrefix())
-                              .signingRegion(config.get(AwsClientOption.AWS_REGION));
-    }
-
-    /**
-     * Specify the client endpoint provider to use for the client, if the client didn't specify one itself.
-     * <p>
-     * This is only used for older client versions. Newer clients specify this value themselves.
-     */
-    private ClientEndpointProvider resolveClientEndpointProvider(LazyValueSource config) {
-        ServiceMetadataAdvancedOption<String> useGlobalS3EndpointProperty =
-            ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT;
-        return AwsClientEndpointProvider.builder()
-                                        .serviceEndpointPrefix(serviceEndpointPrefix())
-                                        .defaultProtocol(DEFAULT_ENDPOINT_PROTOCOL)
-                                        .region(config.get(AwsClientOption.AWS_REGION))
-                                        .profileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                        .profileName(config.get(SdkClientOption.PROFILE_NAME))
-                                        .putAdvancedOption(useGlobalS3EndpointProperty,
-                                                           config.get(useGlobalS3EndpointProperty))
-                                        .dualstackEnabled(config.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
-                                        .fipsEnabled(config.get(AwsClientOption.FIPS_ENDPOINT_ENABLED))
-                                        .build();
+        return config.get(AwsClientOption.AWS_REGION);
     }
 
     /**
@@ -346,7 +369,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * information from the client endpoint provider.
      */
     private URI resolveEndpoint(LazyValueSource config) {
-        return config.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint();
+        return requireClientEndpointProvider(config).clientEndpoint();
     }
 
     /**
@@ -354,7 +377,16 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * client versions resolve this information from the client endpoint provider.
      */
     private boolean resolveEndpointOverridden(LazyValueSource config) {
-        return config.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden();
+        return requireClientEndpointProvider(config).isEndpointOverridden();
+    }
+
+    private ClientEndpointProvider requireClientEndpointProvider(LazyValueSource config) {
+        ClientEndpointProvider clientEndpointProvider = config.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER);
+        Validate.notNull(clientEndpointProvider,
+                         "No CLIENT_ENDPOINT_PROVIDER was configured. This is typically caused by using "
+                         + "an older service client version with a newer sdk-core. "
+                         + "Please align all SDK dependency versions.");
+        return clientEndpointProvider;
     }
 
     /**

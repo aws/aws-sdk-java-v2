@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -27,13 +28,17 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.TaggingDirective;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -108,18 +113,22 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
     S3CrtAsyncClientBuilder region(Region region);
 
     /**
-     * Sets the minimum part size for transfer parts. Decreasing the minimum part size causes multipart transfer to be split into
-     * a larger number of smaller parts. Setting this value too low has a negative effect on transfer speeds, causing extra
+     * Sets the minimum part size for transfer parts. This applies to uploads, copies and downloads: uploads are sent as multipart
+     * upload parts of this size, {@code copyObject} copies large objects as multipart copy parts of this size, and downloads are
+     * fetched in parts of this size using ranged GET requests. Decreasing the minimum part size causes a transfer to be split
+     * into a larger number of smaller parts. Setting this value too low has a negative effect on transfer speeds, causing extra
      * latency and network communication for each part.
      *
      * <p>
-     * By default, it is 8MB. See <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/qfacts.html">Amazon S3 multipart
-     * upload limits</a> for guidance.
+     * If not set, uploads and copies use a part size of 8MB, and downloads use a part size that the AWS CRT chooses based on the
+     * {@link #maxNativeMemoryLimitInBytes(Long)} and {@link #targetThroughputInGbps(Double)} settings. See
+     * <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/qfacts.html">Amazon S3 multipart upload limits</a> for
+     * guidance on part sizes.
      *
-     * @param uploadPartSize The minimum part size for transfer parts.
+     * @param partSizeInBytes The minimum part size for transfer parts.
      * @return this builder for method chaining.
      */
-    S3CrtAsyncClientBuilder minimumPartSizeInBytes(Long uploadPartSize);
+    S3CrtAsyncClientBuilder minimumPartSizeInBytes(Long partSizeInBytes);
 
     /**
      * The amount of native memory that CRT is allowed to use when making requests to S3.
@@ -221,7 +230,7 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * parts. Maintain a smaller window to limit the amount of data buffered in memory.
      *
      * <p>
-     * By default, it is equal to the resolved part size * 10
+     * By default, it is 10 times the {@link #minimumPartSizeInBytes(Long)} value, or 80MB if no part size is set.
      *
      * @param initialReadBufferSizeInBytes the initial read buffer size
      * @return this builder for method chaining.
@@ -322,6 +331,12 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * multipart upload</a>.
      *
      * <p>
+     * When {@code copyObject} performs a multipart copy, it copies the source object's tags only when
+     * {@link CopyObjectRequest.Builder#taggingDirective(TaggingDirective)} is set to {@code COPY}. A copy at or under the
+     * threshold or the part size is a single {@code CopyObject} request, for which S3's default tagging directive is
+     * {@code COPY}.
+     *
+     * <p>
      * By default, it is the same as {@link #minimumPartSizeInBytes(Long)}.
      *
      * @param thresholdInBytes the value of the threshold to set.
@@ -378,6 +393,40 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * map must match the key type of the map, or a runtime exception will be raised.
      */
     S3CrtAsyncClientBuilder advancedOptions(Map<SdkAdvancedAsyncClientOption<?>, ?> advancedOptions);
+
+    /**
+     * Sets the {@link MetricPublisher}s that this client publishes metrics to. This overrides any previously configured
+     * publishers.
+     *
+     * <p>Each underlying CRT request attempt is published as a separate {@code "ApiCall"} metric collection. A single
+     * high-level transfer (for example a multipart {@code getObject}) fans out into several underlying requests, so
+     * several collections are published per transfer.
+     *
+     * <p>When migrating from another S3 client, note that the CRT-based client does not publish
+     * {@link CoreMetric#CREDENTIALS_FETCH_DURATION}, {@link CoreMetric#READ_THROUGHPUT}, or
+     * {@link CoreMetric#WRITE_THROUGHPUT}.
+     *
+     * <p>The SDK does not close these publishers when the client is closed; the caller retains ownership and is
+     * responsible for closing them. Metric publication is asynchronous and best effort. Closing the client waits for a
+     * bounded time while pending metric collections are published, but may return before collections generated during
+     * client shutdown are delivered. If a publisher is closed concurrently with this delivery, those metric collections
+     * may not be published and a debug message may be logged. This does not affect the outcome of the S3 operation.
+     *
+     * @param metricPublishers the metric publishers to use
+     * @return this builder for method chaining.
+     */
+    S3CrtAsyncClientBuilder metricPublishers(Collection<MetricPublisher> metricPublishers);
+
+    /**
+     * Adds a {@link MetricPublisher} that this client publishes metrics to. Can be called multiple times to add several
+     * publishers.
+     *
+     * <p>See {@link #metricPublishers(Collection)} for details on how metrics are published and on publisher ownership.
+     *
+     * @param metricPublisher the metric publisher to add
+     * @return this builder for method chaining.
+     */
+    S3CrtAsyncClientBuilder addMetricPublisher(MetricPublisher metricPublisher);
 
     @Override
     S3AsyncClient build();

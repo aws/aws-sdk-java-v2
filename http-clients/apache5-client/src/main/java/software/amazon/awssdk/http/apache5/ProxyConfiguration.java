@@ -259,11 +259,18 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
         /**
          * Configure the hosts that the client is allowed to access without going through the proxy.
+         * <p>Entries supplied here are treated as exact host names (e.g. {@code example.com}) or CIDR ranges for IP addresses
+         * (e.g. {@code 10.0.0.0/8}). Wildcard patterns such as {@code *.example.com} or a bare {@code *} are not supported for
+         * entries supplied here; to use wildcards, configure them through the {@code http.nonProxyHosts} system property or the
+         * {@code NO_PROXY} environment variable instead.
          */
         Builder nonProxyHosts(Set<String> nonProxyHosts);
 
         /**
          * Add a host that the client is allowed to access without going through the proxy.
+         * <p>The host is treated as an exact host name or CIDR range; wildcard patterns are not supported for entries supplied
+         * here. See {@link #nonProxyHosts(Set)} for details on wildcard support through the system property or environment
+         * variable.
          *
          * @see ProxyConfiguration#nonProxyHosts()
          */
@@ -281,6 +288,11 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * are not provided during building the {@link ProxyConfiguration} object. To disable this behavior, set this value to
          * "false".It is important to note that when this property is set to "true," all proxy settings will exclusively originate
          * from system properties, and no partial settings will be obtained from EnvironmentVariableValues.
+         * <p>Pipe-separated host names in the {@code http.nonProxyHosts} system property indicate multiple hosts to exclude
+         * from proxy settings. Surrounding empty spaces around each host name are trimmed, so both {@code "a.com|b.com"} and
+         * {@code "a.com | b.com"} are accepted. Each entry may be an exact host name (e.g. {@code example.com}), a
+         * leading-wildcard suffix (e.g. {@code *.example.com}, which matches {@code example.com} and its subdomains),
+         * a single {@code *} (which matches all hosts), or a CIDR range for IP addresses (e.g. {@code 10.0.0.0/8}).
          */
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
 
@@ -293,7 +305,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * proxy settings will exclusively originate from environment variableValues, and no partial settings will be obtained
          * from SystemPropertyValues.
          * <p>Comma-separated host names in the NO_PROXY environment variable indicate multiple hosts to exclude from
-         * proxy settings.
+         * proxy settings. Surrounding empty spaces around each host name are trimmed, so both {@code "a.com,b.com"} and
+         * {@code "a.com, b.com"} are accepted. Each entry may be an exact host name (e.g. {@code example.com}), a
+         * leading-wildcard suffix (e.g. {@code *.example.com}, which matches {@code example.com} and its subdomains),
+         * a single {@code *} (which matches all hosts), or a CIDR range for IP addresses (e.g. {@code 10.0.0.0/8}).
          *
          * @param useEnvironmentVariableValues The option whether to use environment variable values.
          * @return This object for method chaining.

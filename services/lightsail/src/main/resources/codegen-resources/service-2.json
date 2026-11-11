@@ -2133,6 +2133,23 @@
       ],
       "documentation":"<p>Gets operations for a specific resource (an instance or a static IP).</p>"
     },
+    "GetProfile":{
+      "name":"GetProfile",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetProfileRequest"},
+      "output":{"shape":"GetProfileResult"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"AccountSetupInProgressException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"ServiceException"},
+        {"shape":"UnauthenticatedException"}
+      ],
+      "documentation":"<p>Returns information about the profile of the Amazon Lightsail account that makes the request. The response includes the profile type and, for accounts enrolled in the Lightsail partner program, the partner membership details.</p>"
+    },
     "GetRegions":{
       "name":"GetRegions",
       "http":{
@@ -3154,7 +3171,7 @@
           "documentation":"<p>The ID of the access key.</p>"
         },
         "secretAccessKey":{
-          "shape":"NonEmptyString",
+          "shape":"SensitiveNonEmptyString",
           "documentation":"<p>The secret access key used to sign requests.</p> <p>You should store the secret access key in a safe location. We recommend that you delete the access key if the secret access key is compromised.</p>"
         },
         "status":{
@@ -4851,7 +4868,7 @@
           "documentation":"<p>The container service registry username to use to push container images to the container image registry of a Lightsail account.</p>"
         },
         "password":{
-          "shape":"string",
+          "shape":"SensitiveString",
           "documentation":"<p>The container service registry password to use to push container images to the container image registry of a Lightsail account</p>"
         },
         "expiresAt":{
@@ -5401,6 +5418,26 @@
         "viewerMinimumTlsProtocolVersion":{
           "shape":"ViewerMinimumTlsProtocolVersionEnum",
           "documentation":"<p>The minimum TLS protocol version for the SSL/TLS certificate.</p>"
+        },
+        "enablePrivateOriginAccess":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether to enable private origin access for the distribution. With private origin access, the distribution can serve objects that aren't publicly accessible from a Lightsail bucket.</p> <p>Lightsail grants the distribution permission to read the bucket's objects. Enabling private origin access doesn't change the bucket's access settings, and you can still retrieve publicly accessible objects directly from the bucket's endpoint.</p> <note> <p>You can enable private origin access only when the distribution's origin is a Lightsail bucket. If the origin is another resource type, the request fails.</p> </note>"
+        },
+        "defaultRootObject":{
+          "shape":"string",
+          "documentation":"<p>The object (for example, <code>index.html</code>) that the distribution returns when a viewer requests the root URL of the distribution (<code>/</code>) instead of a specific object. The object that you specify must be available from the origin.</p>"
+        },
+        "customErrorResponses":{
+          "shape":"DistributionCustomErrorResponseList",
+          "documentation":"<p>An array of objects that describe the custom error responses for the distribution. With a custom error response, you can specify the page to return when the origin responds with a given HTTP error code. You can also specify the HTTP status code to send to the viewer.</p>"
+        },
+        "enableWaf":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether to enable Web Application Firewall (WAF) for the distribution. WAF inspects viewer requests and blocks requests that match the WAF rule groups that you enable.</p> <p>When you enable WAF without specifying the <code>wafRules</code> parameter, the distribution has no WAF rule groups enabled and doesn't block any requests.</p> <note> <p>WAF is available only for distributions that use the <code>medium_1_0</code> or <code>large_1_0</code> bundle.</p> </note>"
+        },
+        "wafRules":{
+          "shape":"WafRuleList",
+          "documentation":"<p>An array of objects that describe the WAF rule groups to enable for the distribution.</p> <p>The WAF rule groups that you can specify depend on the bundle of the distribution:</p> <ul> <li> <p> <code>medium_1_0</code> – Supports the <code>AWSManagedRulesCommonRuleSet</code>, <code>AWSManagedRulesKnownBadInputsRuleSet</code>, and <code>AWSManagedRulesAnonymousIpList</code> rule groups.</p> </li> <li> <p> <code>large_1_0</code> – Supports the rule groups for <code>medium_1_0</code>, plus <code>AWSManagedRulesAdminProtectionRuleSet</code>, <code>AWSManagedRulesSQLiRuleSet</code>, <code>AWSManagedRulesLinuxRuleSet</code>, <code>AWSManagedRulesUnixRuleSet</code>, <code>AWSManagedRulesWindowsRuleSet</code>, <code>AWSManagedRulesPHPRuleSet</code>, <code>AWSManagedRulesWordPressRuleSet</code>, <code>AWSManagedRulesAmazonIpReputationList</code>, <code>AWSManagedRulesATPRuleSet</code>, <code>AWSManagedRulesACFPRuleSet</code>, and <code>AWSManagedRulesBotControlRuleSet</code> rule groups.</p> </li> </ul>"
         }
       }
     },
@@ -5689,7 +5726,7 @@
           "documentation":"<p>A base64-encoded public key of the <code>ssh-rsa</code> type.</p>"
         },
         "privateKeyBase64":{
-          "shape":"Base64",
+          "shape":"SensitiveBase64",
           "documentation":"<p>A base64-encoded RSA private key.</p>"
         },
         "operation":{
@@ -6772,6 +6809,32 @@
       "type":"list",
       "member":{"shape":"DistributionBundle"}
     },
+    "DistributionCustomErrorResponse":{
+      "type":"structure",
+      "members":{
+        "errorCode":{
+          "shape":"integer",
+          "documentation":"<p>The HTTP error code from the origin that triggers the custom error response (for example, <code>403</code> or <code>404</code>).</p>"
+        },
+        "responseCode":{
+          "shape":"string",
+          "documentation":"<p>The HTTP status code that the distribution returns to the viewer for the custom error response.</p>"
+        },
+        "responsePagePath":{
+          "shape":"string",
+          "documentation":"<p>The path to the custom error page that the distribution returns to the viewer (for example, <code>/404.html</code>). The path must begin with a forward slash (<code>/</code>) and reference an object that is available from the origin.</p>"
+        },
+        "errorCachingMinTTL":{
+          "shape":"long",
+          "documentation":"<p>The minimum time, in seconds, that the distribution caches the custom error response before requesting the object again from the origin. If you don't specify a value, the default is <code>10</code> seconds.</p>"
+        }
+      },
+      "documentation":"<p>Describes a custom error response for a Lightsail distribution. A custom error response specifies the page that the distribution returns to the viewer. It also specifies the HTTP status code that the distribution sends when the origin responds with a given HTTP error code.</p>"
+    },
+    "DistributionCustomErrorResponseList":{
+      "type":"list",
+      "member":{"shape":"DistributionCustomErrorResponse"}
+    },
     "DistributionList":{
       "type":"list",
       "member":{"shape":"LightsailDistribution"}
@@ -6784,7 +6847,9 @@
         "BytesUploaded",
         "TotalErrorRate",
         "Http4xxErrorRate",
-        "Http5xxErrorRate"
+        "Http5xxErrorRate",
+        "WafAllowedRequests",
+        "WafBlockedRequests"
       ]
     },
     "DnsRecordCreationState":{
@@ -6940,7 +7005,7 @@
           "documentation":"<p>A base64-encoded public key of the <code>ssh-rsa</code> type.</p>"
         },
         "privateKeyBase64":{
-          "shape":"Base64",
+          "shape":"SensitiveBase64",
           "documentation":"<p>A base64-encoded RSA private key.</p>"
         },
         "createdAt":{
@@ -7832,7 +7897,7 @@
         },
         "metricName":{
           "shape":"DistributionMetricName",
-          "documentation":"<p>The metric for which you want to return information.</p> <p>Valid distribution metric names are listed below, along with the most useful <code>statistics</code> to include in your request, and the published <code>unit</code> value.</p> <ul> <li> <p> <b> <code>Requests</code> </b> - The total number of viewer requests received by your Lightsail distribution, for all HTTP methods, and for both HTTP and HTTPS requests.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>BytesDownloaded</code> </b> - The number of bytes downloaded by viewers for GET, HEAD, and OPTIONS requests.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>BytesUploaded </code> </b> - The number of bytes uploaded to your origin by your Lightsail distribution, using POST and PUT requests.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>TotalErrorRate</code> </b> - The percentage of all viewer requests for which the response's HTTP status code was 4xx or 5xx.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>4xxErrorRate</code> </b> - The percentage of all viewer requests for which the response's HTTP status cod was 4xx. In these cases, the client or client viewer may have made an error. For example, a status code of 404 (Not Found) means that the client requested an object that could not be found.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>5xxErrorRate</code> </b> - The percentage of all viewer requests for which the response's HTTP status code was 5xx. In these cases, the origin server did not satisfy the requests. For example, a status code of 503 (Service Unavailable) means that the origin server is currently unavailable.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> </ul>"
+          "documentation":"<p>The metric for which you want to return information.</p> <p>Valid distribution metric names are listed below, along with the most useful <code>statistics</code> to include in your request, and the published <code>unit</code> value.</p> <ul> <li> <p> <b> <code>Requests</code> </b> - The total number of viewer requests received by your Lightsail distribution, for all HTTP methods, and for both HTTP and HTTPS requests.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>BytesDownloaded</code> </b> - The number of bytes downloaded by viewers for GET, HEAD, and OPTIONS requests.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>BytesUploaded </code> </b> - The number of bytes uploaded to your origin by your Lightsail distribution, using POST and PUT requests.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>TotalErrorRate</code> </b> - The percentage of all viewer requests for which the response's HTTP status code was 4xx or 5xx.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>4xxErrorRate</code> </b> - The percentage of all viewer requests for which the response's HTTP status cod was 4xx. In these cases, the client or client viewer may have made an error. For example, a status code of 404 (Not Found) means that the client requested an object that could not be found.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>5xxErrorRate</code> </b> - The percentage of all viewer requests for which the response's HTTP status code was 5xx. In these cases, the origin server did not satisfy the requests. For example, a status code of 503 (Service Unavailable) means that the origin server is currently unavailable.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>WafAllowedRequests</code> </b> - The number of viewer requests that Web Application Firewall (WAF) allowed. This metric is available only when WAF is enabled for the distribution.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>WafBlockedRequests</code> </b> - The number of viewer requests that WAF blocked. This metric is available only when WAF is enabled for the distribution.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> </ul>"
         },
         "startTime":{
           "shape":"timestamp",
@@ -7999,7 +8064,7 @@
         },
         "metricName":{
           "shape":"InstanceMetricName",
-          "documentation":"<p>The metric for which you want to return information.</p> <p>Valid instance metric names are listed below, along with the most useful <code>statistics</code> to include in your request, and the published <code>unit</code> value.</p> <ul> <li> <p> <b> <code>BurstCapacityPercentage</code> </b> - The percentage of CPU performance available for your instance to burst above its baseline. Your instance continuously accrues and consumes burst capacity. Burst capacity stops accruing when your instance's <code>BurstCapacityPercentage</code> reaches 100%. For more information, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-viewing-instance-burst-capacity\">Viewing instance burst capacity in Amazon Lightsail</a>.</p> <p> <code>Statistics</code>: The most useful statistics are <code>Maximum</code> and <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>BurstCapacityTime</code> </b> - The available amount of time for your instance to burst at 100% CPU utilization. Your instance continuously accrues and consumes burst capacity. Burst capacity time stops accruing when your instance's <code>BurstCapacityPercentage</code> metric reaches 100%.</p> <p>Burst capacity time is consumed at the full rate only when your instance operates at 100% CPU utilization. For example, if your instance operates at 50% CPU utilization in the burstable zone for a 5-minute period, then it consumes CPU burst capacity minutes at a 50% rate in that period. Your instance consumed 2 minutes and 30 seconds of CPU burst capacity minutes in the 5-minute period. For more information, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-viewing-instance-burst-capacity\">Viewing instance burst capacity in Amazon Lightsail</a>.</p> <p> <code>Statistics</code>: The most useful statistics are <code>Maximum</code> and <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Seconds</code>.</p> </li> <li> <p> <b> <code>CPUUtilization</code> </b> - The percentage of allocated compute units that are currently in use on the instance. This metric identifies the processing power to run the applications on the instance. Tools in your operating system can show a lower percentage than Lightsail when the instance is not allocated a full processor core.</p> <p> <code>Statistics</code>: The most useful statistics are <code>Maximum</code> and <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>NetworkIn</code> </b> - The number of bytes received on all network interfaces by the instance. This metric identifies the volume of incoming network traffic to the instance. The number reported is the number of bytes received during the period. Because this metric is reported in 5-minute intervals, divide the reported number by 300 to find Bytes/second.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Bytes</code>.</p> </li> <li> <p> <b> <code>NetworkOut</code> </b> - The number of bytes sent out on all network interfaces by the instance. This metric identifies the volume of outgoing network traffic from the instance. The number reported is the number of bytes sent during the period. Because this metric is reported in 5-minute intervals, divide the reported number by 300 to find Bytes/second.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Bytes</code>.</p> </li> <li> <p> <b> <code>StatusCheckFailed</code> </b> - Reports whether the instance passed or failed both the instance status check and the system status check. This metric can be either 0 (passed) or 1 (failed). This metric data is available in 1-minute (60 seconds) granularity.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>StatusCheckFailed_Instance</code> </b> - Reports whether the instance passed or failed the instance status check. This metric can be either 0 (passed) or 1 (failed). This metric data is available in 1-minute (60 seconds) granularity.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>StatusCheckFailed_System</code> </b> - Reports whether the instance passed or failed the system status check. This metric can be either 0 (passed) or 1 (failed). This metric data is available in 1-minute (60 seconds) granularity.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>MetadataNoToken</code> </b> - Reports the number of times that the instance metadata service was successfully accessed without a token. This metric determines if there are any processes accessing instance metadata by using Instance Metadata Service Version 1, which doesn't use a token. If all requests use token-backed sessions, such as Instance Metadata Service Version 2, then the value is 0.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> </ul>"
+          "documentation":"<p>The metric for which you want to return information.</p> <p>Valid instance metric names are listed below, along with the most useful <code>statistics</code> to include in your request, and the published <code>unit</code> value.</p> <ul> <li> <p> <b> <code>BurstCapacityPercentage</code> </b> - The percentage of CPU performance available for your instance to burst above its baseline. Your instance continuously accrues and consumes burst capacity. Burst capacity stops accruing when your instance's <code>BurstCapacityPercentage</code> reaches 100%. For more information, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-viewing-instance-burst-capacity\">Viewing instance burst capacity in Amazon Lightsail</a>.</p> <p> <code>Statistics</code>: The most useful statistics are <code>Maximum</code> and <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>BurstCapacityTime</code> </b> - The available amount of time for your instance to burst at 100% CPU utilization. Your instance continuously accrues and consumes burst capacity. Burst capacity time stops accruing when your instance's <code>BurstCapacityPercentage</code> metric reaches 100%.</p> <p>Burst capacity time is consumed at the full rate only when your instance operates at 100% CPU utilization. For example, if your instance operates at 50% CPU utilization in the burstable zone for a 5-minute period, then it consumes CPU burst capacity minutes at a 50% rate in that period. Your instance consumed 2 minutes and 30 seconds of CPU burst capacity minutes in the 5-minute period. For more information, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-viewing-instance-burst-capacity\">Viewing instance burst capacity in Amazon Lightsail</a>.</p> <p> <code>Statistics</code>: The most useful statistics are <code>Maximum</code> and <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Seconds</code>.</p> </li> <li> <p> <b> <code>CPUUtilization</code> </b> - The percentage of allocated compute units that are currently in use on the instance. This metric identifies the processing power to run the applications on the instance. Tools in your operating system can show a lower percentage than Lightsail when the instance is not allocated a full processor core.</p> <p> <code>Statistics</code>: The most useful statistics are <code>Maximum</code> and <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>NetworkIn</code> </b> - The number of bytes received on all network interfaces by the instance. This metric identifies the volume of incoming network traffic to the instance. The number reported is the number of bytes received during the period. Because this metric is reported in 5-minute intervals, divide the reported number by 300 to find Bytes/second.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Bytes</code>.</p> </li> <li> <p> <b> <code>NetworkOut</code> </b> - The number of bytes sent out on all network interfaces by the instance. This metric identifies the volume of outgoing network traffic from the instance. The number reported is the number of bytes sent during the period. Because this metric is reported in 5-minute intervals, divide the reported number by 300 to find Bytes/second.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Bytes</code>.</p> </li> <li> <p> <b> <code>StatusCheckFailed</code> </b> - Reports whether the instance passed or failed both the instance status check and the system status check. This metric can be either 0 (passed) or 1 (failed). This metric data is available in 1-minute (60 seconds) granularity.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>StatusCheckFailed_Instance</code> </b> - Reports whether the instance passed or failed the instance status check. This metric can be either 0 (passed) or 1 (failed). This metric data is available in 1-minute (60 seconds) granularity.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>StatusCheckFailed_System</code> </b> - Reports whether the instance passed or failed the system status check. This metric can be either 0 (passed) or 1 (failed). This metric data is available in 1-minute (60 seconds) granularity.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>MetadataNoToken</code> </b> - Reports the number of times that the instance metadata service was successfully accessed without a token. This metric determines if there are any processes accessing instance metadata by using Instance Metadata Service Version 1, which doesn't use a token. If all requests use token-backed sessions, such as Instance Metadata Service Version 2, then the value is 0.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>DiskReadOps</code> </b> - The number of read operations completed on the system disk of the instance during the period. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>DiskWriteOps</code> </b> - The number of write operations completed on the system disk of the instance during the period. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>DiskReadBytes</code> </b> - The number of bytes read from the system disk of the instance during the period. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Bytes</code>.</p> </li> <li> <p> <b> <code>DiskWriteBytes</code> </b> - The number of bytes written to the system disk of the instance during the period. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Bytes</code>.</p> </li> <li> <p> <b> <code>DiskTotalReadTime</code> </b> - The total number of seconds spent by all read operations that completed on the system disk of the instance during the period. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Seconds</code>.</p> </li> <li> <p> <b> <code>DiskTotalWriteTime</code> </b> - The total number of seconds spent by all write operations that completed on the system disk of the instance during the period. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Seconds</code>.</p> </li> <li> <p> <b> <code>DiskQueueLength</code> </b> - The number of read and write requests that are waiting to access the system disk of the instance. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> </ul> <p>For more information about system disk performance metrics, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-viewing-instance-disk-performance-metrics\">View system disk performance metrics for your Lightsail instance</a>.</p>"
         },
         "period":{
           "shape":"MetricPeriod",
@@ -8062,6 +8127,10 @@
         "instanceName":{
           "shape":"ResourceName",
           "documentation":"<p>The name of the instance.</p>"
+        },
+        "includeHealthStatus":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether to include the instance health status checks in the response of your request.</p> <p>When set to <code>true</code>, the response includes the <code>instanceStatus</code> and <code>systemStatus</code> of the instance. When omitted or set to <code>false</code>, the response doesn't include them.</p>"
         }
       }
     },
@@ -8140,6 +8209,10 @@
         "pageToken":{
           "shape":"string",
           "documentation":"<p>The token to advance to the next page of results from your request.</p> <p>To get a page token, perform an initial <code>GetInstances</code> request. If your results are paginated, the response will return a next page token that you can specify as the page token in a subsequent request.</p>"
+        },
+        "includeHealthStatus":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether to include the instance health status checks of each instance in the response of your request.</p> <p>When set to <code>true</code>, the response includes the <code>instanceStatus</code> and <code>systemStatus</code> of each instance. When omitted or set to <code>false</code>, the response doesn't include them.</p>"
         }
       }
     },
@@ -8408,6 +8481,24 @@
         "nextPageToken":{
           "shape":"string",
           "documentation":"<p>The token to advance to the next page of results from your request.</p> <p>A next page token is not returned if there are no more results to display.</p> <p>To get the next page of results, perform another <code>GetOperations</code> request and specify the next page token using the <code>pageToken</code> parameter.</p>"
+        }
+      }
+    },
+    "GetProfileRequest":{
+      "type":"structure",
+      "members":{}
+    },
+    "GetProfileResult":{
+      "type":"structure",
+      "required":["profileType"],
+      "members":{
+        "profileType":{
+          "shape":"ProfileType",
+          "documentation":"<p>The type of the profile.</p> <p>The following profile types are possible:</p> <ul> <li> <p> <code>Lightsailor</code> – The account is not enrolled in the Lightsail partner program.</p> </li> <li> <p> <code>LightsailPartner</code> – The account is enrolled in the Lightsail partner program.</p> </li> </ul>"
+        },
+        "partner":{
+          "shape":"PartnerInfo",
+          "documentation":"<p>An object that describes the partner membership of the account, such as the tier of the membership, its status, and when the account was enrolled.</p> <p>This parameter is returned only for accounts that have a <code>profileType</code> of <code>LightsailPartner</code>.</p>"
         }
       }
     },
@@ -9088,6 +9179,14 @@
         "metadataOptions":{
           "shape":"InstanceMetadataOptions",
           "documentation":"<p>The metadata options for the Amazon Lightsail instance.</p>"
+        },
+        "instanceStatus":{
+          "shape":"InstanceHealthStatus",
+          "documentation":"<p>Reports impaired functionality that stems from issues internal to the instance, such as impaired reachability.</p> <p>This value is returned only when you set <code>includeHealthStatus</code> to <code>true</code> in your request.</p>"
+        },
+        "systemStatus":{
+          "shape":"InstanceHealthStatus",
+          "documentation":"<p>Reports impaired functionality that stems from issues related to the systems that support an instance, such as hardware failures and network connectivity problems.</p> <p>This value is returned only when you set <code>includeHealthStatus</code> to <code>true</code> in your request.</p>"
         }
       },
       "documentation":"<p>Describes an instance (a virtual private server).</p>"
@@ -9112,7 +9211,7 @@
           "documentation":"<p>The IPv6 address of the Amazon Lightsail instance.</p>"
         },
         "password":{
-          "shape":"string",
+          "shape":"SensitiveString",
           "documentation":"<p>For RDP access, the password for your Amazon Lightsail instance. Password will be an empty string if the password for your new instance is not ready yet. When you create an instance, it can take up to 15 minutes for the instance to be ready.</p> <note> <p>If you create an instance using any key pair other than the default (<code>LightsailDefaultKeyPair</code>), <code>password</code> will always be an empty string.</p> <p>If you change the Administrator password on the instance, Lightsail will continue to return the original password value. When accessing the instance using RDP, you need to manually enter the Administrator password after changing it from the default.</p> </note>"
         },
         "passwordData":{
@@ -9120,7 +9219,7 @@
           "documentation":"<p>For a Windows Server-based instance, an object with the data you can use to retrieve your password. This is only needed if <code>password</code> is empty and the instance is not new (and therefore the password is not ready yet). When you create an instance, it can take up to 15 minutes for the instance to be ready.</p>"
         },
         "privateKey":{
-          "shape":"string",
+          "shape":"SensitiveString",
           "documentation":"<p>For SSH access, the temporary private key. For OpenSSH clients (command line SSH), you should save this value to <code>tempkey</code>).</p>"
         },
         "protocol":{
@@ -9148,6 +9247,16 @@
         "ssh",
         "rdp"
       ]
+    },
+    "InstanceAttributeUpdates":{
+      "type":"structure",
+      "members":{
+        "bundleId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ID of the bundle to update the instance to.</p> <p>Specify one of the following values for the bundle ID:</p> <ul> <li> <p> <b> <code>auto</code> </b> – Updates an instance that runs on a previous-generation bundle to the newer-generation equivalent of that bundle. For example, specify <code>auto</code> to update an instance that runs on <code>small_2_0</code> to <code>small_3_0</code>.</p> </li> <li> <p> <b>Newer-generation bundle ID</b> – Updates an instance that runs on a previous-generation bundle to the specified bundle. For example, specify <code>small_3_0</code> to update an instance that runs on <code>small_2_0</code> to <code>small_3_0</code>.</p> </li> <li> <p> <b>Original bundle ID</b> – Updates an instance to the previous-generation bundle that it ran on before an earlier update. For example, specify <code>small_2_0</code> to return an instance that runs on <code>small_3_0</code> to <code>small_2_0</code>.</p> </li> </ul> <note> <p>The instance must be in the <code>stopped</code> state to update its bundle.</p> <p>There is no additional cost to update an instance to a newer-generation bundle.</p> </note>"
+        }
+      },
+      "documentation":"<p>Describes the attributes to update on a Lightsail instance when it starts.</p>"
     },
     "InstanceEntry":{
       "type":"structure",
@@ -9230,6 +9339,65 @@
         "unavailable"
       ]
     },
+    "InstanceHealthStatus":{
+      "type":"structure",
+      "members":{
+        "status":{
+          "shape":"InstanceHealthStatusValue",
+          "documentation":"<p>The status.</p> <p>The following values are possible:</p> <ul> <li> <p> <code>ok</code> - All checks are passing. The instance is reachable.</p> </li> <li> <p> <code>impaired</code> - One or more checks have failed.</p> </li> <li> <p> <code>initializing</code> - The instance was recently started, and the checks are in progress.</p> </li> <li> <p> <code>insufficient-data</code> - There isn't enough data yet to determine the result.</p> </li> <li> <p> <code>not-applicable</code> - The check doesn't apply because the instance isn't running.</p> </li> </ul>"
+        },
+        "details":{
+          "shape":"InstanceHealthStatusDetailList",
+          "documentation":"<p>The system instance health or instance health.</p>"
+        }
+      },
+      "documentation":"<p>Describes the status of an Amazon Lightsail instance.</p>"
+    },
+    "InstanceHealthStatusDetail":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"InstanceHealthStatusDetailName",
+          "documentation":"<p>The type of instance status. The only possible value is <code>reachability</code>.</p>"
+        },
+        "status":{
+          "shape":"InstanceHealthStatusDetailValue",
+          "documentation":"<p>The status.</p> <p>The following values are possible:</p> <ul> <li> <p> <code>passed</code> - The check passed.</p> </li> <li> <p> <code>failed</code> - The check failed.</p> </li> <li> <p> <code>initializing</code> - The check is in progress.</p> </li> <li> <p> <code>insufficient-data</code> - There isn't enough data yet to determine the result.</p> </li> </ul>"
+        },
+        "impairedSince":{
+          "shape":"IsoDate",
+          "documentation":"<p>The time when a status check failed. For an instance that was launched and impaired, this is the time when the instance was launched.</p>"
+        }
+      },
+      "documentation":"<p>Describes the instance status.</p>"
+    },
+    "InstanceHealthStatusDetailList":{
+      "type":"list",
+      "member":{"shape":"InstanceHealthStatusDetail"}
+    },
+    "InstanceHealthStatusDetailName":{
+      "type":"string",
+      "enum":["reachability"]
+    },
+    "InstanceHealthStatusDetailValue":{
+      "type":"string",
+      "enum":[
+        "passed",
+        "failed",
+        "insufficient-data",
+        "initializing"
+      ]
+    },
+    "InstanceHealthStatusValue":{
+      "type":"string",
+      "enum":[
+        "ok",
+        "impaired",
+        "initializing",
+        "insufficient-data",
+        "not-applicable"
+      ]
+    },
     "InstanceHealthSummary":{
       "type":"structure",
       "members":{
@@ -9300,7 +9468,14 @@
         "StatusCheckFailed_System",
         "BurstCapacityTime",
         "BurstCapacityPercentage",
-        "MetadataNoToken"
+        "MetadataNoToken",
+        "DiskReadOps",
+        "DiskWriteOps",
+        "DiskReadBytes",
+        "DiskWriteBytes",
+        "DiskTotalReadTime",
+        "DiskTotalWriteTime",
+        "DiskQueueLength"
       ]
     },
     "InstanceNetworking":{
@@ -9705,6 +9880,18 @@
         "viewerMinimumTlsProtocolVersion":{
           "shape":"string",
           "documentation":"<p>The minimum TLS protocol version that the distribution can use to communicate with viewers.</p>"
+        },
+        "defaultRootObject":{
+          "shape":"string",
+          "documentation":"<p>The object (for example, <code>index.html</code>) that the distribution returns when a viewer requests the root URL of the distribution (<code>/</code>) instead of a specific object.</p>"
+        },
+        "customErrorResponses":{
+          "shape":"DistributionCustomErrorResponseList",
+          "documentation":"<p>An array of objects that describe the custom error responses configured for the distribution.</p>"
+        },
+        "waf":{
+          "shape":"WafConfig",
+          "documentation":"<p>An object that describes the Web Application Firewall (WAF) configuration of the distribution.</p>"
         }
       },
       "documentation":"<p>Describes an Amazon Lightsail content delivery network (CDN) distribution.</p>"
@@ -10227,8 +10414,17 @@
         "FreeStorageSpace",
         "NetworkReceiveThroughput",
         "NetworkTransmitThroughput",
+        "FreeableMemory",
+        "SwapUsage",
         "BurstCapacityTime",
-        "BurstCapacityPercentage"
+        "BurstCapacityPercentage",
+        "DiskReadOps",
+        "DiskWriteOps",
+        "DiskReadBytes",
+        "DiskWriteBytes",
+        "DiskTotalReadTime",
+        "DiskTotalWriteTime",
+        "DiskQueueLength"
       ]
     },
     "MetricPeriod":{
@@ -10552,7 +10748,8 @@
         "UpdateInstanceMetadataOptions",
         "StartGUISession",
         "StopGUISession",
-        "SetupInstanceHttps"
+        "SetupInstanceHttps",
+        "GetProfile"
       ]
     },
     "Origin":{
@@ -10581,6 +10778,10 @@
         "ipAddressType":{
           "shape":"OriginIpAddressTypeEnum",
           "documentation":"<p>The IP address type that the distribution uses when connecting to the origin.</p> <p>The possible values are <code>ipv4</code> for IPv4 only, <code>ipv6</code> for IPv6 only, and <code>dualstack</code> for IPv4 and IPv6.</p>"
+        },
+        "isPrivateOriginAccessEnabled":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether private origin access is enabled for the distribution's origin. With private origin access, the distribution can serve objects that aren't publicly accessible from a Lightsail bucket.</p> <p>This applies when you set the bucket's <code>getObject</code> access rule to <code>private</code>. It also applies when you set <code>getObject</code> to <code>public</code> but set individual objects to private.</p>"
         }
       },
       "documentation":"<p>Describes the origin resource of an Amazon Lightsail content delivery network (CDN) distribution.</p> <p>An origin can be a Lightsail instance, bucket, or load balancer. A distribution pulls content from an origin, caches it, and serves it to viewers via a worldwide network of edge servers.</p>"
@@ -10605,11 +10806,40 @@
       "member":{"shape":"NonEmptyString"},
       "max":10
     },
+    "PartnerInfo":{
+      "type":"structure",
+      "required":[
+        "enrolledAt",
+        "status"
+      ],
+      "members":{
+        "enrolledAt":{
+          "shape":"IsoDate",
+          "documentation":"<p>The timestamp when the account was enrolled in the Lightsail partner program.</p>"
+        },
+        "tierName":{
+          "shape":"TierName",
+          "documentation":"<p>The tier of the partner membership.</p>"
+        },
+        "status":{
+          "shape":"PartnerStatus",
+          "documentation":"<p>The status of the partner membership.</p> <p>The following statuses are possible:</p> <ul> <li> <p> <code>Active</code> – The membership is active, and the benefits of the current tier are available to the account.</p> </li> <li> <p> <code>Suspended</code> – The membership is suspended, and the benefits of the tier are not available to the account.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>An object that contains information about the Lightsail partner program membership of an Amazon Lightsail account.</p>"
+    },
+    "PartnerStatus":{
+      "type":"string",
+      "enum":[
+        "Active",
+        "Suspended"
+      ]
+    },
     "PasswordData":{
       "type":"structure",
       "members":{
         "ciphertext":{
-          "shape":"string",
+          "shape":"SensitiveString",
           "documentation":"<p>The encrypted password. Ciphertext will be an empty string if access to your new instance is not ready yet. When you create an instance, it can take up to 15 minutes for the instance to be ready.</p> <note> <p>If you use the default key pair (<code>LightsailDefaultKeyPair</code>), the decrypted password will be available in the password field.</p> <p>If you are using a custom key pair, you need to use your own means of decryption.</p> <p>If you change the Administrator password on the instance, Lightsail will continue to return the original ciphertext value. When accessing the instance using RDP, you need to manually enter the Administrator password after changing it from the default.</p> </note>"
         },
         "keyPairName":{
@@ -10658,7 +10888,7 @@
       "type":"structure",
       "members":{
         "masterUserPassword":{
-          "shape":"string",
+          "shape":"SensitiveString",
           "documentation":"<p>The password for the master user of the database.</p>"
         },
         "engineVersion":{
@@ -10773,6 +11003,13 @@
       },
       "documentation":"<p>Describes a request to configure an Amazon Lightsail container service to access private container image repositories, such as Amazon Elastic Container Registry (Amazon ECR) private repositories.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-container-service-ecr-private-repo-access\">Configuring access to an Amazon ECR private repository for an Amazon Lightsail container service</a> in the <i>Amazon Lightsail Developer Guide</i>.</p>"
     },
+    "ProfileType":{
+      "type":"string",
+      "enum":[
+        "Lightsailor",
+        "LightsailPartner"
+      ]
+    },
     "PutAlarmRequest":{
       "type":"structure",
       "required":[
@@ -10790,7 +11027,7 @@
         },
         "metricName":{
           "shape":"MetricName",
-          "documentation":"<p>The name of the metric to associate with the alarm.</p> <p>You can configure up to two alarms per metric.</p> <p>The following metrics are available for each resource type:</p> <ul> <li> <p> <b>Instances</b>: <code>BurstCapacityPercentage</code>, <code>BurstCapacityTime</code>, <code>CPUUtilization</code>, <code>NetworkIn</code>, <code>NetworkOut</code>, <code>StatusCheckFailed</code>, <code>StatusCheckFailed_Instance</code>, and <code>StatusCheckFailed_System</code>.</p> </li> <li> <p> <b>Load balancers</b>: <code>ClientTLSNegotiationErrorCount</code>, <code>HealthyHostCount</code>, <code>UnhealthyHostCount</code>, <code>HTTPCode_LB_4XX_Count</code>, <code>HTTPCode_LB_5XX_Count</code>, <code>HTTPCode_Instance_2XX_Count</code>, <code>HTTPCode_Instance_3XX_Count</code>, <code>HTTPCode_Instance_4XX_Count</code>, <code>HTTPCode_Instance_5XX_Count</code>, <code>InstanceResponseTime</code>, <code>RejectedConnectionCount</code>, and <code>RequestCount</code>.</p> </li> <li> <p> <b>Relational databases</b>: <code>CPUUtilization</code>, <code>DatabaseConnections</code>, <code>DiskQueueDepth</code>, <code>FreeStorageSpace</code>, <code>NetworkReceiveThroughput</code>, and <code>NetworkTransmitThroughput</code>.</p> </li> </ul> <p>For more information about these metrics, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-resource-health-metrics#available-metrics\">Metrics available in Lightsail</a>.</p>"
+          "documentation":"<p>The name of the metric to associate with the alarm.</p> <p>You can configure up to two alarms per metric.</p> <p>The following metrics are available for each resource type:</p> <ul> <li> <p> <b>Instances</b>: <code>BurstCapacityPercentage</code>, <code>BurstCapacityTime</code>, <code>CPUUtilization</code>, <code>NetworkIn</code>, <code>NetworkOut</code>, <code>StatusCheckFailed</code>, <code>StatusCheckFailed_Instance</code>, <code>StatusCheckFailed_System</code>, <code>DiskReadOps</code>, <code>DiskWriteOps</code>, <code>DiskReadBytes</code>, <code>DiskWriteBytes</code>, <code>DiskTotalReadTime</code>, <code>DiskTotalWriteTime</code>, and <code>DiskQueueLength</code>.</p> </li> <li> <p> <b>Load balancers</b>: <code>ClientTLSNegotiationErrorCount</code>, <code>HealthyHostCount</code>, <code>UnhealthyHostCount</code>, <code>HTTPCode_LB_4XX_Count</code>, <code>HTTPCode_LB_5XX_Count</code>, <code>HTTPCode_Instance_2XX_Count</code>, <code>HTTPCode_Instance_3XX_Count</code>, <code>HTTPCode_Instance_4XX_Count</code>, <code>HTTPCode_Instance_5XX_Count</code>, <code>InstanceResponseTime</code>, <code>RejectedConnectionCount</code>, and <code>RequestCount</code>.</p> </li> <li> <p> <b>Relational databases</b>: <code>CPUUtilization</code>, <code>DatabaseConnections</code>, <code>DiskQueueDepth</code>, <code>FreeStorageSpace</code>, <code>NetworkReceiveThroughput</code>, and <code>NetworkTransmitThroughput</code>.</p> </li> </ul> <p>For more information about these metrics, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-resource-health-metrics#available-metrics\">Metrics available in Lightsail</a>.</p>"
         },
         "monitoredResourceName":{
           "shape":"ResourceName",
@@ -11337,7 +11574,9 @@
         "DiskQueueDepth",
         "FreeStorageSpace",
         "NetworkReceiveThroughput",
-        "NetworkTransmitThroughput"
+        "NetworkTransmitThroughput",
+        "FreeableMemory",
+        "SwapUsage"
       ]
     },
     "RelationalDatabaseParameter":{
@@ -11678,6 +11917,10 @@
         }
       }
     },
+    "SensitiveBase64":{
+      "type":"string",
+      "sensitive":true
+    },
     "SensitiveNonEmptyString":{
       "type":"string",
       "pattern":".*\\S.*",
@@ -11981,6 +12224,10 @@
         "instanceName":{
           "shape":"ResourceName",
           "documentation":"<p>The name of the instance (a virtual private server) to start.</p>"
+        },
+        "attributeUpdates":{
+          "shape":"InstanceAttributeUpdates",
+          "documentation":"<p>An object that describes the attributes to update on the instance before it starts.</p>"
         }
       }
     },
@@ -12252,6 +12499,15 @@
         }
       }
     },
+    "TierName":{
+      "type":"string",
+      "enum":[
+        "Essential",
+        "Growth",
+        "Accelerate",
+        "Premier"
+      ]
+    },
     "TimeOfDay":{
       "type":"string",
       "pattern":"^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"
@@ -12502,6 +12758,26 @@
         "useDefaultCertificate":{
           "shape":"boolean",
           "documentation":"<p>Indicates whether the default SSL/TLS certificate is attached to the distribution. The default value is <code>true</code>. When <code>true</code>, the distribution uses the default domain name such as <code>d111111abcdef8.cloudfront.net</code>.</p> <p> Set this value to <code>false</code> to attach a new certificate to the distribution.</p>"
+        },
+        "enablePrivateOriginAccess":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether to enable private origin access for the distribution. With private origin access, the distribution can serve objects that aren't publicly accessible from a Lightsail bucket.</p> <p>Lightsail grants the distribution permission to read the bucket's objects. Enabling private origin access doesn't change the bucket's access settings, and you can still retrieve publicly accessible objects directly from the bucket's endpoint.</p> <note> <p>When you include this parameter, you must also include the <code>origin</code> parameter with the resource name, even if the origin is not changing.</p> <p>You can enable private origin access only when the distribution's origin is a Lightsail bucket. If the origin is another resource type, the request fails.</p> </note>"
+        },
+        "defaultRootObject":{
+          "shape":"string",
+          "documentation":"<p>The object (for example, <code>index.html</code>) that the distribution returns when a viewer requests the root URL of the distribution (<code>/</code>) instead of a specific object. The object that you specify must be available from the origin.</p>"
+        },
+        "customErrorResponses":{
+          "shape":"DistributionCustomErrorResponseList",
+          "documentation":"<p>An array of objects that describe the custom error responses for the distribution. With a custom error response, you can specify the page to return when the origin responds with a given HTTP error code. You can also specify the HTTP status code to send to the viewer.</p>"
+        },
+        "enableWaf":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether to enable Web Application Firewall (WAF) for the distribution. WAF inspects viewer requests and blocks requests that match the WAF rule groups that you enable.</p> <p>When you enable WAF without specifying the <code>wafRules</code> parameter, the distribution has no WAF rule groups enabled and doesn't block any requests.</p> <note> <p>WAF is available only for distributions that use the <code>medium_1_0</code> or <code>large_1_0</code> bundle.</p> <p>Setting this parameter to <code>false</code> disables WAF for the distribution and removes its WAF rule groups. You must enable the WAF rule groups again if you enable WAF again.</p> </note>"
+        },
+        "wafRules":{
+          "shape":"WafRuleList",
+          "documentation":"<p>An array of objects that describe the WAF rule groups to enable for the distribution.</p> <p>The array that you specify replaces the existing WAF rule groups of the distribution. To keep a WAF rule group enabled, include it in the array. To disable all WAF rule groups, specify an empty array.</p> <p>You can specify this parameter only when WAF is enabled for the distribution.</p> <p>The WAF rule groups that you can specify depend on the bundle of the distribution:</p> <ul> <li> <p> <code>medium_1_0</code> – Supports the <code>AWSManagedRulesCommonRuleSet</code>, <code>AWSManagedRulesKnownBadInputsRuleSet</code>, and <code>AWSManagedRulesAnonymousIpList</code> rule groups.</p> </li> <li> <p> <code>large_1_0</code> – Supports the rule groups for <code>medium_1_0</code>, plus <code>AWSManagedRulesAdminProtectionRuleSet</code>, <code>AWSManagedRulesSQLiRuleSet</code>, <code>AWSManagedRulesLinuxRuleSet</code>, <code>AWSManagedRulesUnixRuleSet</code>, <code>AWSManagedRulesWindowsRuleSet</code>, <code>AWSManagedRulesPHPRuleSet</code>, <code>AWSManagedRulesWordPressRuleSet</code>, <code>AWSManagedRulesAmazonIpReputationList</code>, <code>AWSManagedRulesATPRuleSet</code>, <code>AWSManagedRulesACFPRuleSet</code>, and <code>AWSManagedRulesBotControlRuleSet</code> rule groups.</p> </li> </ul>"
         }
       }
     },
@@ -12699,6 +12975,137 @@
         "TLSv1.2_2019",
         "TLSv1.2_2021"
       ]
+    },
+    "WafAcfpConfig":{
+      "type":"structure",
+      "members":{
+        "payloadType":{
+          "shape":"WafPayloadTypeEnum",
+          "documentation":"<p>The content type of the request body of account creation requests.</p> <p>The following content types are possible:</p> <ul> <li> <p> <code>JSON</code> – The request body is in JSON format.</p> </li> <li> <p> <code>FORM_ENCODED</code> – The request body is form encoded.</p> </li> </ul>"
+        },
+        "creationPath":{
+          "shape":"string",
+          "documentation":"<p>The path of the endpoint that accepts completed account creation forms (for example, <code>/signup/submit</code>). This endpoint must accept <code>POST</code> requests.</p> <p>Constraints:</p> <ul> <li> <p>Must start with a forward slash (<code>/</code>).</p> </li> <li> <p>Must contain from 1 to 256 characters.</p> </li> </ul>"
+        },
+        "registrationPagePath":{
+          "shape":"string",
+          "documentation":"<p>The path of the page that displays the account creation form (for example, <code>/signup</code>).</p> <p>Constraints:</p> <ul> <li> <p>Must start with a forward slash (<code>/</code>).</p> </li> <li> <p>Must contain from 1 to 256 characters.</p> </li> </ul>"
+        },
+        "responseInspection":{
+          "shape":"WafResponseInspection",
+          "documentation":"<p>An object that describes the HTTP status codes that your application returns for successful and failed account creation attempts.</p>"
+        }
+      },
+      "documentation":"<p>Describes the configuration of the account creation fraud prevention Web Application Firewall (WAF) rule group. The rule group inspects account creation requests to your application.</p>"
+    },
+    "WafAtpConfig":{
+      "type":"structure",
+      "members":{
+        "loginPath":{
+          "shape":"string",
+          "documentation":"<p>The path of the login endpoint of your application (for example, <code>/login</code>). Login paths that start with the path that you specify are a match.</p> <p>Constraints:</p> <ul> <li> <p>Must start with a forward slash (<code>/</code>).</p> </li> <li> <p>Must contain from 1 to 256 characters.</p> </li> </ul>"
+        },
+        "payloadType":{
+          "shape":"WafPayloadTypeEnum",
+          "documentation":"<p>The content type of the request body of login requests.</p> <p>The following content types are possible:</p> <ul> <li> <p> <code>JSON</code> – The request body is in JSON format.</p> </li> <li> <p> <code>FORM_ENCODED</code> – The request body is form encoded.</p> </li> </ul>"
+        },
+        "usernameField":{
+          "shape":"string",
+          "documentation":"<p>The name of the field in the request body that contains the username (for example, <code>/username</code> for <code>JSON</code> or <code>username</code> for <code>FORM_ENCODED</code>).</p> <p>Constraints:</p> <ul> <li> <p>For a <code>JSON</code> payload, must be a JSON pointer that starts with a forward slash (<code>/</code>).</p> </li> <li> <p>Must contain from 1 to 512 characters.</p> </li> </ul>"
+        },
+        "passwordField":{
+          "shape":"string",
+          "documentation":"<p>The name of the field in the request body that contains the password (for example, <code>/password</code> for <code>JSON</code> or <code>password</code> for <code>FORM_ENCODED</code>).</p> <p>Constraints:</p> <ul> <li> <p>For a <code>JSON</code> payload, must be a JSON pointer that starts with a forward slash (<code>/</code>).</p> </li> <li> <p>Must contain from 1 to 512 characters.</p> </li> </ul>"
+        },
+        "responseInspection":{
+          "shape":"WafResponseInspection",
+          "documentation":"<p>An object that describes the HTTP status codes that your application returns for successful and failed login attempts.</p>"
+        }
+      },
+      "documentation":"<p>Describes the configuration of the account takeover prevention Web Application Firewall (WAF) rule group. The rule group inspects login requests to the login path of your application.</p>"
+    },
+    "WafBotControlConfig":{
+      "type":"structure",
+      "members":{
+        "inspectionLevel":{
+          "shape":"WafInspectionLevelEnum",
+          "documentation":"<p>The inspection level of the bot control rule group.</p> <p>The following inspection levels are possible:</p> <ul> <li> <p> <code>COMMON</code> – Detects a variety of bots that identify themselves, such as web scraping frameworks, search engines, and automated browsers.</p> </li> <li> <p> <code>TARGETED</code> – Includes the <code>COMMON</code> protections, and adds detection for sophisticated bots that don't identify themselves. This level uses rate limiting, CAPTCHA, and background browser challenges.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Describes the configuration of the bot control Web Application Firewall (WAF) rule group.</p>"
+    },
+    "WafConfig":{
+      "type":"structure",
+      "members":{
+        "isWafEnabled":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether WAF is enabled for the distribution.</p>"
+        },
+        "wafRules":{
+          "shape":"WafRuleList",
+          "documentation":"<p>An array of objects that describe the WAF rule groups enabled for the distribution.</p>"
+        }
+      },
+      "documentation":"<p>Describes the Web Application Firewall (WAF) configuration of a Lightsail distribution.</p>"
+    },
+    "WafInspectionLevelEnum":{
+      "type":"string",
+      "enum":[
+        "COMMON",
+        "TARGETED"
+      ]
+    },
+    "WafPayloadTypeEnum":{
+      "type":"string",
+      "enum":[
+        "JSON",
+        "FORM_ENCODED"
+      ]
+    },
+    "WafResponseInspection":{
+      "type":"structure",
+      "members":{
+        "successCodes":{
+          "shape":"WafStatusCodeList",
+          "documentation":"<p>The HTTP status codes that indicate a successful attempt (for example, <code>200</code>).</p> <p>Constraints:</p> <ul> <li> <p>Must contain from 1 to 10 status codes.</p> </li> <li> <p>Each status code must be from <code>0</code> to <code>999</code>.</p> </li> <li> <p>Can't contain a status code that is also in <code>failureCodes</code>.</p> </li> </ul>"
+        },
+        "failureCodes":{
+          "shape":"WafStatusCodeList",
+          "documentation":"<p>The HTTP status codes that indicate a failed attempt (for example, <code>401</code>).</p> <p>Constraints:</p> <ul> <li> <p>Must contain from 1 to 10 status codes.</p> </li> <li> <p>Each status code must be from <code>0</code> to <code>999</code>.</p> </li> <li> <p>Can't contain a status code that is also in <code>successCodes</code>.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Describes the HTTP status codes that your application returns to indicate successful and failed attempts. The Web Application Firewall (WAF) rule group uses these status codes to track successful and failed attempts.</p>"
+    },
+    "WafRule":{
+      "type":"structure",
+      "required":["name"],
+      "members":{
+        "name":{
+          "shape":"string",
+          "documentation":"<p>The name of the WAF rule group (for example, <code>AWSManagedRulesCommonRuleSet</code>).</p> <p>For the WAF rule groups that you can specify for each bundle, see the <code>wafRules</code> parameter of the <code>CreateDistribution</code> action.</p>"
+        },
+        "atpConfig":{
+          "shape":"WafAtpConfig",
+          "documentation":"<p>An object that describes the configuration of the account takeover prevention rule group.</p> <p>Constraints:</p> <ul> <li> <p>Define this parameter only when the <code>name</code> is <code>AWSManagedRulesATPRuleSet</code>.</p> </li> <li> <p>This parameter is required when the <code>name</code> is <code>AWSManagedRulesATPRuleSet</code>.</p> </li> </ul>"
+        },
+        "acfpConfig":{
+          "shape":"WafAcfpConfig",
+          "documentation":"<p>An object that describes the configuration of the account creation fraud prevention rule group.</p> <p>Constraints:</p> <ul> <li> <p>Define this parameter only when the <code>name</code> is <code>AWSManagedRulesACFPRuleSet</code>.</p> </li> <li> <p>This parameter is required when the <code>name</code> is <code>AWSManagedRulesACFPRuleSet</code>.</p> </li> </ul>"
+        },
+        "botControlConfig":{
+          "shape":"WafBotControlConfig",
+          "documentation":"<p>An object that describes the configuration of the bot control rule group.</p> <p>Constraints:</p> <ul> <li> <p>Define this parameter only when the <code>name</code> is <code>AWSManagedRulesBotControlRuleSet</code>.</p> </li> <li> <p>This parameter is required when the <code>name</code> is <code>AWSManagedRulesBotControlRuleSet</code>.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Describes a Web Application Firewall (WAF) rule group for a Lightsail distribution. A WAF rule group is a set of rules managed by AWS. The rules inspect viewer requests and block requests that match them.</p>"
+    },
+    "WafRuleList":{
+      "type":"list",
+      "member":{"shape":"WafRule"}
+    },
+    "WafStatusCodeList":{
+      "type":"list",
+      "member":{"shape":"integer"}
     },
     "boolean":{"type":"boolean"},
     "double":{"type":"double"},

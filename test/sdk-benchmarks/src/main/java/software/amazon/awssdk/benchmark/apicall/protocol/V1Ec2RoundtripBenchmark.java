@@ -36,6 +36,7 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
+import software.amazon.awssdk.benchmark.utils.MockHttpServer;
 
 /**
  * V1 roundtrip benchmark for EC2 protocol using EC2 DescribeInstances via HTTP servlet.
@@ -48,16 +49,14 @@ import org.openjdk.jmh.infra.Blackhole;
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class V1Ec2RoundtripBenchmark {
 
-    private ProtocolRoundtripServer server;
+    private MockHttpServer server;
     private AmazonEC2 client;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        byte[] response = ProtocolRoundtripServer.loadFixture("ec2-protocol/describe-instances-response.xml");
+        byte[] response = MockHttpServer.loadFixture("ec2-protocol/describe-instances-response.xml");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "text/xml");
-
-        server = new ProtocolRoundtripServer(servlet);
+        server = new MockHttpServer(response, "text/xml");
         server.start();
 
         client = AmazonEC2ClientBuilder.standard()

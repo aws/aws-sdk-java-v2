@@ -52,4 +52,12 @@ public interface SignedCookie {
      */
     String keyPairIdHeaderValue();
 
+    /**
+     * Returns the cookie hash-algorithm header value that can be appended to an HTTP GET request,
+     * i.e., "CloudFront-Hash-Algorithm=SHA256", or {@code null} if SHA-1 (the default) is used.
+     */
+    default String hashAlgorithmHeaderValue() {
+        return null;
+    }
+
 }

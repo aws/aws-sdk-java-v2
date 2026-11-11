@@ -97,8 +97,8 @@ class SmithyIntermediateModelBuilderTest {
     void endpointTraitsPresent_reachTheIntermediateModel() {
         IntermediateModel model = build(RULE_SET + TESTS);
 
-        assertThat(model.getEndpointRuleSetModel().getVersion()).isEqualTo("1.0");
-        assertThat(model.getEndpointRuleSetModel().getParameters()).containsOnlyKeys("Region");
+        assertThat(model.getEndpointParameters()).containsOnlyKeys("Region");
+        assertThat(model.getEndpointRules()).hasSize(1);
         assertThat(model.getEndpointTestSuiteModel().getTestCases()).hasSize(1);
     }
 
@@ -111,9 +111,9 @@ class SmithyIntermediateModelBuilderTest {
     void endpointTraitsAbsent_fallBackToTheDefaultRules() {
         IntermediateModel model = build("");
 
-        assertThat(model.getEndpointRuleSetModel())
-            .usingRecursiveComparison()
-            .isEqualTo(EndpointRuleSetModel.defaultRules(model.getMetadata().getEndpointPrefix()));
+        EndpointRuleSetModel defaultRules = EndpointRuleSetModel.defaultRules(model.getMetadata().getEndpointPrefix());
+        assertThat(model.getEndpointRules()).usingRecursiveComparison().isEqualTo(defaultRules.getRules());
+        assertThat(model.getEndpointParameters()).usingRecursiveComparison().isEqualTo(defaultRules.getParameters());
         assertThat(model.getEndpointTestSuiteModel().getTestCases()).isEmpty();
     }
 

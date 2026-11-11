@@ -54,6 +54,20 @@
       ],
       "documentation":"<p>Associates a trial component with a trial. A trial component can be associated with multiple trials. To disassociate a trial component from a trial, call the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DisassociateTrialComponent.html\">DisassociateTrialComponent</a> API.</p>"
     },
+    "AttachClusterNodeNetworkInterface":{
+      "name":"AttachClusterNodeNetworkInterface",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"AttachClusterNodeNetworkInterfaceRequest"},
+      "output":{"shape":"AttachClusterNodeNetworkInterfaceResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"},
+        {"shape":"ResourceLimitExceeded"}
+      ],
+      "documentation":"<p> Attaches an elastic network interface (ENI) to a node in a HyperPod cluster. </p> <p> To use this operation, you must have the <code>sagemaker:AttachClusterNodeNetworkInterface</code> permission. </p>"
+    },
     "AttachClusterNodeVolume":{
       "name":"AttachClusterNodeVolume",
       "http":{
@@ -278,6 +292,21 @@
         {"shape":"ResourceLimitExceeded"}
       ],
       "documentation":"<p>Creates an Amazon SageMaker HyperPod cluster. SageMaker HyperPod is a capability of SageMaker for creating and managing persistent clusters for developing large machine learning models, such as large language models (LLMs) and diffusion models. To learn more, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod.html\">Amazon SageMaker HyperPod</a> in the <i>Amazon SageMaker Developer Guide</i>.</p>"
+    },
+    "CreateClusterExtension":{
+      "name":"CreateClusterExtension",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateClusterExtensionRequest"},
+      "output":{"shape":"CreateClusterExtensionResponse"},
+      "errors":[
+        {"shape":"ConflictException"},
+        {"shape":"ResourceNotFound"},
+        {"shape":"ResourceInUse"}
+      ],
+      "documentation":"<p>Installs an extension, such as <code>sagemaker-observability</code>, on a SageMaker HyperPod cluster orchestrated by Slurm. The cluster must have <code>NodeProvisioningMode</code> set to <code>Continuous</code> and can have only one extension with a given name. To track the installation, call <code>DescribeClusterExtension</code>.</p>"
     },
     "CreateClusterSchedulerConfig":{
       "name":"CreateClusterSchedulerConfig",
@@ -1022,6 +1051,21 @@
       ],
       "documentation":"<p>Creates a new training plan in SageMaker to reserve compute capacity.</p> <p>Amazon SageMaker Training Plan is a capability within SageMaker that allows customers to reserve and manage GPU capacity for large-scale AI model training. It provides a way to secure predictable access to computational resources within specific timelines and budgets, without the need to manage underlying infrastructure. </p> <p> <b>How it works</b> </p> <p>Plans can be created for specific resources such as SageMaker Training Jobs or SageMaker HyperPod clusters, automatically provisioning resources, setting up infrastructure, executing workloads, and handling infrastructure failures.</p> <p> <b>Plan creation workflow</b> </p> <ul> <li> <p>Users search for available plan offerings based on their requirements (e.g., instance type, count, start time, duration) using the <code> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_SearchTrainingPlanOfferings.html\">SearchTrainingPlanOfferings</a> </code> API operation.</p> </li> <li> <p>They create a plan that best matches their needs using the ID of the plan offering they want to use. </p> </li> <li> <p>After successful upfront payment, the plan's status becomes <code>Scheduled</code>. </p> </li> <li> <p>The plan can be used to:</p> <ul> <li> <p>Queue training jobs.</p> </li> <li> <p>Allocate to an instance group of a SageMaker HyperPod cluster. </p> </li> </ul> </li> <li> <p>When the plan start date arrives, it becomes <code>Active</code>. Based on available reserved capacity:</p> <ul> <li> <p>Training jobs are launched.</p> </li> <li> <p>Instance groups are provisioned.</p> </li> </ul> </li> </ul> <p> <b>Plan composition</b> </p> <p>A plan can consist of one or more Reserved Capacities, each defined by a specific instance type, quantity, Availability Zone, duration, and start and end times. For more information about Reserved Capacity, see <code> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ReservedCapacitySummary.html\">ReservedCapacitySummary</a> </code>.</p>"
     },
+    "CreateTrainingSession":{
+      "name":"CreateTrainingSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateTrainingSessionRequest"},
+      "output":{"shape":"CreateTrainingSessionResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"},
+        {"shape":"ResourceInUse"},
+        {"shape":"ResourceLimitExceeded"}
+      ],
+      "documentation":"<p>Creates a training session in Amazon SageMaker. A training session provisions compute resources for fine-tuning a foundation model using Low-Rank Adaptation (LoRA). After the session is created, you can submit training operations and sample inference requests through the Amazon SageMaker Training Session Runtime API.</p> <p>The following operations are related to <code>CreateTrainingSession</code>:</p> <ul> <li> <p> <code>DescribeTrainingSession</code> </p> </li> <li> <p> <code>ListTrainingSessions</code> </p> </li> <li> <p> <code>StopTrainingSession</code> </p> </li> <li> <p> <code>DeleteTrainingSession</code> </p> </li> </ul>"
+    },
     "CreateTransformJob":{
       "name":"CreateTransformJob",
       "http":{
@@ -1231,6 +1275,21 @@
         {"shape":"ResourceNotFound"}
       ],
       "documentation":"<p>Delete a SageMaker HyperPod cluster.</p>"
+    },
+    "DeleteClusterExtension":{
+      "name":"DeleteClusterExtension",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteClusterExtensionRequest"},
+      "output":{"shape":"DeleteClusterExtensionResponse"},
+      "errors":[
+        {"shape":"ConflictException"},
+        {"shape":"ResourceNotFound"},
+        {"shape":"ResourceInUse"}
+      ],
+      "documentation":"<p>Deletes an extension from a SageMaker HyperPod cluster. SageMaker HyperPod removes the extension's software from every node in the cluster. While SageMaker HyperPod removes the extension, its status is <code>Deleting</code>. After SageMaker HyperPod removes the extension from all nodes, it no longer appears in <code>ListClusterExtensions</code>, and <code>DescribeClusterExtension</code> returns a <code>ResourceNotFound</code> error.</p> <p>Deleting an extension doesn't delete data that the extension sent to other Amazon Web Services services, such as metrics in Amazon CloudWatch or Amazon Managed Service for Prometheus.</p>"
     },
     "DeleteClusterSchedulerConfig":{
       "name":"DeleteClusterSchedulerConfig",
@@ -1795,6 +1854,19 @@
       ],
       "documentation":"<p>Deletes a training job. After SageMaker deletes a training job, all of the metadata for the training job is lost. You can delete only training jobs that are in a terminal state (<code>Stopped</code>, <code>Failed</code>, or <code>Completed</code>) and don't retain an <code>Available</code> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/train-warm-pools.html\">managed warm pool</a>. You cannot delete a job that is in the <code>InProgress</code> or <code>Stopping</code> state. After deleting the job, you can reuse its name to create another training job.</p>"
     },
+    "DeleteTrainingSession":{
+      "name":"DeleteTrainingSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteTrainingSessionRequest"},
+      "output":{"shape":"DeleteTrainingSessionResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"}
+      ],
+      "documentation":"<p>Deletes a training session. You must stop a running session before deleting it. Use the <code>StopTrainingSession</code> operation to stop the session first.</p> <p>The following operations are related to <code>DeleteTrainingSession</code>:</p> <ul> <li> <p> <code>CreateTrainingSession</code> </p> </li> <li> <p> <code>DescribeTrainingSession</code> </p> </li> <li> <p> <code>StopTrainingSession</code> </p> </li> </ul>"
+    },
     "DeleteTrial":{
       "name":"DeleteTrial",
       "http":{
@@ -2018,6 +2090,20 @@
         {"shape":"ResourceNotFound"}
       ],
       "documentation":"<p>Retrieves detailed information about a specific event for a given HyperPod cluster. This functionality is only supported when the <code>NodeProvisioningMode</code> is set to <code>Continuous</code>.</p>"
+    },
+    "DescribeClusterExtension":{
+      "name":"DescribeClusterExtension",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeClusterExtensionRequest"},
+      "output":{"shape":"DescribeClusterExtensionResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"}
+      ],
+      "documentation":"<p>Retrieves information about an extension installed on a SageMaker HyperPod cluster. The information includes the extension's version, configuration, and status, and a summary of how many cluster nodes are running the current version and configuration of the extension.</p>",
+      "readonly":true
     },
     "DescribeClusterNode":{
       "name":"DescribeClusterNode",
@@ -2742,6 +2828,20 @@
       ],
       "documentation":"<p>Retrieves the extension history for a specified training plan. The response includes details about each extension, such as the offering ID, start and end dates, status, payment status, and cost information.</p>"
     },
+    "DescribeTrainingSession":{
+      "name":"DescribeTrainingSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeTrainingSessionRequest"},
+      "output":{"shape":"DescribeTrainingSessionResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"}
+      ],
+      "documentation":"<p>Retrieves detailed information about a training session, including its current status, model configuration, Low-Rank Adaptation (LoRA) parameters, and timestamps.</p> <p>The following operations are related to <code>DescribeTrainingSession</code>:</p> <ul> <li> <p> <code>CreateTrainingSession</code> </p> </li> <li> <p> <code>ListTrainingSessions</code> </p> </li> <li> <p> <code>StopTrainingSession</code> </p> </li> <li> <p> <code>DeleteTrainingSession</code> </p> </li> </ul>",
+      "readonly":true
+    },
     "DescribeTransformJob":{
       "name":"DescribeTransformJob",
       "http":{
@@ -3102,6 +3202,20 @@
         {"shape":"ResourceNotFound"}
       ],
       "documentation":"<p>Retrieves a list of event summaries for a specified HyperPod cluster. The operation supports filtering, sorting, and pagination of results. This functionality is only supported when the <code>NodeProvisioningMode</code> is set to <code>Continuous</code>.</p>"
+    },
+    "ListClusterExtensions":{
+      "name":"ListClusterExtensions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListClusterExtensionsRequest"},
+      "output":{"shape":"ListClusterExtensionsResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"}
+      ],
+      "documentation":"<p>Lists the extensions installed on a SageMaker HyperPod cluster.</p>",
+      "readonly":true
     },
     "ListClusterNodes":{
       "name":"ListClusterNodes",
@@ -3856,6 +3970,17 @@
       "output":{"shape":"ListTrainingPlansResponse"},
       "documentation":"<p>Retrieves a list of training plans for the current account. </p>"
     },
+    "ListTrainingSessions":{
+      "name":"ListTrainingSessions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListTrainingSessionsRequest"},
+      "output":{"shape":"ListTrainingSessionsResponse"},
+      "documentation":"<p>Lists training sessions in your account. You can filter results by creation time, name, and status. The operation paginates results. To retrieve additional results, use the <code>NextToken</code> parameter.</p> <p>The following operations are related to <code>ListTrainingSessions</code>:</p> <ul> <li> <p> <code>CreateTrainingSession</code> </p> </li> <li> <p> <code>DescribeTrainingSession</code> </p> </li> </ul>",
+      "readonly":true
+    },
     "ListTransformJobs":{
       "name":"ListTransformJobs",
       "http":{
@@ -4373,6 +4498,19 @@
       ],
       "documentation":"<p>Stops a training job. To stop a job, SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms might use this 120-second window to save the model artifacts, so the results of the training is not lost. </p> <p>When it receives a <code>StopTrainingJob</code> request, SageMaker changes the status of the job to <code>Stopping</code>. After SageMaker stops the job, it sets the status to <code>Stopped</code>.</p>"
     },
+    "StopTrainingSession":{
+      "name":"StopTrainingSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StopTrainingSessionRequest"},
+      "output":{"shape":"StopTrainingSessionResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"}
+      ],
+      "documentation":"<p>Stops a running training session and sets the session status to <code>Stopping</code>. After the session stops, the status changes to <code>Stopped</code>. To delete a stopped session, use the <code>DeleteTrainingSession</code> operation.</p> <p>The following operations are related to <code>StopTrainingSession</code>:</p> <ul> <li> <p> <code>CreateTrainingSession</code> </p> </li> <li> <p> <code>DescribeTrainingSession</code> </p> </li> <li> <p> <code>DeleteTrainingSession</code> </p> </li> </ul>"
+    },
     "StopTransformJob":{
       "name":"StopTransformJob",
       "http":{
@@ -4440,6 +4578,20 @@
         {"shape":"ResourceLimitExceeded"}
       ],
       "documentation":"<p>Updates a SageMaker HyperPod cluster.</p>"
+    },
+    "UpdateClusterExtension":{
+      "name":"UpdateClusterExtension",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateClusterExtensionRequest"},
+      "output":{"shape":"UpdateClusterExtensionResponse"},
+      "errors":[
+        {"shape":"ConflictException"},
+        {"shape":"ResourceNotFound"}
+      ],
+      "documentation":"<p>Updates the configuration or the version of an extension installed on a SageMaker HyperPod cluster. SageMaker HyperPod applies the change to every node in the cluster. You can change the configuration, the version, or both in one request.</p> <ul> <li> <p> <b>Configuration:</b> You can change settings by sending <code>ConfigurationValues</code>. Settings that you include are changed. Settings that you omit keep their current values. A setting with the value <code>null</code> is removed and returns to its default value.</p> </li> <li> <p> <b>Version:</b> You can update to a later version. You can't update to an earlier version. To use an earlier version, delete the extension and create it again with that version.</p> </li> </ul> <p>You can't update an extension while it is being deleted.</p>"
     },
     "UpdateClusterSchedulerConfig":{
       "name":"UpdateClusterSchedulerConfig",
@@ -5401,7 +5553,7 @@
           "documentation":"<p>The list of LoRA adapters with their Amazon S3 URIs.</p>"
         }
       },
-      "documentation":"<p>The per-recommendation LoRA adapter details. Contains both the model package ARNs and Amazon S3 URIs for each adapter, regardless of which form was originally supplied in the request. When the customer supplies only Amazon S3 URIs, Amazon SageMaker AI creates model packages on their behalf.</p>"
+      "documentation":"<p>The per-recommendation LoRA adapter details. Contains both the model package ARNs and Amazon S3 URIs for each adapter, regardless of which form was originally supplied in the request. When you supply only Amazon S3 URIs, Amazon SageMaker AI creates model packages on your behalf.</p>"
     },
     "AIRecommendationAllowOptimization":{
       "type":"boolean",
@@ -5469,7 +5621,7 @@
         },
         "MinCpuMemoryRequiredInMb":{
           "shape":"AIRecommendationMinCpuMemoryRequiredInMb",
-          "documentation":"<p>The minimum host (CPU) memory, in MiB, to reserve per model copy when deploying the recommendation as an Inference Component. This value maps to the base Inference Component's <code>ComputeResourceRequirements$MinMemoryRequiredInMb</code> and is sized so that <code>CopyCountPerInstance</code> copies co-place within the instance's allocatable host memory.</p>"
+          "documentation":"<p>The minimum host (CPU) memory, in MiB, to reserve for each model copy when deploying the recommendation as an Inference Component. This value maps to the Inference Component's <code>ComputeResourceRequirements$MinMemoryRequiredInMb</code> field.</p>"
         }
       },
       "documentation":"<p>The deployment configuration for a recommendation.</p>"
@@ -5562,6 +5714,12 @@
         "ml.g6e.16xlarge",
         "ml.g6e.24xlarge",
         "ml.g6e.48xlarge",
+        "ml.g7.2xlarge",
+        "ml.g7.4xlarge",
+        "ml.g7.8xlarge",
+        "ml.g7.12xlarge",
+        "ml.g7.24xlarge",
+        "ml.g7.48xlarge",
         "ml.g7e.2xlarge",
         "ml.g7e.4xlarge",
         "ml.g7e.8xlarge",
@@ -5899,6 +6057,34 @@
     "AcceleratorPartitionConfigCountInteger":{
       "type":"integer",
       "max":10000000,
+      "min":0
+    },
+    "AcceleratorPartitionLayout":{
+      "type":"structure",
+      "members":{
+        "AcceleratorPartitionTypes":{
+          "shape":"AcceleratorPartitionTypeList",
+          "documentation":"<p>The list of partition profiles to carve on each accelerator that this layout applies to. On NVIDIA GPUs these are Multi-Instance GPU (MIG) profiles, for example <code>[\"mig-3g.40gb\", \"mig-4g.40gb\"]</code>. The order of the profiles doesn't change how the accelerator is partitioned. However, when you update an endpoint, a layout with the same profiles in a different order counts as a different layout, and the update is rejected. Repeat a profile to request more than one partition of that size: for example, <code>[\"mig-3g.40gb\", \"mig-3g.40gb\"]</code> requests two <code>mig-3g.40gb</code> partitions.</p>"
+        }
+      },
+      "documentation":"<p>A layout of accelerator partitions for a production variant. On NVIDIA GPUs, the partitions are Multi-Instance GPU (MIG) instances. SageMaker applies the layout to every accelerator on the variant's instance type. You can't change the layout of a running endpoint. To use a different layout, create a new endpoint.</p>"
+    },
+    "AcceleratorPartitionLayouts":{
+      "type":"list",
+      "member":{"shape":"AcceleratorPartitionLayout"},
+      "max":32,
+      "min":0
+    },
+    "AcceleratorPartitionType":{
+      "type":"string",
+      "max":32,
+      "min":0,
+      "pattern":"mig-[0-9]+g\\.[0-9]+gb([+-][a-z0-9.]+)*"
+    },
+    "AcceleratorPartitionTypeList":{
+      "type":"list",
+      "member":{"shape":"AcceleratorPartitionType"},
+      "max":32,
       "min":0
     },
     "AcceleratorsAmount":{
@@ -6501,6 +6687,20 @@
       },
       "documentation":"<p>Specifies configurations for one or more training jobs that SageMaker runs to test the algorithm.</p>"
     },
+    "AliasOperations":{
+      "type":"structure",
+      "members":{
+        "Add":{
+          "shape":"PipelineVersionAliasList",
+          "documentation":"<p>The aliases to add to the pipeline version. If you assigned an alias to another version of the same pipeline, you must remove it from that version before you add it here.</p>"
+        },
+        "Remove":{
+          "shape":"PipelineVersionAliasList",
+          "documentation":"<p>The aliases to remove from the pipeline version.</p>"
+        }
+      },
+      "documentation":"<p>The aliases to add to and remove from a pipeline version. An alias can't appear in both lists. After the update, the version can have up to 10 aliases.</p>"
+    },
     "AmazonQSettings":{
       "type":"structure",
       "members":{
@@ -6792,6 +6992,12 @@
         "ml.r6id.24xlarge",
         "ml.r6id.32xlarge",
         "ml.p5.4xlarge",
+        "ml.g7.2xlarge",
+        "ml.g7.4xlarge",
+        "ml.g7.8xlarge",
+        "ml.g7.12xlarge",
+        "ml.g7.24xlarge",
+        "ml.g7.48xlarge",
         "ml.g7e.2xlarge",
         "ml.g7e.4xlarge",
         "ml.g7e.8xlarge",
@@ -6881,6 +7087,12 @@
         "RSessionGateway",
         "Canvas"
       ]
+    },
+    "ApplicationArn":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"arn:aws[a-z\\-]*:sso::[0-9]{12}:application/(sso)?ins-[a-zA-Z0-9.-]{16}/apl-[a-zA-Z0-9.-]{16}"
     },
     "ApprovalDescription":{
       "type":"string",
@@ -7275,12 +7487,75 @@
         "TEXTFILE"
       ]
     },
+    "AthenaStepMetadata":{
+      "type":"structure",
+      "members":{
+        "QueryExecutionId":{
+          "shape":"String256",
+          "documentation":"<p>The unique identifier of the Amazon Athena query execution that was run by this step execution.</p>"
+        },
+        "S3OutputLocation":{
+          "shape":"String1024",
+          "documentation":"<p>The Amazon S3 location of the Amazon Athena query results. This is the effective output location reported by <code>GetQueryExecution</code> for the query. This value can be absent when the query uses Athena managed query results.</p>"
+        }
+      },
+      "documentation":"<p>The query execution identifier and the result output location for the Amazon Athena query that an Athena step runs.</p>"
+    },
     "AthenaWorkGroup":{
       "type":"string",
       "documentation":"<p>The name of the workgroup in which the Athena query is being started.</p>",
       "max":128,
       "min":1,
       "pattern":"[a-zA-Z0-9._-]+"
+    },
+    "AttachClusterNodeNetworkInterfaceRequest":{
+      "type":"structure",
+      "required":[
+        "ClusterName",
+        "NodeId",
+        "NetworkInterfaceId"
+      ],
+      "members":{
+        "ClusterName":{
+          "shape":"ClusterNameOrArn",
+          "documentation":"<p> The name or Amazon Resource Name (ARN) of the SageMaker HyperPod cluster that contains the target node. </p>"
+        },
+        "NodeId":{
+          "shape":"ClusterNodeId",
+          "documentation":"<p> The unique identifier of the cluster node to which you want to attach the network interface. The node must belong to your specified HyperPod cluster and cannot be part of a Restricted Instance Group (RIG). </p>"
+        },
+        "NetworkInterfaceId":{
+          "shape":"ClusterNetworkInterfaceId",
+          "documentation":"<p> The unique identifier of the elastic network interface (ENI) to attach. </p>"
+        }
+      }
+    },
+    "AttachClusterNodeNetworkInterfaceResponse":{
+      "type":"structure",
+      "required":[
+        "ClusterArn",
+        "NodeId",
+        "NetworkInterfaceId",
+        "AttachmentId"
+      ],
+      "members":{
+        "ClusterArn":{
+          "shape":"ClusterArn",
+          "documentation":"<p> The Amazon Resource Name (ARN) of your SageMaker HyperPod cluster where the network interface attachment operation was performed. </p>"
+        },
+        "NodeId":{
+          "shape":"ClusterNodeId",
+          "documentation":"<p> The unique identifier of the cluster node where your network interface was attached. </p>"
+        },
+        "NetworkInterfaceId":{
+          "shape":"ClusterNetworkInterfaceId",
+          "documentation":"<p> The unique identifier of the elastic network interface (ENI) that was attached. </p>"
+        },
+        "AttachmentId":{
+          "shape":"ClusterNetworkInterfaceAttachmentId",
+          "documentation":"<p> The unique identifier of the network interface attachment. Use this value to reference or detach the network interface later. </p>"
+        }
+      }
     },
     "AttachClusterNodeVolumeRequest":{
       "type":"structure",
@@ -8252,6 +8527,12 @@
       },
       "documentation":"<p>Identifies the foundation model that was used as the starting point for model customization.</p>"
     },
+    "BaseModelArn":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"(arn:[a-z0-9-.]{1,63}:sagemaker:[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)+:([0-9]{12}|aws):hub-content/)[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}/Model/[a-zA-Z0-9](-*[a-zA-Z0-9]){0,63}(/[0-9]{1,4}\\.[0-9]{1,4}\\.[0-9]{1,4})?"
+    },
     "BaseModelName":{
       "type":"string",
       "max":256,
@@ -8952,6 +9233,24 @@
       "type":"long",
       "box":true,
       "min":0
+    },
+    "BillableTokenUsage":{
+      "type":"structure",
+      "members":{
+        "PrefillTokenCount":{
+          "shape":"JavaLong",
+          "documentation":"<p>The number of prefill tokens consumed.</p>"
+        },
+        "SampleTokenCount":{
+          "shape":"JavaLong",
+          "documentation":"<p>The number of sample tokens consumed.</p>"
+        },
+        "TrainingTokenCount":{
+          "shape":"JavaLong",
+          "documentation":"<p>The number of training tokens consumed.</p>"
+        }
+      },
+      "documentation":"<p>The billable token usage for a training session, broken down by operation type.</p>"
     },
     "BlockedReason":{
       "type":"string",
@@ -10036,6 +10335,62 @@
         "xx"
       ]
     },
+    "CleanupFailure":{
+      "type":"structure",
+      "members":{
+        "StepName":{
+          "shape":"String256",
+          "documentation":"<p>The name of the upstream step whose Amazon S3 output resources the Cleanup step could not delete.</p>"
+        },
+        "ErrorCode":{
+          "shape":"CleanupFailureErrorCode",
+          "documentation":"<p>The error code that identifies why the Cleanup step could not delete the output resources associated with the upstream step.</p>"
+        },
+        "ErrorMessage":{
+          "shape":"String2048",
+          "documentation":"<p>A message describing why the Cleanup step could not delete the output resources associated with the upstream step.</p>"
+        }
+      },
+      "documentation":"<p>The Amazon S3 output resources associated with an upstream step that the Cleanup step could not delete.</p>"
+    },
+    "CleanupFailureErrorCode":{
+      "type":"string",
+      "documentation":"<p>The type of error that prevented the Cleanup step from deleting output resources. Valid values are:</p> <ul> <li> <p> <code>ClientError</code> indicates that the failure was caused by the request.</p> </li> <li> <p> <code>InternalFailure</code> indicates that the failure was caused by an internal error.</p> </li> </ul>",
+      "enum":[
+        "ClientError",
+        "InternalFailure"
+      ]
+    },
+    "CleanupFailureList":{
+      "type":"list",
+      "member":{"shape":"CleanupFailure"},
+      "max":100,
+      "min":0
+    },
+    "CleanupStepMetadata":{
+      "type":"structure",
+      "members":{
+        "CleanedSteps":{
+          "shape":"CleanupStepNameList",
+          "documentation":"<p>The names of upstream steps whose Amazon S3 output resources the Cleanup step deleted successfully.</p>"
+        },
+        "FailedSteps":{
+          "shape":"CleanupFailureList",
+          "documentation":"<p>The upstream steps whose Amazon S3 output resources the Cleanup step could not delete.</p>"
+        },
+        "SkippedSteps":{
+          "shape":"CleanupStepNameList",
+          "documentation":"<p>The names of upstream steps that the Cleanup step skipped. The Cleanup step skips a step when the output properties needed to locate its resources are unavailable.</p>"
+        }
+      },
+      "documentation":"<p>The cleanup outcomes for Amazon S3 output resources associated with upstream steps.</p>"
+    },
+    "CleanupStepNameList":{
+      "type":"list",
+      "member":{"shape":"String256"},
+      "max":100,
+      "min":0
+    },
     "ClientId":{
       "type":"string",
       "max":1024,
@@ -10054,6 +10409,56 @@
       "max":36,
       "min":1,
       "pattern":"[a-zA-Z0-9-]+"
+    },
+    "ClusterAccountingDatabase":{
+      "type":"structure",
+      "required":[
+        "Endpoint",
+        "SecretArn"
+      ],
+      "members":{
+        "Endpoint":{
+          "shape":"ClusterAccountingDatabaseEndpoint",
+          "documentation":"<p>The hostname or endpoint of the accounting database, such as the endpoint of an Amazon RDS for MySQL or Aurora MySQL database. The database must be reachable from the subnets and security groups that you configure for the cluster.</p>"
+        },
+        "Port":{
+          "shape":"ClusterAccountingDatabasePort",
+          "documentation":"<p>The port that the accounting database listens on. The default is <code>3306</code>.</p>"
+        },
+        "Name":{
+          "shape":"ClusterAccountingDatabaseName",
+          "documentation":"<p>The name of the database schema that stores the Slurm accounting data. The default is <code>slurm_acct_db_</code> followed by the cluster ID from the cluster ARN, for example <code>slurm_acct_db_a1b2c3d4e5f6</code>.</p>"
+        },
+        "SecretArn":{
+          "shape":"ClusterAccountingDatabaseSecretArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Web Services Secrets Manager secret that contains the user name and password for the accounting database. The database user must be able to create the schema and to read from and write to it.</p>"
+        }
+      },
+      "documentation":"<p>The external MySQL-compatible database that the Slurm accounting daemon (<code>slurmdbd</code>) connects to for a SageMaker HyperPod cluster. You provide the database credentials in an Amazon Web Services Secrets Manager secret instead of in the request.</p>"
+    },
+    "ClusterAccountingDatabaseEndpoint":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"(?=.{1,255}$)([a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?)(\\.[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?)*"
+    },
+    "ClusterAccountingDatabaseName":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"[a-zA-Z0-9$_]+"
+    },
+    "ClusterAccountingDatabasePort":{
+      "type":"integer",
+      "box":true,
+      "max":65535,
+      "min":1
+    },
+    "ClusterAccountingDatabaseSecretArn":{
+      "type":"string",
+      "max":2048,
+      "min":20,
+      "pattern":"arn:aws[a-z\\-]*:secretsmanager:[a-z0-9\\-]*:[0-9]{12}:secret:.+"
     },
     "ClusterArn":{
       "type":"string",
@@ -10169,7 +10574,7 @@
     },
     "ClusterAvailabilityZoneId":{
       "type":"string",
-      "pattern":"[a-z]{3}\\d-az\\d"
+      "pattern":"[a-z]{3,5}\\d-az\\d"
     },
     "ClusterAvailabilityZones":{
       "type":"list",
@@ -10974,7 +11379,15 @@
         "ml.m8g.12xlarge",
         "ml.m8g.16xlarge",
         "ml.m8g.24xlarge",
-        "ml.m8g.48xlarge"
+        "ml.m8g.48xlarge",
+        "ml.g7.2xlarge",
+        "ml.g7.4xlarge",
+        "ml.g7.8xlarge",
+        "ml.g7.12xlarge",
+        "ml.g7.24xlarge",
+        "ml.g7.48xlarge",
+        "ml.c8a.16xlarge",
+        "ml.m8a.16xlarge"
       ]
     },
     "ClusterInstanceTypeDetail":{
@@ -11197,7 +11610,7 @@
       "type":"string",
       "max":256,
       "min":0,
-      "pattern":"(arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:cluster/[a-z0-9]{12})|([a-zA-Z0-9](-*[a-zA-Z0-9]){0,62})"
+      "pattern":"((arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:cluster/[a-z0-9]{12})|([a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}))"
     },
     "ClusterNetworkInterface":{
       "type":"structure",
@@ -11209,6 +11622,12 @@
       },
       "documentation":"<p>The network interface configuration for a Amazon SageMaker HyperPod cluster instance group.</p>"
     },
+    "ClusterNetworkInterfaceAttachmentId":{
+      "type":"string",
+      "max":28,
+      "min":1,
+      "pattern":"eni-attach-[0-9a-f]{8}(?:[0-9a-f]{9})?"
+    },
     "ClusterNetworkInterfaceDetails":{
       "type":"structure",
       "members":{
@@ -11218,6 +11637,12 @@
         }
       },
       "documentation":"<p>The network interface configuration details for a Amazon SageMaker HyperPod cluster instance group.</p>"
+    },
+    "ClusterNetworkInterfaceId":{
+      "type":"string",
+      "max":21,
+      "min":1,
+      "pattern":"eni-[0-9a-f]{8}(?:[0-9a-f]{9})?"
     },
     "ClusterNodeDetails":{
       "type":"structure",
@@ -11458,6 +11883,10 @@
         "SlurmConfigStrategy":{
           "shape":"ClusterSlurmConfigStrategy",
           "documentation":"<p>The strategy for managing partitions for the Slurm configuration. Valid values are <code>Managed</code>, <code>Overwrite</code>, and <code>Merge</code>.</p>"
+        },
+        "AccountingDatabase":{
+          "shape":"ClusterAccountingDatabase",
+          "documentation":"<p>The external database that stores the Slurm accounting data for the cluster, such as job history, associations, and usage. When you omit this field, Slurm accounting uses a database on the cluster's controller node.</p> <note> <p>This field is only supported for clusters using <code>Continuous</code> as the <code>NodeProvisioningMode</code>.</p> </note>"
         }
       },
       "documentation":"<p>The configuration settings for the Slurm orchestrator used with the SageMaker HyperPod cluster.</p>"
@@ -13210,6 +13639,56 @@
         }
       }
     },
+    "CreateClusterExtensionRequest":{
+      "type":"structure",
+      "required":[
+        "ClusterArn",
+        "ExtensionName"
+      ],
+      "members":{
+        "ClusterArn":{
+          "shape":"ClusterArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the SageMaker HyperPod cluster on which to install the extension. The cluster must use Slurm as the orchestrator and have <code>NodeProvisioningMode</code> set to <code>Continuous</code>.</p>"
+        },
+        "ExtensionName":{
+          "shape":"ExtensionName",
+          "documentation":"<p>The name of the extension to install, for example <code>sagemaker-observability</code>.</p>"
+        },
+        "ExtensionVersion":{
+          "shape":"ExtensionVersion",
+          "documentation":"<p>The version of the extension to install, in <code>MAJOR.MINOR.PATCH</code> format, for example <code>1.0.0</code>. If you don't specify a version, SageMaker HyperPod installs the latest available version of the extension.</p>"
+        },
+        "ConfigurationValues":{
+          "shape":"ExtensionConfigurationValues",
+          "documentation":"<p>The configuration settings for the extension, as a JSON object serialized as a string, for example <code>{\"metricsProvider\":{\"nodeMetrics\":{\"level\":\"ADVANCED\"}}}</code>. Each extension version defines which settings it accepts. SageMaker HyperPod validates the settings against that definition, and rejects the request if a setting is unknown or has an invalid value. Settings that you omit use the extension's default values. If you omit <code>ConfigurationValues</code>, all settings use their default values.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Custom tags for managing the extension as an Amazon Web Services resource. You can add tags to your extension in the same way you add them in other Amazon Web Services services that support tagging. To learn more about tagging Amazon Web Services resources in general, see <a href=\"https://docs.aws.amazon.com/tag-editor/latest/userguide/tagging.html\">Tagging Amazon Web Services Resources User Guide</a>. To use this operation to add tags when you create an extension, you must have the <code>sagemaker:AddTags</code> permission.</p>"
+        },
+        "ClientToken":{
+          "shape":"CreateClusterExtensionRequestClientTokenString",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide so that the operation completes no more than one time. This token is valid for 8 hours. If you retry the request with the same client token and the same parameters within this time, the API returns the Amazon Resource Name (ARN) of the extension that the original request created, without creating a duplicate. If you use the same client token with different parameters, the request fails.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "CreateClusterExtensionRequestClientTokenString":{
+      "type":"string",
+      "max":64,
+      "min":0,
+      "pattern":"[\\x21-\\x7E]+"
+    },
+    "CreateClusterExtensionResponse":{
+      "type":"structure",
+      "required":["ExtensionArn"],
+      "members":{
+        "ExtensionArn":{
+          "shape":"ExtensionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the extension that you created. Use this ARN to describe, update, or delete the extension.</p>"
+        }
+      }
+    },
     "CreateClusterRequest":{
       "type":"structure",
       "required":["ClusterName"],
@@ -13284,7 +13763,7 @@
       "members":{
         "Name":{
           "shape":"EntityName",
-          "documentation":"<p>Name for the cluster policy.</p>"
+          "documentation":"<p>The name for the cluster policy. The name must be unique within the SageMaker AI HyperPod cluster specified by <code>ClusterArn</code>. You can use the same name in other clusters within a Region or across Regions.</p>"
         },
         "ClusterArn":{
           "shape":"ClusterArn",
@@ -13416,7 +13895,7 @@
       "members":{
         "Name":{
           "shape":"EntityName",
-          "documentation":"<p>Name to the compute allocation definition.</p>"
+          "documentation":"<p>The name of the compute allocation definition. The name must be unique within the SageMaker AI HyperPod cluster specified by <code>ClusterArn</code>. You can use the same name in other clusters within a Region or across Regions.</p>"
         },
         "Description":{
           "shape":"EntityDescription",
@@ -14624,6 +15103,10 @@
           "shape":"RoleArn",
           "documentation":"<p>The Amazon Resource Name (ARN) for an IAM role in your account that the MLflow App uses to access the artifact store in Amazon S3. The role should have the <code>AmazonS3FullAccess</code> permission.</p>"
         },
+        "KmsKeyId":{
+          "shape":"KmsKeyId",
+          "documentation":"<p>The ID of the Amazon Web Services KMS key used to encrypt the data at rest associated with the MLflow App. If you don't specify a value, the MLflow App is not encrypted with a customer-managed key.</p>"
+        },
         "ModelRegistrationMode":{
           "shape":"ModelRegistrationMode",
           "documentation":"<p>Whether to enable or disable automatic registration of new MLflow models to the SageMaker Model Registry. To enable automatic model registration, set this value to <code>AutoModelRegistrationEnabled</code>. To disable automatic model registration, set this value to <code>AutoModelRegistrationDisabled</code>. If not specified, <code>AutomaticModelRegistration</code> defaults to <code>AutoModelRegistrationDisabled</code>.</p>"
@@ -15354,7 +15837,7 @@
         },
         "TrainingPlanArns":{
           "shape":"OptimizationJobTrainingPlanArns",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the training plan to use for this optimization job.</p> <p>When you use reserved capacity from a training plan, the optimization job runs on that reserved capacity instead of on-demand capacity. If you omit this field, the job uses on-demand capacity. Currently, you can specify at most one training plan.</p> <p>For more information about how to reserve GPU capacity for your optimization jobs using Amazon SageMaker Training Plans, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/reserve-capacity-with-training-plans.html\">Reserve capacity with training plans</a>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the training plan to use for this optimization job.</p> <p>When you use reserved capacity from a training plan, the optimization job runs on that reserved capacity instead of on-demand capacity. If you omit this field, the job uses on-demand capacity. You can specify at most one training plan.</p> <p>For more information about how to reserve GPU capacity for your optimization jobs using Amazon SageMaker Training Plans, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/reserve-capacity-with-training-plans.html\">Reserve capacity with training plans</a>.</p>"
         }
       }
     },
@@ -15433,9 +15916,13 @@
           "shape":"PartnerAppConfig",
           "documentation":"<p>Configuration settings for the SageMaker Partner AI App.</p>"
         },
+        "IdcConfig":{
+          "shape":"IdcConfigInput",
+          "documentation":"<p>Specifies the Amazon Web Services IAM Identity Center configuration for the SageMaker Partner AI App. Specify this parameter when <code>AuthType</code> is <code>IDC</code>. Apps that use <code>IAM</code> authorization don't use this parameter.</p>"
+        },
         "AuthType":{
           "shape":"PartnerAppAuthType",
-          "documentation":"<p>The authorization type that users use to access the SageMaker Partner AI App.</p>"
+          "documentation":"<p>The authorization type that users use to access the SageMaker Partner AI App. Valid values:</p> <ul> <li> <p> <code>IAM</code>: Users access the SageMaker Partner AI App with their Amazon Web Services IAM identity.</p> </li> <li> <p> <code>IDC</code>: Users access the SageMaker Partner AI App with their Amazon Web Services IAM Identity Center identity. Specify the Identity Center instance to use in <code>IdcConfig</code>.</p> </li> </ul>"
         },
         "EnableIamSessionBasedIdentity":{
           "shape":"Boolean",
@@ -15511,6 +15998,10 @@
         "ParallelismConfiguration":{
           "shape":"ParallelismConfiguration",
           "documentation":"<p>This is the configuration that controls the parallelism of the pipeline. If specified, it applies to all runs of this pipeline by default.</p>"
+        },
+        "PipelineVersionAliases":{
+          "shape":"PipelineVersionAliasList",
+          "documentation":"<p>The aliases to assign to the first version of the pipeline. You can use an alias instead of a pipeline version ID to start an execution, describe the pipeline, or list its executions. Each alias can contain 1-128 letters, numbers, periods (.), hyphens (-), and underscores (_), and can't consist of numbers only. An alias must be unique within the pipeline, and a version can have up to 10 aliases.</p>"
         }
       }
     },
@@ -16002,6 +16493,60 @@
         }
       }
     },
+    "CreateTrainingSessionRequest":{
+      "type":"structure",
+      "required":[
+        "TrainingSessionName",
+        "LoraConfig",
+        "RoleArn",
+        "ModelConfig",
+        "OutputConfig"
+      ],
+      "members":{
+        "TrainingSessionName":{
+          "shape":"TrainingSessionName",
+          "documentation":"<p>The name of the training session.</p>"
+        },
+        "ModelPackageGroupArn":{
+          "shape":"ModelPackageGroupArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the model package group where checkpoints and fine-tuned model artifacts are published.</p>"
+        },
+        "LoraConfig":{
+          "shape":"LoraConfig",
+          "documentation":"<p>The Low-Rank Adaptation (LoRA) configuration for the training session, including the rank and alpha parameters.</p>"
+        },
+        "RoleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that Amazon SageMaker assumes to access resources on your behalf. The role must have permissions to access the output S3 path and model package group.</p>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>The Virtual Private Cloud (VPC) configuration for the training session. Specify subnets and security groups to run the training session in your VPC.</p>"
+        },
+        "ModelConfig":{
+          "shape":"TrainingSessionModelConfig",
+          "documentation":"<p>The configuration for the base model, including the model ARN and end-user license agreement (EULA) acceptance.</p>"
+        },
+        "OutputConfig":{
+          "shape":"TrainingSessionOutputConfig",
+          "documentation":"<p>The output configuration for the training session, including the S3 location and optional encryption settings.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>An array of key-value pairs to apply to the training session as tags. For more information, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html\">Tagging Amazon Web Services Resources</a>.</p>"
+        }
+      }
+    },
+    "CreateTrainingSessionResponse":{
+      "type":"structure",
+      "required":["TrainingSessionArn"],
+      "members":{
+        "TrainingSessionArn":{
+          "shape":"TrainingSessionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the training session.</p>"
+        }
+      }
+    },
     "CreateTransformJobRequest":{
       "type":"structure",
       "required":[
@@ -16435,6 +16980,12 @@
       },
       "documentation":"<p>Details about the POSIX identity that is used for file system operations.</p>"
     },
+    "CustomerKmsKeyArn":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"arn:aws[a-z\\-]*:kms:[a-z0-9\\-]+:[0-9]{12}:key/(mrk-)?[a-f0-9\\-]+"
+    },
     "CustomerMetadataKey":{
       "type":"string",
       "max":128,
@@ -16698,6 +17249,32 @@
       "min":1,
       "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\t]*"
     },
+    "DatabaseConfigurationMetadata":{
+      "type":"structure",
+      "members":{
+        "RollbackStatus":{
+          "shape":"DatabaseConfigurationRollbackStatus",
+          "documentation":"<p>Whether HyperPod restored the previous accounting database configuration after the change failed. Valid values:</p> <ul> <li> <p> <code>NotApplicable</code>: The change failed before HyperPod modified the cluster, for example because the database could not be reached or rejected the credentials, so there was nothing to restore.</p> </li> <li> <p> <code>Reverted</code>: The change failed after it was applied, and HyperPod restored the previous configuration. The cluster continues to use the previous accounting database.</p> </li> <li> <p> <code>RevertFailed</code>: The change failed and HyperPod could not restore the previous configuration, so Slurm accounting on the cluster might not be working.</p> </li> </ul> <p>This field is omitted when the change succeeds.</p>"
+        },
+        "Advisory":{
+          "shape":"String",
+          "documentation":"<p>Additional information about a change that succeeded, such as an action to take on the cluster.</p>"
+        },
+        "FailureMessage":{
+          "shape":"String",
+          "documentation":"<p>An error message describing why the accounting database change failed, and how to resolve it.</p>"
+        }
+      },
+      "documentation":"<p>Metadata information about a change to the external Slurm accounting database of a HyperPod cluster.</p>"
+    },
+    "DatabaseConfigurationRollbackStatus":{
+      "type":"string",
+      "enum":[
+        "NotApplicable",
+        "Reverted",
+        "RevertFailed"
+      ]
+    },
     "DatasetDefinition":{
       "type":"structure",
       "members":{
@@ -16839,13 +17416,14 @@
       "type":"string",
       "enum":[
         "InstanceStress",
-        "InstanceConnectivity"
+        "InstanceConnectivity",
+        "MultiNodeTrainingValidation"
       ]
     },
     "DeepHealthChecks":{
       "type":"list",
       "member":{"shape":"DeepHealthCheckType"},
-      "max":2,
+      "max":3,
       "min":1
     },
     "DefaultDomainIdList":{
@@ -17088,6 +17666,33 @@
         "DestinationArn":{
           "shape":"AssociationEntityArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the destination.</p>"
+        }
+      }
+    },
+    "DeleteClusterExtensionRequest":{
+      "type":"structure",
+      "required":[
+        "ClusterArn",
+        "ExtensionArn"
+      ],
+      "members":{
+        "ClusterArn":{
+          "shape":"ClusterArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the SageMaker HyperPod cluster on which the extension is installed.</p>"
+        },
+        "ExtensionArn":{
+          "shape":"ExtensionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the extension to delete.</p>"
+        }
+      }
+    },
+    "DeleteClusterExtensionResponse":{
+      "type":"structure",
+      "required":["ExtensionArn"],
+      "members":{
+        "ExtensionArn":{
+          "shape":"ExtensionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the extension that is being deleted.</p>"
         }
       }
     },
@@ -17751,6 +18356,20 @@
         }
       }
     },
+    "DeleteTrainingSessionRequest":{
+      "type":"structure",
+      "required":["TrainingSessionName"],
+      "members":{
+        "TrainingSessionName":{
+          "shape":"TrainingSessionName",
+          "documentation":"<p>The name of the training session to delete.</p>"
+        }
+      }
+    },
+    "DeleteTrainingSessionResponse":{
+      "type":"structure",
+      "members":{}
+    },
     "DeleteTrialComponentRequest":{
       "type":"structure",
       "required":["TrialComponentName"],
@@ -18169,7 +18788,7 @@
         },
         "AdapterSource":{
           "shape":"AIAdapterSource",
-          "documentation":"<p>The LoRA adapter source that was specified when the recommendation job was created. This field is absent when the job was created without LoRA adapters.</p>"
+          "documentation":"<p>The LoRA adapter source that you specified when you created the recommendation job. This field is absent when you created the job without LoRA adapters.</p>"
         },
         "CreationTime":{
           "shape":"Timestamp",
@@ -18797,6 +19416,37 @@
         "EventDetails":{
           "shape":"ClusterEventDetail",
           "documentation":"<p>Detailed information about the requested cluster event, including event metadata for various resource types such as <code>Cluster</code>, <code>InstanceGroup</code>, <code>Instance</code>, and their associated attributes.</p>"
+        }
+      }
+    },
+    "DescribeClusterExtensionRequest":{
+      "type":"structure",
+      "required":[
+        "ClusterArn",
+        "ExtensionArn"
+      ],
+      "members":{
+        "ClusterArn":{
+          "shape":"ClusterArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the SageMaker HyperPod cluster on which the extension is installed.</p>"
+        },
+        "ExtensionArn":{
+          "shape":"ExtensionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the extension to describe. <code>CreateClusterExtension</code> returns this ARN, and <code>ListClusterExtensions</code> lists it. If you delete an extension and create it again, the new extension has a new ARN.</p>"
+        }
+      }
+    },
+    "DescribeClusterExtensionResponse":{
+      "type":"structure",
+      "required":["ExtensionDetails"],
+      "members":{
+        "ExtensionDetails":{
+          "shape":"ExtensionDetails",
+          "documentation":"<p>The details of the extension.</p>"
+        },
+        "NodeSummary":{
+          "shape":"ExtensionNodeSummary",
+          "documentation":"<p>A summary of how many nodes in your cluster the extension targets, and how many of them run the extension's current version and configuration.</p>"
         }
       }
     },
@@ -21141,6 +21791,10 @@
           "shape":"RoleArn",
           "documentation":"<p>The Amazon Resource Name (ARN) for an IAM role in your account that the MLflow App uses to access the artifact store in Amazon S3.</p>"
         },
+        "KmsKeyId":{
+          "shape":"KmsKeyId",
+          "documentation":"<p>The ID of the Amazon Web Services KMS key used to encrypt the data at rest associated with the MLflow App. This field is absent if the MLflow App is not encrypted with a customer-managed key.</p>"
+        },
         "Status":{
           "shape":"MlflowAppStatus",
           "documentation":"<p>The current creation status of the described MLflow App.</p>"
@@ -22214,7 +22868,7 @@
         },
         "AuthType":{
           "shape":"PartnerAppAuthType",
-          "documentation":"<p>The authorization type that users use to access the SageMaker Partner AI App.</p>"
+          "documentation":"<p>The authorization type that users use to access the SageMaker Partner AI App. Valid values:</p> <ul> <li> <p> <code>IAM</code>: Users access the SageMaker Partner AI App with their Amazon Web Services IAM identity.</p> </li> <li> <p> <code>IDC</code>: Users access the SageMaker Partner AI App with their Amazon Web Services IAM Identity Center identity.</p> </li> </ul>"
         },
         "EnableIamSessionBasedIdentity":{
           "shape":"Boolean",
@@ -22237,6 +22891,10 @@
         "AvailableUpgrade":{
           "shape":"AvailableUpgrade",
           "documentation":"<p>A map of available minor version upgrades for the SageMaker Partner AI App. The key is the semantic version number, and the value is a list of release notes for that version. A null value indicates no upgrades are available.</p>"
+        },
+        "IdcConfig":{
+          "shape":"IdcConfigOutput",
+          "documentation":"<p>Contains the Amazon Web Services IAM Identity Center configuration for the SageMaker Partner AI App, including the Identity Center instance and the Identity Center application that SageMaker creates for the app. The service returns this field for apps that use <code>IDC</code> authorization.</p>"
         }
       }
     },
@@ -22326,6 +22984,14 @@
         "MLflowConfig":{
           "shape":"MLflowConfiguration",
           "documentation":"<p> The MLflow configuration of the pipeline execution. </p>"
+        },
+        "PipelineVersionAliases":{
+          "shape":"PipelineVersionAliasList",
+          "documentation":"<p>The aliases currently assigned to the pipeline version that the execution ran.</p>"
+        },
+        "RoleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that the execution uses. SageMaker returns this value only for executions of pipelines that AWS manages.</p>"
         }
       }
     },
@@ -22339,7 +23005,11 @@
         },
         "PipelineVersionId":{
           "shape":"PipelineVersionId",
-          "documentation":"<p>The ID of the pipeline version to describe.</p>"
+          "documentation":"<p>The ID of the pipeline version to describe. You can't specify this with <code>PipelineVersionAlias</code>.</p>"
+        },
+        "PipelineVersionAlias":{
+          "shape":"PipelineVersionAlias",
+          "documentation":"<p>The alias of the pipeline version to describe. You can't specify this with <code>PipelineVersionId</code>. If no version of the pipeline has this alias, the request fails with a <code>ResourceNotFound</code> error. If you specify neither, SageMaker describes the latest version of the pipeline.</p>"
         }
       }
     },
@@ -22399,6 +23069,10 @@
         "PipelineVersionDescription":{
           "shape":"PipelineVersionDescription",
           "documentation":"<p>The description of the pipeline version.</p>"
+        },
+        "PipelineVersionAliases":{
+          "shape":"PipelineVersionAliasList",
+          "documentation":"<p>The aliases assigned to the pipeline version.</p>"
         }
       }
     },
@@ -23027,7 +23701,7 @@
       "required":["TrainingPlanName"],
       "members":{
         "TrainingPlanName":{
-          "shape":"TrainingPlanName",
+          "shape":"TrainingPlanNameOrArn",
           "documentation":"<p>The name of the training plan to describe.</p>"
         }
       }
@@ -23111,6 +23785,26 @@
         "ReservedCapacitySummaries":{
           "shape":"ReservedCapacitySummaries",
           "documentation":"<p>The list of Reserved Capacity providing the underlying compute resources of the plan. </p>"
+        }
+      }
+    },
+    "DescribeTrainingSessionRequest":{
+      "type":"structure",
+      "required":["TrainingSessionName"],
+      "members":{
+        "TrainingSessionName":{
+          "shape":"TrainingSessionName",
+          "documentation":"<p>The name of the training session to describe.</p>"
+        }
+      }
+    },
+    "DescribeTrainingSessionResponse":{
+      "type":"structure",
+      "required":["TrainingSessionDetail"],
+      "members":{
+        "TrainingSessionDetail":{
+          "shape":"TrainingSessionDetail",
+          "documentation":"<p>The detailed information about the training session.</p>"
         }
       }
     },
@@ -24235,6 +24929,40 @@
       },
       "documentation":"<p>The settings for assigning a custom Amazon EFS file system to a user profile or space for an Amazon SageMaker AI Domain.</p>"
     },
+    "EMRServerlessApplicationId":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":".*[0-9a-z]+.*"
+    },
+    "EMRServerlessJobRunId":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":".*[0-9a-z]+.*"
+    },
+    "EMRServerlessStepMetadata":{
+      "type":"structure",
+      "members":{
+        "ApplicationId":{
+          "shape":"EMRServerlessApplicationId",
+          "documentation":"<p>The identifier of the Amazon EMR Serverless application.</p>"
+        },
+        "JobRunId":{
+          "shape":"EMRServerlessJobRunId",
+          "documentation":"<p>The identifier of the Amazon EMR Serverless job run.</p>"
+        },
+        "JobRunName":{
+          "shape":"String256",
+          "documentation":"<p>The name of the Amazon EMR Serverless job run.</p>"
+        },
+        "LogFilePath":{
+          "shape":"String1024",
+          "documentation":"<p>The path to the log file for the Amazon EMR Serverless job run.</p>"
+        }
+      },
+      "documentation":"<p>The configurations and outcomes of an Amazon EMR Serverless step execution.</p>"
+    },
     "EMRStepMetadata":{
       "type":"structure",
       "members":{
@@ -25304,6 +26032,14 @@
         "Instance":{
           "shape":"InstanceMetadata",
           "documentation":"<p>Metadata specific to instance-level events.</p>"
+        },
+        "DatabaseConfiguration":{
+          "shape":"DatabaseConfigurationMetadata",
+          "documentation":"<p>Metadata specific to events about the external Slurm accounting database of the cluster.</p>"
+        },
+        "SlurmHealth":{
+          "shape":"SlurmHealthMetadata",
+          "documentation":"<p>Metadata specific to events about the health of the Slurm components on the controller node of the cluster.</p>"
         }
       },
       "documentation":"<p>Metadata associated with a cluster event, which may include details about various resource types.</p>",
@@ -25547,6 +26283,148 @@
           "documentation":"<p>The list of extensions for the training plan, including the newly created extension.</p>"
         }
       }
+    },
+    "ExtensionArn":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:extension/(sagemaker|eks|pcs)-[a-z0-9-]+/[a-z0-9-]+/[a-z0-9]+"
+    },
+    "ExtensionConfigurationValues":{
+      "type":"string",
+      "max":10240,
+      "min":1
+    },
+    "ExtensionDetails":{
+      "type":"structure",
+      "required":[
+        "ClusterArn",
+        "ExtensionArn",
+        "ExtensionName",
+        "ExtensionVersion",
+        "Status"
+      ],
+      "members":{
+        "ClusterArn":{
+          "shape":"ClusterArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the SageMaker HyperPod cluster on which the extension is installed.</p>"
+        },
+        "ExtensionArn":{
+          "shape":"ExtensionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the extension.</p>"
+        },
+        "ExtensionName":{
+          "shape":"ExtensionName",
+          "documentation":"<p>The name of the extension.</p>"
+        },
+        "ExtensionVersion":{
+          "shape":"ExtensionVersion",
+          "documentation":"<p>The version of the extension. While SageMaker HyperPod creates or updates the extension, some nodes might still run a different version. To see how many nodes run this version, see <code>NodeSummary</code>.</p>"
+        },
+        "Status":{
+          "shape":"ExtensionStatus",
+          "documentation":"<p>The status of the extension can be one of the following values:</p> <dl> <dt>Creating</dt> <dd> <p>SageMaker HyperPod is installing the extension on the cluster's nodes.</p> </dd> <dt>Active</dt> <dd> <p>The extension runs its current version and configuration on all of the cluster's nodes.</p> </dd> <dt>Updating</dt> <dd> <p>SageMaker HyperPod is applying a configuration change or version update to the cluster's nodes.</p> </dd> <dt>Degraded</dt> <dd> <p>The extension runs its current version and configuration on some of the cluster's nodes but not all of them. Or, at least one node recently reported that the extension is unhealthy.</p> </dd> <dt>CreateFailed</dt> <dd> <p>SageMaker HyperPod couldn't install the extension on any of the cluster's nodes.</p> </dd> <dt>UpdateFailed</dt> <dd> <p>SageMaker HyperPod couldn't apply the update on any of the cluster's nodes.</p> </dd> <dt>Deleting</dt> <dd> <p>SageMaker HyperPod is removing the extension from the cluster's nodes.</p> </dd> <dt>DeleteFailed</dt> <dd> <p>SageMaker HyperPod couldn't remove the extension from any of the cluster's nodes.</p> </dd> </dl>"
+        },
+        "ConfigurationValues":{
+          "shape":"ExtensionConfigurationValues",
+          "documentation":"<p>The configuration of the extension, as a JSON object serialized as a string. The configuration includes the default value of every setting that you didn't specify.</p>"
+        },
+        "CreationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time when the extension was created.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time when the extension was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Details of an extension installed on a SageMaker HyperPod cluster.</p>"
+    },
+    "ExtensionName":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"[a-z]([a-z0-9]|-[a-z0-9])*"
+    },
+    "ExtensionNodeCount":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "ExtensionNodeSummary":{
+      "type":"structure",
+      "required":[
+        "TotalCount",
+        "ActiveCount"
+      ],
+      "members":{
+        "TotalCount":{
+          "shape":"ExtensionNodeCount",
+          "documentation":"<p>The number of nodes in your cluster that the extension targets. SageMaker HyperPod targets every running node in your cluster, including nodes that you add after you create the extension.</p>"
+        },
+        "ActiveCount":{
+          "shape":"ExtensionNodeCount",
+          "documentation":"<p>The number of nodes that are running the extension's current version and configuration. While SageMaker HyperPod creates or updates the extension, <code>ActiveCount</code> is lower than <code>TotalCount</code>.</p>"
+        }
+      },
+      "documentation":"<p>A summary of an extension's installation across the nodes of a SageMaker HyperPod cluster.</p>"
+    },
+    "ExtensionStatus":{
+      "type":"string",
+      "enum":[
+        "Creating",
+        "Active",
+        "CreateFailed",
+        "Updating",
+        "Deleting",
+        "DeleteFailed",
+        "Degraded",
+        "UpdateFailed"
+      ]
+    },
+    "ExtensionSummaries":{
+      "type":"list",
+      "member":{"shape":"ExtensionSummary"},
+      "max":100,
+      "min":0
+    },
+    "ExtensionSummary":{
+      "type":"structure",
+      "required":[
+        "ExtensionArn",
+        "ExtensionName",
+        "ExtensionVersion",
+        "Status"
+      ],
+      "members":{
+        "ExtensionArn":{
+          "shape":"ExtensionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the extension.</p>"
+        },
+        "ExtensionName":{
+          "shape":"ExtensionName",
+          "documentation":"<p>The name of the extension.</p>"
+        },
+        "ExtensionVersion":{
+          "shape":"ExtensionVersion",
+          "documentation":"<p>The version of the extension.</p>"
+        },
+        "Status":{
+          "shape":"ExtensionStatus",
+          "documentation":"<p>The status of the extension. For the meaning of each status, see <code>ExtensionDetails</code>.</p>"
+        },
+        "CreationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time when the extension was created.</p>"
+        }
+      },
+      "documentation":"<p>A summary of an extension installed on a SageMaker HyperPod cluster.</p>"
+    },
+    "ExtensionVersion":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"[0-9]+\\.[0-9]+\\.[0-9]+"
     },
     "FSxLustreConfig":{
       "type":"structure",
@@ -26270,11 +27148,74 @@
       "min":1,
       "pattern":"[\\t\\n\\r -\\uD7FF\\uE000-\\uFFFD]*"
     },
+    "ForEachSelectorResult":{
+      "type":"structure",
+      "members":{
+        "StepName":{
+          "shape":"String256",
+          "documentation":"<p>The name of the step associated with the iteration.</p>"
+        },
+        "Index":{
+          "shape":"Integer",
+          "documentation":"<p>The index of the iteration within the ForEach step.</p>",
+          "box":true
+        }
+      },
+      "documentation":"<p>The result of the selector that identifies an iteration of a ForEach step.</p>"
+    },
+    "ForEachStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a ForEach step execution. Valid values are:</p> <ul> <li> <p> <code>Succeeded</code> indicates that the ForEach step execution completed successfully.</p> </li> <li> <p> <code>Failed</code> indicates that the ForEach step execution failed.</p> </li> <li> <p> <code>Stopped</code> indicates that the ForEach step execution was stopped.</p> </li> </ul>",
+      "enum":[
+        "Succeeded",
+        "Failed",
+        "Stopped"
+      ]
+    },
+    "ForEachStepMetadata":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"ForEachStatus",
+          "documentation":"<p>The status of the ForEach step execution.</p>"
+        },
+        "InputItemCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of input items that the ForEach step iterates over.</p>",
+          "box":true
+        },
+        "TotalStepCount":{
+          "shape":"Integer",
+          "documentation":"<p>The total number of steps generated across all iterations of the ForEach step.</p>",
+          "box":true
+        },
+        "SucceededStepCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of iteration steps that completed successfully.</p>",
+          "box":true
+        },
+        "FailedStepCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of iteration steps that failed.</p>",
+          "box":true
+        },
+        "StoppedStepCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of iteration steps that were stopped.</p>",
+          "box":true
+        },
+        "Selector":{
+          "shape":"ForEachSelectorResult",
+          "documentation":"<p>Identifies the body step and iteration selected within the ForEach step.</p>"
+        }
+      },
+      "documentation":"<p>The status, the iteration-step counts, and the selector information for a ForEach step execution.</p>"
+    },
     "ForecastFrequency":{
       "type":"string",
       "max":5,
       "min":1,
-      "pattern":"1Y|Y|([1-9]|1[0-1])M|M|[1-4]W|W|[1-6]D|D|([1-9]|1[0-9]|2[0-3])H|H|([1-9]|[1-5][0-9])min"
+      "pattern":"(1Y|Y|([1-9]|1[0-1])M|M|[1-4]W|W|[1-6]D|D|([1-9]|1[0-9]|2[0-3])H|H|([1-9]|[1-5][0-9])min)"
     },
     "ForecastHorizon":{
       "type":"integer",
@@ -26670,6 +27611,107 @@
       "min":0,
       "pattern":".*"
     },
+    "HubContent":{
+      "type":"structure",
+      "required":[
+        "HubContentName",
+        "HubContentArn",
+        "HubContentVersion",
+        "HubContentType",
+        "DocumentSchemaVersion",
+        "HubName",
+        "HubArn",
+        "HubContentStatus",
+        "CreationTime"
+      ],
+      "members":{
+        "HubContentName":{
+          "shape":"HubContentName",
+          "documentation":"<p>The name of the hub content.</p>"
+        },
+        "HubContentArn":{
+          "shape":"HubContentArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hub content.</p>"
+        },
+        "HubContentVersion":{
+          "shape":"HubContentVersion",
+          "documentation":"<p>The version of the hub content.</p>"
+        },
+        "HubContentType":{
+          "shape":"HubContentType",
+          "documentation":"<p>The type of hub content.</p>"
+        },
+        "DocumentSchemaVersion":{
+          "shape":"DocumentSchemaVersion",
+          "documentation":"<p>The document schema version for the hub content.</p>"
+        },
+        "HubName":{
+          "shape":"HubName",
+          "documentation":"<p>The name of the hub that contains the content.</p>"
+        },
+        "HubArn":{
+          "shape":"HubArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hub that contains the content.</p>"
+        },
+        "HubContentDisplayName":{
+          "shape":"HubContentDisplayName",
+          "documentation":"<p>The display name of the hub content.</p>"
+        },
+        "HubContentDescription":{
+          "shape":"HubContentDescription",
+          "documentation":"<p>A description of the hub content.</p>"
+        },
+        "HubContentMarkdown":{
+          "shape":"HubContentMarkdown",
+          "documentation":"<p>A string that provides a description of the hub content. This string can include links, tables, and standard markdown formatting.</p>"
+        },
+        "HubContentDocument":{
+          "shape":"HubContentDocument",
+          "documentation":"<p>The hub content document that describes information about the hub content such as type, associated containers, scripts, and more.</p>"
+        },
+        "SageMakerPublicHubContentArn":{
+          "shape":"SageMakerPublicHubContentArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the public hub content.</p>"
+        },
+        "ReferenceMinVersion":{
+          "shape":"ReferenceMinVersion",
+          "documentation":"<p>The minimum version of the hub content.</p>"
+        },
+        "SupportStatus":{
+          "shape":"HubContentSupportStatus",
+          "documentation":"<p>The support status of the hub content.</p>"
+        },
+        "HubContentSearchKeywords":{
+          "shape":"HubContentSearchKeywordList",
+          "documentation":"<p>The searchable keywords for the hub content.</p>"
+        },
+        "HubContentDependencies":{
+          "shape":"HubContentDependencyList",
+          "documentation":"<p>The location of any dependencies that the hub content has, such as scripts, model artifacts, datasets, or notebooks.</p>"
+        },
+        "HubContentStatus":{
+          "shape":"HubContentStatus",
+          "documentation":"<p>The status of the hub content.</p>"
+        },
+        "FailureReason":{
+          "shape":"FailureReason",
+          "documentation":"<p>The failure reason if importing hub content failed.</p>"
+        },
+        "CreationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time that hub content was created.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The last modified time of the hub content.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Any tags associated with the hub content.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a hub content resource, including its name, version, type, associated documents, dependencies, and status, as returned by a search result.</p>"
+    },
     "HubContentArn":{
       "type":"string",
       "max":255,
@@ -26827,6 +27869,20 @@
         "PendingImport",
         "PendingDelete"
       ]
+    },
+    "HubContentStepMetadata":{
+      "type":"structure",
+      "members":{
+        "HubArn":{
+          "shape":"String2048",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hub that the step imported the content into.</p>"
+        },
+        "HubContentArn":{
+          "shape":"String2048",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hub content that was imported by this step execution.</p>"
+        }
+      },
+      "documentation":"<p>The hub and the hub content that a HubContent step imported.</p>"
     },
     "HubContentSupportStatus":{
       "type":"string",
@@ -27859,6 +28915,32 @@
       },
       "documentation":"<p>Use this parameter to specify a supported global condition key that is added to the IAM policy.</p>"
     },
+    "IdcConfigInput":{
+      "type":"structure",
+      "required":["InstanceArn"],
+      "members":{
+        "InstanceArn":{
+          "shape":"InstanceArn",
+          "documentation":"<p>The ARN of the Amazon Web Services IAM Identity Center instance that the SageMaker Partner AI App uses to authenticate users.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the Amazon Web Services IAM Identity Center configuration to use for a SageMaker Partner AI App that uses <code>IDC</code> authorization.</p>"
+    },
+    "IdcConfigOutput":{
+      "type":"structure",
+      "required":["InstanceArn"],
+      "members":{
+        "InstanceArn":{
+          "shape":"InstanceArn",
+          "documentation":"<p>The ARN of the Amazon Web Services IAM Identity Center instance that the SageMaker Partner AI App uses to authenticate users.</p>"
+        },
+        "ApplicationArn":{
+          "shape":"ApplicationArn",
+          "documentation":"<p>The ARN of the Amazon Web Services IAM Identity Center application that SageMaker creates for the SageMaker Partner AI App.</p>"
+        }
+      },
+      "documentation":"<p>Contains the Amazon Web Services IAM Identity Center configuration of a SageMaker Partner AI App that uses <code>IDC</code> authorization.</p>"
+    },
     "IdempotencyToken":{
       "type":"string",
       "max":128,
@@ -28044,7 +29126,7 @@
       "type":"string",
       "max":21,
       "min":7,
-      "pattern":"ami-[0-9a-fA-F]{8,17}|default"
+      "pattern":"(ami-[0-9a-fA-F]{8,17}|default)"
     },
     "ImageName":{
       "type":"string",
@@ -28352,6 +29434,10 @@
         "MaxMemoryRequiredInMb":{
           "shape":"MemoryInMb",
           "documentation":"<p>The maximum MB of memory to allocate to run a model that you assign to an inference component.</p>"
+        },
+        "AcceleratorPartitionType":{
+          "shape":"AcceleratorPartitionType",
+          "documentation":"<p>The accelerator partition profile this inference component occupies; on NVIDIA GPUs this is a Multi-Instance GPU (MIG) profile such as <code>mig-3g.40gb</code>. It must be one of the partition profiles declared in the target endpoint's accelerator partition layout, and when set, <code>NumberOfAcceleratorDevicesRequired</code> must be <code>1</code>. This field is required when the endpoint's production variant has an accelerator partition layout. For endpoints without a layout, omit this field to place the inference component on a whole accelerator.</p>"
         }
       },
       "documentation":"<p>Defines the compute resources to allocate to run a model, plus any adapter models, that you assign to an inference component. These resources include CPU cores, accelerators, and memory.</p>"
@@ -29164,6 +30250,12 @@
       "member":{"shape":"TrainingInputMode"},
       "min":1
     },
+    "InstanceArn":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"arn:aws[a-z\\-]*:sso:::instance/(sso)?ins-[a-zA-Z0-9.-]{16}"
+    },
     "InstanceCount":{
       "type":"integer",
       "box":true,
@@ -29424,6 +30516,33 @@
     "InstancePoolSummaryList":{
       "type":"list",
       "member":{"shape":"InstancePoolSummary"},
+      "min":1
+    },
+    "InstancePreference":{
+      "type":"structure",
+      "required":["InstanceType"],
+      "members":{
+        "InstanceType":{
+          "shape":"TrainingInstanceType",
+          "documentation":"<p>The ML compute instance type. An instance type can appear only once in an <code>InstancePreferences</code> list.</p>"
+        },
+        "InstanceCount":{
+          "shape":"TrainingInstanceCount",
+          "documentation":"<p>The number of instances to launch if this instance type is selected. Specify the instance count for the training job in one of the following two ways:</p> <ol> <li> <p> <b>Per preference</b> – Set <code>InstanceCount</code> on every preference in the <code>InstancePreferences</code> list and don't set <code>ResourceConfig$InstanceCount</code>. Use this when each instance type needs a different number of instances to deliver equivalent compute.</p> </li> <li> <p> <b>One count for the job</b> – Set <code>ResourceConfig$InstanceCount</code> and omit it from every preference. SageMaker applies this to all instance types in the list.</p> </li> </ol> <p>For example, in a list of five preferences, either all five specify <code>InstanceCount</code> or none of them do. SageMaker rejects requests that set <code>InstanceCount</code> on only some preferences, that set it both per preference and in <code>ResourceConfig</code>, or that omit it in both places.</p>",
+          "box":true
+        },
+        "TrainingPlanArns":{
+          "shape":"TrainingPlanArnList",
+          "documentation":"<p>The Amazon Resource Name (ARN) of a training plan to use if this instance type is selected. The plan's instance type must match <code>InstanceType</code>. A preference with a training plan uses that plan's reserved capacity; a preference without one uses on-demand capacity. Per-preference <code>TrainingPlanArns</code> is mutually exclusive with the job-level <code>TrainingPlanArn</code> in <code>ResourceConfig</code>.</p>"
+        }
+      },
+      "documentation":"<p>A candidate instance type preference in an <code>InstancePreferences</code> list.</p>"
+    },
+    "InstancePreferenceList":{
+      "type":"list",
+      "member":{"shape":"InstancePreference"},
+      "documentation":"<p>Ordered list of candidate instance types, in priority order.</p>",
+      "max":5,
       "min":1
     },
     "InstanceRequirementsEniConfiguration":{
@@ -29719,6 +30838,37 @@
       "type":"string",
       "max":256,
       "min":1
+    },
+    "IterationContext":{
+      "type":"structure",
+      "members":{
+        "ParentStepName":{
+          "shape":"String256",
+          "documentation":"<p>The name of the ForEach step that generated this iteration.</p>"
+        },
+        "Index":{
+          "shape":"Integer",
+          "documentation":"<p>The index of the iteration within the ForEach step.</p>",
+          "box":true
+        },
+        "Item":{
+          "shape":"String12800",
+          "documentation":"<p>The input item that is being processed in this iteration.</p>"
+        }
+      },
+      "documentation":"<p>The context for an iteration of a ForEach step.</p>"
+    },
+    "JavaBoolean":{
+      "type":"boolean",
+      "box":true
+    },
+    "JavaInteger":{
+      "type":"integer",
+      "box":true
+    },
+    "JavaLong":{
+      "type":"long",
+      "box":true
     },
     "Job":{
       "type":"structure",
@@ -31315,6 +32465,46 @@
         "Events":{
           "shape":"ClusterEventSummaries",
           "documentation":"<p>A list of event summaries matching the specified criteria.</p>"
+        }
+      }
+    },
+    "ListClusterExtensionsRequest":{
+      "type":"structure",
+      "required":["ClusterArn"],
+      "members":{
+        "ClusterArn":{
+          "shape":"ClusterArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the SageMaker HyperPod cluster whose extensions you want to list.</p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of extensions to return in the response. If you don't specify a value, SageMaker HyperPod returns up to 100 extensions.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the result of the previous <code>ListClusterExtensions</code> request was truncated, the response includes a <code>NextToken</code>. To retrieve the next set of extensions, use the token in the next request. When you use the <code>CreationTimeAfter</code> or <code>CreationTimeBefore</code> filters, a response can contain fewer extensions than <code>MaxResults</code>, or none, and still include a <code>NextToken</code>. Continue until the response doesn't include a <code>NextToken</code>.</p>"
+        },
+        "CreationTimeAfter":{
+          "shape":"Timestamp",
+          "documentation":"<p>A filter that returns extensions created at or after the specified time. Timestamps are formatted according to the ISO 8601 standard.</p>"
+        },
+        "CreationTimeBefore":{
+          "shape":"Timestamp",
+          "documentation":"<p>A filter that returns extensions created at or before the specified time. The acceptable formats are the same as the timestamp formats for <code>CreationTimeAfter</code>.</p>"
+        }
+      }
+    },
+    "ListClusterExtensionsResponse":{
+      "type":"structure",
+      "required":["Extensions"],
+      "members":{
+        "Extensions":{
+          "shape":"ExtensionSummaries",
+          "documentation":"<p>The list of extensions installed on the cluster.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The next token specified for listing extensions on a SageMaker HyperPod cluster.</p>"
         }
       }
     },
@@ -34301,6 +35491,10 @@
         "MaxResults":{
           "shape":"MaxResults",
           "documentation":"<p>The maximum number of pipeline executions to return in the response.</p>"
+        },
+        "PipelineVersionAlias":{
+          "shape":"PipelineVersionAlias",
+          "documentation":"<p>The alias of a pipeline version. The response includes only the executions of the version that has this alias when you make the request. If no version of the pipeline has this alias, the request fails with a <code>ResourceNotFound</code> error.</p>"
         }
       }
     },
@@ -34421,6 +35615,10 @@
         "MaxResults":{
           "shape":"MaxResults",
           "documentation":"<p>The maximum number of pipelines to return in the response.</p>"
+        },
+        "ManagedBy":{
+          "shape":"PipelineManagedBy",
+          "documentation":"<p>Filters the pipelines by who manages them. Specify <code>AWS</code> to return pipelines that AWS manages, or <code>CUSTOMER</code> to return pipelines that you created. If you don't specify a value, the response includes both.</p>"
         }
       }
     },
@@ -34959,6 +36157,48 @@
         }
       }
     },
+    "ListTrainingSessionsRequest":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the response was truncated, use the token returned in the previous response to retrieve the next page of results.</p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of training sessions to return in the response.</p>"
+        },
+        "CreationTimeAfter":{
+          "shape":"Timestamp",
+          "documentation":"<p>A filter that returns only training sessions created after the specified time.</p>"
+        },
+        "CreationTimeBefore":{
+          "shape":"Timestamp",
+          "documentation":"<p>A filter that returns only training sessions created before the specified time.</p>"
+        },
+        "NameContains":{
+          "shape":"NameContains",
+          "documentation":"<p>A string in the training session name to filter results. Only sessions whose name contains the specified string are returned.</p>"
+        },
+        "StatusEquals":{
+          "shape":"TrainingSessionStatus",
+          "documentation":"<p>A filter that returns only training sessions with the specified status.</p>"
+        }
+      }
+    },
+    "ListTrainingSessionsResponse":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the response is truncated, this token retrieves the next set of results.</p>"
+        },
+        "TrainingSessionSummaries":{
+          "shape":"TrainingSessionSummaries",
+          "documentation":"<p>An array of <code>TrainingSessionSummary</code> objects that provide summary information about the training sessions.</p>"
+        }
+      }
+    },
     "ListTransformJobsRequest":{
       "type":"structure",
       "members":{
@@ -35305,6 +36545,29 @@
       "min":0,
       "pattern":"(https|s3)://([^/]+)/?(.*)"
     },
+    "LoraAlpha":{
+      "type":"integer",
+      "box":true,
+      "min":1
+    },
+    "LoraConfig":{
+      "type":"structure",
+      "required":[
+        "Rank",
+        "Alpha"
+      ],
+      "members":{
+        "Rank":{
+          "shape":"Rank",
+          "documentation":"<p>The rank of the Low-Rank Adaptation (LoRA) adapter matrices.</p>"
+        },
+        "Alpha":{
+          "shape":"LoraAlpha",
+          "documentation":"<p>The Low-Rank Adaptation (LoRA) scaling factor.</p>"
+        }
+      },
+      "documentation":"<p>The Low-Rank Adaptation (LoRA) configuration for a training session, including the rank and alpha parameters.</p>"
+    },
     "MIGProfileType":{
       "type":"string",
       "enum":[
@@ -35506,7 +36769,7 @@
       "documentation":"<p>Maximum job scheduler pending time in seconds.</p>",
       "box":true,
       "max":2419200,
-      "min":7200
+      "min":1800
     },
     "MaxPercentageOfInputDatasetLabeled":{
       "type":"integer",
@@ -35795,7 +37058,7 @@
       "type":"string",
       "max":1,
       "min":0,
-      "pattern":"1|2"
+      "pattern":"(1|2)"
     },
     "MlFlowResourceArn":{
       "type":"string",
@@ -38829,7 +40092,9 @@
         "Stopped",
         "Failed",
         "Deleting",
-        "Updating"
+        "Updating",
+        "PendingMaintenance",
+        "InMaintenance"
       ]
     },
     "NotebookInstanceSummary":{
@@ -39132,7 +40397,7 @@
     "OnStartDeepHealthChecks":{
       "type":"list",
       "member":{"shape":"DeepHealthCheckType"},
-      "max":2,
+      "max":3,
       "min":1
     },
     "OnlineStoreConfig":{
@@ -39153,7 +40418,7 @@
         },
         "StorageType":{
           "shape":"StorageType",
-          "documentation":"<p>Option for different tiers of low latency storage for real-time data retrieval.</p> <ul> <li> <p> <code>Standard</code>: A managed low latency data store for feature groups.</p> </li> <li> <p> <code>InMemory</code>: A managed data store for feature groups that supports very low latency retrieval. </p> </li> </ul>"
+          "documentation":"<p>Option for different tiers of low latency storage for real-time data retrieval.</p> <ul> <li> <p> <code>Standard</code>: A managed low latency data store for feature groups.</p> </li> <li> <p> <code>Standard_V2</code>: A managed low latency data store for feature groups that supports partial updates to individual features using the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_feature_store_UpdateRecord.html\">UpdateRecord</a> operation. Choose this storage type at feature group creation time if your use case requires updating specific feature values without rewriting the entire record.</p> </li> <li> <p> <code>InMemory</code>: A managed data store for feature groups that supports very low latency retrieval.</p> </li> </ul>"
         }
       },
       "documentation":"<p>Use this to specify the Amazon Web Services Key Management Service (KMS) Key ID, or <code>KMSKeyId</code>, for at rest data encryption. You can turn <code>OnlineStore</code> on or off by specifying the <code>EnableOnlineStore</code> flag at General Assembly.</p> <p>The default value is <code>False</code>.</p>"
@@ -39164,6 +40429,10 @@
         "TtlDuration":{
           "shape":"TtlDuration",
           "documentation":"<p>Time to live duration, where the record is hard deleted after the expiration time is reached; <code>ExpiresAt</code> = <code>EventTime</code> + <code>TtlDuration</code>. For information on HardDelete, see the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_feature_store_DeleteRecord.html\">DeleteRecord</a> API in the Amazon SageMaker API Reference guide.</p>"
+        },
+        "StorageType":{
+          "shape":"StorageType",
+          "documentation":"<p>The online store storage type to migrate the feature group to. Use this parameter to migrate an existing feature group from <code>Standard</code> to <code>Standard_V2</code> storage format, enabling support for the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_feature_store_UpdateRecord.html\">UpdateRecord</a> operation. Migration is a one-way operation and cannot be reversed.</p>"
         }
       },
       "documentation":"<p>Updates the feature group online store configuration.</p>"
@@ -39289,7 +40558,13 @@
         "ml.g7e.8xlarge",
         "ml.g7e.12xlarge",
         "ml.g7e.24xlarge",
-        "ml.g7e.48xlarge"
+        "ml.g7e.48xlarge",
+        "ml.g7.2xlarge",
+        "ml.g7.4xlarge",
+        "ml.g7.8xlarge",
+        "ml.g7.12xlarge",
+        "ml.g7.24xlarge",
+        "ml.g7.48xlarge"
       ]
     },
     "OptimizationJobEnvironmentVariables":{
@@ -39603,6 +40878,12 @@
       "max":50,
       "min":0
     },
+    "OutputS3Path":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":"(https|s3)://([^/]+)/?(.*)"
+    },
     "OwnershipSettings":{
       "type":"structure",
       "required":["OwnerUserProfileName"],
@@ -39794,7 +41075,10 @@
     },
     "PartnerAppAuthType":{
       "type":"string",
-      "enum":["IAM"]
+      "enum":[
+        "IAM",
+        "IDC"
+      ]
     },
     "PartnerAppConfig":{
       "type":"structure",
@@ -39971,6 +41255,10 @@
         "RoutingConfig":{
           "shape":"ProductionVariantRoutingConfig",
           "documentation":"<p>Settings that control how the endpoint routes incoming traffic to the instances that the endpoint hosts.</p>"
+        },
+        "AcceleratorPartitionLayouts":{
+          "shape":"AcceleratorPartitionLayouts",
+          "documentation":"<p>The accelerator partition layout that SageMaker is applying to this production variant. On NVIDIA GPUs, the profiles are Multi-Instance GPU (MIG) profiles. SageMaker returns the accelerator partition layout as you provided it in the pending deployment configuration, without normalization.</p>"
         }
       },
       "documentation":"<p>The production variant summary for a deployment when an endpoint is creating or updating with the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateEndpoint.html\">CreateEndpoint</a> or <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_UpdateEndpoint.html\">UpdateEndpoint</a> operations. Describes the <code>VariantStatus </code>, weight and capacity for a production variant associated with an endpoint. </p>"
@@ -40191,7 +41479,8 @@
         "Stopping",
         "Stopped",
         "Failed",
-        "Succeeded"
+        "Succeeded",
+        "CompletedWithFailures"
       ]
     },
     "PipelineExecutionStep":{
@@ -40241,6 +41530,10 @@
         "SelectiveExecutionResult":{
           "shape":"SelectiveExecutionResult",
           "documentation":"<p>The ARN from an execution of the current pipeline from which results are reused for this step.</p>"
+        },
+        "IterationContext":{
+          "shape":"IterationContext",
+          "documentation":"<p>The context for the iteration of a ForEach step that generated this step execution.</p>"
         }
       },
       "documentation":"<p>An execution of a step in a pipeline.</p>"
@@ -40294,6 +41587,10 @@
           "shape":"EMRStepMetadata",
           "documentation":"<p>The configurations and outcomes of an Amazon EMR step execution.</p>"
         },
+        "EMRServerless":{
+          "shape":"EMRServerlessStepMetadata",
+          "documentation":"<p>The configurations and outcomes of an Amazon EMR Serverless step execution.</p>"
+        },
         "QualityCheck":{
           "shape":"QualityCheckStepMetadata",
           "documentation":"<p>The configurations and outcomes of the check step execution. This includes: </p> <ul> <li> <p>The type of the check conducted.</p> </li> <li> <p>The Amazon S3 URIs of baseline constraints and statistics files to be used for the drift check.</p> </li> <li> <p>The Amazon S3 URIs of newly calculated baseline constraints and statistics.</p> </li> <li> <p>The model package group name provided.</p> </li> <li> <p>The Amazon S3 URI of the violation report if violations detected.</p> </li> <li> <p>The Amazon Resource Name (ARN) of check processing job initiated by the step execution.</p> </li> <li> <p>The Boolean flags indicating if the drift check is skipped.</p> </li> <li> <p>If step property <code>BaselineUsedForDriftCheck</code> is set the same as <code>CalculatedBaseline</code>.</p> </li> </ul>"
@@ -40345,6 +41642,22 @@
         "Job":{
           "shape":"JobStepMetadata",
           "documentation":"<p>The metadata for a SageMaker job used in a pipeline execution step.</p>"
+        },
+        "Athena":{
+          "shape":"AthenaStepMetadata",
+          "documentation":"<p>The metadata for the Athena step execution.</p>"
+        },
+        "Cleanup":{
+          "shape":"CleanupStepMetadata",
+          "documentation":"<p>The metadata for the cleanup step execution.</p>"
+        },
+        "ForEach":{
+          "shape":"ForEachStepMetadata",
+          "documentation":"<p>The metadata for the ForEach step execution.</p>"
+        },
+        "HubContent":{
+          "shape":"HubContentStepMetadata",
+          "documentation":"<p>The metadata for the HubContent step execution.</p>"
         }
       },
       "documentation":"<p>Metadata for a step execution.</p>"
@@ -40375,6 +41688,10 @@
         "PipelineExecutionFailureReason":{
           "shape":"String3072",
           "documentation":"<p>A message generated by SageMaker Pipelines describing why the pipeline execution failed.</p>"
+        },
+        "PipelineVersionAliases":{
+          "shape":"PipelineVersionAliasList",
+          "documentation":"<p>The aliases currently assigned to the pipeline version that the execution ran.</p>"
         }
       },
       "documentation":"<p>A pipeline execution summary.</p>"
@@ -40398,6 +41715,13 @@
         }
       },
       "documentation":"<p>Specifies the names of the experiment and trial created by a pipeline.</p>"
+    },
+    "PipelineManagedBy":{
+      "type":"string",
+      "enum":[
+        "AWS",
+        "CUSTOMER"
+      ]
     },
     "PipelineName":{
       "type":"string",
@@ -40508,9 +41832,25 @@
         "LastExecutedPipelineExecutionStatus":{
           "shape":"PipelineExecutionStatus",
           "documentation":"<p>The status of the most recent pipeline execution created from this pipeline version.</p>"
+        },
+        "PipelineVersionAliases":{
+          "shape":"PipelineVersionAliasList",
+          "documentation":"<p>The aliases assigned to the pipeline version.</p>"
         }
       },
       "documentation":"<p>The version of the pipeline.</p>"
+    },
+    "PipelineVersionAlias":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"[a-zA-Z0-9._\\-]{1,128}"
+    },
+    "PipelineVersionAliasList":{
+      "type":"list",
+      "member":{"shape":"PipelineVersionAlias"},
+      "max":10,
+      "min":0
     },
     "PipelineVersionDescription":{
       "type":"string",
@@ -40555,6 +41895,10 @@
         "LastExecutionPipelineExecutionArn":{
           "shape":"PipelineExecutionArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the most recent pipeline execution created from this pipeline version.</p>"
+        },
+        "PipelineVersionAliases":{
+          "shape":"PipelineVersionAliasList",
+          "documentation":"<p>The aliases assigned to the pipeline version.</p>"
         }
       },
       "documentation":"<p>The summary of the pipeline version.</p>"
@@ -40591,7 +41935,7 @@
       "type":"string",
       "max":20,
       "min":0,
-      "pattern":"(notebook-al1-v1|notebook-al2-v1|notebook-al2-v2|notebook-al2-v3|notebook-al2023-v1)"
+      "pattern":"(notebook-al1-v1|notebook-al2-v1|notebook-al2-v2|notebook-al2-v3|notebook-al2023-v1|notebook-al2023-v2)"
     },
     "PolicyString":{
       "type":"string",
@@ -40615,6 +41959,32 @@
         "Never",
         "LowerPriority"
       ]
+    },
+    "PrefixAwareRoutingConcurrencyThreshold":{
+      "type":"integer",
+      "box":true,
+      "max":1024,
+      "min":1
+    },
+    "PrefixAwareRoutingConfig":{
+      "type":"structure",
+      "members":{
+        "PrefixLength":{
+          "shape":"PrefixAwareRoutingPrefixLength",
+          "documentation":"<p>The maximum length of the prefix used for routing decisions. Required when <code>RoutingStrategy</code> is <code>PREFIX_AWARE</code>.</p> <ul> <li> <p>For the SageMaker Runtime <code>InvokeEndpoint</code> and <code>InvokeEndpointWithResponseStream</code> APIs, this value specifies the number of bytes from the beginning of the request body.</p> </li> <li> <p>For OpenAI-compatible API, this value specifies the number of characters from the text content of the messages array.</p> </li> </ul> <p>The endpoint routes requests that share the same prefix to the same instance and, when that instance hosts more than one copy of the invoked inference component, to the same copy. Set this value to cover shared content (such as system prompts) plus enough unique content to distribute workloads across instances and copies.</p>"
+        },
+        "ConcurrencyThreshold":{
+          "shape":"PrefixAwareRoutingConcurrencyThreshold",
+          "documentation":"<p>The number of in-flight requests on the selected instance or inference component copy at which the endpoint routes a request to another copy or instance. Required when <code>RoutingStrategy</code> is <code>PREFIX_AWARE</code>.</p> <p>On an endpoint without inference components, the endpoint compares this threshold with the number of in-flight requests on the selected instance. When that number reaches the threshold, the endpoint routes the request to another instance.</p> <p>On an endpoint with inference components, the endpoint compares this threshold with the number of in-flight requests on the selected copy of the invoked inference component. Requests to other inference components on the same instance don't count. When the instance hosts more than one copy of the inference component, the endpoint routes requests that share a prefix to the same copy and, while that copy has reached the threshold, to another copy on the instance that is under the threshold. When every copy on the instance has reached the threshold, the endpoint routes the request to another instance.</p> <p>The threshold applies to every instance and every copy of every inference component in the production variant, so choose a value that suits the instance or copy that can serve the fewest concurrent requests.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for prefix-aware routing on a SageMaker real-time inference endpoint. Specify <code>PrefixLength</code> and <code>ConcurrencyThreshold</code> to control routing behavior.</p>"
+    },
+    "PrefixAwareRoutingPrefixLength":{
+      "type":"integer",
+      "box":true,
+      "max":65536,
+      "min":1024
     },
     "PresignedDomainUrl":{"type":"string"},
     "PresignedUrlAccessConfig":{
@@ -40676,11 +42046,7 @@
     },
     "ProcessingClusterConfig":{
       "type":"structure",
-      "required":[
-        "InstanceCount",
-        "InstanceType",
-        "VolumeSizeInGB"
-      ],
+      "required":["VolumeSizeInGB"],
       "members":{
         "InstanceCount":{
           "shape":"ProcessingInstanceCount",
@@ -40697,6 +42063,18 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt data on the storage volume attached to the ML compute instance(s) that run the processing job. </p> <note> <p>Certain Nitro-based instances include local storage, dependent on the instance type. Local storage volumes are encrypted using a hardware module on the instance. You can't request a <code>VolumeKmsKeyId</code> when using an instance type with local storage.</p> <p>For a list of instance types that support local instance storage, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes\">Instance Store Volumes</a>.</p> <p>For more information about local instance storage encryption, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ssd-instance-store.html\">SSD Instance Store Volumes</a>.</p> </note>"
+        },
+        "InstancePreferences":{
+          "shape":"ProcessingInstancePreferenceList",
+          "documentation":"<p>An ordered list of ML compute instance types for the processing job, in priority order. Amazon SageMaker launches the job on the first instance type in the list that has available capacity. If capacity is insufficient, Amazon SageMaker evaluates the next instance type in the list. Exactly one instance type is selected for the job.</p> <p> <code>InstancePreferences</code> is mutually exclusive with <code>InstanceType</code>.</p>"
+        },
+        "SelectedInstanceType":{
+          "shape":"ProcessingInstanceType",
+          "documentation":"<p>The instance type that Amazon SageMaker selected for the job from <code>InstancePreferences</code>. Returned by <code> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeProcessingJob.html\">DescribeProcessingJob</a> </code> after an instance type is selected. This field is read-only and isn't accepted in <code>CreateProcessingJob</code> requests.</p>"
+        },
+        "SelectedInstanceCount":{
+          "shape":"ProcessingInstanceCount",
+          "documentation":"<p>The number of instances of <code>SelectedInstanceType</code> that the job launched with. The job is billed for this instance type and count. Returned by <code>DescribeProcessingJob</code> after an instance type is selected. This field is read-only and isn't accepted in <code>CreateProcessingJob</code> requests.</p>"
         }
       },
       "documentation":"<p>Configuration for the cluster used to run a processing job.</p>"
@@ -40765,6 +42143,28 @@
       "type":"integer",
       "box":true,
       "max":100,
+      "min":1
+    },
+    "ProcessingInstancePreference":{
+      "type":"structure",
+      "required":["InstanceType"],
+      "members":{
+        "InstanceType":{
+          "shape":"ProcessingInstanceType",
+          "documentation":"<p>The ML compute instance type. An instance type can appear only once in an <code>InstancePreferences</code> list.</p>"
+        },
+        "InstanceCount":{
+          "shape":"ProcessingInstanceCount",
+          "documentation":"<p>The number of instances to launch if this instance type is selected. Specify the instance count for the processing job in one of the following two ways:</p> <ol> <li> <p> <b>Per preference</b> – Set <code>InstanceCount</code> on every preference in the <code>InstancePreferences</code> list and don't set <code>ProcessingClusterConfig$InstanceCount</code>. Use this when each instance type needs a different number of instances to deliver equivalent compute.</p> </li> <li> <p> <b>One count for the job</b> – Set <code>ProcessingClusterConfig$InstanceCount</code> and omit it from every preference. Amazon SageMaker applies this to all instance types in the list.</p> </li> </ol> <p>For example, in a list of five preferences, either all five specify <code>InstanceCount</code> or none of them do. Amazon SageMaker rejects requests that set <code>InstanceCount</code> on only some preferences, that set it both per preference and in <code>ProcessingClusterConfig</code>, or that omit it in both places.</p>"
+        }
+      },
+      "documentation":"<p>A candidate instance type preference in a processing <code>InstancePreferences</code> list.</p>"
+    },
+    "ProcessingInstancePreferenceList":{
+      "type":"list",
+      "member":{"shape":"ProcessingInstancePreference"},
+      "documentation":"<p>Ordered list of candidate instance types, in priority order.</p>",
+      "max":5,
       "min":1
     },
     "ProcessingInstanceType":{
@@ -40896,7 +42296,87 @@
         "ml.g7e.8xlarge",
         "ml.g7e.12xlarge",
         "ml.g7e.24xlarge",
-        "ml.g7e.48xlarge"
+        "ml.g7e.48xlarge",
+        "ml.g7.2xlarge",
+        "ml.g7.4xlarge",
+        "ml.g7.8xlarge",
+        "ml.g7.12xlarge",
+        "ml.g7.24xlarge",
+        "ml.g7.48xlarge",
+        "ml.r6i.large",
+        "ml.r6i.xlarge",
+        "ml.r6i.2xlarge",
+        "ml.r6i.4xlarge",
+        "ml.r6i.8xlarge",
+        "ml.r6i.12xlarge",
+        "ml.r6i.16xlarge",
+        "ml.r6i.24xlarge",
+        "ml.r6i.32xlarge",
+        "ml.m8i.large",
+        "ml.m8i.xlarge",
+        "ml.m8i.2xlarge",
+        "ml.m8i.4xlarge",
+        "ml.m8i.8xlarge",
+        "ml.m8i.12xlarge",
+        "ml.m8i.16xlarge",
+        "ml.m8i.24xlarge",
+        "ml.m8i.32xlarge",
+        "ml.m8i.48xlarge",
+        "ml.m8i.96xlarge",
+        "ml.c8i.xlarge",
+        "ml.c8i.2xlarge",
+        "ml.c8i.4xlarge",
+        "ml.c8i.8xlarge",
+        "ml.c8i.12xlarge",
+        "ml.c8i.16xlarge",
+        "ml.c8i.24xlarge",
+        "ml.c8i.32xlarge",
+        "ml.c8i.48xlarge",
+        "ml.c8i.96xlarge",
+        "ml.r8i.large",
+        "ml.r8i.xlarge",
+        "ml.r8i.2xlarge",
+        "ml.r8i.4xlarge",
+        "ml.r8i.8xlarge",
+        "ml.r8i.12xlarge",
+        "ml.r8i.16xlarge",
+        "ml.r8i.24xlarge",
+        "ml.r8i.32xlarge",
+        "ml.r8i.48xlarge",
+        "ml.r8i.96xlarge",
+        "ml.m7i-flex.large",
+        "ml.m7i-flex.xlarge",
+        "ml.m7i-flex.2xlarge",
+        "ml.m7i-flex.4xlarge",
+        "ml.m7i-flex.8xlarge",
+        "ml.m7i-flex.12xlarge",
+        "ml.m7i-flex.16xlarge",
+        "ml.c7i-flex.xlarge",
+        "ml.c7i-flex.2xlarge",
+        "ml.c7i-flex.4xlarge",
+        "ml.c7i-flex.8xlarge",
+        "ml.c7i-flex.12xlarge",
+        "ml.c7i-flex.16xlarge",
+        "ml.m8i-flex.large",
+        "ml.m8i-flex.xlarge",
+        "ml.m8i-flex.2xlarge",
+        "ml.m8i-flex.4xlarge",
+        "ml.m8i-flex.8xlarge",
+        "ml.m8i-flex.12xlarge",
+        "ml.m8i-flex.16xlarge",
+        "ml.c8i-flex.xlarge",
+        "ml.c8i-flex.2xlarge",
+        "ml.c8i-flex.4xlarge",
+        "ml.c8i-flex.8xlarge",
+        "ml.c8i-flex.12xlarge",
+        "ml.c8i-flex.16xlarge",
+        "ml.r8i-flex.large",
+        "ml.r8i-flex.xlarge",
+        "ml.r8i-flex.2xlarge",
+        "ml.r8i-flex.4xlarge",
+        "ml.r8i-flex.8xlarge",
+        "ml.r8i-flex.12xlarge",
+        "ml.r8i-flex.16xlarge"
       ]
     },
     "ProcessingJob":{
@@ -41323,9 +42803,19 @@
         "CapacityReservationConfig":{
           "shape":"ProductionVariantCapacityReservationConfig",
           "documentation":"<p>Settings for the capacity reservation for the compute instances that SageMaker AI reserves for an endpoint. </p>"
+        },
+        "AcceleratorPartitionLayouts":{
+          "shape":"ProductionVariantAcceleratorPartitionLayoutsList",
+          "documentation":"<p>The accelerator partition layout for the accelerators backing this production variant. A layout lists the partition profiles to carve on the accelerators it applies to; on NVIDIA GPUs these are Multi-Instance GPU (MIG) profiles such as <code>mig-3g.40gb</code>. Specify a single layout: SageMaker applies it uniformly to every accelerator on the variant's instance type, and you place one inference component on each partition. Omit this field to use whole, unpartitioned accelerators.</p>"
         }
       },
       "documentation":"<p> Identifies a model that you want to host and the resources chosen to deploy for hosting it. If you are deploying multiple models, tell SageMaker how to distribute traffic among the models by specifying variant weights. For more information on production variants, check <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-ab-testing.html\"> Production variants</a>. </p>"
+    },
+    "ProductionVariantAcceleratorPartitionLayoutsList":{
+      "type":"list",
+      "member":{"shape":"AcceleratorPartitionLayout"},
+      "max":32,
+      "min":1
     },
     "ProductionVariantAcceleratorType":{
       "type":"string",
@@ -41754,7 +43244,11 @@
       "members":{
         "RoutingStrategy":{
           "shape":"RoutingStrategy",
-          "documentation":"<p>Sets how the endpoint routes incoming traffic:</p> <ul> <li> <p> <code>LEAST_OUTSTANDING_REQUESTS</code>: The endpoint routes requests to the specific instances that have more capacity to process them.</p> </li> <li> <p> <code>RANDOM</code>: The endpoint routes each request to a randomly chosen instance.</p> </li> </ul>"
+          "documentation":"<p>Sets how the endpoint routes incoming traffic:</p> <ul> <li> <p> <code>LEAST_OUTSTANDING_REQUESTS</code>: The endpoint routes requests to the specific instances that have more capacity to process them.</p> </li> <li> <p> <code>RANDOM</code>: The endpoint routes each request to a randomly chosen instance.</p> </li> <li> <p> <code>PREFIX_AWARE</code>: The endpoint routes requests that share the same prompt prefix to the same instance and, when that instance hosts more than one copy of the invoked inference component, to the same copy. When the number of in-flight requests on the selected instance or copy reaches the <code>ConcurrencyThreshold</code> value, the endpoint routes the request to another copy on that instance or to another instance. The endpoint applies prefix-aware routing only when two or more instances can serve the request.</p> </li> </ul>"
+        },
+        "PrefixAwareRoutingConfig":{
+          "shape":"PrefixAwareRoutingConfig",
+          "documentation":"<p>The configuration for prefix-aware routing. Specify this parameter only when you set <code>RoutingStrategy</code> to <code>PREFIX_AWARE</code>.</p>"
         }
       },
       "documentation":"<p>Settings that control how the endpoint routes incoming traffic to the instances that the endpoint hosts.</p>"
@@ -41879,6 +43373,10 @@
         "CapacityReservationConfig":{
           "shape":"ProductionVariantCapacityReservationSummary",
           "documentation":"<p>Settings for the capacity reservation for the compute instances that SageMaker AI reserves for an endpoint. </p>"
+        },
+        "AcceleratorPartitionLayouts":{
+          "shape":"AcceleratorPartitionLayouts",
+          "documentation":"<p>The accelerator partition layout that SageMaker applies to this production variant. On NVIDIA GPUs, the profiles are Multi-Instance GPU (MIG) profiles. SageMaker returns the accelerator partition layout as you provided it when you created the variant, without normalization.</p>"
         }
       },
       "documentation":"<p>Describes weight and capacities for a production variant associated with an endpoint. If you sent a request to the <code>UpdateEndpointWeightsAndCapacities</code> API and the endpoint status is <code>Updating</code>, you get different desired and current values. </p>"
@@ -42535,6 +44033,12 @@
       "type":"integer",
       "box":true,
       "min":0
+    },
+    "Rank":{
+      "type":"integer",
+      "box":true,
+      "max":256,
+      "min":1
     },
     "RealTimeInferenceConfig":{
       "type":"structure",
@@ -43534,6 +45038,19 @@
         "InstancePlacementConfig":{
           "shape":"InstancePlacementConfig",
           "documentation":"<p>Configuration for how training job instances are placed and allocated within UltraServers. Only applicable for UltraServer capacity.</p>"
+        },
+        "InstancePreferences":{
+          "shape":"InstancePreferenceList",
+          "documentation":"<p>An ordered list of ML compute instance types for the training job, in priority order. SageMaker launches the training job on the first instance type in the list that has available capacity. If capacity is insufficient, SageMaker evaluates the next instance type in the preferred list. Exactly one instance type is selected for the job.</p> <p> <code>InstancePreferences</code> is mutually exclusive with <code>InstanceType</code>, <code>InstanceGroups</code>, <code>InstancePlacementConfig</code>, and <code>EnableManagedSpotTraining</code>, and supports only Flexible Training Plans (FTP) and On-Demand capacity.</p>"
+        },
+        "SelectedInstanceType":{
+          "shape":"TrainingInstanceType",
+          "documentation":"<p>The instance type that SageMaker selected for the job from the provided <code>InstancePreferences</code>. The job is billed for this instance type and count. Returned by <code> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeTrainingJob.html\">DescribeTrainingJob</a> </code> after an instance type is selected. This field is read-only and isn't accepted in <code>CreateTrainingJob</code> requests.</p>"
+        },
+        "SelectedInstanceCount":{
+          "shape":"TrainingInstanceCount",
+          "documentation":"<p>The number of instances of <code>SelectedInstanceType</code> that the training job launched with. The job is billed for this instance type and count. Returned by <code>DescribeTrainingJob</code> after an instance type is selected. This field is read-only and isn't accepted in <code>CreateTrainingJob</code> requests.</p>",
+          "box":true
         }
       },
       "documentation":"<p>Describes the resources, including machine learning (ML) compute instances and ML storage volumes, to use for model training. </p>"
@@ -43700,7 +45217,8 @@
         "HyperParameterTuningJob",
         "ModelCard",
         "PipelineVersion",
-        "Job"
+        "Job",
+        "HubContent"
       ]
     },
     "ResponseMIMEType":{
@@ -43855,7 +45373,8 @@
       "type":"string",
       "enum":[
         "LEAST_OUTSTANDING_REQUESTS",
-        "RANDOM"
+        "RANDOM",
+        "PREFIX_AWARE"
       ]
     },
     "RuleConfigurationName":{
@@ -44336,6 +45855,10 @@
         "Job":{
           "shape":"Job",
           "documentation":"<p>The properties of a job.</p>"
+        },
+        "HubContent":{
+          "shape":"HubContent",
+          "documentation":"<p>The properties of a hub content resource.</p>"
         }
       },
       "documentation":"<p>A single resource returned as part of the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_Search.html\">Search</a> API response.</p>"
@@ -44631,6 +46154,12 @@
         }
       }
     },
+    "SequenceLength":{
+      "type":"string",
+      "max":50,
+      "min":1,
+      "pattern":"\\d+K"
+    },
     "ServerlessJobBaseModelArn":{
       "type":"string",
       "documentation":"<p>ServerlessJobConfig relevant fields</p>",
@@ -44673,6 +46202,10 @@
         "EvaluatorArn":{
           "shape":"EvaluatorArn",
           "documentation":"<p> The evaluator Amazon Resource Name (ARN) used as reward function or reward prompt. </p>"
+        },
+        "SequenceLength":{
+          "shape":"SequenceLength",
+          "documentation":"<p> The maximum sequence length, in tokens, that the customization job supports. SageMaker uses this value to select a training configuration for the base model that you specify. The value must be an integer value from <code>1K</code> to <code>1024K</code> (for example, <code>32K</code>). </p> <p> If you don't specify a value, SageMaker selects a training configuration based on the other values that you specify. The selection is not restricted to a particular sequence length. </p>"
         }
       },
       "documentation":"<p> The configuration for the serverless training job. </p>"
@@ -44873,6 +46406,47 @@
       "enum":[
         "All",
         "None"
+      ]
+    },
+    "SlurmHealthComponent":{
+      "type":"string",
+      "enum":["Slurmdbd"]
+    },
+    "SlurmHealthMetadata":{
+      "type":"structure",
+      "required":[
+        "Component",
+        "Status"
+      ],
+      "members":{
+        "Component":{
+          "shape":"SlurmHealthComponent",
+          "documentation":"<p>The Slurm component that the health information describes. The valid value is <code>Slurmdbd</code>, the Slurm accounting daemon.</p>"
+        },
+        "Status":{
+          "shape":"SlurmHealthStatus",
+          "documentation":"<p>The health of the component. Valid values are <code>Healthy</code> and <code>Unhealthy</code>.</p>"
+        },
+        "Reason":{
+          "shape":"SlurmHealthReason",
+          "documentation":"<p>The reason the component is unhealthy. Valid values:</p> <ul> <li> <p> <code>DaemonDown</code>: The daemon is not running, so job accounting records are not being written.</p> </li> <li> <p> <code>DaemonDisabled</code>: The daemon is running and its accounting database is responding, but the daemon is not enabled to start automatically. Job accounting stops the next time the controller node restarts.</p> </li> <li> <p> <code>DbUnreachable</code>: The daemon is running, but its accounting database did not respond. Job accounting records might not be written.</p> </li> </ul> <p>This field is omitted when the component is healthy.</p>"
+        }
+      },
+      "documentation":"<p>Metadata information about the health of a Slurm component on the controller node of a HyperPod cluster.</p>"
+    },
+    "SlurmHealthReason":{
+      "type":"string",
+      "enum":[
+        "DaemonDown",
+        "DaemonDisabled",
+        "DbUnreachable"
+      ]
+    },
+    "SlurmHealthStatus":{
+      "type":"string",
+      "enum":[
+        "Healthy",
+        "Unhealthy"
       ]
     },
     "SnsTopicArn":{
@@ -45491,11 +47065,19 @@
         },
         "PipelineVersionId":{
           "shape":"PipelineVersionId",
-          "documentation":"<p>The ID of the pipeline version to start execution from.</p>"
+          "documentation":"<p>The ID of the pipeline version to start execution from. You can't specify this with <code>PipelineVersionAlias</code>.</p>"
         },
         "MlflowExperimentName":{
           "shape":"MlflowExperimentEntityName",
           "documentation":"<p> The MLflow experiment name of the pipeline execution. </p>"
+        },
+        "PipelineVersionAlias":{
+          "shape":"PipelineVersionAlias",
+          "documentation":"<p>The alias of the pipeline version to start the execution from. You can't specify this with <code>PipelineVersionId</code>. If no version of the pipeline has this alias, the request fails with a <code>ResourceNotFound</code> error.</p>"
+        },
+        "RoleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that the execution uses. You must specify this parameter when you start an execution of a pipeline that AWS manages. You can't specify it for a pipeline that you create, because its executions use the pipeline's role.</p>"
         }
       }
     },
@@ -45859,6 +47441,20 @@
         }
       }
     },
+    "StopTrainingSessionRequest":{
+      "type":"structure",
+      "required":["TrainingSessionName"],
+      "members":{
+        "TrainingSessionName":{
+          "shape":"TrainingSessionName",
+          "documentation":"<p>The name of the training session to stop.</p>"
+        }
+      }
+    },
+    "StopTrainingSessionResponse":{
+      "type":"structure",
+      "members":{}
+    },
     "StopTransformJobRequest":{
       "type":"structure",
       "required":["TransformJobName"],
@@ -45883,7 +47479,7 @@
         },
         "MaxPendingTimeInSeconds":{
           "shape":"MaxPendingTimeInSeconds",
-          "documentation":"<p>The maximum length of time, in seconds, that a training or compilation job can be pending before it is stopped.</p> <note> <p>When working with training jobs that use capacity from <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/reserve-capacity-with-training-plans.html\">training plans</a>, not all <code>Pending</code> job states count against the <code>MaxPendingTimeInSeconds</code> limit. The following scenarios do not increment the <code>MaxPendingTimeInSeconds</code> counter:</p> <ul> <li> <p>The plan is in a <code>Scheduled</code> state: Jobs queued (in <code>Pending</code> status) before a plan's start date (waiting for scheduled start time)</p> </li> <li> <p>Between capacity reservations: Jobs temporarily back to <code>Pending</code> status between two capacity reservation periods</p> </li> </ul> <p> <code>MaxPendingTimeInSeconds</code> only increments when jobs are actively waiting for capacity in an <code>Active</code> plan.</p> </note>"
+          "documentation":"<p>The maximum length of time, in seconds, that a training or compilation job can be pending before it is stopped.</p> <note> <p>When working with training jobs that use capacity from <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/reserve-capacity-with-training-plans.html\">training plans</a>, not all <code>Pending</code> job states count against the <code>MaxPendingTimeInSeconds</code> limit. The following scenarios do not increment the <code>MaxPendingTimeInSeconds</code> counter:</p> <ul> <li> <p>The plan is in a <code>Scheduled</code> state: Jobs queued (in <code>Pending</code> status) before a plan's start date (waiting for scheduled start time)</p> </li> <li> <p>Between capacity reservations: Jobs temporarily back to <code>Pending</code> status between two capacity reservation periods</p> </li> </ul> <p> <code>MaxPendingTimeInSeconds</code> only increments when jobs are actively waiting for capacity in an <code>Active</code> plan.</p> </note> <note> <ul> <li> <p> <code>MaxPendingTimeInSeconds</code> takes effect only for jobs that request accelerated computing instance types, such as instances in the <code>ml.p</code>, <code>ml.g</code>, and <code>ml.trn</code> families. It has no effect on jobs that request CPU-only instance types.</p> </li> <li> <p>If the job specifies <code>InstancePreferences</code>, <code>MaxPendingTimeInSeconds</code> bounds the total time SageMaker spends working through your list of instance types. It is not applied per instance type preference, and takes effect only when the list includes at least one accelerated computing instance type.</p> </li> </ul> </note>"
         }
       },
       "documentation":"<p>Specifies a limit to how long a job can run. When the job reaches the time limit, SageMaker ends the job. Use this API to cap costs.</p> <p>To stop a training job, SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts, so the results of training are not lost. </p> <p>The training algorithms provided by SageMaker automatically save the intermediate results of a model training job when possible. This attempt to save artifacts is only a best effort case as model might not be in a state from which it can be saved. For example, if training has just started, the model might not be ready to save. When saved, this intermediate data is a valid model artifact. You can use it to create a model with <code>CreateModel</code>.</p> <note> <p>The Neural Topic Model (NTM) currently does not support saving intermediate model artifacts. When training NTMs, make sure that the maximum runtime is sufficient for the training job to complete.</p> </note>"
@@ -45892,6 +47488,7 @@
       "type":"string",
       "enum":[
         "Standard",
+        "Standard_V2",
         "InMemory"
       ]
     },
@@ -45905,6 +47502,11 @@
     "String128":{
       "type":"string",
       "max":128,
+      "min":0
+    },
+    "String12800":{
+      "type":"string",
+      "max":12800,
       "min":0
     },
     "String200":{
@@ -47113,7 +48715,87 @@
         "ml.g7e.8xlarge",
         "ml.g7e.12xlarge",
         "ml.g7e.24xlarge",
-        "ml.g7e.48xlarge"
+        "ml.g7e.48xlarge",
+        "ml.g7.2xlarge",
+        "ml.g7.4xlarge",
+        "ml.g7.8xlarge",
+        "ml.g7.12xlarge",
+        "ml.g7.24xlarge",
+        "ml.g7.48xlarge",
+        "ml.r6i.large",
+        "ml.r6i.xlarge",
+        "ml.r6i.2xlarge",
+        "ml.r6i.4xlarge",
+        "ml.r6i.8xlarge",
+        "ml.r6i.12xlarge",
+        "ml.r6i.16xlarge",
+        "ml.r6i.24xlarge",
+        "ml.r6i.32xlarge",
+        "ml.m8i.large",
+        "ml.m8i.xlarge",
+        "ml.m8i.2xlarge",
+        "ml.m8i.4xlarge",
+        "ml.m8i.8xlarge",
+        "ml.m8i.12xlarge",
+        "ml.m8i.16xlarge",
+        "ml.m8i.24xlarge",
+        "ml.m8i.32xlarge",
+        "ml.m8i.48xlarge",
+        "ml.m8i.96xlarge",
+        "ml.c8i.xlarge",
+        "ml.c8i.2xlarge",
+        "ml.c8i.4xlarge",
+        "ml.c8i.8xlarge",
+        "ml.c8i.12xlarge",
+        "ml.c8i.16xlarge",
+        "ml.c8i.24xlarge",
+        "ml.c8i.32xlarge",
+        "ml.c8i.48xlarge",
+        "ml.c8i.96xlarge",
+        "ml.r8i.large",
+        "ml.r8i.xlarge",
+        "ml.r8i.2xlarge",
+        "ml.r8i.4xlarge",
+        "ml.r8i.8xlarge",
+        "ml.r8i.12xlarge",
+        "ml.r8i.16xlarge",
+        "ml.r8i.24xlarge",
+        "ml.r8i.32xlarge",
+        "ml.r8i.48xlarge",
+        "ml.r8i.96xlarge",
+        "ml.m7i-flex.large",
+        "ml.m7i-flex.xlarge",
+        "ml.m7i-flex.2xlarge",
+        "ml.m7i-flex.4xlarge",
+        "ml.m7i-flex.8xlarge",
+        "ml.m7i-flex.12xlarge",
+        "ml.m7i-flex.16xlarge",
+        "ml.c7i-flex.xlarge",
+        "ml.c7i-flex.2xlarge",
+        "ml.c7i-flex.4xlarge",
+        "ml.c7i-flex.8xlarge",
+        "ml.c7i-flex.12xlarge",
+        "ml.c7i-flex.16xlarge",
+        "ml.m8i-flex.large",
+        "ml.m8i-flex.xlarge",
+        "ml.m8i-flex.2xlarge",
+        "ml.m8i-flex.4xlarge",
+        "ml.m8i-flex.8xlarge",
+        "ml.m8i-flex.12xlarge",
+        "ml.m8i-flex.16xlarge",
+        "ml.c8i-flex.xlarge",
+        "ml.c8i-flex.2xlarge",
+        "ml.c8i-flex.4xlarge",
+        "ml.c8i-flex.8xlarge",
+        "ml.c8i-flex.12xlarge",
+        "ml.c8i-flex.16xlarge",
+        "ml.r8i-flex.large",
+        "ml.r8i-flex.xlarge",
+        "ml.r8i-flex.2xlarge",
+        "ml.r8i-flex.4xlarge",
+        "ml.r8i-flex.8xlarge",
+        "ml.r8i-flex.12xlarge",
+        "ml.r8i-flex.16xlarge"
       ]
     },
     "TrainingInstanceTypes":{
@@ -47454,6 +49136,13 @@
       "min":50,
       "pattern":"arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:training-plan/.*"
     },
+    "TrainingPlanArnList":{
+      "type":"list",
+      "member":{"shape":"TrainingPlanArn"},
+      "documentation":"<p>Training plan ARNs for a single instance preference.</p>",
+      "max":1,
+      "min":1
+    },
     "TrainingPlanArns":{
       "type":"list",
       "member":{"shape":"TrainingPlanArn"}
@@ -47612,6 +49301,13 @@
       "max":64,
       "min":1,
       "pattern":"[a-zA-Z0-9](-*[a-zA-Z0-9]){0,63}"
+    },
+    "TrainingPlanNameOrArn":{
+      "type":"string",
+      "documentation":"<p>A training plan name, or the ARN of a training plan.</p>",
+      "max":2048,
+      "min":1,
+      "pattern":"(arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:training-plan/)?[a-zA-Z0-9](-*[a-zA-Z0-9]){0,63}"
     },
     "TrainingPlanOffering":{
       "type":"structure",
@@ -47824,6 +49520,184 @@
       "max":2048,
       "min":1,
       "pattern":"arn:[\\p{Alnum}\\-]+:lambda:[\\p{Alnum}\\-]+:[0-9]{12}:function:.*"
+    },
+    "TrainingSessionArn":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"arn:(aws[a-z\\-]*):sagemaker:[a-z0-9\\-]+:[0-9]{12}:training-session/[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+    },
+    "TrainingSessionDetail":{
+      "type":"structure",
+      "required":[
+        "TrainingSessionArn",
+        "TrainingSessionName",
+        "TrainingSessionStatus",
+        "CreationTime"
+      ],
+      "members":{
+        "TrainingSessionArn":{
+          "shape":"TrainingSessionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the training session.</p>"
+        },
+        "TrainingSessionName":{
+          "shape":"TrainingSessionName",
+          "documentation":"<p>The name of the training session.</p>"
+        },
+        "TrainingSessionStatus":{
+          "shape":"TrainingSessionStatus",
+          "documentation":"<p>The current status of the training session.</p>"
+        },
+        "ModelPackageGroupArn":{
+          "shape":"ModelPackageGroupArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the model package group where checkpoints are published.</p>"
+        },
+        "CreationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time that the training session was created.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time that the training session was last modified.</p>"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time that the training session ended.</p>"
+        },
+        "ErrorDetails":{
+          "shape":"FailureReason",
+          "documentation":"<p>If the training session failed or is blocked, detailed error information.</p>"
+        },
+        "LastReceivedSequenceNumber":{
+          "shape":"JavaInteger",
+          "documentation":"<p>The sequence number of the last training operation received by the session.</p>"
+        },
+        "BillableTokenUsage":{
+          "shape":"BillableTokenUsage",
+          "documentation":"<p>The billable token usage for the training session.</p>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>The Virtual Private Cloud (VPC) configuration for the training session.</p>"
+        },
+        "RoleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role associated with the training session.</p>"
+        },
+        "LoraConfig":{
+          "shape":"LoraConfig",
+          "documentation":"<p>The Low-Rank Adaptation (LoRA) configuration for the training session.</p>"
+        },
+        "ModelConfig":{
+          "shape":"TrainingSessionModelConfig",
+          "documentation":"<p>The configuration for the base model.</p>"
+        },
+        "OutputConfig":{
+          "shape":"TrainingSessionOutputConfig",
+          "documentation":"<p>The output configuration for the training session.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the training session.</p>"
+        }
+      },
+      "documentation":"<p>Contains detailed information about a training session.</p>"
+    },
+    "TrainingSessionModelConfig":{
+      "type":"structure",
+      "required":["BaseModelArn"],
+      "members":{
+        "BaseModelArn":{
+          "shape":"BaseModelArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the base foundation model from SageMaker Hub.</p>"
+        },
+        "AcceptEula":{
+          "shape":"JavaBoolean",
+          "documentation":"<p>Specifies whether you accept the end-user license agreement (EULA) for gated models.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for the base model used in a training session.</p>"
+    },
+    "TrainingSessionName":{
+      "type":"string",
+      "max":63,
+      "min":1,
+      "pattern":"[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+    },
+    "TrainingSessionOutputConfig":{
+      "type":"structure",
+      "required":["S3Location"],
+      "members":{
+        "S3Location":{
+          "shape":"TrainingSessionS3Location",
+          "documentation":"<p>The Amazon S3 location where training session outputs, including checkpoints and model artifacts, are stored.</p>"
+        }
+      },
+      "documentation":"<p>The output configuration for a training session, including the Amazon S3 location for checkpoints and model artifacts, and optional encryption settings.</p>"
+    },
+    "TrainingSessionS3Location":{
+      "type":"structure",
+      "required":["Path"],
+      "members":{
+        "Path":{
+          "shape":"OutputS3Path",
+          "documentation":"<p>The Amazon S3 path where training session outputs are stored.</p>"
+        },
+        "KmsKeyArn":{
+          "shape":"CustomerKmsKeyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS key used to encrypt output data. If not specified, the default Amazon S3 encryption is used.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the Amazon S3 path and optional encryption settings for training session output data, including checkpoints, model artifacts, and invocation results.</p>"
+    },
+    "TrainingSessionStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a training session.</p>",
+      "enum":[
+        "Created",
+        "Blocked",
+        "Running",
+        "Failed",
+        "Scheduled",
+        "Stopping",
+        "Stopped",
+        "Expired",
+        "Deleting",
+        "DeletionFailed"
+      ]
+    },
+    "TrainingSessionSummaries":{
+      "type":"list",
+      "member":{"shape":"TrainingSessionSummary"},
+      "max":100,
+      "min":0
+    },
+    "TrainingSessionSummary":{
+      "type":"structure",
+      "required":[
+        "TrainingSessionArn",
+        "TrainingSessionStatus",
+        "CreationTime"
+      ],
+      "members":{
+        "TrainingSessionArn":{
+          "shape":"TrainingSessionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the training session.</p>"
+        },
+        "TrainingSessionStatus":{
+          "shape":"TrainingSessionStatus",
+          "documentation":"<p>The current status of the training session.</p>"
+        },
+        "CreationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time that the training session was created.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time that the training session was last modified.</p>"
+        }
+      },
+      "documentation":"<p>Contains summary information about a training session.</p>"
     },
     "TrainingSpecification":{
       "type":"structure",
@@ -48057,7 +49931,15 @@
         "ml.g6.12xlarge",
         "ml.g6.16xlarge",
         "ml.g6.24xlarge",
-        "ml.g6.48xlarge"
+        "ml.g6.48xlarge",
+        "ml.g6e.xlarge",
+        "ml.g6e.2xlarge",
+        "ml.g6e.4xlarge",
+        "ml.g6e.8xlarge",
+        "ml.g6e.12xlarge",
+        "ml.g6e.16xlarge",
+        "ml.g6e.24xlarge",
+        "ml.g6e.48xlarge"
       ]
     },
     "TransformInstanceTypes":{
@@ -49189,6 +51071,52 @@
         "ArtifactArn":{
           "shape":"ArtifactArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the artifact.</p>"
+        }
+      }
+    },
+    "UpdateClusterExtensionRequest":{
+      "type":"structure",
+      "required":[
+        "ClusterArn",
+        "ExtensionArn"
+      ],
+      "members":{
+        "ClusterArn":{
+          "shape":"ClusterArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the SageMaker HyperPod cluster on which the extension is installed.</p>"
+        },
+        "ExtensionArn":{
+          "shape":"ExtensionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the extension to update.</p>"
+        },
+        "ExtensionVersion":{
+          "shape":"ExtensionVersion",
+          "documentation":"<p>The version to update the extension to, in <code>MAJOR.MINOR.PATCH</code> format. The version must be later than the extension's current version. If you omit this parameter, the extension keeps its current version.</p>"
+        },
+        "ConfigurationValues":{
+          "shape":"ExtensionConfigurationValues",
+          "documentation":"<p>The configuration changes to apply, as a JSON object serialized as a string. Settings that you include are changed, settings that you omit are unchanged, and a setting with the value <code>null</code> returns to its default value. The resulting configuration must be valid for the target extension version. If you omit <code>ConfigurationValues</code>, the configuration is unchanged.</p>"
+        },
+        "ClientToken":{
+          "shape":"UpdateClusterExtensionRequestClientTokenString",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide so that the request is idempotent. If you send the same update more than once, SageMaker HyperPod applies it once and doesn't return an error.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "UpdateClusterExtensionRequestClientTokenString":{
+      "type":"string",
+      "max":64,
+      "min":0,
+      "pattern":"[\\x21-\\x7E]+"
+    },
+    "UpdateClusterExtensionResponse":{
+      "type":"structure",
+      "required":["ExtensionArn"],
+      "members":{
+        "ExtensionArn":{
+          "shape":"ExtensionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the extension that is being updated. To track the update, call <code>DescribeClusterExtension</code>.</p>"
         }
       }
     },
@@ -50420,6 +52348,14 @@
           "shape":"PartnerAppConfig",
           "documentation":"<p>Configuration settings for the SageMaker Partner AI App.</p>"
         },
+        "IdcConfig":{
+          "shape":"IdcConfigInput",
+          "documentation":"<p>Specifies the Amazon Web Services IAM Identity Center configuration for the SageMaker Partner AI App. Specify this parameter when <code>AuthType</code> is <code>IDC</code>. Apps that use <code>IAM</code> authorization don't use this parameter.</p>"
+        },
+        "AuthType":{
+          "shape":"PartnerAppAuthType",
+          "documentation":"<p>The authorization type that users use to access the SageMaker Partner AI App. Use this parameter to migrate an existing SageMaker Partner AI App from <code>IAM</code> authorization to <code>IDC</code> authorization. Valid values:</p> <ul> <li> <p> <code>IAM</code>: Users access the SageMaker Partner AI App with their Amazon Web Services IAM identity.</p> </li> <li> <p> <code>IDC</code>: Users access the SageMaker Partner AI App with their Amazon Web Services IAM Identity Center identity. Specify the Identity Center instance to use in <code>IdcConfig</code>.</p> </li> </ul>"
+        },
         "EnableIamSessionBasedIdentity":{
           "shape":"Boolean",
           "documentation":"<p>When set to <code>TRUE</code>, the SageMaker Partner AI App sets the Amazon Web Services IAM session name or the authenticated IAM user as the identity of the SageMaker Partner AI App user.</p>",
@@ -50516,6 +52452,10 @@
         "ParallelismConfiguration":{
           "shape":"ParallelismConfiguration",
           "documentation":"<p>If specified, it applies to all executions of this pipeline by default.</p>"
+        },
+        "PipelineVersionAliases":{
+          "shape":"PipelineVersionAliasList",
+          "documentation":"<p>The aliases to assign to the new pipeline version that this update creates. You can specify aliases only when the update changes the pipeline definition. To change the aliases of an existing version, use <code>UpdatePipelineVersion</code>.</p> <p>An alias must be unique within the pipeline. To move an alias from an existing version to the new version, first remove the alias from the existing version with <code>UpdatePipelineVersion</code>.</p>"
         }
       }
     },
@@ -50554,6 +52494,10 @@
         "PipelineVersionDescription":{
           "shape":"PipelineVersionDescription",
           "documentation":"<p>The description of the pipeline version.</p>"
+        },
+        "PipelineVersionAliasOperations":{
+          "shape":"AliasOperations",
+          "documentation":"<p>The aliases to add to or remove from the pipeline version.</p>"
         }
       }
     },

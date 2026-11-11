@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
@@ -46,6 +47,7 @@ import software.amazon.awssdk.protocols.rpcv2.SmithyRpcV2CborProtocolFactory;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.smithyrpcv2protocol.auth.scheme.SmithyRpcV2ProtocolAuthSchemeParams;
 import software.amazon.awssdk.services.smithyrpcv2protocol.auth.scheme.SmithyRpcV2ProtocolAuthSchemeProvider;
+import software.amazon.awssdk.services.smithyrpcv2protocol.auth.scheme.internal.DefaultSmithyRpcV2ProtocolAuthSchemeProvider;
 import software.amazon.awssdk.services.smithyrpcv2protocol.endpoints.SmithyRpcV2ProtocolEndpointParams;
 import software.amazon.awssdk.services.smithyrpcv2protocol.endpoints.SmithyRpcV2ProtocolEndpointProvider;
 import software.amazon.awssdk.services.smithyrpcv2protocol.endpoints.internal.SmithyRpcV2ProtocolEndpointResolverUtils;
@@ -116,6 +118,27 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+        if (errorCode == null) {
+            return Optional.empty();
+        }
+        switch (errorCode) {
+            case "ValidationException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException").httpStatusCode(400)
+                                                    .exceptionBuilderSupplier(ValidationException::builder).build());
+            case "InvalidGreeting":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting").httpStatusCode(400)
+                                                    .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+            case "ComplexError":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError").httpStatusCode(400)
+                                                    .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+            default:
+                return Optional.empty();
+        }
+    };
+
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
+
     protected DefaultSmithyRpcV2ProtocolClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
@@ -147,24 +170,6 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
         HttpResponseHandler<EmptyInputOutputResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                               EmptyInputOutputResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "ValidationException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
-                                                        .exceptionBuilderSupplier(ValidationException::builder).build());
-                case "InvalidGreeting":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                                        .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
-                case "ComplexError":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
-                                                        .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(emptyInputOutputRequest,
@@ -181,12 +186,11 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withOperationName("EmptyInputOutput").withProtocolMetadata(protocolMetadata)
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(emptyInputOutputRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new EmptyInputOutputRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -214,24 +218,6 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
         HttpResponseHandler<Float16Response> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                      Float16Response::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "ValidationException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
-                                                        .exceptionBuilderSupplier(ValidationException::builder).build());
-                case "InvalidGreeting":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                                        .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
-                case "ComplexError":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
-                                                        .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(float16Request, this.clientConfiguration);
@@ -247,11 +233,10 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withOperationName("Float16").withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
                                              .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
                                              .withInput(float16Request).withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions).withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new Float16RequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -279,24 +264,6 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
         HttpResponseHandler<FractionalSecondsResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                                FractionalSecondsResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "ValidationException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
-                                                        .exceptionBuilderSupplier(ValidationException::builder).build());
-                case "InvalidGreeting":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                                        .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
-                case "ComplexError":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
-                                                        .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(fractionalSecondsRequest,
@@ -313,12 +280,11 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withOperationName("FractionalSeconds").withProtocolMetadata(protocolMetadata)
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(fractionalSecondsRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new FractionalSecondsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -349,24 +315,6 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
         HttpResponseHandler<GreetingWithErrorsResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, GreetingWithErrorsResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "ValidationException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
-                                                        .exceptionBuilderSupplier(ValidationException::builder).build());
-                case "InvalidGreeting":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                                        .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
-                case "ComplexError":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
-                                                        .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(greetingWithErrorsRequest,
@@ -383,12 +331,11 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withOperationName("GreetingWithErrors").withProtocolMetadata(protocolMetadata)
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(greetingWithErrorsRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new GreetingWithErrorsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -416,24 +363,6 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
         HttpResponseHandler<NoInputOutputResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                            NoInputOutputResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "ValidationException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
-                                                        .exceptionBuilderSupplier(ValidationException::builder).build());
-                case "InvalidGreeting":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                                        .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
-                case "ComplexError":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
-                                                        .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(noInputOutputRequest, this.clientConfiguration);
@@ -449,12 +378,11 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withOperationName("NoInputOutput").withProtocolMetadata(protocolMetadata)
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(noInputOutputRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new NoInputOutputRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -483,24 +411,6 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
         HttpResponseHandler<OperationWithDefaultsResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, OperationWithDefaultsResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "ValidationException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
-                                                        .exceptionBuilderSupplier(ValidationException::builder).build());
-                case "InvalidGreeting":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                                        .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
-                case "ComplexError":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
-                                                        .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithDefaultsRequest,
@@ -517,12 +427,11 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withOperationName("OperationWithDefaults").withProtocolMetadata(protocolMetadata)
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(operationWithDefaultsRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new OperationWithDefaultsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -550,24 +459,6 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
         HttpResponseHandler<OptionalInputOutputResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, OptionalInputOutputResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "ValidationException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
-                                                        .exceptionBuilderSupplier(ValidationException::builder).build());
-                case "InvalidGreeting":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                                        .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
-                case "ComplexError":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
-                                                        .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(optionalInputOutputRequest,
@@ -584,12 +475,11 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withOperationName("OptionalInputOutput").withProtocolMetadata(protocolMetadata)
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(optionalInputOutputRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new OptionalInputOutputRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -617,24 +507,6 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
         HttpResponseHandler<RecursiveShapesResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                              RecursiveShapesResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "ValidationException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
-                                                        .exceptionBuilderSupplier(ValidationException::builder).build());
-                case "InvalidGreeting":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                                        .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
-                case "ComplexError":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
-                                                        .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(recursiveShapesRequest,
@@ -651,12 +523,11 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withOperationName("RecursiveShapes").withProtocolMetadata(protocolMetadata)
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(recursiveShapesRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new RecursiveShapesRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -685,24 +556,6 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
         HttpResponseHandler<RpcV2CborDenseMapsResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, RpcV2CborDenseMapsResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "ValidationException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
-                                                        .exceptionBuilderSupplier(ValidationException::builder).build());
-                case "InvalidGreeting":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                                        .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
-                case "ComplexError":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
-                                                        .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(rpcV2CborDenseMapsRequest,
@@ -719,12 +572,11 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withOperationName("RpcV2CborDenseMaps").withProtocolMetadata(protocolMetadata)
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(rpcV2CborDenseMapsRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new RpcV2CborDenseMapsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -753,24 +605,6 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
         HttpResponseHandler<RpcV2CborListsResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                             RpcV2CborListsResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "ValidationException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
-                                                        .exceptionBuilderSupplier(ValidationException::builder).build());
-                case "InvalidGreeting":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                                        .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
-                case "ComplexError":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
-                                                        .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(rpcV2CborListsRequest, this.clientConfiguration);
@@ -786,12 +620,11 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withOperationName("RpcV2CborLists").withProtocolMetadata(protocolMetadata)
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(rpcV2CborListsRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new RpcV2CborListsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -820,24 +653,6 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
         HttpResponseHandler<RpcV2CborSparseMapsResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, RpcV2CborSparseMapsResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "ValidationException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
-                                                        .exceptionBuilderSupplier(ValidationException::builder).build());
-                case "InvalidGreeting":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                                        .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
-                case "ComplexError":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
-                                                        .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(rpcV2CborSparseMapsRequest,
@@ -854,12 +669,11 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withOperationName("RpcV2CborSparseMaps").withProtocolMetadata(protocolMetadata)
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(rpcV2CborSparseMapsRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new RpcV2CborSparseMapsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -887,24 +701,6 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
         HttpResponseHandler<SimpleScalarPropertiesResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, SimpleScalarPropertiesResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "ValidationException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
-                                                        .exceptionBuilderSupplier(ValidationException::builder).build());
-                case "InvalidGreeting":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                                        .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
-                case "ComplexError":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
-                                                        .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(simpleScalarPropertiesRequest,
@@ -927,7 +723,7 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new SimpleScalarPropertiesRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -955,24 +751,6 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
         HttpResponseHandler<SparseNullsOperationResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, SparseNullsOperationResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "ValidationException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
-                                                        .exceptionBuilderSupplier(ValidationException::builder).build());
-                case "InvalidGreeting":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                                        .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
-                case "ComplexError":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
-                                                        .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(sparseNullsOperationRequest,
@@ -989,12 +767,11 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withOperationName("SparseNullsOperation").withProtocolMetadata(protocolMetadata)
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(sparseNullsOperationRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new SparseNullsOperationRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -1018,8 +795,16 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
         return publishers;
     }
 
-    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
-            ExecutionAttributes executionAttributes) {
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
+    }
+
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, ExecutionAttributes executionAttributes) {
         String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         SmithyRpcV2ProtocolAuthSchemeProvider requestAuthSchemeProvider = request
             .overrideConfiguration()
@@ -1030,10 +815,23 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                                                                                      : Validate.isInstanceOf(SmithyRpcV2ProtocolAuthSchemeProvider.class,
                                                                                                                              executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                                                                                                                              "Expected an instance of SmithyRpcV2ProtocolAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                           && authSchemeProvider instanceof DefaultSmithyRpcV2ProtocolAuthSchemeProvider;
+        String cacheKey = String.valueOf(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(cacheKey);
+            if (cached != null) {
+                return cached;
+            }
+        }
         SmithyRpcV2ProtocolAuthSchemeParams.Builder paramsBuilder = SmithyRpcV2ProtocolAuthSchemeParams.builder().operation(
             operationName);
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            options = Collections.unmodifiableList(options);
+            authSchemeCache.put(cacheKey, options);
+        }
         return options;
     }
 

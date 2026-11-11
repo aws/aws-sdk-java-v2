@@ -151,7 +151,7 @@
         {"shape":"DBParameterGroupQuotaExceededFault"},
         {"shape":"DBParameterGroupAlreadyExistsFault"}
       ],
-      "documentation":"<p>Creates a new cluster parameter group.</p> <p>Parameters in a cluster parameter group apply to all of the instances in a cluster.</p> <p>A cluster parameter group is initially created with the default parameters for the database engine used by instances in the cluster. In Amazon DocumentDB, you cannot make modifications directly to the <code>default.docdb3.6</code> cluster parameter group. If your Amazon DocumentDB cluster is using the default cluster parameter group and you want to modify a value in it, you must first <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/cluster_parameter_group-create.html\"> create a new parameter group</a> or <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/cluster_parameter_group-copy.html\"> copy an existing parameter group</a>, modify it, and then apply the modified parameter group to your cluster. For the new cluster parameter group and associated settings to take effect, you must then reboot the instances in the cluster without failover. For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/cluster_parameter_group-modify.html\"> Modifying Amazon DocumentDB Cluster Parameter Groups</a>. </p>"
+      "documentation":"<p>Creates a new cluster parameter group.</p> <p>Parameters in a cluster parameter group apply to all of the instances in a cluster.</p> <p>A cluster parameter group is initially created with the default parameters for the database engine used by instances in the cluster. In Amazon DocumentDB, you cannot make modifications directly to the <code>default.docdb3.6</code> cluster parameter group. If your Amazon DocumentDB cluster is using the default cluster parameter group and you want to modify a value in it, you must first <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/cluster_parameter_group-create.html\"> create a new parameter group</a> or <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/cluster_parameter_group-copy.html\"> copy an existing parameter group</a>, modify it, and then apply the modified parameter group to your cluster. For the new cluster parameter group and associated settings to take effect, you must then reboot the instances in the cluster without failover. For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/cluster_parameter_group-modify.html\"> Modifying Amazon DocumentDB Cluster Parameter Groups</a>. </p>"
     },
     "CreateDBClusterSnapshot":{
       "name":"CreateDBClusterSnapshot",
@@ -623,6 +623,19 @@
       ],
       "documentation":"<p>Returns a list of resources (for example, instances) that have at least one pending maintenance action.</p>"
     },
+    "DescribeServerlessV2PlatformVersions":{
+      "name":"DescribeServerlessV2PlatformVersions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeServerlessV2PlatformVersionsMessage"},
+      "output":{
+        "shape":"ServerlessV2PlatformVersionsMessage",
+        "resultWrapper":"DescribeServerlessV2PlatformVersionsResult"
+      },
+      "documentation":"<p>Describes the properties of specific platform versions for Amazon DocumentDB Serverless v2.</p>"
+    },
     "FailoverDBCluster":{
       "name":"FailoverDBCluster",
       "http":{
@@ -988,7 +1001,7 @@
         {"shape":"InvalidDBClusterStateFault"},
         {"shape":"InvalidDBInstanceStateFault"}
       ],
-      "documentation":"<p>Restarts the stopped cluster that is specified by <code>DBClusterIdentifier</code>. For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/db-cluster-stop-start.html\">Stopping and Starting an Amazon DocumentDB Cluster</a>.</p>"
+      "documentation":"<p>Restarts the stopped cluster that is specified by <code>DBClusterIdentifier</code>. For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/db-cluster-stop-start.html\">Stopping and Starting an Amazon DocumentDB Cluster</a>.</p>"
     },
     "StopDBCluster":{
       "name":"StopDBCluster",
@@ -1006,7 +1019,7 @@
         {"shape":"InvalidDBClusterStateFault"},
         {"shape":"InvalidDBInstanceStateFault"}
       ],
-      "documentation":"<p>Stops the running cluster that is specified by <code>DBClusterIdentifier</code>. The cluster must be in the <i>available</i> state. For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/db-cluster-stop-start.html\">Stopping and Starting an Amazon DocumentDB Cluster</a>.</p>"
+      "documentation":"<p>Stops the running cluster that is specified by <code>DBClusterIdentifier</code>. The cluster must be in the <i>available</i> state. For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/db-cluster-stop-start.html\">Stopping and Starting an Amazon DocumentDB Cluster</a>.</p>"
     },
     "SwitchoverGlobalCluster":{
       "name":"SwitchoverGlobalCluster",
@@ -1199,7 +1212,7 @@
           "documentation":"<p>The expiration date of the DB instance’s server certificate.</p>"
         }
       },
-      "documentation":"<p>Returns the details of the DB instance’s server certificate.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/ca_cert_rotation.html\">Updating Your Amazon DocumentDB TLS Certificates</a> and <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/security.encryption.ssl.html\"> Encrypting Data in Transit</a> in the <i>Amazon DocumentDB Developer Guide</i>.</p>"
+      "documentation":"<p>Returns the details of the DB instance’s server certificate.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/ca_cert_rotation.html\">Updating Your Amazon DocumentDB TLS Certificates</a> and <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/security.encryption.ssl.html\"> Encrypting Data in Transit</a> in the <i>Amazon DocumentDB Developer Guide</i>.</p>"
     },
     "CertificateList":{
       "type":"list",
@@ -1414,7 +1427,7 @@
         },
         "EnableCloudwatchLogsExports":{
           "shape":"LogTypeList",
-          "documentation":"<p>A list of log types that need to be enabled for exporting to Amazon CloudWatch Logs. You can enable audit logs or profiler logs. For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/event-auditing.html\"> Auditing Amazon DocumentDB Events</a> and <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/profiling.html\"> Profiling Amazon DocumentDB Operations</a>. </p>"
+          "documentation":"<p>A list of log types that need to be enabled for exporting to Amazon CloudWatch Logs. You can enable audit logs or profiler logs. For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/event-auditing.html\"> Auditing Amazon DocumentDB Events</a> and <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/profiling.html\"> Profiling Amazon DocumentDB Operations</a>. </p>"
         },
         "DeletionProtection":{
           "shape":"BooleanOptional",
@@ -1442,7 +1455,11 @@
         },
         "NetworkType":{
           "shape":"String",
-          "documentation":"<p>The network type of the cluster.</p> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/vpc-clusters.html\">DocumentDB clusters in a VPC</a> in the Amazon DocumentDB Developer Guide.</p> <p>Valid Values: <code>IPV4</code> | <code>DUAL</code> </p>"
+          "documentation":"<p>The network type of the cluster.</p> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/vpc-clusters.html\">DocumentDB clusters in a VPC</a> in the Amazon DocumentDB Developer Guide.</p> <p>Valid Values: <code>IPV4</code> | <code>DUAL</code> </p>"
+        },
+        "CopyTagsToSnapshot":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Specifies whether to copy all tags from the DB cluster to snapshots of the DB cluster. The default is not to copy them.</p>"
         }
       },
       "documentation":"<p>Represents the input to <a>CreateDBCluster</a>. </p>"
@@ -1565,7 +1582,7 @@
         },
         "EnablePerformanceInsights":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A value that indicates whether to enable Performance Insights for the DB Instance. For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/performance-insights.html\">Using Amazon Performance Insights</a>.</p>"
+          "documentation":"<p>A value that indicates whether to enable Performance Insights for the DB Instance. For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/performance-insights.html\">Using Amazon Performance Insights</a>.</p>"
         },
         "PerformanceInsightsKMSKeyId":{
           "shape":"String",
@@ -1573,7 +1590,7 @@
         },
         "CACertificateIdentifier":{
           "shape":"String",
-          "documentation":"<p>The CA certificate identifier to use for the DB instance's server certificate.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/ca_cert_rotation.html\">Updating Your Amazon DocumentDB TLS Certificates</a> and <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/security.encryption.ssl.html\"> Encrypting Data in Transit</a> in the <i>Amazon DocumentDB Developer Guide</i>.</p>"
+          "documentation":"<p>The CA certificate identifier to use for the DB instance's server certificate.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/ca_cert_rotation.html\">Updating Your Amazon DocumentDB TLS Certificates</a> and <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/security.encryption.ssl.html\"> Encrypting Data in Transit</a> in the <i>Amazon DocumentDB Developer Guide</i>.</p>"
         }
       },
       "documentation":"<p>Represents the input to <a>CreateDBInstance</a>.</p>"
@@ -1845,13 +1862,21 @@
           "shape":"ServerlessV2ScalingConfigurationInfo",
           "documentation":"<p>The scaling configuration of an Amazon DocumentDB Serverless cluster.</p>"
         },
+        "ServerlessV2PlatformVersion":{
+          "shape":"String",
+          "documentation":"<p>The version of the Amazon DocumentDB Serverless platform used by the cluster.</p>"
+        },
         "MasterUserSecret":{
           "shape":"ClusterMasterUserSecret",
           "documentation":"<p>The secret managed by Amazon DocumentDB in Amazon Web Services Secrets Manager for the master user password.</p>"
         },
         "NetworkType":{
           "shape":"String",
-          "documentation":"<p>The network type of the cluster.</p> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/vpc-clusters.html\">DocumentDB clusters in a VPC</a> in the Amazon DocumentDB Developer Guide.</p> <p>Valid Values: <code>IPV4</code> | <code>DUAL</code> </p>"
+          "documentation":"<p>The network type of the cluster.</p> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/vpc-clusters.html\">DocumentDB clusters in a VPC</a> in the Amazon DocumentDB Developer Guide.</p> <p>Valid Values: <code>IPV4</code> | <code>DUAL</code> </p>"
+        },
+        "CopyTagsToSnapshot":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Specifies whether to copy all tags from the DB cluster to snapshots of the DB cluster. The default is not to copy them.</p>"
         }
       },
       "documentation":"<p>Detailed information about a cluster. </p>",
@@ -2242,7 +2267,7 @@
         },
         "SupportedCACertificateIdentifiers":{
           "shape":"CACertificateIdentifiersList",
-          "documentation":"<p>A list of the supported CA certificate identifiers.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/ca_cert_rotation.html\">Updating Your Amazon DocumentDB TLS Certificates</a> and <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/security.encryption.ssl.html\"> Encrypting Data in Transit</a> in the <i>Amazon DocumentDB Developer Guide</i>.</p>"
+          "documentation":"<p>A list of the supported CA certificate identifiers.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/ca_cert_rotation.html\">Updating Your Amazon DocumentDB TLS Certificates</a> and <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/security.encryption.ssl.html\"> Encrypting Data in Transit</a> in the <i>Amazon DocumentDB Developer Guide</i>.</p>"
         },
         "SupportsCertificateRotationWithoutRestart":{
           "shape":"BooleanOptional",
@@ -3200,6 +3225,40 @@
       },
       "documentation":"<p>Represents the input to <a>DescribePendingMaintenanceActions</a>.</p>"
     },
+    "DescribeServerlessV2PlatformVersionsMessage":{
+      "type":"structure",
+      "members":{
+        "ServerlessV2PlatformVersion":{
+          "shape":"String",
+          "documentation":"<p>A specific platform version to return details for.</p> <p>Example: <code>3</code> </p>"
+        },
+        "Engine":{
+          "shape":"String",
+          "documentation":"<p>The database engine to return platform version details for.</p>"
+        },
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>This parameter isn't currently supported.</p>"
+        },
+        "DefaultOnly":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Specifies whether to return only the default platform versions for each engine. The default platform version is the version used for new DB clusters.</p>"
+        },
+        "IncludeAll":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Specifies whether to also include platform versions that are no longer in use. If you don't specify a value, the response includes only active platform versions.</p>"
+        },
+        "MaxRecords":{
+          "shape":"IntegerOptional",
+          "documentation":"<p> The maximum number of records to include in the response. If more records exist than the specified <code>MaxRecords</code> value, a pagination token (marker) is included in the response so that the remaining results can be retrieved.</p> <p>Default: 100</p> <p>Constraints: Minimum 20, maximum 100.</p>"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>An optional pagination token provided by a previous request. If this parameter is specified, the response includes only records beyond the marker, up to the value specified by <code>MaxRecords</code>.</p>"
+        }
+      },
+      "documentation":"<p>The input for the <code>DescribeServerlessV2PlatformVersions</code> operation.</p>"
+    },
     "DoubleOptional":{"type":"double"},
     "Endpoint":{
       "type":"structure",
@@ -3977,7 +4036,11 @@
         },
         "NetworkType":{
           "shape":"String",
-          "documentation":"<p>The network type of the cluster.</p> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/vpc-clusters.html\">DocumentDB clusters in a VPC</a> in the Amazon DocumentDB Developer Guide.</p> <p>Valid Values: <code>IPV4</code> | <code>DUAL</code> </p>"
+          "documentation":"<p>The network type of the cluster.</p> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/vpc-clusters.html\">DocumentDB clusters in a VPC</a> in the Amazon DocumentDB Developer Guide.</p> <p>Valid Values: <code>IPV4</code> | <code>DUAL</code> </p>"
+        },
+        "CopyTagsToSnapshot":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Specifies whether to copy all tags from the DB cluster to snapshots of the DB cluster. The default is not to copy them.</p>"
         }
       },
       "documentation":"<p>Represents the input to <a>ModifyDBCluster</a>.</p>"
@@ -4080,7 +4143,7 @@
         },
         "EnablePerformanceInsights":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A value that indicates whether to enable Performance Insights for the DB Instance. For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/performance-insights.html\">Using Amazon Performance Insights</a>.</p>"
+          "documentation":"<p>A value that indicates whether to enable Performance Insights for the DB Instance. For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/performance-insights.html\">Using Amazon Performance Insights</a>.</p>"
         },
         "PerformanceInsightsKMSKeyId":{
           "shape":"String",
@@ -4088,7 +4151,7 @@
         },
         "CertificateRotationRestart":{
           "shape":"BooleanOptional",
-          "documentation":"<p>Specifies whether the DB instance is restarted when you rotate your SSL/TLS certificate.</p> <p>By default, the DB instance is restarted when you rotate your SSL/TLS certificate. The certificate is not updated until the DB instance is restarted.</p> <important> <p>Set this parameter only if you are <i>not</i> using SSL/TLS to connect to the DB instance.</p> </important> <p>If you are using SSL/TLS to connect to the DB instance, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/ca_cert_rotation.html\">Updating Your Amazon DocumentDB TLS Certificates</a> and <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/security.encryption.ssl.html\"> Encrypting Data in Transit</a> in the <i>Amazon DocumentDB Developer Guide</i>.</p>"
+          "documentation":"<p>Specifies whether the DB instance is restarted when you rotate your SSL/TLS certificate.</p> <p>By default, the DB instance is restarted when you rotate your SSL/TLS certificate. The certificate is not updated until the DB instance is restarted.</p> <important> <p>Set this parameter only if you are <i>not</i> using SSL/TLS to connect to the DB instance.</p> </important> <p>If you are using SSL/TLS to connect to the DB instance, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/ca_cert_rotation.html\">Updating Your Amazon DocumentDB TLS Certificates</a> and <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/security.encryption.ssl.html\"> Encrypting Data in Transit</a> in the <i>Amazon DocumentDB Developer Guide</i>.</p>"
         }
       },
       "documentation":"<p>Represents the input to <a>ModifyDBInstance</a>.</p>"
@@ -4656,7 +4719,11 @@
         },
         "NetworkType":{
           "shape":"String",
-          "documentation":"<p>The network type of the cluster.</p> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/vpc-clusters.html\">DocumentDB clusters in a VPC</a> in the Amazon DocumentDB Developer Guide.</p> <p>Valid Values: <code>IPV4</code> | <code>DUAL</code> </p>"
+          "documentation":"<p>The network type of the cluster.</p> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/vpc-clusters.html\">DocumentDB clusters in a VPC</a> in the Amazon DocumentDB Developer Guide.</p> <p>Valid Values: <code>IPV4</code> | <code>DUAL</code> </p>"
+        },
+        "CopyTagsToSnapshot":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Specifies whether to copy all tags from the restored DB cluster to snapshots of the restored DB cluster. The default is not to copy them.</p>"
         }
       },
       "documentation":"<p>Represents the input to <a>RestoreDBClusterFromSnapshot</a>.</p>"
@@ -4732,7 +4799,11 @@
         },
         "NetworkType":{
           "shape":"String",
-          "documentation":"<p>The network type of the cluster.</p> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/developerguide/vpc-clusters.html\">DocumentDB clusters in a VPC</a> in the Amazon DocumentDB Developer Guide.</p> <p>Valid Values: <code>IPV4</code> | <code>DUAL</code> </p>"
+          "documentation":"<p>The network type of the cluster.</p> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/documentdb/latest/devguide/vpc-clusters.html\">DocumentDB clusters in a VPC</a> in the Amazon DocumentDB Developer Guide.</p> <p>Valid Values: <code>IPV4</code> | <code>DUAL</code> </p>"
+        },
+        "CopyTagsToSnapshot":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Specifies whether to copy all tags from the restored DB cluster to snapshots of the restored DB cluster. The default is not to copy them.</p>"
         }
       },
       "documentation":"<p>Represents the input to <a>RestoreDBClusterToPointInTime</a>.</p>"
@@ -4789,6 +4860,57 @@
         }
       },
       "documentation":"<p>Specifies any Amazon DocumentDB Serverless properties or limits that differ between Amazon DocumentDB engine versions. You can test the values of this attribute when deciding which Amazon DocumentDB version to use in a new or upgraded cluster. You can also retrieve the version of an existing cluster and check whether that version supports certain Amazon DocumentDB Serverless features before you attempt to use those features.</p>"
+    },
+    "ServerlessV2PlatformVersionInfo":{
+      "type":"structure",
+      "members":{
+        "ServerlessV2PlatformVersion":{
+          "shape":"String",
+          "documentation":"<p>The version number of the serverless platform.</p>"
+        },
+        "ServerlessV2PlatformVersionDescription":{
+          "shape":"String",
+          "documentation":"<p>The description of the serverless platform.</p>"
+        },
+        "Engine":{
+          "shape":"String",
+          "documentation":"<p>The name of the database engine.</p>"
+        },
+        "ServerlessV2FeaturesSupport":{
+          "shape":"ServerlessV2FeaturesSupport",
+          "documentation":"<p>Specifies any Amazon DocumentDB Serverless v2 properties or limits that differ between platform versions. You can retrieve the platform version of an existing cluster and check whether it supports specific features before you use them.</p>"
+        },
+        "Status":{
+          "shape":"String",
+          "documentation":"<p>The status of the serverless platform. Valid statuses are the following:</p> <ul> <li> <p> <code>enabled</code> - The platform version is in use.</p> </li> <li> <p> <code>disabled</code> - The platform version is not in use.</p> </li> </ul>"
+        },
+        "IsDefault":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether this platform version is the default version for the engine. The default platform version is the version used for new DB clusters.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about a specific Amazon DocumentDB Serverless platform version, including its version number, status, engine, and supported features.</p>"
+    },
+    "ServerlessV2PlatformVersionList":{
+      "type":"list",
+      "member":{
+        "shape":"ServerlessV2PlatformVersionInfo",
+        "locationName":"ServerlessV2PlatformVersionInfo"
+      }
+    },
+    "ServerlessV2PlatformVersionsMessage":{
+      "type":"structure",
+      "members":{
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>An optional pagination token provided by a previous request. If this parameter is specified, the response includes only records beyond the marker, up to the value specified by <code>MaxRecords</code>.</p>"
+        },
+        "ServerlessV2PlatformVersions":{
+          "shape":"ServerlessV2PlatformVersionList",
+          "documentation":"<p>A list of <code>ServerlessV2PlatformVersionInfo</code> elements.</p>"
+        }
+      },
+      "documentation":"<p>Contains the result of a successful invocation of the <code>DescribeServerlessV2PlatformVersions</code> operation.</p>"
     },
     "ServerlessV2ScalingConfiguration":{
       "type":"structure",

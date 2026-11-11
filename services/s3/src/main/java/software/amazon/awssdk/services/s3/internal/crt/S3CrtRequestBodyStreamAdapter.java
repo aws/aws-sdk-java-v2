@@ -15,7 +15,10 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
@@ -30,12 +33,14 @@ public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStrea
     private static final long MINIMUM_BYTES_BUFFERED = 16 * 1024 * 1024L;
     private final SdkHttpContentPublisher bodyPublisher;
     private final ByteBufferStoringSubscriber requestBodySubscriber;
+    private final CompletableFuture<Void> executeFuture;
 
     private final AtomicBoolean subscribed = new AtomicBoolean(false);
 
-    public S3CrtRequestBodyStreamAdapter(SdkHttpContentPublisher bodyPublisher) {
+    public S3CrtRequestBodyStreamAdapter(SdkHttpContentPublisher bodyPublisher, CompletableFuture<Void> executeFuture) {
         this.bodyPublisher = bodyPublisher;
         this.requestBodySubscriber = new ByteBufferStoringSubscriber(MINIMUM_BYTES_BUFFERED);
+        this.executeFuture = executeFuture;
     }
 
     @Override
@@ -44,11 +49,44 @@ public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStrea
             bodyPublisher.subscribe(requestBodySubscriber);
         }
 
-        return requestBodySubscriber.transferTo(outBuffer) == ByteBufferStoringSubscriber.TransferResult.END_OF_STREAM;
+        try {
+            return requestBodySubscriber.transferTo(outBuffer) == ByteBufferStoringSubscriber.TransferResult.END_OF_STREAM;
+        } catch (RuntimeException e) {
+            executeFuture.completeExceptionally(e);
+            // signal the CRT read loop to fail
+            throw new RequestBodyFailedSignal();
+        }
     }
 
     @Override
     public long getLength() {
         return bodyPublisher.contentLength().orElse(0L);
+    }
+
+    /**
+     * Thrown from {@link #sendRequestBody} to signal that CRT's native read failed; the real error is already on the
+     * execute future. CRT prints the exception to stderr so this prints as a single line.
+     */
+    private static final class RequestBodyFailedSignal extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        RequestBodyFailedSignal() {
+            super("S3 CRT request body failed; the error is reported on the request's future", null, false, false);
+        }
+
+        @Override
+        public synchronized Throwable fillInStackTrace() {
+            return this;
+        }
+
+        @Override
+        public void printStackTrace(PrintStream s) {
+            s.println(this);
+        }
+
+        @Override
+        public void printStackTrace(PrintWriter s) {
+            s.println(this);
+        }
     }
 }

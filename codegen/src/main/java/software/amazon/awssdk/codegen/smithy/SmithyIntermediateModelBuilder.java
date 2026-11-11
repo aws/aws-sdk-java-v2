@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.IntermediateModelShapeProcessor;
 import software.amazon.awssdk.codegen.customization.processors.SmithyIntermediateModelPostprocessor;
+import software.amazon.awssdk.codegen.customization.processors.SmithySourceModelValidator;
 import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.internal.Utils;
@@ -93,7 +94,7 @@ public final class SmithyIntermediateModelBuilder {
         this.namingStrategy = new DefaultSmithyNamingStrategy(model, service, customConfig);
         this.typeUtils = new TypeUtils(namingStrategy);
         this.serviceIndex = ServiceIndex.of(model);
-        this.protocol = ProtocolUtils.resolveProtocol(serviceIndex, service);
+        this.protocol = ProtocolUtils.resolveProtocol(serviceIndex, service, customConfig);
         this.endpointRuleSet = AddSmithyEndpoints.endpointRuleSet(service);
         this.endpointTestSuiteModel = AddSmithyEndpoints.endpointTests(service);
         this.shapeProcessors = createShapeProcessors();
@@ -142,6 +143,8 @@ public final class SmithyIntermediateModelBuilder {
     }
 
     public IntermediateModel build() {
+        SmithySourceModelValidator.validate(model, service, protocol);
+
         Map<String, OperationModel> operations =
             new TreeMap<>(new AddSmithyOperations(model, service, namingStrategy, customConfig, protocol)
                               .constructOperations());
@@ -180,10 +183,10 @@ public final class SmithyIntermediateModelBuilder {
         Map<String, ClientContextParam> clientContextParams = clientContextParams();
 
         IntermediateModel fullModel = new IntermediateModel(
-            AddSmithyMetadata.constructMetadata(model, service, serviceIndex, namingStrategy, customConfig),
+            AddSmithyMetadata.constructMetadata(model, service, serviceIndex, namingStrategy, customConfig, protocol),
             operations, shapes, customConfig, endpointOperation,
             paginators, namingStrategy, waiters,
-            endpointRuleSet, endpointTestSuiteModel, clientContextParams);
+            endpointRuleSet, endpointTestSuiteModel, null, clientContextParams);
 
         SmithyIntermediateModelPostprocessor.create(customConfig).postprocess(fullModel);
 
@@ -202,6 +205,7 @@ public final class SmithyIntermediateModelBuilder {
                                                                fullModel.getWaiters(),
                                                                endpointRuleSet,
                                                                endpointTestSuiteModel,
+                                                               null,
                                                                clientContextParams);
 
         linkMembersToShapes(trimmedModel);

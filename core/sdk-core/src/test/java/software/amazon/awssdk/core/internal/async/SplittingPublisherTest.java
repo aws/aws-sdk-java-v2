@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.core.internal.async.SplittingPublisherTestUtils.verifyIndividualAsyncRequestBody;
@@ -37,7 +38,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -236,6 +239,7 @@ public class SplittingPublisherTest {
     @ValueSource(booleans = {true, false})
     void upstreamError_shouldPropagateToCurrentBodySubscriber(boolean enableRetryableSubAsyncRequestBody) throws Exception {
         RuntimeException upstreamError = new RuntimeException("upstream failure");
+        AtomicBoolean upstreamCancelled = new AtomicBoolean(false);
         AsyncRequestBody errorBody = new AsyncRequestBody() {
             @Override
             public Optional<Long> contentLength() {
@@ -259,6 +263,7 @@ public class SplittingPublisherTest {
 
                     @Override
                     public void cancel() {
+                        upstreamCancelled.set(true);
                     }
                 });
             }
@@ -299,6 +304,280 @@ public class SplittingPublisherTest {
 
         Throwable error = bodyError.get(5, TimeUnit.SECONDS);
         assertThat(error).isEqualTo(upstreamError);
+        assertThat(upstreamCancelled.get()).isFalse();
+    }
+
+    @Test
+    void onSubscribe_nullSubscription_shouldThrowNullPointerException() {
+        AtomicReference<Throwable> nullSubscriptionFailure = new AtomicReference<>();
+        AsyncRequestBody nullSubscriptionBody = new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.of(1L);
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+                try {
+                    s.onSubscribe(null);
+                } catch (Throwable t) {
+                    nullSubscriptionFailure.set(t);
+                }
+            }
+        };
+        SplittingPublisher splittingPublisher =
+            SplittingPublisher.builder()
+                              .asyncRequestBody(nullSubscriptionBody)
+                              .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                                                                                    .chunkSizeInBytes(1L)
+                                                                                    .bufferSizeInBytes(1L)
+                                                                                    .build())
+                              .retryableSubAsyncRequestBodyEnabled(false)
+                              .build();
+
+        splittingPublisher.subscribe(requestBody -> {
+        });
+
+        assertThat(nullSubscriptionFailure.get()).isInstanceOf(NullPointerException.class)
+                                                 .hasMessage("s must not be null");
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {2_147_483_647L, 2_147_483_648L, 5_368_709_120L})
+    @SuppressWarnings("deprecation")
+    void split_largeChunkSize_shouldNotOverflow(long chunkSize) throws Exception {
+        ControlledAsyncRequestBody upstream = new ControlledAsyncRequestBody(Optional.of(chunkSize));
+        SdkPublisher<AsyncRequestBody> splitPublisher =
+            upstream.split(AsyncRequestBodySplitConfiguration.builder()
+                                                             .chunkSizeInBytes(chunkSize)
+                                                             .bufferSizeInBytes(16L)
+                                                             .build());
+
+        verifyLargeChunkSizeDoesNotOverflow(upstream, splitPublisher, chunkSize);
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {2_147_483_647L, 2_147_483_648L, 5_368_709_120L})
+    void splitCloseable_largeChunkSize_shouldNotOverflow(long chunkSize) throws Exception {
+        ControlledAsyncRequestBody upstream = new ControlledAsyncRequestBody(Optional.of(chunkSize));
+        SdkPublisher<CloseableAsyncRequestBody> splitPublisher =
+            upstream.splitCloseable(AsyncRequestBodySplitConfiguration.builder()
+                                                                      .chunkSizeInBytes(chunkSize)
+                                                                      .bufferSizeInBytes(16L)
+                                                                      .build());
+
+        verifyLargeChunkSizeDoesNotOverflow(upstream, splitPublisher, chunkSize);
+    }
+
+    @Test
+    void upstreamRequestFailure_shouldSignalOnErrorWithoutEscaping() throws Exception {
+        RuntimeException requestFailure = new RuntimeException("request failure");
+        RequestFailingAsyncRequestBody upstream = new RequestFailingAsyncRequestBody(requestFailure);
+        SplittingPublisher splittingPublisher =
+            SplittingPublisher.builder()
+                              .asyncRequestBody(upstream)
+                              .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                                                                                    .chunkSizeInBytes(10L)
+                                                                                    .bufferSizeInBytes(20L)
+                                                                                    .build())
+                              .retryableSubAsyncRequestBodyEnabled(false)
+                              .build();
+        ErrorRecordingSplitSubscriber subscriber = new ErrorRecordingSplitSubscriber();
+
+        assertThatCode(() -> splittingPublisher.subscribe(subscriber)).doesNotThrowAnyException();
+
+        assertThat(subscriber.bodyError.get(5, TimeUnit.SECONDS)).isSameAs(requestFailure);
+        assertThat(subscriber.outerError.get(5, TimeUnit.SECONDS)).isSameAs(requestFailure);
+        assertThat(upstream.cancelled.get()).isTrue();
+
+        upstream.signalError(new RuntimeException("late failure"));
+        upstream.signalComplete();
+        assertThat(subscriber.bodyErrorCount.get()).isEqualTo(1);
+        assertThat(subscriber.outerErrorCount.get()).isEqualTo(1);
+        assertThat(subscriber.bodyCompleteCount.get()).isZero();
+        assertThat(subscriber.outerCompleteCount.get()).isZero();
+        subscriber.closeBody();
+    }
+
+    @Test
+    void contentLengthMismatch_shouldSignalCurrentBodyAndOuterPublisherOnError() throws Exception {
+        ControlledAsyncRequestBody upstream = new ControlledAsyncRequestBody(Optional.of(10L));
+        SplittingPublisher splittingPublisher =
+            SplittingPublisher.builder()
+                              .asyncRequestBody(upstream)
+                              .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                                                                                    .chunkSizeInBytes(10L)
+                                                                                    .bufferSizeInBytes(20L)
+                                                                                    .build())
+                              .retryableSubAsyncRequestBodyEnabled(false)
+                              .build();
+        ErrorRecordingSplitSubscriber subscriber = new ErrorRecordingSplitSubscriber();
+        splittingPublisher.subscribe(subscriber);
+
+        assertThatCode(() -> {
+            upstream.sendData(ByteBuffer.wrap(new byte[1]));
+            upstream.complete();
+        }).doesNotThrowAnyException();
+
+        Throwable bodyError = subscriber.bodyError.get(5, TimeUnit.SECONDS);
+        Throwable outerError = subscriber.outerError.get(5, TimeUnit.SECONDS);
+        assertThat(bodyError).isSameAs(outerError);
+        assertThat(bodyError).isInstanceOf(IllegalStateException.class)
+                             .hasMessageContaining("Content length of buffered data mismatches")
+                             .hasMessageContaining("buffered data content length: 1")
+                             .hasMessageContaining("expected length: 10");
+        assertThat(upstream.cancelled.get()).isFalse();
+
+        upstream.complete();
+        upstream.sendError(new RuntimeException("late failure"));
+        assertThat(subscriber.bodyErrorCount.get()).isEqualTo(1);
+        assertThat(subscriber.outerErrorCount.get()).isEqualTo(1);
+        assertThat(subscriber.bodyCompleteCount.get()).isZero();
+        assertThat(subscriber.outerCompleteCount.get()).isZero();
+        subscriber.closeBody();
+    }
+
+    @Test
+    void onComplete_whenFinalBufferedBodyConsumedSynchronously_shouldNotCallUpstreamSubscription() throws Exception {
+        AtomicInteger requestCount = new AtomicInteger();
+        AtomicBoolean insideOnComplete = new AtomicBoolean(false);
+        AtomicBoolean requestedInsideOnComplete = new AtomicBoolean(false);
+        AtomicBoolean cancelledInsideOnComplete = new AtomicBoolean(false);
+        AsyncRequestBody upstream = new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.empty();
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+                s.onSubscribe(new Subscription() {
+                    @Override
+                    public void request(long n) {
+                        if (insideOnComplete.get()) {
+                            requestedInsideOnComplete.set(true);
+                        }
+                        if (requestCount.getAndIncrement() == 0) {
+                            s.onNext(ByteBuffer.wrap(new byte[6]));
+                            insideOnComplete.set(true);
+                            try {
+                                s.onComplete();
+                            } finally {
+                                insideOnComplete.set(false);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void cancel() {
+                        if (insideOnComplete.get()) {
+                            cancelledInsideOnComplete.set(true);
+                        }
+                    }
+                });
+            }
+        };
+        SplittingPublisher splittingPublisher =
+            SplittingPublisher.builder()
+                              .asyncRequestBody(upstream)
+                              .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                                                                                    .chunkSizeInBytes(10L)
+                                                                                    .bufferSizeInBytes(10L)
+                                                                                    .build())
+                              .retryableSubAsyncRequestBodyEnabled(false)
+                              .build();
+        CompletableFuture<CloseableAsyncRequestBody> bodyFuture = new CompletableFuture<>();
+        CompletableFuture<Void> bodyComplete = new CompletableFuture<>();
+        CompletableFuture<Void> outerComplete = new CompletableFuture<>();
+
+        splittingPublisher.subscribe(new Subscriber<CloseableAsyncRequestBody>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+            }
+
+            @Override
+            public void onNext(CloseableAsyncRequestBody requestBody) {
+                bodyFuture.complete(requestBody);
+                requestBody.subscribe(new Subscriber<ByteBuffer>() {
+                    @Override
+                    public void onSubscribe(Subscription s) {
+                        s.request(Long.MAX_VALUE);
+                    }
+
+                    @Override
+                    public void onNext(ByteBuffer byteBuffer) {
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        bodyComplete.completeExceptionally(t);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        bodyComplete.complete(null);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                outerComplete.completeExceptionally(t);
+            }
+
+            @Override
+            public void onComplete() {
+                outerComplete.complete(null);
+            }
+        });
+
+        bodyComplete.get(5, TimeUnit.SECONDS);
+        outerComplete.get(5, TimeUnit.SECONDS);
+        assertThat(requestCount.get()).isEqualTo(1);
+        assertThat(requestedInsideOnComplete.get()).isFalse();
+        assertThat(cancelledInsideOnComplete.get()).isFalse();
+        bodyFuture.get(5, TimeUnit.SECONDS).close();
+    }
+
+    private static void verifyLargeChunkSizeDoesNotOverflow(
+        ControlledAsyncRequestBody upstream,
+        SdkPublisher<? extends AsyncRequestBody> splitPublisher,
+        long chunkSize) throws Exception {
+
+        CompletableFuture<AsyncRequestBody> partFuture = new CompletableFuture<>();
+        splitPublisher.subscribe(partFuture::complete);
+        AsyncRequestBody part = partFuture.get(5, TimeUnit.SECONDS);
+        CompletableFuture<ByteBuffer> bufferFuture = new CompletableFuture<>();
+        part.subscribe(new Subscriber<ByteBuffer>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+            }
+
+            @Override
+            public void onNext(ByteBuffer byteBuffer) {
+                bufferFuture.complete(byteBuffer);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                bufferFuture.completeExceptionally(t);
+            }
+
+            @Override
+            public void onComplete() {
+            }
+        });
+
+        assertThat(part.contentLength()).hasValue(chunkSize);
+        assertThatCode(() -> upstream.sendData(ByteBuffer.wrap(new byte[] {42}))).doesNotThrowAnyException();
+        assertThat(BinaryUtils.copyBytesFrom(bufferFuture.get(5, TimeUnit.SECONDS))).containsExactly((byte) 42);
+
+        upstream.sendError(new RuntimeException("test cleanup"));
+        if (part instanceof CloseableAsyncRequestBody) {
+            ((CloseableAsyncRequestBody) part).close();
+        }
     }
 
     @Test
@@ -903,8 +1182,8 @@ public class SplittingPublisherTest {
      */
     private static class ControlledAsyncRequestBody implements AsyncRequestBody {
         private final Optional<Long> contentLength;
+        private final AtomicBoolean cancelled = new AtomicBoolean(false);
         private volatile Subscriber<? super ByteBuffer> subscriber;
-        private volatile Subscription subscription;
 
         ControlledAsyncRequestBody(Optional<Long> contentLength) {
             this.contentLength = contentLength;
@@ -926,6 +1205,7 @@ public class SplittingPublisherTest {
 
                 @Override
                 public void cancel() {
+                    cancelled.set(true);
                 }
             });
         }
@@ -940,6 +1220,101 @@ public class SplittingPublisherTest {
 
         void sendError(Throwable t) {
             subscriber.onError(t);
+        }
+    }
+
+    private static final class RequestFailingAsyncRequestBody implements AsyncRequestBody {
+        private final RuntimeException requestFailure;
+        private final AtomicBoolean cancelled = new AtomicBoolean(false);
+        private Subscriber<? super ByteBuffer> subscriber;
+
+        private RequestFailingAsyncRequestBody(RuntimeException requestFailure) {
+            this.requestFailure = requestFailure;
+        }
+
+        @Override
+        public Optional<Long> contentLength() {
+            return Optional.of(10L);
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> s) {
+            subscriber = s;
+            s.onSubscribe(new Subscription() {
+                @Override
+                public void request(long n) {
+                    throw requestFailure;
+                }
+
+                @Override
+                public void cancel() {
+                    cancelled.set(true);
+                }
+            });
+        }
+
+        private void signalError(Throwable t) {
+            subscriber.onError(t);
+        }
+
+        private void signalComplete() {
+            subscriber.onComplete();
+        }
+    }
+
+    private static final class ErrorRecordingSplitSubscriber implements Subscriber<CloseableAsyncRequestBody> {
+        private final CompletableFuture<CloseableAsyncRequestBody> body = new CompletableFuture<>();
+        private final CompletableFuture<Throwable> bodyError = new CompletableFuture<>();
+        private final CompletableFuture<Throwable> outerError = new CompletableFuture<>();
+        private final AtomicInteger bodyErrorCount = new AtomicInteger();
+        private final AtomicInteger outerErrorCount = new AtomicInteger();
+        private final AtomicInteger bodyCompleteCount = new AtomicInteger();
+        private final AtomicInteger outerCompleteCount = new AtomicInteger();
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            s.request(Long.MAX_VALUE);
+        }
+
+        @Override
+        public void onNext(CloseableAsyncRequestBody requestBody) {
+            body.complete(requestBody);
+            requestBody.subscribe(new Subscriber<ByteBuffer>() {
+                @Override
+                public void onSubscribe(Subscription s) {
+                    s.request(Long.MAX_VALUE);
+                }
+
+                @Override
+                public void onNext(ByteBuffer byteBuffer) {
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    bodyErrorCount.incrementAndGet();
+                    bodyError.complete(t);
+                }
+
+                @Override
+                public void onComplete() {
+                    bodyCompleteCount.incrementAndGet();
+                }
+            });
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            outerErrorCount.incrementAndGet();
+            outerError.complete(t);
+        }
+
+        @Override
+        public void onComplete() {
+            outerCompleteCount.incrementAndGet();
+        }
+
+        private void closeBody() throws Exception {
+            body.get(5, TimeUnit.SECONDS).close();
         }
     }
 

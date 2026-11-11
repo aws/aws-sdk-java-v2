@@ -20,6 +20,8 @@ import static java.lang.Math.min;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -29,11 +31,14 @@ final class CrtRequestInputStreamAdapter implements HttpRequestBodyStream {
     private static final int READ_BUFFER_SIZE = 16 * 1024;
 
     private final ContentStreamProvider provider;
+    private final Consumer<Throwable> onBodyError;
+    private final AtomicBoolean errorSignaled = new AtomicBoolean(false);
     private volatile InputStream providerStream;
     private final byte[] readBuffer = new byte[READ_BUFFER_SIZE];
 
-    CrtRequestInputStreamAdapter(ContentStreamProvider provider) {
+    CrtRequestInputStreamAdapter(ContentStreamProvider provider, Consumer<Throwable> onBodyError) {
         this.provider = provider;
+        this.onBodyError = onBodyError;
     }
 
     @Override
@@ -51,8 +56,11 @@ final class CrtRequestInputStreamAdapter implements HttpRequestBodyStream {
             if (read > 0) {
                 bodyBytesOut.put(readBuffer, 0, read);
             }
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
+        } catch (IOException | RuntimeException e) {
+            // This is a native JNI call: an escaping exception is printed to stderr and discarded by CRT (#6715).
+            // Fail the request with the original error instead of letting it propagate.
+            signalError(e);
+            return false;
         }
 
         return read < 0;
@@ -62,11 +70,18 @@ final class CrtRequestInputStreamAdapter implements HttpRequestBodyStream {
     public boolean resetPosition() {
         try {
             createNewStream();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
+        } catch (IOException | RuntimeException e) {
+            signalError(e);
+            return false;
         }
 
         return true;
+    }
+
+    private void signalError(Throwable error) {
+        if (errorSignaled.compareAndSet(false, true)) {
+            onBodyError.accept(error);
+        }
     }
 
     private void createNewStream() throws IOException {

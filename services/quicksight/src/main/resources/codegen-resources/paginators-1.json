@@ -24,6 +24,18 @@
       "limit_key": "MaxResults",
       "result_key": "AnalysisSummaryList"
     },
+    "ListApprovalPolicies": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "Policies"
+    },
+    "ListApps": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AppSummaryList"
+    },
     "ListAssetBundleExportJobs": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -71,6 +83,12 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "DataSources"
+    },
+    "ListDlpSettings": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "DlpSettingSummaries"
     },
     "ListFlows": {
       "input_token": "NextToken",
@@ -132,6 +150,12 @@
       "limit_key": "MaxResults",
       "result_key": "KnowledgeBaseSummaries"
     },
+    "ListLimitsProfiles": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults",
+      "result_key": "profiles"
+    },
     "ListNamespaces": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -185,6 +209,12 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults"
     },
+    "ListTopicsV2": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "TopicSummaryList"
+    },
     "ListUserGroups": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -213,6 +243,12 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "AnalysisSummaryList"
+    },
+    "SearchApps": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AppSummaryList"
     },
     "SearchDashboards": {
       "input_token": "NextToken",
@@ -257,6 +293,12 @@
       "result_key": "KnowledgeBaseSummaries"
     },
     "SearchTopics": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "TopicSummaryList"
+    },
+    "SearchTopicsV2": {
       "input_token": "NextToken",
       "output_token": "NextToken",
       "limit_key": "MaxResults",

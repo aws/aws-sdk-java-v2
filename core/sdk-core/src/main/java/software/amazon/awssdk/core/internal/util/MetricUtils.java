@@ -18,8 +18,6 @@ package software.amazon.awssdk.core.internal.util;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADERS;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.OptionalLong;
 import java.util.concurrent.Callable;
@@ -27,7 +25,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -38,6 +35,7 @@ import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 import software.amazon.awssdk.utils.uri.SdkUri;
 
 /**
@@ -107,19 +105,17 @@ public final class MetricUtils {
 
     /**
      * Collect the SERVICE_ENDPOINT metric for this request.
+     *
+     * <p>Only the scheme, host and non-default port are used, so the endpoint string is assembled from the request's
+     * components directly reducing un-cached URI creations.
      */
     public static void collectServiceEndpointMetrics(MetricCollector metricCollector, SdkHttpFullRequest httpRequest) {
         if (metricCollector != null && !(metricCollector instanceof NoOpMetricCollector) && httpRequest != null) {
-            // Only interested in the service endpoint so don't include any path, query, or fragment component
-            URI requestUri = httpRequest.getUri();
-            try {
-                URI serviceEndpoint = SdkUri.getInstance().newUri(
-                    requestUri.getScheme(), requestUri.getAuthority(), null, null, null);
-                metricCollector.reportMetric(CoreMetric.SERVICE_ENDPOINT, serviceEndpoint);
-            } catch (URISyntaxException e) {
-                // This should not happen since getUri() should return a valid URI
-                throw SdkClientException.create("Unable to collect SERVICE_ENDPOINT metric", e);
-            }
+            String protocol = httpRequest.protocol();
+            int port = httpRequest.port();
+            String portSuffix = SdkHttpUtils.isUsingStandardPort(protocol, port) ? "" : ":" + port;
+            metricCollector.reportMetric(CoreMetric.SERVICE_ENDPOINT,
+                                         SdkUri.getInstance().create(protocol + "://" + httpRequest.host() + portSuffix));
         }
     }
 

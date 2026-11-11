@@ -37,6 +37,11 @@ public final class DefaultDatabaseAuthSchemeParams implements DatabaseAuthScheme
     }
 
     @Override
+    public String regionId() {
+        return region == null ? null : region.id();
+    }
+
+    @Override
     public RegionSet regionSet() {
         return regionSet;
     }

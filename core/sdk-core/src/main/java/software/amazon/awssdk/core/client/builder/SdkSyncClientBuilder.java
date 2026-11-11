@@ -50,6 +50,13 @@ public interface SdkSyncClientBuilder<B extends SdkSyncClientBuilder<B, C>, C> {
      * customize the HTTP client as it benefits from service-specific default configuration.
      *
      * <p>
+     * A new HTTP client instance is built from this builder for each service client it is supplied to, configured with that
+     * service's HTTP defaults. Supplying the same builder to multiple service clients therefore produces a separate,
+     * independently configured HTTP client instance (with its own connection pool) for each of them. To share a single HTTP
+     * client instance across service clients, pass a pre-built client to {@link #httpClient(SdkHttpClient)} instead.
+     * </p>
+     *
+     * <p>
      * <b>Clients created by the builder are managed by the SDK and will be closed when the service client is closed.</b>
      * </p>
      */

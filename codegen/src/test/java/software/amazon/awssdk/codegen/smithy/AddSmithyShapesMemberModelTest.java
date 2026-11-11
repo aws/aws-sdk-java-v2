@@ -504,6 +504,40 @@ class AddSmithyShapesMemberModelTest {
     }
 
     @Test
+    void jsonName_doesNotOverrideHttpLabelName_forRestJson() {
+        Model model = modelWithOp(
+            "@http(method: \"PUT\", uri: \"/things/{thingName}\")\n"
+            + "operation Op { input: In, output: Out }\n"
+            + "structure In {\n"
+            + "    @required @httpLabel @jsonName(\"ThingName\")\n"
+            + "    thingName: String\n"
+            + "}\n"
+            + "structure Out {}\n");
+        MemberModel mm = probe(model, "rest-json").translate(
+            struct(model, "In").getMember("thingName").get(), struct(model, "In"), requestBindings(model, "Op"));
+
+        assertThat(mm.getHttp().getMarshallLocationName()).isEqualTo("thingName");
+        assertThat(mm.getHttp().getUnmarshallLocationName()).isEqualTo("thingName");
+    }
+
+    @Test
+    void jsonName_stillNamesHttpPayloadMember_forRestJson() {
+        Model model = modelWithOp(
+            "@http(method: \"PUT\", uri: \"/things\")\n"
+            + "operation Op { input: In, output: Out }\n"
+            + "structure In {\n"
+            + "    @httpPayload @jsonName(\"body\")\n"
+            + "    Body: String\n"
+            + "}\n"
+            + "structure Out {}\n");
+        MemberModel mm = probe(model, "rest-json").translate(
+            struct(model, "In").getMember("Body").get(), struct(model, "In"), requestBindings(model, "Op"));
+
+        assertThat(mm.getHttp().getMarshallLocationName()).isEqualTo("body");
+        assertThat(mm.getHttp().getUnmarshallLocationName()).isEqualTo("body");
+    }
+
+    @Test
     void xmlName_overridesLocationName_forRestXml() {
         Model model = modelOf(
             "structure Parent {\n"

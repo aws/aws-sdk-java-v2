@@ -1,0 +1,96 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2020-05-31",
+    "endpointPrefix": "operation-name-service",
+    "protocol": "rest-xml",
+    "serviceAbbreviation": "Operation Name Service",
+    "serviceFullName": "Operation name service",
+    "serviceId": "OperationNameService",
+    "signatureVersion": "v4",
+    "uid": "operation-name-service-2020-05-31"
+  },
+  "operations": {
+    "ListThings": {
+      "name": "ListThings2020_05_31",
+      "http": {
+        "method": "GET",
+        "requestUri": "/2020-05-31/thing"
+      },
+      "input": {
+        "shape": "ListThingsRequest"
+      },
+      "output": {
+        "shape": "ListThingsResult"
+      },
+      "errors": []
+    },
+    "GetThing": {
+      "name": "GetThing2020_05_31",
+      "http": {
+        "method": "GET",
+        "requestUri": "/2020-05-31/thing/{Id}"
+      },
+      "input": {
+        "shape": "GetThingRequest"
+      },
+      "output": {
+        "shape": "GetThingResult"
+      },
+      "errors": []
+    }
+  },
+  "shapes": {
+    "ListThingsRequest": {
+      "type": "structure",
+      "members": {
+        "Marker": {
+          "shape": "String",
+          "location": "querystring",
+          "locationName": "Marker"
+        }
+      }
+    },
+    "ListThingsResult": {
+      "type": "structure",
+      "members": {
+        "NextMarker": {
+          "shape": "String"
+        },
+        "Items": {
+          "shape": "ThingList"
+        }
+      }
+    },
+    "GetThingRequest": {
+      "type": "structure",
+      "required": [
+        "Id"
+      ],
+      "members": {
+        "Id": {
+          "shape": "String",
+          "location": "uri",
+          "locationName": "Id"
+        }
+      }
+    },
+    "GetThingResult": {
+      "type": "structure",
+      "members": {
+        "Id": {
+          "shape": "String"
+        }
+      }
+    },
+    "ThingList": {
+      "type": "list",
+      "member": {
+        "shape": "String"
+      }
+    },
+    "String": {
+      "type": "string"
+    }
+  }
+}

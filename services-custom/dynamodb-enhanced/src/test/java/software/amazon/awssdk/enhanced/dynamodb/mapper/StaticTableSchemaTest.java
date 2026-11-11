@@ -26,8 +26,12 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.searchVectorsHashKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.searchVectorsInlineFilterKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.vectorAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.vectorIndexes;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -42,6 +46,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -53,6 +58,11 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.model.DistanceFunction;
+import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedVectorIndex;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElement;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElementType;
+import software.amazon.awssdk.enhanced.dynamodb.model.VectorIndexMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
@@ -1472,6 +1482,73 @@ public class StaticTableSchemaTest {
     }
 
     @Test
+    public void buildWithVectorIndexTag() {
+        EnhancedVectorIndex vectorIndex = EnhancedVectorIndex.builder()
+                                                             .indexName("embeddings-index")
+                                                             .vectorAttributeName("embedding")
+                                                             .dimensions(1536)
+                                                             .distanceFunction(DistanceFunction.COSINE)
+                                                             .build();
+
+        StaticTableSchema<FakeDocument> tableSchema =
+            StaticTableSchema.builder(FakeDocument.class)
+                             .newItemSupplier(FakeDocument::new)
+                             .tags(vectorIndexes(vectorIndex))
+                             .build();
+
+        assertThat(tableSchema.tableMetadata().vectorIndices()).hasSize(1);
+        assertThat(tableSchema.tableMetadata().vectorIndices())
+            .containsExactly(VectorIndexMetadata.fromEnhancedVectorIndex(vectorIndex));
+        assertThat(tableSchema.tableMetadata().indices().stream()
+                              .anyMatch(index -> "embeddings-index".equals(index.name()))).isFalse();
+    }
+
+    @Test
+    public void buildStaticImmutableWithVectorIndexTag() {
+        EnhancedVectorIndex vectorIndex = EnhancedVectorIndex.builder()
+                                                             .indexName("immutable-vec-index")
+                                                             .vectorAttributeName("embedding")
+                                                             .dimensions(384)
+                                                             .distanceFunction(DistanceFunction.DOT_PRODUCT)
+                                                             .build();
+
+        StaticImmutableTableSchema<FakeDocument, FakeDocument> tableSchema =
+            StaticImmutableTableSchema.builder(FakeDocument.class, FakeDocument.class)
+                                      .newItemBuilder(FakeDocument::new, Function.identity())
+                                      .addAttribute(String.class, a -> a.name("documentString")
+                                                                        .getter(FakeDocument::getDocumentString)
+                                                                        .setter(FakeDocument::setDocumentString))
+                                      .tags(vectorIndexes(vectorIndex))
+                                      .build();
+
+        assertThat(tableSchema.tableMetadata().vectorIndices()).hasSize(1);
+        assertThat(tableSchema.tableMetadata().vectorIndices())
+            .containsExactly(VectorIndexMetadata.fromEnhancedVectorIndex(vectorIndex));
+        assertThat(tableSchema.tableMetadata().indices().stream()
+                              .anyMatch(index -> "immutable-vec-index".equals(index.name()))).isFalse();
+    }
+
+    @Test
+    public void buildWithVectorIndexTag_collectionOverload() {
+        EnhancedVectorIndex vectorIndex = EnhancedVectorIndex.builder()
+                                                             .indexName("collection-vec-index")
+                                                             .vectorAttributeName("embedding")
+                                                             .dimensions(768)
+                                                             .distanceFunction(DistanceFunction.EUCLIDEAN)
+                                                             .build();
+
+        StaticTableSchema<FakeDocument> tableSchema =
+            StaticTableSchema.builder(FakeDocument.class)
+                             .newItemSupplier(FakeDocument::new)
+                             .tags(vectorIndexes(Collections.singletonList(vectorIndex)))
+                             .build();
+
+        assertThat(tableSchema.tableMetadata().vectorIndices()).hasSize(1);
+        assertThat(tableSchema.tableMetadata().vectorIndices())
+            .containsExactly(VectorIndexMetadata.fromEnhancedVectorIndex(vectorIndex));
+    }
+
+    @Test
     public void instantiateFlattenedAbstractClassShouldThrowException() {
         StaticTableSchema<FakeAbstractSuperclass> superclassTableSchema =
             StaticTableSchema.builder(FakeAbstractSuperclass.class)
@@ -1850,5 +1927,220 @@ public class StaticTableSchemaTest {
 
         assertThat(schema.tableMetadata().indexPartitionKeys("test_gsi")).containsExactly("gsi_pk1", "gsi_pk2");
         assertThat(schema.tableMetadata().indexSortKeys("test_gsi")).containsExactly("gsi_sk1", "gsi_sk2");
+    }
+
+    @Test
+    public void buildWithSearchVectorsHashKeyTag_producesCorrectMetadata() {
+        StaticTableSchema<FakeMappedItem> schema =
+            StaticTableSchema.builder(FakeMappedItem.class)
+                             .newItemSupplier(FakeMappedItem::new)
+                             .addAttribute(String.class, a -> a.name("id")
+                                                               .getter(FakeMappedItem::getAString)
+                                                               .setter(FakeMappedItem::setAString)
+                                                               .tags(primaryPartitionKey()))
+                             .addAttribute(String.class, a -> a.name("cat")
+                                                               .getter(FakeMappedItem::getAString)
+                                                               .setter(FakeMappedItem::setAString)
+                                                               .tags(searchVectorsHashKey("idx")))
+                             .addAttribute(EnhancedType.setOf(Float.class), a -> a.name("emb")
+                                                                                  .getter(FakeMappedItem::getAFloatSet)
+                                                                                  .setter(FakeMappedItem::setAFloatSet)
+                                                                                  .tags(vectorAttribute("idx", 1536,
+                                                                                                        DistanceFunction.COSINE)))
+                             .build();
+
+        assertThat(schema.tableMetadata().vectorIndices()).hasSize(1);
+        VectorIndexMetadata vim = schema.tableMetadata().vectorIndices().iterator().next();
+        assertThat(vim.indexName()).isEqualTo("idx");
+        assertThat(vim.searchSchemaElements()).anySatisfy(e -> {
+            assertThat(e.attributeName()).isEqualTo("cat");
+            assertThat(e.searchSchemaElementType()).isEqualTo(SearchSchemaElementType.HASH);
+        });
+    }
+
+    @Test
+    public void buildWithSearchVectorsInlineFilterKeyTag_producesCorrectMetadata() {
+        StaticTableSchema<FakeMappedItem> schema =
+            StaticTableSchema.builder(FakeMappedItem.class)
+                             .newItemSupplier(FakeMappedItem::new)
+                             .addAttribute(String.class, a -> a.name("id")
+                                                               .getter(FakeMappedItem::getAString)
+                                                               .setter(FakeMappedItem::setAString)
+                                                               .tags(primaryPartitionKey()))
+                             .addAttribute(String.class, a -> a.name("brand")
+                                                               .getter(FakeMappedItem::getAString)
+                                                               .setter(FakeMappedItem::setAString)
+                                                               .tags(searchVectorsInlineFilterKey("idx")))
+                             .addAttribute(EnhancedType.setOf(Float.class), a -> a.name("emb")
+                                                                                  .getter(FakeMappedItem::getAFloatSet)
+                                                                                  .setter(FakeMappedItem::setAFloatSet)
+                                                                                  .tags(vectorAttribute("idx", 1536,
+                                                                                   DistanceFunction.COSINE)))
+                             .build();
+
+        assertThat(schema.tableMetadata().vectorIndices()).hasSize(1);
+        VectorIndexMetadata vim = schema.tableMetadata().vectorIndices().iterator().next();
+        assertThat(vim.indexName()).isEqualTo("idx");
+        assertThat(vim.searchSchemaElements()).anySatisfy(e -> {
+            assertThat(e.attributeName()).isEqualTo("brand");
+            assertThat(e.searchSchemaElementType()).isEqualTo(SearchSchemaElementType.INLINE_FILTER);
+        });
+    }
+
+    @Test
+    public void buildWithVectorAttributeTag_producesCorrectMetadata() {
+        StaticTableSchema<FakeMappedItem> schema =
+            StaticTableSchema.builder(FakeMappedItem.class)
+                             .newItemSupplier(FakeMappedItem::new)
+                             .addAttribute(String.class, a -> a.name("id")
+                                                               .getter(FakeMappedItem::getAString)
+                                                               .setter(FakeMappedItem::setAString)
+                                                               .tags(primaryPartitionKey()))
+                             .addAttribute(EnhancedType.setOf(Float.class), a -> a.name("emb")
+                                                                                  .getter(FakeMappedItem::getAFloatSet)
+                                                                                  .setter(FakeMappedItem::setAFloatSet)
+                                                                                  .tags(vectorAttribute("idx", 1536,
+                                                                                   DistanceFunction.COSINE)))
+                             .build();
+
+        assertThat(schema.tableMetadata().vectorIndices()).hasSize(1);
+        VectorIndexMetadata vim = schema.tableMetadata().vectorIndices().iterator().next();
+        assertThat(vim.indexName()).isEqualTo("idx");
+        assertThat(vim.vectorAttributeName()).isEqualTo("emb");
+        assertThat(vim.dimensions()).isEqualTo(1536);
+        assertThat(vim.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+    }
+
+    @Test
+    public void buildWithAllVectorTags_producesCompleteVectorIndex() {
+        StaticTableSchema<FakeMappedItem> schema =
+            StaticTableSchema.builder(FakeMappedItem.class)
+                             .newItemSupplier(FakeMappedItem::new)
+                             .addAttribute(String.class, a -> a.name("id")
+                                                               .getter(FakeMappedItem::getAString)
+                                                               .setter(FakeMappedItem::setAString)
+                                                               .tags(primaryPartitionKey()))
+                             .addAttribute(String.class, a -> a.name("cat")
+                                                               .getter(FakeMappedItem::getAString)
+                                                               .setter(FakeMappedItem::setAString)
+                                                               .tags(searchVectorsHashKey("idx")))
+                             .addAttribute(String.class, a -> a.name("brand")
+                                                               .getter(FakeMappedItem::getAString)
+                                                               .setter(FakeMappedItem::setAString)
+                                                               .tags(searchVectorsInlineFilterKey("idx")))
+                             .addAttribute(EnhancedType.setOf(Float.class), a -> a.name("emb")
+                                                                                  .getter(FakeMappedItem::getAFloatSet)
+                                                                                  .setter(FakeMappedItem::setAFloatSet)
+                                                                                  .tags(vectorAttribute("idx", 1536,
+                                                                                   DistanceFunction.COSINE)))
+                             .build();
+
+        assertThat(schema.tableMetadata().vectorIndices()).hasSize(1);
+        VectorIndexMetadata vim = schema.tableMetadata().vectorIndices().iterator().next();
+        assertThat(vim.indexName()).isEqualTo("idx");
+        assertThat(vim.vectorAttributeName()).isEqualTo("emb");
+        assertThat(vim.dimensions()).isEqualTo(1536);
+        assertThat(vim.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(vim.searchSchemaElements()).hasSize(2);
+        assertThat(vim.searchSchemaElements()).contains(
+            SearchSchemaElement.builder().attributeName("cat").searchSchemaElementType(SearchSchemaElementType.HASH).build(),
+            SearchSchemaElement.builder().attributeName("brand").searchSchemaElementType(SearchSchemaElementType.INLINE_FILTER).build());
+    }
+
+    @Test
+    public void buildWithMultipleVectorIndexTags_producesMultipleIndices() {
+        StaticTableSchema<FakeMappedItem> schema =
+            StaticTableSchema.builder(FakeMappedItem.class)
+                             .newItemSupplier(FakeMappedItem::new)
+                             .addAttribute(String.class, a -> a.name("id")
+                                                               .getter(FakeMappedItem::getAString)
+                                                               .setter(FakeMappedItem::setAString)
+                                                               .tags(primaryPartitionKey()))
+                             .addAttribute(EnhancedType.setOf(Float.class), a -> a.name("emb1")
+                                                                                  .getter(FakeMappedItem::getAFloatSet)
+                                                                                  .setter(FakeMappedItem::setAFloatSet)
+                                                                                  .tags(vectorAttribute("idx1", 768,
+                                                                                   DistanceFunction.EUCLIDEAN)))
+                             .addAttribute(EnhancedType.setOf(Float.class), a -> a.name("emb2")
+                                                                                  .getter(FakeMappedItem::getAFloatSet)
+                                                                                  .setter(FakeMappedItem::setAFloatSet)
+                                                                                  .tags(vectorAttribute("idx2", 1536,
+                                                                                   DistanceFunction.COSINE)))
+                             .build();
+
+        assertThat(schema.tableMetadata().vectorIndices()).hasSize(2);
+        assertThat(schema.tableMetadata().vectorIndices())
+            .extracting(VectorIndexMetadata::indexName)
+            .containsExactlyInAnyOrder("idx1", "idx2");
+    }
+
+    @Test
+    public void vectorAttributeTag_notInIndices() {
+        StaticTableSchema<FakeMappedItem> schema =
+            StaticTableSchema.builder(FakeMappedItem.class)
+                             .newItemSupplier(FakeMappedItem::new)
+                             .addAttribute(String.class, a -> a.name("id")
+                                                               .getter(FakeMappedItem::getAString)
+                                                               .setter(FakeMappedItem::setAString)
+                                                               .tags(primaryPartitionKey()))
+                             .addAttribute(EnhancedType.setOf(Float.class), a -> a.name("emb")
+                                                                                  .getter(FakeMappedItem::getAFloatSet)
+                                                                                  .setter(FakeMappedItem::setAFloatSet)
+                                                                                  .tags(vectorAttribute("vec-idx", 1536,
+                                                                                   DistanceFunction.COSINE)))
+                             .build();
+
+        assertThat(schema.tableMetadata().indices().stream()
+                         .anyMatch(index -> "vec-idx".equals(index.name()))).isFalse();
+    }
+
+    @Test
+    public void buildStaticImmutable_withVectorTags_producesCorrectMetadata() {
+        StaticImmutableTableSchema<FakeDocument, FakeDocument> schema =
+            StaticImmutableTableSchema.builder(FakeDocument.class, FakeDocument.class)
+                                      .newItemBuilder(FakeDocument::new, Function.identity())
+                                      .addAttribute(String.class, a -> a.name("id")
+                                                                        .getter(FakeDocument::getDocumentString)
+                                                                        .setter(FakeDocument::setDocumentString)
+                                                                        .tags(primaryPartitionKey()))
+                                      .addAttribute(String.class, a -> a.name("cat")
+                                                                        .getter(FakeDocument::getDocumentString)
+                                                                        .setter(FakeDocument::setDocumentString)
+                                                                        .tags(searchVectorsHashKey("vi")))
+                                      .addAttribute(String.class, a -> a.name("brand")
+                                                                        .getter(FakeDocument::getDocumentString)
+                                                                        .setter(FakeDocument::setDocumentString)
+                                                                        .tags(searchVectorsInlineFilterKey("vi")))
+                                      .addAttribute(EnhancedType.listOf(Float.class), a -> a.name("emb")
+                                                                                            .getter(d -> null)
+                                                                                            .setter((d, v) -> {
+                                                                                            })
+                                                                                            .tags(vectorAttribute("vi", 384,
+                                                                                             DistanceFunction.DOT_PRODUCT)))
+                                      .build();
+
+        assertThat(schema.tableMetadata().vectorIndices()).hasSize(1);
+        VectorIndexMetadata vim = schema.tableMetadata().vectorIndices().iterator().next();
+        assertThat(vim.indexName()).isEqualTo("vi");
+        assertThat(vim.vectorAttributeName()).isEqualTo("emb");
+        assertThat(vim.dimensions()).isEqualTo(384);
+        assertThat(vim.distanceFunction()).isEqualTo(DistanceFunction.DOT_PRODUCT);
+        assertThat(vim.searchSchemaElements()).hasSize(2);
+        assertThat(schema.tableMetadata().indices().stream()
+                         .anyMatch(index -> "vi".equals(index.name()))).isFalse();
+    }
+
+    @Test
+    public void nonScalarAttributeAsKey_throwsIllegalArgumentException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("is not a suitable type to be used as a key");
+
+        StaticTableSchema.builder(FakeMappedItem.class)
+                         .newItemSupplier(FakeMappedItem::new)
+                         .addAttribute(Boolean.class, a -> a.name("id")
+                                                            .getter(FakeMappedItem::getABoolean)
+                                                            .setter(FakeMappedItem::setABoolean)
+                                                            .tags(primaryPartitionKey()))
+                         .build();
     }
 }

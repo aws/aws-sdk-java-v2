@@ -139,6 +139,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
     @Override
     public CompletableFuture<ResponseT> prepare() {
+        fileChannel = null;
         cf = new CompletableFuture<>();
         cf.whenComplete((r, t) -> {
             if (t != null && fileChannel != null) {
@@ -169,14 +170,16 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
     @Override
     public void exceptionOccurred(Throwable throwable) {
+        AsynchronousFileChannel currentFileChannel = fileChannel;
+        fileChannel = null;
         try {
-            if (fileChannel != null) {
+            if (currentFileChannel != null) {
                 runAndLogError(log.logger(),
                                String.format("Failed to close the file %s, resource may be leaked", path),
-                               () -> fileChannel.close());
+                               currentFileChannel::close);
             }
         } finally {
-            if (configuration.failureBehavior() == FailureBehavior.DELETE) {
+            if (currentFileChannel != null && configuration.failureBehavior() == FailureBehavior.DELETE) {
                 runAndLogError(log.logger(),
                                String.format("Failed to delete the file %s", path),
                                () -> Files.deleteIfExists(path));

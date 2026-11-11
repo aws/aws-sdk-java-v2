@@ -4,6 +4,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import foo.bar.helloworld.auth.scheme.ProtocolRestJsonWithCustomPackageAuthSchemeParams;
 import foo.bar.helloworld.auth.scheme.ProtocolRestJsonWithCustomPackageAuthSchemeProvider;
+import foo.bar.helloworld.auth.scheme.internal.DefaultProtocolRestJsonWithCustomPackageAuthSchemeProvider;
 import foo.bar.helloworld.endpoints.ProtocolRestJsonWithCustomPackageEndpointParams;
 import foo.bar.helloworld.endpoints.ProtocolRestJsonWithCustomPackageEndpointProvider;
 import foo.bar.helloworld.endpoints.internal.ProtocolRestJsonWithCustomPackageEndpointResolverUtils;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.slf4j.Logger;
@@ -82,6 +84,18 @@ final class DefaultProtocolRestJsonWithCustomPackageAsyncClient implements Proto
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+        if (errorCode == null) {
+            return Optional.empty();
+        }
+        switch (errorCode) {
+            default:
+                return Optional.empty();
+        }
+    };
+
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
+
     protected DefaultProtocolRestJsonWithCustomPackageAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration
@@ -127,15 +141,6 @@ final class DefaultProtocolRestJsonWithCustomPackageAsyncClient implements Proto
 
             HttpResponseHandler<OneOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                               OneOperationResponse::builder);
-            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-                if (errorCode == null) {
-                    return Optional.empty();
-                }
-                switch (errorCode) {
-                    default:
-                        return Optional.empty();
-                }
-            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
@@ -147,13 +152,11 @@ final class DefaultProtocolRestJsonWithCustomPackageAsyncClient implements Proto
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint).withInput(oneOperationRequest));
-            CompletableFuture<OneOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<OneOperationResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -190,6 +193,23 @@ final class DefaultProtocolRestJsonWithCustomPackageAsyncClient implements Proto
         return publishers;
     }
 
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
+    }
+
+    /**
+     * Publishes the collected API call metrics once {@code future} completes, normally or exceptionally.
+     */
+    private static <T> CompletableFuture<T> publishMetricsWhenComplete(CompletableFuture<T> future,
+            List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        return future.whenComplete((r, e) -> publishMetrics(metricPublishers, apiCallMetricCollector));
+    }
+
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
             ExecutionAttributes executionAttributes) {
         String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
@@ -202,10 +222,23 @@ final class DefaultProtocolRestJsonWithCustomPackageAsyncClient implements Proto
                                                                                                                    : Validate.isInstanceOf(ProtocolRestJsonWithCustomPackageAuthSchemeProvider.class,
                                                                                                                                            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                                                                                                                                            "Expected an instance of ProtocolRestJsonWithCustomPackageAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultProtocolRestJsonWithCustomPackageAuthSchemeProvider;
+        String cacheKey = String.valueOf(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(cacheKey);
+            if (cached != null) {
+                return cached;
+            }
+        }
         ProtocolRestJsonWithCustomPackageAuthSchemeParams.Builder paramsBuilder = ProtocolRestJsonWithCustomPackageAuthSchemeParams
             .builder().operation(operationName);
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            options = Collections.unmodifiableList(options);
+            authSchemeCache.put(cacheKey, options);
+        }
         return options;
     }
 

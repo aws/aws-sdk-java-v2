@@ -100,6 +100,9 @@ class PresignRequestHandlerTest {
             if (testCase.expectedUri != null) {
                 assertEquals(normalize(URI.create(testCase.expectedUri)), normalize(presignedUrlAsUri));
             }
+            if (testCase.expectedPresignedUrlHost != null) {
+                assertEquals(testCase.expectedPresignedUrlHost, presignedUrlAsUri.getHost());
+            }
         } else {
             assertFalse(rawQueryParameters.containsKey("PreSignedUrl"));
         }
@@ -169,6 +172,24 @@ class PresignRequestHandlerTest {
             builder("StartDBInstanceAutomatedBackupsReplication Without SourceRegion Does NOT Send PresignedUrl")
                 .clientConsumer(c -> c.startDBInstanceAutomatedBackupsReplication(r -> r.kmsKeyId(TEST_KMS_KEY_ID)))
                 .shouldContainPreSignedUrl(false)
+                .build(),
+
+            builder("CopyDbClusterSnapshot - With FIPS enabled resolves to fips endpoint")
+                .clientConfigure(c -> c.region(Region.US_EAST_1).fipsEnabled(true))
+                .clientConsumer(c -> c.copyDBClusterSnapshot(makeTestRequestBuilder()
+                                                                 .sourceRegion("us-west-2")
+                                                                 .build()))
+                .shouldContainPreSignedUrl(true)
+                .expectedPresignedUrlHost("rds-fips.us-west-2.amazonaws.com")
+                .build(),
+
+            builder("CopyDbClusterSnapshot - With dualstack enabled resolves to dualstack endpoint")
+                .clientConfigure(c -> c.region(Region.US_EAST_1).dualstackEnabled(true))
+                .clientConsumer(c -> c.copyDBClusterSnapshot(makeTestRequestBuilder()
+                                                                 .sourceRegion("us-west-2")
+                                                                 .build()))
+                .shouldContainPreSignedUrl(true)
+                .expectedPresignedUrlHost("rds.us-west-2.api.aws")
                 .build()
         );
     }
@@ -296,6 +317,7 @@ class PresignRequestHandlerTest {
         private final String expectedDestinationRegion;
         private final Clock signingClockOverride;
         private final String expectedUri;
+        private final String expectedPresignedUrlHost;
 
         TestCase(TestCaseBuilder builder) {
             this.name = Validate.notNull(builder.name, "name");
@@ -305,6 +327,7 @@ class PresignRequestHandlerTest {
             this.expectedDestinationRegion = builder.expectedDestinationRegion;
             this.signingClockOverride = builder.signingClockOverride;
             this.expectedUri = builder.expectedUri;
+            this.expectedPresignedUrlHost = builder.expectedPresignedUrlHost;
         }
     }
 
@@ -316,6 +339,7 @@ class PresignRequestHandlerTest {
         private String expectedDestinationRegion;
         private Clock signingClockOverride;
         private String expectedUri;
+        private String expectedPresignedUrlHost;
 
         private TestCaseBuilder name(String name) {
             this.name = name;
@@ -349,6 +373,11 @@ class PresignRequestHandlerTest {
 
         public TestCaseBuilder expectedUri(String expectedUri) {
             this.expectedUri = expectedUri;
+            return this;
+        }
+
+        public TestCaseBuilder expectedPresignedUrlHost(String expectedPresignedUrlHost) {
+            this.expectedPresignedUrlHost = expectedPresignedUrlHost;
             return this;
         }
 

@@ -58,6 +58,10 @@ public class MockServer {
                 return new MockServer(new FullCloseInBetweenServerBehavior());
             case FULL_CLOSE_AT_THE_END:
                 return new MockServer(new FullCloseAtTheEndServerBehavior());
+            case UNRESPONSIVE:
+                return new MockServer(new UnresponsiveServerBehavior());
+            case OVERLOADED:
+                return new MockServer(new OverloadedServerBehavior());
             default:
                 throw new IllegalArgumentException("Unsupported implementation for server issue: " + serverBehavior);
         }
@@ -87,6 +91,18 @@ public class MockServer {
             serverSocket = ssf.createServerSocket(0);
             logger.info(() -> "Listening on port " + serverSocket.getLocalPort());
         } catch (Exception e) {
+            throw new RuntimeException("Unable to start the server socket.", e);
+        }
+        listenerThread = new MockServerListenerThread(serverSocket, serverBehaviorStrategy);
+        listenerThread.setDaemon(true);
+        listenerThread.start();
+    }
+
+    public void startServer() {
+        try {
+            serverSocket = new ServerSocket(0); // auto-assign a port at localhost
+            logger.info(() -> "Listening on port " + serverSocket.getLocalPort());
+        } catch (IOException e) {
             throw new RuntimeException("Unable to start the server socket.", e);
         }
         listenerThread = new MockServerListenerThread(serverSocket, serverBehaviorStrategy);
@@ -127,7 +143,9 @@ public class MockServer {
     public enum ServerBehavior {
         HALF_CLOSE,
         FULL_CLOSE_IN_BETWEEN,
-        FULL_CLOSE_AT_THE_END
+        FULL_CLOSE_AT_THE_END,
+        UNRESPONSIVE,
+        OVERLOADED
     }
 
     public interface ServerBehaviorStrategy {
@@ -289,6 +307,73 @@ public class MockServer {
                 throw new RuntimeException("Error when waiting for new socket connection.", e);
             } finally {
                 closeQuietly(socket);
+            }
+        }
+    }
+
+    /**
+     * A server behavior which accepts a single connection and then holds it open without writing any bytes. The test client
+     * talking to this server is expected to timeout appropriately, instead of hanging and waiting for the response forever.
+     */
+    public static class UnresponsiveServerBehavior implements ServerBehaviorStrategy {
+
+        @Override
+        public void runServer(ServerSocket serverSocket) {
+            Socket socket = null;
+            try {
+                socket = serverSocket.accept();
+                Socket acceptedSocket = socket;
+                logger.info(() -> "Socket created on port " + acceptedSocket.getLocalPort());
+                while (true) {
+                    logger.debug(() -> "Holding the connection open without responding.");
+                    Thread.sleep(10 * 1000);
+                }
+            } catch (InterruptedException e) {
+                // Stop server will interrupt to stop this thread.
+                return;
+            } catch (IOException e) {
+                throw new RuntimeException("Error when waiting for new socket connection.", e);
+            } finally {
+                closeQuietly(socket);
+            }
+        }
+    }
+
+    /**
+     * A server behavior which accepts a connection, writes a partial HTTP response (with a Content-Length larger than the bytes
+     * actually sent) and then keeps holding the connection open while periodically writing a few more bytes. The test client
+     * talking to this server is expected to timeout appropriately, instead of hanging and waiting for the response forever.
+     */
+    public static class OverloadedServerBehavior implements ServerBehaviorStrategy {
+
+        @Override
+        public void runServer(ServerSocket serverSocket) {
+            try {
+                while (true) {
+                    Socket socket = null;
+                    try {
+                        socket = serverSocket.accept();
+                        try (DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+                            out.writeBytes("HTTP/1.1 200 OK\r\n");
+                            out.writeBytes("Content-Type: text/html\r\n");
+                            out.writeBytes("Content-Length: 500\r\n\r\n");
+                            out.writeBytes("<html><head></head><body><h1>Hello.");
+                            while (true) {
+                                Thread.sleep(1000);
+                                out.writeBytes("Hi.");
+                            }
+                        }
+                    } catch (SocketException se) {
+                        // Ignored or expected.
+                    } finally {
+                        closeQuietly(socket);
+                    }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Error when waiting for new socket connection.", e);
+            } catch (InterruptedException e) {
+                // Stop server will interrupt to stop this thread.
+                return;
             }
         }
     }

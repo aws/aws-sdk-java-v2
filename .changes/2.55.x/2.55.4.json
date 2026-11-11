@@ -1,0 +1,72 @@
+{
+    "version": "2.55.4",
+    "date": "2026-09-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "Documentation update for EC2 Image Builder - adds API request and response examples for all operations, improves descriptions throughout, and corrects response field patterns for image versions and workflow ARNs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release adds support for SMPTE 337M audio passthrough, compositing up to five motion graphic overlays in a single output, and controlling how passthrough video is segmented in ABR outputs. It also adds 3GP, 3G2, AAC, AC-3, and E-AC-3 as supported input containers for the Probe operation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Billing",
+            "contributor": "",
+            "description": "Added the ListBillingViewSegments API, which returns billing view segment information for a specified billing view ARN and time range. This API enables customers and integrated tools to programmatically determine the billing context of their accounts."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Security Manager Customer API",
+            "contributor": "",
+            "description": "AWS Network Security Manager is a new service that helps you centrally configure, deploy, and continuously enforce security policies on network security services across the accounts and resources in your AWS Organization."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Data Plane",
+            "contributor": "",
+            "description": "Adds asymmetric key support to ReEncryptData for re-encrypting data between RSA and symmetric data encryption keys."
+        },
+        {
+            "type": "feature",
+            "category": "Connect Health",
+            "contributor": "",
+            "description": "Multi language support with code switching, custom template sectionHeader now allows underscores."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis",
+            "contributor": "",
+            "description": "Amazon Kinesis Data Streams now supports service managed record distribution for on demand streams. Set the record distribution strategy to AUTO to evenly distribute records across shards. Configure it at stream creation with CreateStream or update anytime with UpdateStreamRecordDistributionStrategy"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "Adds support for speaker diarization on Amazon Lex V2 bot locales. Speaker diarization keeps your bot on the primary (loudest) speaker during a streaming voice conversation, so background voices do not start a turn or interrupt a prompt."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage v2",
+            "contributor": "",
+            "description": "This release adds support for signalling start and end in the ContentKeyPeriod element in key request from MediaPackageV2"
+        },
+        {
+            "type": "perf-improvement",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix unnecessary allocation and request latency during endpoint resolution for operations that derive endpoint parameters from request data, including DynamoDB batch and transaction operations and Amazon S3 DeleteObjects. These bindings now use generated typed getters and iterate request maps directly instead of using reflection and copying maps. The order of derived key lists may change, but current DynamoDB endpoint routing behavior is unchanged."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

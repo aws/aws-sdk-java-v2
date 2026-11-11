@@ -37,11 +37,16 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.IndexMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ChainConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticKeyAttributeMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.model.DistanceFunction;
+import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedVectorIndex;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElementType;
+import software.amazon.awssdk.enhanced.dynamodb.model.VectorIndexMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 class DocumentTableSchemaTest {
@@ -247,6 +252,35 @@ class DocumentTableSchemaTest {
             documentTableSchema.itemToMap(filterDocument,
                                           Arrays.asList("filterOne", "filterTwo", "filterThree","filterNull")
                                           )).isEqualTo(filteredAttributeValueMap);
+    }
+
+    @Test
+    void vectorIndexMetadata_storedSeparatelyFromGsiAndLsiIndices() {
+        EnhancedVectorIndex vectorIndex = EnhancedVectorIndex.builder()
+                                                             .indexName("embeddings-index")
+                                                             .vectorAttributeName("embedding")
+                                                             .dimensions(1536)
+                                                             .distanceFunction(DistanceFunction.COSINE)
+                                                             .addSearchSchemaElement(b -> b.attributeName("id")
+                                                                                           .searchSchemaElementType(
+                                                                                               SearchSchemaElementType.HASH))
+                                                             .build();
+
+        DocumentTableSchema documentTableSchema = DocumentTableSchema.builder()
+                                                                     .addIndexPartitionKey(TableMetadata.primaryIndexName(),
+                                                                                           "id",
+                                                                                           AttributeValueType.S)
+                                                                     .vectorIndexes(vectorIndex)
+                                                                     .build();
+
+        TableMetadata metadata = documentTableSchema.tableMetadata();
+
+        assertThat(metadata.vectorIndices())
+            .hasSize(1)
+            .containsExactly(VectorIndexMetadata.fromEnhancedVectorIndex(vectorIndex));
+        assertThat(metadata.indices())
+            .extracting(IndexMetadata::name)
+            .doesNotContain("embeddings-index");
     }
 
     @Test

@@ -17,9 +17,12 @@ package software.amazon.awssdk.codegen.utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.config.customization.MetadataConfig;
 import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.smithy.model.knowledge.ServiceIndex;
 import software.amazon.smithy.model.shapes.ServiceShape;
@@ -112,5 +115,24 @@ public final class ProtocolUtils {
         throw new IllegalArgumentException(
             "The SDK does not support any of the protocols applied to service " + service.getId()
             + ": " + protocolTraits.keySet());
+    }
+
+    /**
+     * Resolves the protocol a Smithy service is generated with. A {@code customServiceMetadata.protocol} override in
+     * the customization config wins over the protocol traits, the same way it replaces the {@code protocols} list on
+     * the C2J path; Kinesis uses it to select the legacy {@code cbor} protocol, which has no Smithy trait.
+     *
+     * @throws IllegalArgumentException if the override, or every applied protocol trait, is unsupported.
+     */
+    public static String resolveProtocol(ServiceIndex serviceIndex, ServiceShape service,
+                                         CustomizationConfig customizationConfig) {
+        MetadataConfig metadataConfig = customizationConfig.getCustomServiceMetadata();
+        String override = metadataConfig == null ? null : metadataConfig.getProtocol();
+        if (override == null) {
+            return resolveProtocol(serviceIndex, service);
+        }
+        ServiceMetadata overridden = new ServiceMetadata();
+        overridden.setProtocols(Collections.singletonList(override));
+        return resolveProtocol(overridden);
     }
 }

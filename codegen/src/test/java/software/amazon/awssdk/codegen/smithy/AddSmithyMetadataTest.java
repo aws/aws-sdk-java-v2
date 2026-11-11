@@ -23,6 +23,7 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.naming.DefaultSmithyNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.knowledge.ServiceIndex;
 import software.amazon.smithy.model.shapes.ServiceShape;
@@ -58,8 +59,9 @@ class AddSmithyMetadataTest {
     private static Metadata metadataOf(Model model) {
         ServiceShape service = model.getServiceShapes().iterator().next();
         NamingStrategy naming = new DefaultSmithyNamingStrategy(model, service, CustomizationConfig.create());
-        return AddSmithyMetadata.constructMetadata(model, service, ServiceIndex.of(model), naming,
-                                                   CustomizationConfig.create());
+        ServiceIndex serviceIndex = ServiceIndex.of(model);
+        return AddSmithyMetadata.constructMetadata(model, service, serviceIndex, naming, CustomizationConfig.create(),
+                                                   ProtocolUtils.resolveProtocol(serviceIndex, service));
     }
 
     // ---- jsonVersion ------------------------------------------------------

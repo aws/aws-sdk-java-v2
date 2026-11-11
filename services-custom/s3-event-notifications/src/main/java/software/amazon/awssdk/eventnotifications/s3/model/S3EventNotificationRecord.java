@@ -42,6 +42,7 @@ public class S3EventNotificationRecord {
     private LifecycleEventData lifecycleEventData;
     private IntelligentTieringEventData intelligentTieringEventData;
     private ReplicationEventData replicationEventData;
+    private ObjectRetentionEventData objectRetentionEventData;
     private Instant eventTime;
 
     public S3EventNotificationRecord() {
@@ -221,6 +222,15 @@ public class S3EventNotificationRecord {
         return replicationEventData;
     }
 
+    /**
+     * The ObjectRetentionEventData is only visible for {@code s3:ObjectRetention:Put} events, fired on the explicit
+     * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectRetention.html">PutObjectRetention</a> API call.
+     * @return the object retention event data.
+     */
+    public ObjectRetentionEventData getObjectRetentionEventData() {
+        return objectRetentionEventData;
+    }
+
     public void setAwsRegion(String awsRegion) {
         this.awsRegion = awsRegion;
     }
@@ -267,6 +277,10 @@ public class S3EventNotificationRecord {
 
     public void setReplicationEventData(ReplicationEventData replicationEventData) {
         this.replicationEventData = replicationEventData;
+    }
+
+    public void setObjectRetentionEventData(ObjectRetentionEventData objectRetentionEventData) {
+        this.objectRetentionEventData = objectRetentionEventData;
     }
 
     public void setEventTime(Instant eventTime) {
@@ -320,6 +334,9 @@ public class S3EventNotificationRecord {
         if (!Objects.equals(replicationEventData, that.replicationEventData)) {
             return false;
         }
+        if (!Objects.equals(objectRetentionEventData, that.objectRetentionEventData)) {
+            return false;
+        }
         return Objects.equals(eventTime, that.eventTime);
     }
 
@@ -337,6 +354,7 @@ public class S3EventNotificationRecord {
         result = 31 * result + (lifecycleEventData != null ? lifecycleEventData.hashCode() : 0);
         result = 31 * result + (intelligentTieringEventData != null ? intelligentTieringEventData.hashCode() : 0);
         result = 31 * result + (replicationEventData != null ? replicationEventData.hashCode() : 0);
+        result = 31 * result + (objectRetentionEventData != null ? objectRetentionEventData.hashCode() : 0);
         result = 31 * result + (eventTime != null ? eventTime.hashCode() : 0);
         return result;
     }
@@ -356,6 +374,7 @@ public class S3EventNotificationRecord {
                        .add("lifecycleEventData", lifecycleEventData)
                        .add("intelligentTieringEventData", intelligentTieringEventData)
                        .add("replicationEventData", replicationEventData)
+                       .add("objectRetentionEventData", objectRetentionEventData)
                        .add("eventTime", eventTime)
                        .build();
     }

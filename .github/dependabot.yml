@@ -56,7 +56,6 @@ updates:
       - dependency-name: "org.codehaus.mojo:build-helper-maven-plugin"
       - dependency-name: "org.codehaus.mojo:exec-maven-plugin"
       - dependency-name: "org.apache.maven.plugin-tools:maven-plugin-annotations"
-      - dependency-name: "org.graalvm.buildtools:*"
       - dependency-name: "org.jacoco:jacoco-maven-plugin"
       - dependency-name: "org.apache.commons:commons-lang3"
       - dependency-name: "org.codehaus.plexus:plexus-utils"

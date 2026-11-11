@@ -74,6 +74,21 @@ public final class NewAndLegacyEventStreamProcessor implements CodegenCustomizat
         // no-op
     }
 
+    /**
+     * Applies the same check to event streams found in a Smithy model.
+     */
+    static void validateEventStreams(String serviceId, Iterable<String> eventStreamNames) {
+        Set<String> approvedStreams = APPROVED_EVENT_STREAMS.get(serviceId);
+        if (approvedStreams == null) {
+            return;
+        }
+        for (String name : eventStreamNames) {
+            if (!approvedStreams.contains(name)) {
+                throw unknownStreamError(serviceId, name);
+            }
+        }
+    }
+
     private static RuntimeException unknownStreamError(String serviceId, String evenstreamName) {
         String msg = String.format("Encountered a new eventstream for service %s: %s. This service contains " +
                 "evenstreams that are code generated using an older style that requires a customization. Please " +

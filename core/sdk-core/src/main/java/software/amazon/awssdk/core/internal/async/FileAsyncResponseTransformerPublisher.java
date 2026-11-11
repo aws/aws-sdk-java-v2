@@ -41,7 +41,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
     private final Path path;
     private final FileTransformerConfiguration initialConfig;
-    private Subscriber<?> subscriber;
+    private volatile Subscriber<?> subscriber;
     private final AtomicLong transformerCount;
 
 
@@ -70,7 +70,20 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
     }
 
     private void onCancel() {
+        // Drop the subscriber reference on cancel, per Reactive Streams rule 3.13. Reads snapshot the volatile field and
+        // null-check it, so this clear cannot race into a NullPointerException.
         subscriber = null;
+    }
+
+    /**
+     * Signals an error to the downstream subscriber if still present. Reads the volatile field once so a concurrent
+     * {@link #onCancel()} cannot cause a {@link NullPointerException}.
+     */
+    private void signalError(Throwable e) {
+        Subscriber<?> currentSubscriber = subscriber;
+        if (currentSubscriber != null) {
+            currentSubscriber.onError(e);
+        }
     }
 
     /**
@@ -107,13 +120,13 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                     Optional<String> contentLength = response.sdkHttpResponse().firstMatchingHeader("content-length");
                     long transformerCount = FileAsyncResponseTransformerPublisher.this.transformerCount.get();
                     // Error out if content range header is missing and this is not the initial request
-                    if (subscriber != null && transformerCount > 0) {
-                        subscriber.onError(new IllegalStateException("Content range header is missing"));
+                    if (transformerCount > 0) {
+                        signalError(new IllegalStateException("Content range header is missing"));
                         return;
                     }
 
                     if (!contentLength.isPresent()) {
-                        subscriber.onError(new IllegalStateException("Content length header is missing"));
+                        signalError(new IllegalStateException("Content length header is missing"));
                         return;
                     }
                     String totalLength = contentLength.get();
@@ -125,10 +138,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             String contentRange = contentRangeOpt.get();
             Optional<Pair<Long, Long>> contentRangePair = ContentRangeParser.range(contentRange);
             if (!contentRangePair.isPresent()) {
-                if (subscriber != null) {
-                    IllegalStateException e = new IllegalStateException("Could not parse content range header " + contentRange);
-                    handleError(e);
-                }
+                handleError(new IllegalStateException("Could not parse content range header " + contentRange));
                 return;
             }
 
@@ -141,7 +151,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
         }
 
         private void handleError(Throwable e) {
-            subscriber.onError(e);
+            signalError(e);
             future.completeExceptionally(e);
         }
 

@@ -246,7 +246,7 @@ class BusinessMetricsUserAgentTest {
             .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor))
             .build();
 
-        client.headOperation();
+        assertThatThrownBy(client.headOperation()::join);
 
         String userAgent = assertAndGetUserAgentString();
         assertThat(userAgent).contains("AmazonProtocolRestJson#" + ServiceVersionInfo.VERSION);
