@@ -88,8 +88,8 @@ public final class AwsChunkedResponseDecodingPublisher implements SdkPublisher<B
 
         private Subscription subscription;
 
-        // Drops signals after termination, e.g. upstream signalling after cancel
-        private boolean terminated = false;
+        // Drops signals after termination or downstream cancel. Volatile: cancel() may run on another thread.
+        private volatile boolean terminated = false;
 
         DecodingSubscriber(Subscriber<? super ByteBuffer> downstream,
                            AwsChunkedResponseParser parser,
@@ -102,7 +102,7 @@ public final class AwsChunkedResponseDecodingPublisher implements SdkPublisher<B
         @Override
         public void onSubscribe(Subscription s) {
             this.subscription = s;
-            downstream.onSubscribe(new CancellationAwareSubscription(s, trailersFuture));
+            downstream.onSubscribe(new CancellationAwareSubscription(s));
         }
 
         @Override
@@ -207,25 +207,24 @@ public final class AwsChunkedResponseDecodingPublisher implements SdkPublisher<B
             combined.flip();
             return combined;
         }
-    }
 
-    /**
-     * Fails the trailers future on downstream cancel, since upstream then sends no terminal signal.
-     */
-    private static final class CancellationAwareSubscription extends DelegatingSubscription {
-        private final CompletableFuture<Map<String, String>> trailersFuture;
+        /**
+         * On downstream cancel, stops further signals and fails the trailers future, since upstream then sends no
+         * terminal signal.
+         */
+        private final class CancellationAwareSubscription extends DelegatingSubscription {
 
-        private CancellationAwareSubscription(Subscription delegate,
-                                              CompletableFuture<Map<String, String>> trailersFuture) {
-            super(delegate);
-            this.trailersFuture = trailersFuture;
-        }
+            private CancellationAwareSubscription(Subscription delegate) {
+                super(delegate);
+            }
 
-        @Override
-        public void cancel() {
-            trailersFuture.completeExceptionally(
-                new CancellationException("Subscription was cancelled before the response body was fully decoded"));
-            super.cancel();
+            @Override
+            public void cancel() {
+                terminated = true;
+                trailersFuture.completeExceptionally(
+                    new CancellationException("Subscription was cancelled before the response body was fully decoded"));
+                super.cancel();
+            }
         }
     }
 

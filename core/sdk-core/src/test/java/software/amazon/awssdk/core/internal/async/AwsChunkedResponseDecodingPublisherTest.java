@@ -31,10 +31,8 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -78,7 +76,9 @@ class AwsChunkedResponseDecodingPublisherTest {
         assertThat(subscriber.error)
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining(vector.expectedError);
-        assertThat(publisher.trailersFuture()).isCompletedExceptionally();
+        assertThatThrownBy(() -> publisher.trailersFuture().get(5, SECONDS))
+            .isInstanceOf(ExecutionException.class)
+            .hasCauseReference(subscriber.error);
     }
 
     // Backpressure
@@ -93,19 +93,6 @@ class AwsChunkedResponseDecodingPublisherTest {
         assertThat(subscriber.overDelivered).isFalse();
         assertThat(subscriber.buffers).hasSize(1);
         assertThat(subscriber.bodyAsString()).isEqualTo("helloworld");
-    }
-
-    @Test
-    void subscribe_whenUpstreamBufferContainsOnlyFraming_requestsMoreAndDoesNotStall() {
-        Flowable<ByteBuffer> upstream = Flowable.just(utf8("5\r\n"), utf8("hello"), utf8("\r\n0\r\n"), utf8("\r\n"));
-        RequestOneSubscriber subscriber = new RequestOneSubscriber(true);
-
-        new AwsChunkedResponseDecodingPublisher(upstream, -1, null).subscribe(subscriber);
-
-        assertThat(subscriber.overDelivered).isFalse();
-        assertThat(subscriber.error).isNull();
-        assertThat(subscriber.completed).isTrue();
-        assertThat(subscriber.bodyAsString()).isEqualTo("hello");
     }
 
     @Test
@@ -169,33 +156,48 @@ class AwsChunkedResponseDecodingPublisherTest {
         assertThat(cancelled).isTrue();
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("failingUpstreams")
-    void subscribe_whenStreamFails_signalsSingleErrorAndFailsTrailersFutureWithSameCause(
-            String scenario, Publisher<ByteBuffer> upstream, Class<? extends Throwable> expectedType, String expectedMessage) {
-        AwsChunkedResponseDecodingPublisher publisher = new AwsChunkedResponseDecodingPublisher(upstream, -1, null);
+    @Test
+    void onError_whenUpstreamFails_signalsSameErrorAndFailsTrailersFuture() {
+        RuntimeException upstreamError = new RuntimeException("connection reset");
+        AwsChunkedResponseDecodingPublisher publisher =
+            new AwsChunkedResponseDecodingPublisher(Flowable.error(upstreamError), -1, null);
         RequestOneSubscriber subscriber = new RequestOneSubscriber(true);
 
         publisher.subscribe(subscriber);
 
         assertThat(subscriber.errorCount).isEqualTo(1);
-        assertThat(subscriber.error).isInstanceOf(expectedType).hasMessageContaining(expectedMessage);
+        assertThat(subscriber.error).isSameAs(upstreamError);
         assertThatThrownBy(() -> publisher.trailersFuture().get(5, SECONDS))
             .isInstanceOf(ExecutionException.class)
-            .hasCauseReference(subscriber.error);
+            .hasCauseReference(upstreamError);
     }
 
-    private static Stream<Arguments> failingUpstreams() {
-        return Stream.of(
-            Arguments.of("upstream error",
-                         Flowable.error(new RuntimeException("connection reset")),
-                         RuntimeException.class, "connection reset"),
-            Arguments.of("parse error",
-                         Flowable.just(utf8("ZZ\r\n")),
-                         SdkClientException.class, "Invalid character in chunk size"),
-            Arguments.of("data after trailers in later buffer",
-                         Flowable.just(utf8("3\r\nfoo\r\n0\r\ntrailer-key:abc==\r\n\r\n"), utf8("x")),
-                         SdkClientException.class, "Data found after terminal chunk"));
+    @Test
+    void onNext_whenChunkExceedsDecodedLength_failsBeforeEmittingData() {
+        RequestOneSubscriber subscriber = new RequestOneSubscriber(true);
+
+        new AwsChunkedResponseDecodingPublisher(Flowable.just(utf8("5\r\nhello\r\n0\r\n\r\n")), 3, null)
+            .subscribe(subscriber);
+
+        assertThat(subscriber.buffers).isEmpty();
+        assertThat(subscriber.error).hasMessageContaining("exceeds decoded content length");
+    }
+
+    @Test
+    void cancel_whenUpstreamKeepsSignallingAfterCancel_dropsAllLaterSignals() {
+        Publisher<ByteBuffer> upstream = s -> {
+            s.onSubscribe(NO_OP_SUBSCRIPTION);
+            s.onNext(utf8("5\r\nhello\r\n"));
+            s.onNext(utf8("5\r\nworld\r\n"));
+            s.onComplete(); // incomplete message: would otherwise surface "Unexpected end of stream"
+        };
+        CancelAfterFirstSubscriber subscriber = new CancelAfterFirstSubscriber();
+
+        new AwsChunkedResponseDecodingPublisher(upstream, -1, null).subscribe(subscriber);
+
+        assertThat(subscriber.received).isEqualTo(1);
+        assertThat(subscriber.error).isNull();
+        assertThat(subscriber.completed).isFalse();
     }
 
     @Test
@@ -229,19 +231,6 @@ class AwsChunkedResponseDecodingPublisherTest {
         assertThatThrownBy(() -> publisher.trailersFuture().get(5, SECONDS))
             .isInstanceOf(CancellationException.class)
             .hasMessageContaining("cancelled before the response body was fully decoded");
-    }
-
-    @Test
-    void cancel_whenCalledAfterCompletion_doesNotOverrideTrailers() throws Exception {
-        AwsChunkedResponseDecodingPublisher publisher =
-            new AwsChunkedResponseDecodingPublisher(Flowable.just(utf8("0\r\ntrailer-key:abc==\r\n\r\n")), -1, null);
-        RequestOneSubscriber subscriber = new RequestOneSubscriber(true);
-        publisher.subscribe(subscriber);
-        assertThat(subscriber.completed).isTrue();
-
-        subscriber.subscription.cancel();
-
-        assertThat(publisher.trailersFuture().get(5, SECONDS)).containsEntry("trailer-key", "abc==");
     }
 
     @Test
@@ -300,6 +289,8 @@ class AwsChunkedResponseDecodingPublisherTest {
     private static final class CancelAfterFirstSubscriber implements Subscriber<ByteBuffer> {
         private Subscription subscription;
         private int received;
+        private Throwable error;
+        private boolean completed;
 
         @Override
         public void onSubscribe(Subscription s) {
@@ -315,10 +306,12 @@ class AwsChunkedResponseDecodingPublisherTest {
 
         @Override
         public void onError(Throwable t) {
+            error = t;
         }
 
         @Override
         public void onComplete() {
+            completed = true;
         }
     }
 

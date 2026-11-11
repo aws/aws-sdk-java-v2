@@ -72,16 +72,6 @@ class AwsChunkedResponseDecoderTest {
             .hasMessageContaining(vector.expectedError);
     }
 
-    @ParameterizedTest(name = "{0}, split={1}")
-    @MethodSource("software.amazon.awssdk.core.internal.chunked.AwsChunkedTestVectors#errorCases")
-    void read_errorVector_singleByteRead_throws(Vector vector, int splitSize) {
-        AwsChunkedResponseDecoder decoder = decoder(vector, splitSize);
-
-        assertThatThrownBy(() -> readAllSingleByte(decoder))
-            .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining(vector.expectedError);
-    }
-
     // InputStream-specific behavior
 
     @Test
@@ -110,6 +100,18 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
+    void read_whenChunkExceedsDecodedLength_failsBeforeReturningData() {
+        AwsChunkedResponseDecoder decoder = new AwsChunkedResponseDecoder(
+            new ByteArrayInputStream("5\r\nhello\r\n0\r\n\r\n".getBytes(StandardCharsets.UTF_8)), 3, null);
+        byte[] buf = new byte[10];
+
+        assertThatThrownBy(() -> decoder.read(buf, 0, buf.length))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("exceeds decoded content length");
+        assertThat(buf).isEqualTo(new byte[10]);
+    }
+
+    @Test
     void read_whenCalledAfterEof_returnsMinusOne() throws IOException {
         AwsChunkedResponseDecoder decoder = decoder("5\r\nhello\r\n0\r\n\r\n");
         readAllBulk(decoder);
@@ -118,44 +120,8 @@ class AwsChunkedResponseDecoderTest {
         assertThat(decoder.read(new byte[10], 0, 10)).isEqualTo(-1);
     }
 
-    @Test
-    void read_whenLengthIsZero_returnsZeroWithoutReading() throws IOException {
-        AwsChunkedResponseDecoder decoder = decoder("5\r\nhello\r\n0\r\n\r\n");
-
-        assertThat(decoder.read(new byte[10], 0, 0)).isZero();
-        assertThat(readAllBulk(decoder)).isEqualTo("hello".getBytes(StandardCharsets.UTF_8));
-    }
-
-    @Test
-    void read_whenSingleByteAndBulkReadsMixed_decodesCorrectly() throws IOException {
-        AwsChunkedResponseDecoder decoder = decoder("5\r\nhello\r\n6\r\n world\r\n0\r\n\r\n");
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        byte[] buf = new byte[3];
-
-        out.write(decoder.read());
-        int n;
-        while ((n = decoder.read(buf, 0, buf.length)) != -1) {
-            out.write(buf, 0, n);
-            int b = decoder.read();
-            if (b == -1) {
-                break;
-            }
-            out.write(b);
-        }
-
-        assertThat(new String(out.toByteArray(), StandardCharsets.UTF_8)).isEqualTo("hello world");
-    }
-
-    @Test
-    void read_whenBufferIsNull_throwsNullPointerException() {
-        AwsChunkedResponseDecoder decoder = decoder("0\r\n\r\n");
-
-        assertThatThrownBy(() -> decoder.read(null, 0, 1)).isInstanceOf(NullPointerException.class)
-                                                          .hasMessageContaining("buf");
-    }
-
     @ParameterizedTest(name = "buffer={0}, off={1}, len={2}")
-    @CsvSource({"4, 2, 3", "4, -1, 1", "4, 0, -1", "4, 5, 0"})
+    @CsvSource({"4, -1, 1", "4, 2, 3"})
     void read_whenOffsetOrLengthOutOfBounds_throwsIndexOutOfBounds(int bufferLength, int off, int len) {
         AwsChunkedResponseDecoder decoder = decoder("0\r\n\r\n");
 

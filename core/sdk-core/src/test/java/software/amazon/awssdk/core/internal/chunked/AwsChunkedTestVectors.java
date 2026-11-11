@@ -122,6 +122,9 @@ public final class AwsChunkedTestVectors {
                          "5\r\nhello\r\n0\r\ntrailer-key:abc==\r\n\r\n", 100, null, null, null,
                          "Decoded content length mismatch: expected 100 bytes but decoded 5 bytes"));
         v.add(error("multiple zero-size chunks", "0\r\n0\r\n\r\n", "Malformed trailer (no colon)"));
+        v.add(new Vector("data exceeds decoded content length",
+                         "5\r\nhello\r\n0\r\n\r\n", 3, null, null, null,
+                         "Chunk of 5 bytes exceeds decoded content length: expected 3 bytes, already decoded 0 bytes"));
 
         // Chunk size line
         v.add(error("leading plus in chunk size", "+5\r\nhello\r\n0\r\n\r\n", "Invalid character in chunk size"));
@@ -140,6 +143,7 @@ public final class AwsChunkedTestVectors {
         v.add(new Vector("undeclared trailer",
                          "5\r\nhello\r\n0\r\nother-trailer:abc==\r\n\r\n", 5, declared(CRC32_TRAILER), null, null,
                          "Trailer not declared in x-amz-trailer: other-trailer"));
+        v.add(error("trailer section over max length", manyTrailers(), "Trailer section exceeds maximum length"));
 
         // Truncation
         v.add(error("empty input", "", "Unexpected end of stream while in state CHUNK_SIZE"));
@@ -207,6 +211,17 @@ public final class AwsChunkedTestVectors {
 
     private static Set<String> declared(String... names) {
         return new HashSet<>(Arrays.asList(names));
+    }
+
+    /**
+     * Terminal chunk followed by many short, distinct trailers whose total exceeds the trailer section limit.
+     */
+    private static String manyTrailers() {
+        StringBuilder sb = new StringBuilder("0\r\n");
+        for (int i = 0; sb.length() <= AwsChunkedResponseParser.MAX_LINE_LENGTH + 3; i++) {
+            sb.append('t').append(i).append(":v\r\n");
+        }
+        return sb.append("\r\n").toString();
     }
 
     private static String repeat(char c, int count) {

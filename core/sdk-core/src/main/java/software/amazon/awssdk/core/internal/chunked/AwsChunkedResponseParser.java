@@ -35,7 +35,8 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 public final class AwsChunkedResponseParser {
 
     /**
-     * Max length of a chunk-size or trailer line. Generous to leave room for unknown chunk extensions.
+     * Max length of a chunk-size or trailer line, and of the whole trailer section. Generous to leave room for unknown
+     * chunk extensions.
      */
     static final int MAX_LINE_LENGTH = 64 * 1024;
 
@@ -60,6 +61,7 @@ public final class AwsChunkedResponseParser {
     private long totalDecoded;
     private boolean seenCr;
     private boolean inputEnded;
+    private int trailerSectionLength;
     private SdkClientException failure;
 
     /**
@@ -113,6 +115,9 @@ public final class AwsChunkedResponseParser {
                 handleChunkDataCrlfByte(b);
                 break;
             case TRAILER_LINES:
+                if (++trailerSectionLength > MAX_LINE_LENGTH) {
+                    throw fail("Trailer section exceeds maximum length of " + MAX_LINE_LENGTH + " bytes");
+                }
                 String trailerLine = appendLineByte(b);
                 if (trailerLine != null) {
                     handleTrailerLine(trailerLine);
@@ -213,8 +218,17 @@ public final class AwsChunkedResponseParser {
         }
 
         if (size == 0) {
+            if (expectedDecodedLength >= 0 && totalDecoded != expectedDecodedLength) {
+                throw fail(String.format("Decoded content length mismatch: expected %d bytes but decoded %d bytes",
+                                         expectedDecodedLength, totalDecoded));
+            }
             state = State.TRAILER_LINES;
         } else {
+            // Fail before handing out any data beyond the declared length
+            if (expectedDecodedLength >= 0 && size > expectedDecodedLength - totalDecoded) {
+                throw fail(String.format("Chunk of %d bytes exceeds decoded content length: expected %d bytes, "
+                                         + "already decoded %d bytes", size, expectedDecodedLength, totalDecoded));
+            }
             chunkRemaining = size;
             state = State.CHUNK_DATA;
         }
@@ -238,10 +252,6 @@ public final class AwsChunkedResponseParser {
     private void handleTrailerLine(String line) {
         if (line.isEmpty()) {
             // End of trailers
-            if (expectedDecodedLength >= 0 && totalDecoded != expectedDecodedLength) {
-                throw fail(String.format("Decoded content length mismatch: expected %d bytes but decoded %d bytes",
-                                         expectedDecodedLength, totalDecoded));
-            }
             state = State.COMPLETE;
             return;
         }
