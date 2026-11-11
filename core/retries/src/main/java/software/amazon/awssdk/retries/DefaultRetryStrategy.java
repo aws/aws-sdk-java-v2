@@ -38,7 +38,7 @@ public final class DefaultRetryStrategy {
     }
 
     /**
-     * Create a new builder for a {@link StandardRetryStrategy}. This is equivalent to {@code standardStrategyBuilder(false)}.
+     * Create a new builder for a {@link StandardRetryStrategy} that uses retry behavior 2.1.
      *
      * <p>Example Usage
      * {@snippet
@@ -50,23 +50,17 @@ public final class DefaultRetryStrategy {
      * }
      */
     public static StandardRetryStrategy.Builder standardStrategyBuilder() {
-        return standardStrategyBuilder(false);
+        return StandardRetryStrategy.builder();
     }
 
     /**
-     * Create a new builder for a {@link StandardRetryStrategy}. This is equivalent to {@code standardStrategyBuilder(false)}.
-     *
-     * <p>Example Usage
-     * {@snippet
-         * StandardRetryStrategy retryStrategy =
-     *     DefaultRetryStrategy.standardStrategyBuilder(true)
-     *                    .retryOnExceptionInstanceOf(IllegalArgumentException.class)
-     *                    .retryOnExceptionInstanceOf(IllegalStateException.class)
-     *                    .build();
-     * }
+     * Create a new builder for a {@link StandardRetryStrategy}. When {@code retries2026Enabled} is not {@code true}, the
+     * builder uses the retry behavior 2.0 constants.
      *
      * @param retries2026Enabled Whether retries 2.1 behavior is used.
+     * @deprecated Retry behavior 2.1 is the default. Use {@link #standardStrategyBuilder()} instead.
      */
+    @Deprecated
     public static StandardRetryStrategy.Builder standardStrategyBuilder(Boolean retries2026Enabled) {
         return StandardRetryStrategy.builder(retries2026Enabled);
     }
@@ -88,7 +82,7 @@ public final class DefaultRetryStrategy {
     }
 
     /**
-     * Create a new builder for a {@link AdaptiveRetryStrategy}. This is equivalent to {@code adaptiveStrategyBuilder(false)}.
+     * Create a new builder for a {@link AdaptiveRetryStrategy} that uses retry behavior 2.1.
      *
      * <p>Example Usage
      * {@snippet
@@ -100,23 +94,17 @@ public final class DefaultRetryStrategy {
      * }
      */
     public static AdaptiveRetryStrategy.Builder adaptiveStrategyBuilder() {
-        return adaptiveStrategyBuilder(false);
+        return AdaptiveRetryStrategy.builder();
     }
 
     /**
-     * Create a new builder for a {@link AdaptiveRetryStrategy}.
-     *
-     * <p>Example Usage
-     * {@snippet
-         * AdaptiveRetryStrategy retryStrategy =
-     *     DefaultRetryStrategy.adaptiveStrategyBuilder(true)
-     *                    .retryOnExceptionInstanceOf(IllegalArgumentException.class)
-     *                    .retryOnExceptionInstanceOf(IllegalStateException.class)
-     *                    .build();
-     * }
+     * Create a new builder for a {@link AdaptiveRetryStrategy}. When {@code retries2026Enabled} is not {@code true}, the
+     * builder uses the retry behavior 2.0 constants.
      *
      * @param retries2026Enabled Whether retries 2.1 behavior is used.
+     * @deprecated Retry behavior 2.1 is the default. Use {@link #adaptiveStrategyBuilder()} instead.
      */
+    @Deprecated
     public static AdaptiveRetryStrategy.Builder adaptiveStrategyBuilder(Boolean retries2026Enabled) {
         return AdaptiveRetryStrategy.builder(retries2026Enabled);
     }

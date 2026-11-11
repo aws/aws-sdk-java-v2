@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth.source;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.RETRY_MODE_STANDARD;
 
 import java.util.Arrays;
 import java.util.List;
@@ -95,7 +96,7 @@ class EnvironmentVariableCredentialsProviderUserAgentTest {
 
     private static Stream<Arguments> environmentVariableCredentialProviders() {
         return Stream.of(
-            Arguments.of(EnvironmentVariableCredentialsProvider.create(), Arrays.asList("D", "g"))
+            Arguments.of(EnvironmentVariableCredentialsProvider.create(), Arrays.asList(RETRY_MODE_STANDARD.value(), "g"))
         );
     }
 
@@ -118,7 +119,7 @@ class EnvironmentVariableCredentialsProviderUserAgentTest {
 
     private static Stream<Arguments> environmentVariableCredentialProvidersWithSessionToken() {
         return Stream.of(
-            Arguments.of(EnvironmentVariableCredentialsProvider.create(), Arrays.asList("D", "g"))
+            Arguments.of(EnvironmentVariableCredentialsProvider.create(), Arrays.asList(RETRY_MODE_STANDARD.value(), "g"))
         );
     }
 

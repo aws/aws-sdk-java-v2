@@ -22,27 +22,54 @@ import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.LegacyRetryStrategy;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.defaultretrymode.DefaultRetryModeAsyncClient;
 import software.amazon.awssdk.services.defaultretrymode.DefaultRetryModeClient;
 
 public class DefaultRetryModeTest {
 
+    // The customization sets LEGACY, which differs from the SDK default of STANDARD
+
     @Test
-    void defaultRetryModeSyncClient_whenSetInCustomization_shouldBeStandardByDefault() {
+    void defaultRetryModeSyncClient_whenSetInCustomization_shouldBeLegacyByDefault() {
         DefaultRetryModeClient client = DefaultRetryModeClient.builder()
                                                               .region(Region.US_WEST_2)
                                                               .build();
         assertThat(client.serviceClientConfiguration().overrideConfiguration().retryStrategy().get())
-            .isInstanceOf(StandardRetryStrategy.class);
+            .isInstanceOf(LegacyRetryStrategy.class);
     }
 
     @Test
-    void defaultRetryModeAsyncClient_whenSetInCustomization_shouldBeStandardByDefault() {
+    void defaultRetryModeAsyncClient_whenSetInCustomization_shouldBeLegacyByDefault() {
         DefaultRetryModeAsyncClient client = DefaultRetryModeAsyncClient.builder()
                                                                         .region(Region.US_WEST_2)
                                                                         .build();
         assertThat(client.serviceClientConfiguration().overrideConfiguration().retryStrategy().get())
-            .isInstanceOf(StandardRetryStrategy.class);
+            .isInstanceOf(LegacyRetryStrategy.class);
+    }
+
+    @Test
+    void syncClient_retryStrategyConfiguratorFromPlugin_usesRetryModeFromCustomization() {
+        DefaultRetryModeClient client =
+            DefaultRetryModeClient.builder()
+                                  .region(Region.US_WEST_2)
+                                  .addPlugin(c -> c.overrideConfiguration(o -> o.retryStrategy(b -> b.maxAttempts(5))))
+                                  .build();
+        RetryStrategy strategy = client.serviceClientConfiguration().overrideConfiguration().retryStrategy().get();
+        assertThat(strategy).isInstanceOf(LegacyRetryStrategy.class);
+        assertThat(strategy.maxAttempts()).isEqualTo(5);
+    }
+
+    @Test
+    void asyncClient_retryStrategyConfiguratorFromPlugin_usesRetryModeFromCustomization() {
+        DefaultRetryModeAsyncClient client =
+            DefaultRetryModeAsyncClient.builder()
+                                       .region(Region.US_WEST_2)
+                                       .addPlugin(c -> c.overrideConfiguration(o -> o.retryStrategy(b -> b.maxAttempts(5))))
+                                       .build();
+        RetryStrategy strategy = client.serviceClientConfiguration().overrideConfiguration().retryStrategy().get();
+        assertThat(strategy).isInstanceOf(LegacyRetryStrategy.class);
+        assertThat(strategy.maxAttempts()).isEqualTo(5);
     }
 
     @Test
@@ -50,10 +77,10 @@ public class DefaultRetryModeTest {
         DefaultRetryModeClient client =
             DefaultRetryModeClient.builder()
                                        .region(Region.US_WEST_2)
-                                       .overrideConfiguration(conf -> conf.retryStrategy(RetryMode.LEGACY))
+                                       .overrideConfiguration(conf -> conf.retryStrategy(RetryMode.STANDARD))
                                        .build();
         assertThat(client.serviceClientConfiguration().overrideConfiguration().retryStrategy().get())
-            .isInstanceOf(LegacyRetryStrategy.class);
+            .isInstanceOf(StandardRetryStrategy.class);
 
     }
 
@@ -62,9 +89,9 @@ public class DefaultRetryModeTest {
         DefaultRetryModeAsyncClient client =
             DefaultRetryModeAsyncClient.builder()
                                        .region(Region.US_WEST_2)
-                                       .overrideConfiguration(conf -> conf.retryStrategy(RetryMode.LEGACY))
+                                       .overrideConfiguration(conf -> conf.retryStrategy(RetryMode.STANDARD))
                                        .build();
         assertThat(client.serviceClientConfiguration().overrideConfiguration().retryStrategy().get())
-            .isInstanceOf(LegacyRetryStrategy.class);
+            .isInstanceOf(StandardRetryStrategy.class);
     }
 }

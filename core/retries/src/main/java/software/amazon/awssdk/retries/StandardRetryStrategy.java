@@ -33,7 +33,11 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
  *     <li>Retries on the conditions configured in the {@link Builder}.
  *     <li>Retries 2 times (3 total attempts). Adjust with {@link Builder#maxAttempts(int)}
  *     <li>Uses the {@link BackoffStrategy#exponentialDelay} backoff strategy, with a base delay of
- *     1 second and max delay of 20 seconds. Adjust with {@link Builder#backoffStrategy}
+ *     50 milliseconds and max delay of 20 seconds. Adjust with {@link Builder#backoffStrategy}
+ *     <li>Uses the {@link BackoffStrategy#exponentialDelay} backoff strategy for throttling exceptions, with a base delay of
+ *     1 second and max delay of 20 seconds. Adjust with {@link Builder#throttlingBackoffStrategy}
+ *     <li>Honors a delay suggested by the service, bounded to be at least the computed backoff and at most five seconds more
+ *     than it.
  *     <li>Circuit breaking (disabling retries) in the event of high downstream failures within an individual scope. The
  *     circuit breaking will never prevent the first attempt. Adjust with
  *     {@link Builder#circuitBreakerEnabled}.
@@ -57,15 +61,17 @@ public interface StandardRetryStrategy extends RetryStrategy {
      * </pre>
      */
     static Builder builder() {
-        return builder(false);
+        return builder(true);
     }
 
     /**
      * Create a new {@link StandardRetryStrategy.Builder} with v2.0 or v2.1 retry constants.
      *
      * @param retries2026Enabled when {@code true}, uses v2.1 constants (50ms base delay, differentiated token costs); when
-     *                           {@code false}, uses v2.0 constants (100ms base delay, uniform token costs)
+     *                           {@code false} or {@code null}, uses v2.0 constants (100ms base delay, uniform token costs)
+     * @deprecated Retry behavior 2.1 is the default. Use {@link #builder()} instead.
      */
+    @Deprecated
     static Builder builder(Boolean retries2026Enabled) {
         boolean retries21 = Boolean.TRUE.equals(retries2026Enabled);
 

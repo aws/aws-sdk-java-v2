@@ -72,7 +72,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
             });
         assertThatThrownBy(() -> s3.getObject(getObjectRequest(), handler))
             .isInstanceOf(SdkClientException.class);
-        assertThat(handler.currentCallCount()).isEqualTo(4);
+        assertThat(handler.currentCallCount()).isEqualTo(3);
     }
 
     @Test

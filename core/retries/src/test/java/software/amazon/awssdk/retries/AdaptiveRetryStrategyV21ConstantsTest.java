@@ -102,15 +102,67 @@ class AdaptiveRetryStrategyV21ConstantsTest {
     }
 
     @Test
-    void noArgBuilder_usesV20Constants() {
+    void noArgBuilder_usesV21Constants() {
         RetryStrategy strategy = AdaptiveRetryStrategy.builder()
             .retryOnException(t -> true)
             .treatAsThrottling(t -> false)
             .build();
 
         DefaultRetryToken token = retryOnceBeforeSuccess(strategy, new RuntimeException("transient"));
-        // v2.0: exception cost is 5
-        assertThat(token.capacityRemaining()).isEqualTo(BUCKET_CAPACITY - 5);
+        // v2.1: exception cost is 14
+        assertThat(token.capacityRemaining()).isEqualTo(BUCKET_CAPACITY - 14);
+    }
+
+    @Test
+    void noArgBuilder_clampsSuggestedDelayToBackoffPlusFiveSeconds() {
+        RetryStrategy strategy = AdaptiveRetryStrategy.builder()
+            .retryOnException(t -> true)
+            .build();
+
+        assertSuggestedDelayClamped(strategy);
+    }
+
+    @Test
+    void noArgBuilder_toBuilder_keepsV21Behavior() {
+        RetryStrategy strategy = AdaptiveRetryStrategy.builder()
+            .retryOnException(t -> true)
+            .build()
+            .toBuilder()
+            .maxAttempts(5)
+            .build();
+
+        assertThat(strategy.maxAttempts()).isEqualTo(5);
+        DefaultRetryToken token = retryOnceBeforeSuccess(strategy, new RuntimeException("transient"));
+        assertThat(token.capacityRemaining()).isEqualTo(BUCKET_CAPACITY - 14);
+        assertSuggestedDelayClamped(strategy);
+    }
+
+    @Test
+    void v20_doesNotClampSuggestedDelay() {
+        RetryStrategy strategy = AdaptiveRetryStrategy.builder(false)
+            .retryOnException(t -> true)
+            .build();
+
+        RefreshRetryTokenResponse response = refreshTokenWithSuggestedDelay(strategy, Duration.ofSeconds(60));
+        assertThat(response.delay()).isEqualTo(Duration.ofSeconds(60));
+    }
+
+    /**
+     * With v2.1, a suggested delay of 60s is clamped to at most the computed backoff (at most 50ms, jittered) plus 5s.
+     */
+    private void assertSuggestedDelayClamped(RetryStrategy strategy) {
+        RefreshRetryTokenResponse response = refreshTokenWithSuggestedDelay(strategy, Duration.ofSeconds(60));
+        assertThat(response.delay()).isBetween(Duration.ofSeconds(5), Duration.ofSeconds(5).plusMillis(50));
+    }
+
+    private RefreshRetryTokenResponse refreshTokenWithSuggestedDelay(RetryStrategy strategy, Duration suggestedDelay) {
+        AcquireInitialTokenResponse initial = strategy.acquireInitialToken(AcquireInitialTokenRequestImpl.create("test"));
+        return strategy.refreshRetryToken(
+            RefreshRetryTokenRequest.builder()
+                                    .token(initial.token())
+                                    .failure(new RuntimeException("err"))
+                                    .suggestedDelay(suggestedDelay)
+                                    .build());
     }
 
     /**

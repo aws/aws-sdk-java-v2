@@ -331,7 +331,6 @@ public class BaseClientBuilderClass implements ClassSpec {
     private Optional<MethodSpec> mergeInternalDefaultsMethod() {
         String userAgent = model.getCustomizationConfig().getUserAgent();
         RetryMode defaultRetryMode = model.getCustomizationConfig().getDefaultRetryMode();
-        Boolean defaultNewRetries2026 = model.getCustomizationConfig().getDefaultNewRetries2026();
         Boolean defaultEnableSocketTimeout2026 = model.getCustomizationConfig().getDefaultEnableSocketTimeout2026();
 
         // If none of the options are customized, then we do not need to bother overriding the method
@@ -353,10 +352,6 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addCode("c.option($T.DEFAULT_RETRY_MODE, $T.$L);\n",
                             SdkClientOption.class, RetryMode.class, defaultRetryMode.name());
         }
-        if (defaultNewRetries2026 != null) {
-            builder.addCode("c.option($T.DEFAULT_NEW_RETRIES_2026, $L);\n",
-                            SdkClientOption.class, defaultNewRetries2026);
-        }
         if (defaultEnableSocketTimeout2026 != null) {
             builder.addCode("c.option($T.DEFAULT_ENABLE_SOCKET_TIMEOUT_2026, $L);\n",
                             SdkClientOption.class, defaultEnableSocketTimeout2026);
@@ -369,7 +364,6 @@ public class BaseClientBuilderClass implements ClassSpec {
         CustomizationConfig customizationConfig = model.getCustomizationConfig();
         return customizationConfig.getUserAgent() != null
                || customizationConfig.getDefaultRetryMode() != null
-               || customizationConfig.getDefaultNewRetries2026() != null
                || customizationConfig.getDefaultEnableSocketTimeout2026() != null;
     }
 

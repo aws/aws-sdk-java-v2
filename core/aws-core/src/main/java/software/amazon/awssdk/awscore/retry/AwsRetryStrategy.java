@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.awscore.retry;
 
+import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsErrorCode;
@@ -23,6 +25,7 @@ import software.amazon.awssdk.core.internal.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryUtils;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.retries.LegacyRetryStrategy;
@@ -58,6 +61,13 @@ public final class AwsRetryStrategy {
     /**
      * Retrieve the {@link SdkDefaultRetryStrategy#defaultRetryStrategy()} with AWS-specific conditions added.
      *
+     * <p>For the {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} retry modes, the max attempts come from
+     * the {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment
+     * variable, or the {@code max_attempts} property of the active profile (the one named by the {@code aws.profile}
+     * system property or the {@code AWS_PROFILE} environment variable, or {@code default}) in the default profile files,
+     * read each time this is called. Clients read the {@code max_attempts} property from their own configured profile
+     * file and profile name instead.
+     *
      * @return The default retry strategy.
      */
     public static RetryStrategy defaultRetryStrategy() {
@@ -65,14 +75,21 @@ public final class AwsRetryStrategy {
     }
 
     /**
-     * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added. This is equivalent to
-     * {@code forRetryMode(mode, false)}.
+     * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added. The
+     * {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} strategies use retry behavior 2.1.
+     *
+     * <p>For the {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} retry modes, the max attempts come from
+     * the {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment
+     * variable, or the {@code max_attempts} property of the active profile (the one named by the {@code aws.profile}
+     * system property or the {@code AWS_PROFILE} environment variable, or {@code default}) in the default profile files,
+     * read each time this is called. Clients read the {@code max_attempts} property from their own configured profile
+     * file and profile name instead.
      *
      * @param mode The retry mode for which we want to create a retry strategy.
      * @return A retry strategy for the given retry mode.
      */
     public static RetryStrategy forRetryMode(RetryMode mode) {
-        return forRetryMode(mode, false);
+        return forRetryMode(mode, true);
     }
 
     /**
@@ -81,7 +98,9 @@ public final class AwsRetryStrategy {
      * @param mode The retry mode for which we want to create a retry strategy.
      * @param newRetries2026Enabled Whether retries 2.1 behavior is enabled.
      * @return A retry strategy for the given retry mode.
+     * @deprecated Retry behavior 2.1 is the default. Use {@link #forRetryMode(RetryMode)} instead.
      */
+    @Deprecated
     public static RetryStrategy forRetryMode(RetryMode mode, Boolean newRetries2026Enabled) {
         switch (mode) {
             case STANDARD:
@@ -94,6 +113,23 @@ public final class AwsRetryStrategy {
                 return legacyAdaptiveRetryStrategy();
             default:
                 throw new IllegalArgumentException("unknown retry mode: " + mode);
+        }
+    }
+
+    /**
+     * Retrieve the retry strategy for the retry mode with AWS-specific conditions added, reading the {@code max_attempts}
+     * profile property from the given profile file and profile name instead of the default profile. Used by client builders
+     * and service modules; not intended for direct use.
+     */
+    @SdkProtectedApi
+    public static RetryStrategy forRetryMode(RetryMode mode, Supplier<ProfileFile> profileFile, String profileName) {
+        switch (mode) {
+            case STANDARD:
+                return configure(SdkDefaultRetryStrategy.standardRetryStrategyBuilder(profileFile, profileName), true).build();
+            case ADAPTIVE_V2:
+                return configure(SdkDefaultRetryStrategy.adaptiveRetryStrategyBuilder(profileFile, profileName), true).build();
+            default:
+                return forRetryMode(mode);
         }
     }
 
@@ -120,13 +156,18 @@ public final class AwsRetryStrategy {
     }
 
     /**
-     * Returns a {@link StandardRetryStrategy} with AWS-specific conditions added. This is equivalent to {@code
-     * standardRetryStrategy(false)}.
+     * Returns a {@link StandardRetryStrategy} with AWS-specific conditions added, using retry behavior 2.1.
+     *
+     * <p>The max attempts come from the {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment
+     * variable, or the {@code max_attempts} property of the active profile (the one named by the {@code aws.profile}
+     * system property or the {@code AWS_PROFILE} environment variable, or {@code default}) in the default profile files,
+     * read each time this is called. Clients read the {@code max_attempts} property from their own configured profile
+     * file and profile name instead.
      *
      * @return A {@link StandardRetryStrategy} with AWS-specific conditions added.
      */
     public static StandardRetryStrategy standardRetryStrategy() {
-        return standardRetryStrategy(false);
+        return standardRetryStrategy(true);
     }
 
     /**
@@ -134,7 +175,9 @@ public final class AwsRetryStrategy {
      *
      * @param newRetries2026Enabled Whether retries 2.1 behavior is enabled.
      * @return A {@link StandardRetryStrategy} with AWS-specific conditions added.
+     * @deprecated Retry behavior 2.1 is the default. Use {@link #standardRetryStrategy()} instead.
      */
+    @Deprecated
     public static StandardRetryStrategy standardRetryStrategy(Boolean newRetries2026Enabled) {
         StandardRetryStrategy.Builder builder = SdkDefaultRetryStrategy.standardRetryStrategyBuilder(newRetries2026Enabled);
         return configure(builder, newRetries2026Enabled).build();
@@ -152,13 +195,18 @@ public final class AwsRetryStrategy {
     }
 
     /**
-     * Returns an {@link AdaptiveRetryStrategy} with AWS-specific conditions added. This is equivalent to {@code
-     * adaptiveRetryStrategy(false)}.
+     * Returns an {@link AdaptiveRetryStrategy} with AWS-specific conditions added, using retry behavior 2.1.
+     *
+     * <p>The max attempts come from the {@code aws.maxAttempts} system property, the {@code AWS_MAX_ATTEMPTS} environment
+     * variable, or the {@code max_attempts} property of the active profile (the one named by the {@code aws.profile}
+     * system property or the {@code AWS_PROFILE} environment variable, or {@code default}) in the default profile files,
+     * read each time this is called. Clients read the {@code max_attempts} property from their own configured profile
+     * file and profile name instead.
      *
      * @return An {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
      */
     public static AdaptiveRetryStrategy adaptiveRetryStrategy() {
-        return adaptiveRetryStrategy(false);
+        return adaptiveRetryStrategy(true);
     }
 
     /**
@@ -166,7 +214,9 @@ public final class AwsRetryStrategy {
      *
      * @param newRetries2026Enabled Whether retries 2.1 behavior is enabled.
      * @return An {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
+     * @deprecated Retry behavior 2.1 is the default. Use {@link #adaptiveRetryStrategy()} instead.
      */
+    @Deprecated
     public static AdaptiveRetryStrategy adaptiveRetryStrategy(Boolean newRetries2026Enabled) {
         AdaptiveRetryStrategy.Builder builder = SdkDefaultRetryStrategy.adaptiveRetryStrategyBuilder(newRetries2026Enabled);
         return configure(builder, newRetries2026Enabled)
@@ -181,7 +231,7 @@ public final class AwsRetryStrategy {
      * @return The given builder
      */
     public static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder) {
-        return configure(builder, false);
+        return configure(builder, usesRetryBehavior21(builder));
     }
 
     /**
@@ -211,7 +261,17 @@ public final class AwsRetryStrategy {
         if (builder instanceof RetryPolicyAdapter.Builder) {
             return builder;
         }
-        return builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
+        builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
+        if (usesRetryBehavior21(builder)) {
+            builder.retryOnException(AwsRetryStrategy::isLimitExceededErrorCode);
+            builder.treatAsThrottling(AwsRetryStrategy::treatAsThrottlingV21);
+        }
+        return builder;
+    }
+
+    private static boolean usesRetryBehavior21(RetryStrategy.Builder<?, ?> builder) {
+        return builder instanceof DefaultAwareRetryStrategy.Builder
+               && ((DefaultAwareRetryStrategy.Builder) builder).usesRetryBehavior21();
     }
 
     private static boolean retryOnAwsRetryableErrors(Throwable ex) {

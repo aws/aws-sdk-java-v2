@@ -150,6 +150,12 @@ public final class DefaultAdaptiveRetryStrategy
         }
 
         @Override
+        public Builder doNotRetryWhen(Predicate<RefreshRetryTokenRequest> doNotRetry) {
+            setDoNotRetryWhen(doNotRetry);
+            return this;
+        }
+
+        @Override
         public Builder backoffStrategy(BackoffStrategy backoffStrategy) {
             setBackoffStrategy(backoffStrategy);
             return this;
@@ -189,6 +195,14 @@ public final class DefaultAdaptiveRetryStrategy
         @Override
         public Builder useClientDefaults(boolean useClientDefaults) {
             setUseClientDefaults(useClientDefaults);
+            return this;
+        }
+
+        /**
+         * Whether retries 2.1 behavior is enabled.
+         */
+        public Builder retries2026Enabled(Boolean retries2026Enabled) {
+            setRetries2026Enabled(retries2026Enabled);
             return this;
         }
 
