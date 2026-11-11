@@ -113,6 +113,27 @@ public final class MapperDateUtils {
         .withChronology(IsoChronology.INSTANCE)
         .withResolverStyle(ResolverStyle.STRICT);
 
+    /** Accepts what the default {@code @DynamoDBTypeConvertedTimestamp} pattern accepts, and nothing else. */
+    private static final DateTimeFormatter DEFAULT_TIMESTAMP_FALLBACK_PARSER = new DateTimeFormatterBuilder()
+        .parseCaseInsensitive()
+        .appendValue(YEAR, 1, 9, SignStyle.NORMAL)
+        .appendLiteral('-')
+        .appendValue(MONTH_OF_YEAR, 1, 2, SignStyle.NOT_NEGATIVE)
+        .appendLiteral('-')
+        .appendValue(DAY_OF_MONTH, 1, 2, SignStyle.NOT_NEGATIVE)
+        .appendLiteral('T')
+        .appendValue(HOUR_OF_DAY, 1, 2, SignStyle.NOT_NEGATIVE)
+        .appendLiteral(':')
+        .appendValue(MINUTE_OF_HOUR, 1, 2, SignStyle.NOT_NEGATIVE)
+        .appendLiteral(':')
+        .appendValue(SECOND_OF_MINUTE, 1, 2, SignStyle.NOT_NEGATIVE)
+        .appendLiteral('.')
+        .appendFraction(NANO_OF_SECOND, 1, 3, false)
+        .appendLiteral('Z')
+        .toFormatter(Locale.ROOT)
+        .withChronology(IsoChronology.INSTANCE)
+        .withResolverStyle(ResolverStyle.STRICT);
+
     private MapperDateUtils() {
     }
 
@@ -127,6 +148,39 @@ public final class MapperDateUtils {
     public static Date parseISO8601Date(String dateString) {
         Date canonicalDate = parseCanonicalDate(dateString);
         return canonicalDate != null ? canonicalDate : parseISO8601DateFallback(dateString);
+    }
+
+    /**
+     * Parses the default {@code @DynamoDBTypeConvertedTimestamp} pattern, which is stricter than
+     * {@link #parseISO8601Date}: it requires one to three fractional digits and a {@code Z} suffix, and rejects
+     * numeric offsets.
+     *
+     * @throws IllegalArgumentException if the string is not in that format, or is outside the range of {@link Date}
+     */
+    public static Date parseDefaultTimestamp(String dateString) {
+        Date canonicalDate = parseCanonicalDate(dateString);
+        if (canonicalDate != null) {
+            return canonicalDate;
+        }
+
+        String value = dateString;
+        // Joda-Time accepts an explicit '+' before a positive year.
+        if (value.length() > 1 && value.charAt(0) == '+' && isDigit(value.charAt(1))) {
+            value = value.substring(1);
+        }
+        // Java 8 and 11 accept a decimal point with no fraction digits through appendFraction; Joda-Time does not.
+        if (value.length() > 1
+            && value.charAt(value.length() - 2) == '.'
+            && (value.charAt(value.length() - 1) == 'Z' || value.charAt(value.length() - 1) == 'z')) {
+            throw invalidDate(dateString, null);
+        }
+
+        try {
+            LocalDateTime local = LocalDateTime.from(DEFAULT_TIMESTAMP_FALLBACK_PARSER.parse(value));
+            return new Date(toEpochMilli(local.toEpochSecond(ZoneOffset.UTC), local.getNano()));
+        } catch (DateTimeException | ArithmeticException e) {
+            throw invalidDate(dateString, e);
+        }
     }
 
     /** Parses supported inputs not handled by the fixed 24-character parser. */

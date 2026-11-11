@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Detects Joda-Time, an optional dependency of the mapper. It is needed only for {@code org.joda.time.DateTime}
- * attributes and for {@link DynamoDBTypeConvertedTimestamp}.
+ * attributes and for {@link DynamoDBTypeConvertedTimestamp} with a non-default pattern or time zone.
  *
  * <p>This class must not reference any Joda-Time type, so that it can be loaded without Joda-Time. Code that uses
  * Joda-Time lives in separate classes that are loaded only after {@link #isAvailable()} returns {@code true}.

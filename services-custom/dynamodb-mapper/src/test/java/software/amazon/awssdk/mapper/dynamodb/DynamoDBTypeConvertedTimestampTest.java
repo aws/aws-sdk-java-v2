@@ -25,9 +25,12 @@ import java.util.Map;
 import java.util.TimeZone;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.chrono.BuddhistChronology;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -69,6 +72,88 @@ class DynamoDBTypeConvertedTimestampTest {
     @Test
     void convert_defaultPattern_writesIso8601InUtc() {
         assertThat(convert(DefaultPatternDate.class, new Date(MILLIS))).isEqualTo("2023-11-14T22:13:20.123Z");
+    }
+
+    @Test
+    void convertAndUnconvert_defaultPattern_eachSupportedJavaType_roundTrips() {
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        calendar.setTimeInMillis(MILLIS);
+
+        assertThat(roundTrip(DefaultPatternDate.class, new Date(MILLIS))).isEqualTo(new Date(MILLIS));
+        assertThat(((Calendar) roundTrip(DefaultPatternCalendar.class, calendar)).getTimeInMillis()).isEqualTo(MILLIS);
+        assertThat(roundTrip(DefaultPatternLong.class, MILLIS)).isEqualTo(MILLIS);
+        assertThat(roundTrip(DefaultPatternString.class, "2023-11-14T22:13:20.123Z"))
+            .isEqualTo("2023-11-14T22:13:20.123Z");
+    }
+
+    @Test
+    void defaultPattern_formatting_matchesJodaAtDateBoundaries() {
+        JodaTimestampConverter<Date> expected = defaultPatternJodaConverter();
+
+        for (long millis : new long[] {Long.MIN_VALUE, -1L, 0L, MILLIS, Long.MAX_VALUE}) {
+            Date date = new Date(millis);
+            String formatted = convert(DefaultPatternDate.class, date);
+            assertThat(formatted).as("epoch millis %s", millis).isEqualTo(expected.convert(date));
+            assertThat(unconvertDefaultPattern(formatted)).as("epoch millis %s", millis)
+                .isEqualTo(expected.unconvert(formatted))
+                .isEqualTo(date);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "2023-11-14T22:13:20.123Z",
+        "2023-1-4T2:3:4.1Z",
+        "2023-01-04t02:03:04.12z",
+        "+2023-01-04T02:03:04.123Z",
+        "-1-1-1T0:0:0.000Z",
+        "12023-1-1T0:0:0.000Z",
+        "0-1-1T0:0:0.000Z",
+        "-0001-05-09T08:08:00.600Z",
+        "2023-11-14T22:13:20.99Z"
+    })
+    void defaultPattern_parsingAcceptedByJoda_returnsSameDate(String input) {
+        assertThat(unconvertDefaultPattern(input)).isEqualTo(defaultPatternJodaConverter().unconvert(input));
+    }
+
+    /** The default pattern is strict, as in v1: these are rejected even though the ISO-8601 parser accepts some. */
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "2023-11-14T22:13:20Z",
+        "2023-11-14T22:13:20.1234Z",
+        "2023-11-14T22:13:20.123+00:00",
+        "2023-11-14T22:13:20.123+0000",
+        "2023-11-14T22:13:20.123",
+        "2023-11-14T22:13:20.Z",
+        "2023-02-29T22:13:20.123Z"
+    })
+    void defaultPattern_inputsRejectedByJoda_remainRejected(String input) {
+        JodaTimestampConverter<Date> expected = defaultPatternJodaConverter();
+
+        assertThatThrownBy(() -> expected.unconvert(input)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> unconvertDefaultPattern(input)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    /**
+     * A {@code DateTime} carries its own chronology, which a {@link Date} cannot represent, so it stays on the
+     * Joda-Time path even with the default pattern.
+     */
+    @Test
+    void defaultPattern_dateTime_keepsJodaChronology() {
+        DateTime buddhist = new DateTime(MILLIS, BuddhistChronology.getInstance(DateTimeZone.UTC));
+
+        assertThat(convert(DefaultPatternDateTime.class, buddhist))
+            .isEqualTo(new JodaTimestampConverter<DateTime>(
+                DateTime.class, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", "UTC").convert(buddhist))
+            .isEqualTo("2566-11-14T22:13:20.123Z");
+    }
+
+    private static JodaTimestampConverter<Date> defaultPatternJodaConverter() {
+        return new JodaTimestampConverter<Date>(Date.class, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", "UTC");
+    }
+
+    private Object unconvertDefaultPattern(String stored) {
+        return field(DefaultPatternDate.class).unconvert(AttributeValue.builder().s(stored).build());
     }
 
     @Test
@@ -217,6 +302,38 @@ class DynamoDBTypeConvertedTimestampTest {
         @Override
         @DynamoDBTypeConvertedTimestamp
         public Date getVal() {
+            return super.getVal();
+        }
+    }
+
+    public static class DefaultPatternDateTime extends Holder<DateTime> {
+        @Override
+        @DynamoDBTypeConvertedTimestamp
+        public DateTime getVal() {
+            return super.getVal();
+        }
+    }
+
+    public static class DefaultPatternCalendar extends Holder<Calendar> {
+        @Override
+        @DynamoDBTypeConvertedTimestamp
+        public Calendar getVal() {
+            return super.getVal();
+        }
+    }
+
+    public static class DefaultPatternLong extends Holder<Long> {
+        @Override
+        @DynamoDBTypeConvertedTimestamp
+        public Long getVal() {
+            return super.getVal();
+        }
+    }
+
+    public static class DefaultPatternString extends Holder<String> {
+        @Override
+        @DynamoDBTypeConvertedTimestamp
+        public String getVal() {
             return super.getVal();
         }
     }
