@@ -56,8 +56,7 @@ import software.amazon.smithy.model.traits.HttpHeaderTrait;
 import software.amazon.smithy.model.transform.ModelTransformer;
 
 /**
- * S3 edits that a smithy-build transform cannot make, because Smithy rejects the result or the value exists only in
- * the intermediate model:
+ * S3 edits to the Smithy model and the intermediate model:
  * <ul>
  *     <li>Injects {@code ExpiresString}, a second member on the {@code Expires} header, and {@code SdkPartType}, an
  *     unbound member, as {@code customization.config} defines them.</li>

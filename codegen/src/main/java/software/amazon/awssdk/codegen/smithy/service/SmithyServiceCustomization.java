@@ -22,7 +22,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.smithy.model.Model;
 
 /**
- * Service-specific customizations that a smithy-build transform cannot make. {@code SmithyIntermediateModelBuilder}
+ * Service-specific edits to the Smithy model and the intermediate model. {@code SmithyIntermediateModelBuilder}
  * runs the customizations whose {@link #sdkIds()} contain the service's sdkId. Smithy does not validate their results,
  * so each customization needs its own tests.
  */
