@@ -59,18 +59,22 @@ final class ReceiveBufferMap {
     }
 
     /**
-     * Adds the buffer, or returns the queue's existing entry, marked in use. Call {@link #release} once when the request
-     * completes. Throws {@link IllegalStateException} if the map is closed or every buffer is in use at the limit.
+     * Adds the candidate, or returns the queue's existing entry, marked in use. Call {@link #release} once when the request
+     * completes. Returns null if the candidate was already evicted, so the caller loads the queue again. Throws
+     * {@link IllegalStateException} if the map is closed or every buffer is in use at the limit.
      */
-    Entry add(String queueUrl, ReceiveBatchManager manager) {
+    Entry add(Entry candidate) {
         Entry entry;
         Entry evicted = null;
         synchronized (lock) {
             if (closed) {
                 throw new IllegalStateException("The client has been shut down.");
             }
-            entry = buffers.get(queueUrl);
+            entry = buffers.get(candidate.queueUrl);
             if (entry == null) {
+                if (candidate.evicted) {
+                    return null;
+                }
                 if (buffers.size() >= maxBuffers) {
                     evicted = removeOldestIdle();
                     if (evicted == null) {
@@ -78,8 +82,8 @@ final class ReceiveBufferMap {
                             "Reached the maximum of " + maxBuffers + " receive buffers, and every buffer is in use.");
                     }
                 }
-                entry = new Entry(queueUrl, manager);
-                buffers.put(queueUrl, entry);
+                entry = candidate;
+                buffers.put(entry.queueUrl, entry);
             }
             markInUse(entry);
         }
@@ -141,6 +145,7 @@ final class ReceiveBufferMap {
         Entry oldest = it.next();
         it.remove();
         buffers.remove(oldest.queueUrl);
+        oldest.evicted = true;
         return oldest;
     }
 
@@ -154,14 +159,15 @@ final class ReceiveBufferMap {
     }
 
     /**
-     * No equals or hashCode: the idle set relies on identity.
+     * No equals or hashCode, because the idle set relies on identity.
      */
     static final class Entry {
         private final String queueUrl;
         private final ReceiveBatchManager manager;
         private int inUse;
+        private boolean evicted;
 
-        private Entry(String queueUrl, ReceiveBatchManager manager) {
+        Entry(String queueUrl, ReceiveBatchManager manager) {
             this.queueUrl = queueUrl;
             this.manager = manager;
         }

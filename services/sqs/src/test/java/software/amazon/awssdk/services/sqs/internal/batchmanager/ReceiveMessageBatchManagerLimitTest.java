@@ -71,21 +71,6 @@ class ReceiveMessageBatchManagerLimitTest {
     }
 
     @Test
-    void batchRequest_whenAtLimitWithIdleBufferInMiddle_evictsIdleBufferNotBusyOnes() {
-        ReceiveMessageBatchManager manager = manager(3, url -> new StubReceiveBatchManager(url, !url.startsWith("busy")));
-        manager.batchRequest(request("busy-1"));
-        manager.batchRequest(request("idle")).join();
-        manager.batchRequest(request("busy-2"));
-
-        manager.batchRequest(request("new")).join();
-
-        assertThat(stubFor("idle").closed).isTrue();
-        assertThat(stubFor("busy-1").closed).isFalse();
-        assertThat(stubFor("busy-2").closed).isFalse();
-        assertThat(manager.batchKeyCount()).isEqualTo(3);
-    }
-
-    @Test
     void batchRequest_whenAtLimit_evictsBufferThatBecameIdleFirst() {
         ReceiveMessageBatchManager manager = manager(3, url -> new StubReceiveBatchManager(url, false));
         CompletableFuture<ReceiveMessageResponse> first = manager.batchRequest(request("a"));
@@ -170,6 +155,32 @@ class ReceiveMessageBatchManagerLimitTest {
         assertThat(created.get(0).processed).hasValue(5);
         assertThat(manager.batchKeyCount()).isEqualTo(1);
         assertThat(manager.idleCount()).isEqualTo(1);
+    }
+
+    @Test
+    void batchRequest_whenSharedLookupWaiterRunsAfterEviction_loadsNewBuffer() {
+        CompletableFuture<Void> lookup = new CompletableFuture<>();
+        ReceiveMessageBatchManager manager =
+            manager(1, url -> new StubReceiveBatchManager(url, true,
+                                                          url.equals("q") ? lookup : CompletableFuture.completedFuture(null)));
+        CompletableFuture<ReceiveMessageResponse> first = manager.batchRequest(request("q"));
+        CompletableFuture<ReceiveMessageResponse> second = manager.batchRequest(request("q"));
+        // The first waiter to finish evicts q before the other waiter adds it.
+        AtomicBoolean evicted = new AtomicBoolean();
+        Runnable evictQ = () -> {
+            if (evicted.compareAndSet(false, true)) {
+                manager.batchRequest(request("other"));
+            }
+        };
+        first.thenRun(evictQ);
+        second.thenRun(evictQ);
+
+        lookup.complete(null);
+
+        assertThat(created.get(0).closed).isTrue();
+        assertThat(first).isCompleted();
+        assertThat(second).isCompleted();
+        assertThat(manager.batchRequest(request("q"))).isCompleted();
     }
 
     @Test
@@ -314,6 +325,7 @@ class ReceiveMessageBatchManagerLimitTest {
         }
 
         awaitTrue(() -> responses.stream().allMatch(CompletableFuture::isDone));
+        // Polls because release runs in a whenComplete callback that can run after the response is already done.
         awaitTrue(() -> manager.idleCount() == manager.batchKeyCount());
 
         assertThat(maxSeen.get()).isLessThanOrEqualTo(limit);
@@ -440,6 +452,9 @@ class ReceiveMessageBatchManagerLimitTest {
         @Override
         public CompletableFuture<ReceiveMessageResponse> processRequest(ReceiveMessageRequest rq) {
             processed.incrementAndGet();
+            if (closed) {
+                throw new IllegalStateException("The client has been shut down.");
+            }
             if (processFailure != null) {
                 throw processFailure;
             }

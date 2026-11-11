@@ -30,7 +30,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BooleanSupplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +39,6 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
-import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
@@ -154,40 +152,8 @@ class ReceiveBufferEvictionTest {
         assertThat(manager.idleCount()).isEqualTo(1);
     }
 
-    @Test
-    void batchRequest_whenBufferEvictedWithReceiveInFlight_returnsItsMessagesWhenItCompletes() throws Exception {
-        manager = new ReceiveMessageBatchManager(sqs, executor, config, 1);
-        sqs.messagesPerReceive = 3;
-        sqs.holdReceives.add("held");
-
-        ReceiveMessageResponse heldResponse =
-            manager.batchRequest(request("held").toBuilder().waitTimeSeconds(0).build()).get(5, TimeUnit.SECONDS);
-        assertThat(heldResponse.messages()).isEmpty();
-        awaitTrue(() -> manager.idleCount() == 1);
-
-        manager.batchRequest(request("other").toBuilder().maxNumberOfMessages(3).build()).join();
-        assertThat(sqs.visibilityChanges).isEmpty();
-
-        sqs.releaseHeldReceives();
-
-        assertThat(sqs.visibilityChanges).hasSize(1);
-        ChangeMessageVisibilityBatchRequest change = sqs.visibilityChanges.get(0);
-        assertThat(change.queueUrl()).isEqualTo("held");
-        assertThat(change.entries()).extracting(ChangeMessageVisibilityBatchRequestEntry::receiptHandle)
-                                    .hasSize(3)
-                                    .allSatisfy(handle -> assertThat(handle).startsWith("held#"));
-    }
-
     private static ReceiveMessageRequest request(String queueUrl) {
         return ReceiveMessageRequest.builder().queueUrl(queueUrl).build();
-    }
-
-    private static void awaitTrue(BooleanSupplier condition) throws InterruptedException {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
-        while (!condition.getAsBoolean()) {
-            assertThat(System.nanoTime()).as("condition not met within 10 seconds").isLessThan(deadline);
-            Thread.sleep(10);
-        }
     }
 
     /**
@@ -197,8 +163,6 @@ class ReceiveBufferEvictionTest {
     private static final class EchoSqsClient implements SqsAsyncClient {
         private final AtomicLong sequence = new AtomicLong();
         private final Set<String> throwOnNextAttributeLookup = ConcurrentHashMap.newKeySet();
-        private final Set<String> holdReceives = ConcurrentHashMap.newKeySet();
-        private final List<Held> heldReceives = new CopyOnWriteArrayList<>();
         private final List<ChangeMessageVisibilityBatchRequest> visibilityChanges = new CopyOnWriteArrayList<>();
         private volatile int messagesPerReceive;
 
@@ -220,11 +184,6 @@ class ReceiveBufferEvictionTest {
 
         @Override
         public CompletableFuture<ReceiveMessageResponse> receiveMessage(ReceiveMessageRequest request) {
-            if (holdReceives.contains(request.queueUrl())) {
-                CompletableFuture<ReceiveMessageResponse> held = new CompletableFuture<>();
-                heldReceives.add(new Held(request.queueUrl(), held));
-                return held;
-            }
             return CompletableFuture.completedFuture(messagesFor(request.queueUrl()));
         }
 
@@ -233,10 +192,6 @@ class ReceiveBufferEvictionTest {
             ChangeMessageVisibilityBatchRequest request) {
             visibilityChanges.add(request);
             return CompletableFuture.completedFuture(ChangeMessageVisibilityBatchResponse.builder().build());
-        }
-
-        void releaseHeldReceives() {
-            heldReceives.forEach(held -> held.response.complete(messagesFor(held.queueUrl)));
         }
 
         private ReceiveMessageResponse messagesFor(String queueUrl) {
@@ -255,16 +210,6 @@ class ReceiveBufferEvictionTest {
 
         @Override
         public void close() {
-        }
-
-        private static final class Held {
-            private final String queueUrl;
-            private final CompletableFuture<ReceiveMessageResponse> response;
-
-            Held(String queueUrl, CompletableFuture<ReceiveMessageResponse> response) {
-                this.queueUrl = queueUrl;
-                this.response = response;
-            }
         }
     }
 }

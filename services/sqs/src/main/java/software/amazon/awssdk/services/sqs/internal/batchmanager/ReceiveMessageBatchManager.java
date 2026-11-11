@@ -43,7 +43,7 @@ public class ReceiveMessageBatchManager implements SdkAutoCloseable {
     private final ResponseBatchConfiguration config;
     private final ReceiveBufferMap buffers;
     // In-flight attribute loads, shared by concurrent first requests for a queue.
-    private final ConcurrentMap<String, CompletableFuture<ReceiveBatchManager>> loading = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, CompletableFuture<ReceiveBufferMap.Entry>> loading = new ConcurrentHashMap<>();
 
     public ReceiveMessageBatchManager(SqsAsyncClient sqsClient,
                                       ScheduledExecutorService executor,
@@ -76,24 +76,33 @@ public class ReceiveMessageBatchManager implements SdkAutoCloseable {
             if (entry != null) {
                 return process(entry, request);
             }
-            return load(queueUrl).thenCompose(manager -> process(buffers.add(queueUrl, manager), request));
+            CompletableFuture<ReceiveBufferMap.Entry> loaded = load(queueUrl);
+            return loaded.thenCompose(candidate -> {
+                ReceiveBufferMap.Entry added = buffers.add(candidate);
+                if (added == null) {
+                    // Evicted before this request joined it, so drop the stale lookup and load the queue again.
+                    loading.remove(queueUrl, loaded);
+                    return batchRequest(request);
+                }
+                return process(added, request);
+            });
         });
     }
 
-    private CompletableFuture<ReceiveBatchManager> load(String queueUrl) {
-        CompletableFuture<ReceiveBatchManager> created = new CompletableFuture<>();
-        CompletableFuture<ReceiveBatchManager> inFlight = loading.putIfAbsent(queueUrl, created);
+    private CompletableFuture<ReceiveBufferMap.Entry> load(String queueUrl) {
+        CompletableFuture<ReceiveBufferMap.Entry> created = new CompletableFuture<>();
+        CompletableFuture<ReceiveBufferMap.Entry> inFlight = loading.putIfAbsent(queueUrl, created);
         if (inFlight != null) {
             return inFlight;
         }
-        // Outside the map operation: the SDK call resolves credentials on this thread.
+        // Outside the map operation, because the SDK call resolves credentials on this thread.
         try {
             ReceiveBatchManager manager = createReceiveBatchManager(queueUrl);
             manager.loadQueueAttributes().whenComplete((loaded, t) -> {
                 if (t != null) {
                     created.completeExceptionally(t);
                 } else {
-                    created.complete(manager);
+                    created.complete(new ReceiveBufferMap.Entry(queueUrl, manager));
                 }
                 // Remove after completing, so late arrivals share this result.
                 loading.remove(queueUrl, created);

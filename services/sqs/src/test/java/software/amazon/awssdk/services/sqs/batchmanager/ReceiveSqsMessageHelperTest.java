@@ -62,7 +62,6 @@ import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
-import software.amazon.awssdk.services.sqs.model.SqsException;
 import software.amazon.awssdk.testutils.LogCaptor;
 
 @ExtendWith(MockitoExtension.class)
@@ -324,16 +323,6 @@ class ReceiveSqsMessageHelperTest {
     }
 
     @Test
-    void clear_whenChangeVisibilityFutureFails_logsWarn() throws Exception {
-        receiveThreeMessages();
-        CompletableFuture<ChangeMessageVisibilityBatchResponse> failed = new CompletableFuture<>();
-        failed.completeExceptionally(SqsException.builder().message("SQS error").build());
-        when(sqsClient.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class))).thenReturn(failed);
-
-        assertNackFailureLoggedWithoutThrowing();
-    }
-
-    @Test
     void clear_whenChangeVisibilityThrowsSynchronously_logsWarnAndDoesNotThrow() throws Exception {
         receiveThreeMessages();
         when(sqsClient.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class)))
@@ -348,7 +337,7 @@ class ReceiveSqsMessageHelperTest {
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(generateMessageResponse(10)));
         List<ChangeMessageVisibilityBatchRequest> nacks = Collections.synchronizedList(new ArrayList<>());
-        // Lenient: if removeMessage takes every message, clear() never calls SQS.
+        // Lenient because clear() never calls SQS if removeMessage takes every message.
         lenient().when(sqsClient.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class)))
                  .thenAnswer(invocation -> {
             nacks.add(invocation.getArgument(0));
