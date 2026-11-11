@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -126,6 +127,69 @@ class SmithyCodegenTraitsTest {
     }
 
     @Test
+    void traitService_createsWaiterOverridesTrait() {
+        Node value = Node.parse("{\"BucketExists\": {\"maxAttempts\": 20, \"delay\": 5, \"acceptors\": ["
+                                + "{\"matcher\": \"status\", \"expected\": 301, \"state\": \"success\"},"
+                                + "{\"matcher\": \"path\", \"argument\": \"a.b\", \"expected\": true, \"state\": \"retry\"}]},"
+                                + "\"ObjectExists\": {\"maxAttempts\": 7},"
+                                + "\"New\": {\"skip\": true}}");
+
+        Trait trait = TraitFactory.createServiceFactory(LOADER).createTrait(WaiterOverridesTrait.ID, OPERATION, value)
+                                  .orElse(null);
+
+        assertThat(trait).isInstanceOf(WaiterOverridesTrait.class);
+        Map<String, WaiterOverridesTrait.WaiterOverride> waiters = ((WaiterOverridesTrait) trait).getWaiters();
+        assertThat(waiters).containsOnlyKeys("BucketExists", "ObjectExists", "New");
+        WaiterOverridesTrait.WaiterOverride bucketExists = waiters.get("BucketExists");
+        assertThat(bucketExists.getMaxAttempts()).hasValue(20);
+        assertThat(bucketExists.getDelay()).hasValue(5);
+        assertThat(bucketExists.getAcceptors().get())
+            .extracting(a -> a.getMatcher(), a -> a.getArgument().orElse(null), a -> a.getState(),
+                        a -> Node.printJson(a.getExpected()))
+            .containsExactly(tuple("status", null, "success", "301"),
+                             tuple("path", "a.b", "retry", "true"));
+        assertThat(waiters.get("ObjectExists").getMaxAttempts()).hasValue(7);
+        assertThat(waiters.get("ObjectExists").getAcceptors()).isEmpty();
+        assertThat(waiters.get("New").isSkip()).isTrue();
+        assertThat(trait.toNode()).isEqualTo(value);
+    }
+
+    static Stream<Arguments> invalidWaiterOverrides() {
+        return Stream.of(
+            Arguments.of("skip with maxAttempts", "{\"skip\": true, \"maxAttempts\": 3}", "skip cannot be combined"),
+            Arguments.of("no maxAttempts", "{\"delay\": 5}", "needs maxAttempts of at least 1"),
+            Arguments.of("zero maxAttempts", "{\"maxAttempts\": 0}", "needs maxAttempts of at least 1"),
+            Arguments.of("delay without acceptors", "{\"maxAttempts\": 3, \"delay\": 5}", "give both or neither"),
+            Arguments.of("empty acceptors", "{\"maxAttempts\": 3, \"delay\": 5, \"acceptors\": []}",
+                         "acceptors cannot be empty"),
+            Arguments.of("unknown matcher", "{\"maxAttempts\": 3, \"delay\": 5, \"acceptors\": [{\"matcher\": \"code\", "
+                                            + "\"expected\": 1, \"state\": \"success\"}]}", "unknown acceptor matcher"),
+            Arguments.of("unknown state", "{\"maxAttempts\": 3, \"delay\": 5, \"acceptors\": [{\"matcher\": \"status\", "
+                                          + "\"expected\": 1, \"state\": \"done\"}]}", "unknown acceptor state"),
+            Arguments.of("object expected", "{\"maxAttempts\": 3, \"delay\": 5, \"acceptors\": [{\"matcher\": \"path\", "
+                                            + "\"expected\": {}, \"state\": \"success\"}]}",
+                         "must be a string, number, or boolean"),
+            Arguments.of("unknown member", "{\"maxAttempts\": 3, \"minDelay\": 5}", "minDelay"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidWaiterOverrides")
+    void invalidWaiterOverride_isRejected(String description, String entry, String message) {
+        ObjectNode node = Node.objectNode().withMember("Waiter", Node.parse(entry));
+
+        assertThatThrownBy(() -> new WaiterOverridesTrait(node))
+            .isInstanceOf(ExpectationNotMetException.class)
+            .hasMessageContaining(message);
+    }
+
+    @Test
+    void waiterOverridesOnStructure_isATraitTargetError() {
+        assertThat(errors("@waiterOverrides(W: { maxAttempts: 3 }) structure Shape { member: String }"))
+            .extracting(ValidationEvent::getId, e -> e.getShapeId().get())
+            .containsExactly(tuple("TraitTarget", ShapeId.from("demo#Shape")));
+    }
+
+    @Test
     void paginatorOverrideOnStructure_isATraitTargetError() {
         assertThat(errors("@paginatorOverride(skip: true) structure Shape { member: String }"))
             .extracting(ValidationEvent::getId, e -> e.getShapeId().get())
@@ -138,7 +202,7 @@ class SmithyCodegenTraitsTest {
 
         for (ShapeId id : Arrays.asList(DeprecatedNameTrait.ID, AlternateBeanPropertyNameTrait.ID,
                                         EnumConstantNameTrait.ID, IgnoreDataTypeConversionFailuresTrait.ID,
-                                        SyntheticTrait.ID, PaginatorOverrideTrait.ID)) {
+                                        SyntheticTrait.ID, PaginatorOverrideTrait.ID, WaiterOverridesTrait.ID)) {
             assertThat(model.getShape(id)).as("definition of %s", id).isPresent();
             assertThat(model.expectShape(id).hasTrait(TraitDefinition.class)).as("%s is a trait", id).isTrue();
         }
@@ -184,6 +248,9 @@ class SmithyCodegenTraitsTest {
                           + "@synthetic structure Payload { member: String }\n"
                           + "@paginatorOverride(inputToken: [\"a\", \"b\"], outputToken: [\"c || d\"], "
                           + "resultKey: [\"e\"], moreResults: \"f\", limitKey: \"g\")\n"
+                          + "@waiterOverrides(A: { maxAttempts: 3 }, B: { skip: true }, C: { maxAttempts: 20, delay: 5, "
+                          + "acceptors: [{ matcher: \"status\", expected: 200, state: \"success\" }, "
+                          + "{ matcher: \"path\", argument: \"a\", expected: true, state: \"retry\" }] })\n"
                           + "operation Op {}\n"))
             .isEmpty();
     }
@@ -195,7 +262,8 @@ class SmithyCodegenTraitsTest {
                      + "use software.amazon.awssdk.codegen#enumConstantName\n"
                      + "use software.amazon.awssdk.codegen#ignoreDataTypeConversionFailures\n"
                      + "use software.amazon.awssdk.codegen#paginatorOverride\n"
-                     + "use software.amazon.awssdk.codegen#synthetic\n\n"
+                     + "use software.amazon.awssdk.codegen#synthetic\n"
+                     + "use software.amazon.awssdk.codegen#waiterOverrides\n\n"
                      + shapes + "\n";
         return Model.assembler(LOADER)
                     .discoverModels(LOADER)
