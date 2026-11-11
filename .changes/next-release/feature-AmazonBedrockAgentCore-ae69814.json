@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore",
-    "contributor": "",
-    "description": "Support SigV4 request signing (cryptographically signed) in the Bedrock AgentCore Harness MCP connector tool."
-}

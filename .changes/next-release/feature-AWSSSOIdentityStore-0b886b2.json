@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SSO Identity Store",
-    "contributor": "",
-    "description": "Updated ApiRestrictSourceVpcs in NetworkConfiguration to accept VPC ARNs in addition to VPC IDs."
-}
