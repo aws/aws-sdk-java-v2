@@ -24,6 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 import java.io.IOException;
 import java.net.URI;
@@ -35,7 +36,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.junit.Assume;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +52,6 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
@@ -61,6 +60,8 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
+import software.amazon.awssdk.retries.LegacyRetryStrategy;
+import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
@@ -68,6 +69,7 @@ import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
+import software.amazon.awssdk.retries.internal.DefaultAwareRetryStrategy;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class AsyncRetryableStageTest extends BaseRetryableStageTest {
@@ -91,17 +93,23 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
 
     @BeforeEach
     void methodSetup() {
-        mockRetryStrategy = mock(RetryStrategy.class);
         mockAcquireInitialTokenResponse = mock(AcquireInitialTokenResponse.class);
         mockRetryToken = mock(RetryToken.class);
 
         when(mockAcquireInitialTokenResponse.token()).thenReturn(mockRetryToken);
         when(mockAcquireInitialTokenResponse.delay()).thenReturn(Duration.ZERO);
 
-        when(mockRetryStrategy.acquireInitialTokenAsync(any()))
-            .thenReturn(CompletableFuture.completedFuture(mockAcquireInitialTokenResponse));
+        mockRetryStrategy = newMockRetryStrategy(RetryStrategy.class);
 
         mockDelegatePipeline = mock(RequestPipeline.class);
+    }
+
+    private RetryStrategy newMockRetryStrategy(Class<? extends RetryStrategy> strategyClass) {
+        RetryStrategy strategy = mock(strategyClass, withSettings().extraInterfaces(DefaultAwareRetryStrategy.class));
+        when(((DefaultAwareRetryStrategy) strategy).usesRetryBehavior21()).thenReturn(strategyClass != LegacyRetryStrategy.class);
+        when(strategy.acquireInitialTokenAsync(any()))
+            .thenReturn(CompletableFuture.completedFuture(mockAcquireInitialTokenResponse));
+        return strategy;
     }
 
     @ParameterizedTest
@@ -109,7 +117,7 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
     void execute_acquireDelay_behavesCorrectly(AcquireDelayTestCase testCase) throws Exception {
         AsyncRetryableStage<SdkResponse> retryableStage = createRetryableStage(mockRetryStrategy, executorService);
 
-        RequestExecutionContext ctx = createRequestExecutionContext(true);
+        RequestExecutionContext ctx = createRequestExecutionContext();
 
         SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder()
                                                                       .statusCode(502);
@@ -160,11 +168,12 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
     @ParameterizedTest
     @MethodSource("retryAfterTestCases")
     void execute_retryableException_treatsRetryAfterCorrectly(RetryAfterTestCase testCase) throws Exception {
-        Assume.assumeTrue("Async v2.0 behavior doesn't look at Retry-After", testCase.isNewRetries2026Enabled());
+        mockRetryStrategy = newMockRetryStrategy(testCase.isLegacyRetryStrategy() ? LegacyRetryStrategy.class
+                                                                                  : StandardRetryStrategy.class);
 
         AsyncRetryableStage<SdkResponse> retryableStage = createRetryableStage(mockRetryStrategy, executorService);
 
-        RequestExecutionContext ctx = createRequestExecutionContext(testCase.isNewRetries2026Enabled());
+        RequestExecutionContext ctx = createRequestExecutionContext();
 
         SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder()
                                                                       .statusCode(502);
@@ -200,15 +209,18 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
 
         RefreshRetryTokenRequest refreshRequest = refreshRequestCaptor.getValue();
 
-        assertThat(refreshRequest.suggestedDelay().get()).isEqualTo(testCase.expectedDelay());
+        // Unlike the sync stage, the async stage never passes a suggested delay to a legacy strategy.
+        Duration expectedDelay = testCase.isLegacyRetryStrategy() ? Duration.ZERO : testCase.expectedDelay();
+        assertThat(refreshRequest.suggestedDelay().get()).isEqualTo(expectedDelay);
     }
 
-    @ParameterizedTest(name = "New Retries = {0}")
+    @ParameterizedTest(name = "Legacy retry strategy = {0}")
     @CsvSource({"true", "false"})
-    void execute_delegateThrows_noHttpResponse_uses0SuggestedDelay(boolean newRetries2026) throws Exception {
+    void execute_delegateThrows_noHttpResponse_uses0SuggestedDelay(boolean legacyRetryStrategy) throws Exception {
+        mockRetryStrategy = newMockRetryStrategy(legacyRetryStrategy ? LegacyRetryStrategy.class : StandardRetryStrategy.class);
         AsyncRetryableStage<SdkResponse> retryableStage = createRetryableStage(mockRetryStrategy, executorService);
 
-        RequestExecutionContext ctx = createRequestExecutionContext(newRetries2026);
+        RequestExecutionContext ctx = createRequestExecutionContext();
 
         CompletableFuture<Response<SdkResponse>> future = new CompletableFuture<>();
         future.completeExceptionally(new IOException("connection"));
@@ -234,7 +246,7 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
 
     @Test
     void execute_isFirstAttempt_acquireInitialTokenCompleteSameThread_doesNotSchedule() throws Exception {
-        RequestExecutionContext ctx = createRequestExecutionContext(true);
+        RequestExecutionContext ctx = createRequestExecutionContext();
 
         SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder().statusCode(502);
 
@@ -264,7 +276,7 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
 
     @Test
     void execute_isFirstAttempt_acquireInitialTokenCompleteSameDurationNonZero_schedules() throws Exception {
-        RequestExecutionContext ctx = createRequestExecutionContext(true);
+        RequestExecutionContext ctx = createRequestExecutionContext();
 
         SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder().statusCode(502);
 
@@ -308,7 +320,7 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
 
     @Test
     void execute_isFirstAttempt_acquireInitialTokenCompleteSameThreadDurationNonZero_schedules() throws Exception {
-        RequestExecutionContext ctx = createRequestExecutionContext(true);
+        RequestExecutionContext ctx = createRequestExecutionContext();
 
         SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder().statusCode(502);
 
@@ -353,7 +365,7 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
 
     @Test
     void execute_isFirstAttempt_scheduleFails_completesExceptionally() throws Exception {
-        RequestExecutionContext ctx = createRequestExecutionContext(true);
+        RequestExecutionContext ctx = createRequestExecutionContext();
 
         SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder().statusCode(502);
 
@@ -396,7 +408,7 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
         when(mockExecutor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenThrow(new RejectedExecutionException("closed"));
         AsyncRetryableStage<SdkResponse> retryableStage = createRetryableStage(mockRetryStrategy, mockExecutor);
 
-        RequestExecutionContext ctx = createRequestExecutionContext(true);
+        RequestExecutionContext ctx = createRequestExecutionContext();
 
         SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder()
                                                                       .statusCode(502);
@@ -436,7 +448,7 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
         when(mockExecutor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenThrow(new RejectedExecutionException("closed"));
         AsyncRetryableStage<SdkResponse> retryableStage = createRetryableStage(mockRetryStrategy, mockExecutor);
 
-        RequestExecutionContext ctx = createRequestExecutionContext(true);
+        RequestExecutionContext ctx = createRequestExecutionContext();
 
         SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder()
                                                                       .statusCode(502);
@@ -468,7 +480,7 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
 
     @Test
     void execute_isFirstAttempt_acquireInitialTokenCompleteDifferentThread_schedules() throws Exception {
-        RequestExecutionContext ctx = createRequestExecutionContext(true);
+        RequestExecutionContext ctx = createRequestExecutionContext();
 
         SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder().statusCode(502);
 
@@ -534,11 +546,8 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
                                          deps, mockDelegatePipeline);
     }
 
-    private RequestExecutionContext createRequestExecutionContext(Boolean newRetries2026Enabled) {
-        ExecutionAttributes execAttrs = ExecutionAttributes.builder()
-                                                           .put(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED,
-                                                                newRetries2026Enabled)
-                                                           .build();
+    private RequestExecutionContext createRequestExecutionContext() {
+        ExecutionAttributes execAttrs = ExecutionAttributes.builder().build();
 
         ExecutionContext execCtx = ExecutionContext.builder()
                                                    .metricCollector(NoOpMetricCollector.create())

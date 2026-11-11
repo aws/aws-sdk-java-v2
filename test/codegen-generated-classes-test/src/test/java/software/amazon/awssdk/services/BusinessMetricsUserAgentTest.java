@@ -85,7 +85,7 @@ class BusinessMetricsUserAgentTest {
 
     private static Stream<Arguments> inputValues() {
         return Stream.of(
-            Arguments.of("Default values", null, Arrays.asList("D", "N", "P")),
+            Arguments.of("Default values", null, Arrays.asList("E", "N", "P")),
             Arguments.of("Account ID preferred mode ", AccountIdEndpointMode.PREFERRED, Collections.singletonList("P")),
             Arguments.of("Account ID disabled mode ", AccountIdEndpointMode.DISABLED, Collections.singletonList("Q")),
             Arguments.of("Account ID required mode ", AccountIdEndpointMode.REQUIRED, Collections.singletonList("R"))
