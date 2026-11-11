@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO HTTP Client",
+    "contributor": "",
+    "description": "Fixed a connection pool leak with `ProtocolNegotiation.ALPN`. A TLS handshake failure on a new connection never returned its pool slot. Once all slots leaked, every request failed with `Acquire operation took longer than the configured maximum time`. The request now fails with an `IOException` and returns the slot."
+}
