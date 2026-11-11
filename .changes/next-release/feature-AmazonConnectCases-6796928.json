@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Cases",
-    "contributor": "",
-    "description": "This release adds APIs that allow customers to merge cases to consolidate case history, and get the status of an ongoing case merge operation."
-}

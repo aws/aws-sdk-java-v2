@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "The default retry mode is now `standard`, and the `standard` and `adaptive` retry modes now use retry behavior 2.1. The `AWS_NEW_RETRIES_2026` setting is ignored. Retry behavior 2.1 retries sooner, uses fewer attempts, and spends more of the retry quota on each retry, so bursts of failures can exhaust it faster. To keep the previous behavior, set the retry mode to `legacy`, for example with `AWS_RETRY_MODE=legacy`."
-}
