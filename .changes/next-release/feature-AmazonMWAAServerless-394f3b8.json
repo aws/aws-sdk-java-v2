@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonMWAAServerless",
-    "contributor": "",
-    "description": "Adds support for Airflow UI in MWAA Serverless"
-}
