@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Backup",
+    "contributor": "",
+    "description": "Adding new notification types for SNS notifications"
+}
