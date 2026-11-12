@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -50,15 +52,41 @@ public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStrea
         try {
             return requestBodySubscriber.transferTo(outBuffer) == ByteBufferStoringSubscriber.TransferResult.END_OF_STREAM;
         } catch (RuntimeException e) {
-            // This is a native JNI upcall: an escaping exception is printed to stderr and discarded by CRT (#6715).
-            // Fail the operation with the original publisher error instead; completing executeFuture cancels the meta request.
             executeFuture.completeExceptionally(e);
-            return false;
+            // signal the CRT read loop to fail
+            throw new RequestBodyFailedSignal();
         }
     }
 
     @Override
     public long getLength() {
         return bodyPublisher.contentLength().orElse(0L);
+    }
+
+    /**
+     * Thrown from {@link #sendRequestBody} to signal that CRT's native read failed; the real error is already on the
+     * execute future. CRT prints the exception to stderr so this prints as a single line.
+     */
+    private static final class RequestBodyFailedSignal extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        RequestBodyFailedSignal() {
+            super("S3 CRT request body failed; the error is reported on the request's future", null, false, false);
+        }
+
+        @Override
+        public synchronized Throwable fillInStackTrace() {
+            return this;
+        }
+
+        @Override
+        public void printStackTrace(PrintStream s) {
+            s.println(this);
+        }
+
+        @Override
+        public void printStackTrace(PrintWriter s) {
+            s.println(this);
+        }
     }
 }

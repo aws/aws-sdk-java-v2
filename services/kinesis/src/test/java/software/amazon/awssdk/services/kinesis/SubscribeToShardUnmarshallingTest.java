@@ -41,6 +41,8 @@ import org.mockito.stubbing.Answer;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.eventstream.HeaderValue;
+import software.amazon.awssdk.eventstream.Message;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -57,8 +59,6 @@ import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponseHan
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.ImmutableMap;
 import software.amazon.awssdk.utils.IoUtils;
-import software.amazon.eventstream.HeaderValue;
-import software.amazon.eventstream.Message;
 
 /**
  * Functional tests for the SubscribeToShard API.

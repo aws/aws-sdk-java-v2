@@ -91,16 +91,6 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
         request.metricCollector()
                .ifPresent(metricCollector -> metricCollector.reportMetric(HTTP_CLIENT_NAME, clientName()));
 
-        /*
-         * See the note on getOrCreateConnectionPool()
-         *
-         * In particular, this returns a ref-counted object and calling getOrCreateConnectionPool
-         * increments the ref count by one.  We add a try-with-resources to release our ref
-         * once we have successfully submitted a request.  In this way, we avoid a race condition
-         * when close/shutdown is called from another thread while this function is executing (i.e.
-         * we have a pool and no one can destroy it underneath us until we've finished submitting the
-         * request)
-         */
         HttpStreamManager streamManager = getOrCreateConnectionPool(poolKey(request.httpRequest()));
         CrtRequestContext context = CrtRequestContext.builder()
                                                      .streamManager(streamManager)
@@ -221,17 +211,21 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
         AwsCrtHttpClient.Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer);
 
         /**
-         * Configure the health checks for all connections established by this client.
+         * Configure the health checks for all connections established by this client. This is the CRT client's knob for a
+         * read/write inactivity timeout: a connection whose throughput stays below
+         * {@link ConnectionHealthConfiguration#minimumThroughputInBps()} for
+         * {@link ConnectionHealthConfiguration#minimumThroughputTimeout()} is considered unhealthy and shut down, failing the
+         * in-flight request with a retryable {@code IOException}.
          *
-         * <p>
-         * You can set a throughput threshold for a connection to be considered healthy.
-         * If a connection falls below this threshold ({@link ConnectionHealthConfiguration#minimumThroughputInBps()
-         * }) for the configurable amount
-         * of time ({@link ConnectionHealthConfiguration#minimumThroughputTimeout()}),
-         * then the connection is considered unhealthy and will be shut down.
+         * <p>To set a read/write inactivity timeout, use {@code minimumThroughputInBps(1L)} with
+         * {@code minimumThroughputTimeout(yourDuration)}: any byte moved in either direction resets the window, so the connection
+         * is shut down only after {@code yourDuration} elapses with no bytes transferred. The timeout has whole-second
+         * granularity and must be at least two seconds.
          *
-         * <p>
-         * Disabled by default.
+         * <p>When this client is created and managed by an AWS SDK service client, a default read/write inactivity timeout
+         * may be applied automatically, resolved per service by the SDK. When this client is built directly and supplied to a
+         * service client, or used standalone, no automatic default is applied; monitoring is enabled only by an explicit
+         * configuration set here, which always takes precedence over any SDK-applied default.
          *
          * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
@@ -349,6 +343,31 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * @return this builder for method chaining
          */
         AwsCrtHttpClient.Builder minTlsVersion(TlsVersion minTlsVersion);
+
+        /**
+         * Configure whether the client trusts the certificate authorities in the trust store specified by the JSSE system
+         * properties {@code javax.net.ssl.trustStore}, {@code javax.net.ssl.trustStorePassword},
+         * {@code javax.net.ssl.trustStoreType} and {@code javax.net.ssl.trustStoreProvider}, instead of the OS trust store.
+         *
+         * <p>
+         * It's disabled by default, and the client trusts the OS trust store even when these properties are set. When enabled,
+         * the properties are read once, when the client is built. If {@code javax.net.ssl.trustStore} is not set, the client
+         * trusts the OS trust store. The trust store also applies to the TLS connection to an HTTPS proxy. The trust store is not
+         * read when {@link SdkHttpConfigurationOption#TRUST_ALL_CERTIFICATES} is enabled.
+         *
+         * <p>
+         * Unlike the Apache, Netty, and URL connection HTTP clients, which use the JDK's TLS implementation, building the client
+         * fails with an {@link IllegalStateException} if the trust store cannot be loaded (for example, the file does not exist,
+         * the password is wrong, or the store contains no certificates or more than 1024 certificates) or if
+         * {@code javax.net.ssl.trustStore} is {@code NONE}, instead of falling back to a default trust store. Certificates are
+         * validated by the native TLS implementation, so JDK validation settings such as
+         * {@code jdk.certpath.disabledAlgorithms} do not apply.
+         *
+         * @param useTrustStoreSystemProperties whether to use the trust store specified by the JSSE system properties;
+         *                                      {@code null} reverts to the default ({@code false})
+         * @return The builder of the method chaining.
+         */
+        AwsCrtHttpClient.Builder useTrustStoreSystemProperties(Boolean useTrustStoreSystemProperties);
     }
 
     /**

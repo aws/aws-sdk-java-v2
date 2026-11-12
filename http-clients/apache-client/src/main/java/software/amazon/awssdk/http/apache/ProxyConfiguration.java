@@ -32,8 +32,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Configuration that defines how to communicate via an HTTP or HTTPS proxy.
+ *
+ * @deprecated Apache 4.x is in maintenance mode. Users are encouraged to switch to the
+ * <a href="https://docs.aws.amazon.com/java/api/latest/software/amazon/awssdk/http/apache5/Apache5HttpClient.html">Apache 5 HTTP Client</a>
+ * which is feature compatible with this client.
  */
 @SdkPublicApi
+@Deprecated
 public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfiguration.Builder, ProxyConfiguration> {
     private final URI endpoint;
     private final String username;

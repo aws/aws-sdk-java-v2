@@ -25,6 +25,7 @@ import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.TaggingDirective;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -37,6 +38,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * <li>{@link S3AsyncClient#putObject(PutObjectRequest, AsyncRequestBody)}
  * <li>{@link S3AsyncClient#copyObject(CopyObjectRequest)}
  * </ul>
+ * <p>
+ * When {@code copyObject} performs a multipart copy, it copies the source object's tags only when
+ * {@link CopyObjectRequest.Builder#taggingDirective(TaggingDirective)} is set to {@code COPY}. A copy at or under the threshold
+ * or the part size is a single {@code CopyObject} request, for which S3's default tagging directive is {@code COPY}.
  * <p>
  * Note that multipart download fetches individual parts of the object using {@link GetObjectRequest#partNumber() PartNumber}.
  * This means the S3 client will only download multiple parts if the object itself was uploaded as a

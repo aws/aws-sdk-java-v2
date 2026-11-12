@@ -100,6 +100,12 @@ public final class UpdateItemEnhancedRequest<T> {
 
     /**
      * Returns if the update operation should ignore attributes with null values, or false if it has not been set.
+     * <p>
+     * This setting does not apply to the version attribute
+     * ({@link software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute}). If the
+     * version attribute is {@code null}, the item is treated as new, so the update fails with a
+     * {@link software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException} if the item in the
+     * table already has a version. To update a versioned item, read it first and include its current version.
      *
      * @deprecated Use {@link #ignoreNullsMode()} instead, which provides more granular control
      * over null handling behavior.
@@ -256,6 +262,12 @@ public final class UpdateItemEnhancedRequest<T> {
          * record. This is commonly referred to as a 'partial update'.
          * If set to false, null values in the Java object will cause those attributes to be removed from the persisted
          * record on update.
+         * <p>
+         * This setting does not apply to the version attribute
+         * ({@link software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute}). If the
+         * version attribute is {@code null}, the item is treated as new, so the update fails with a
+         * {@link software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException} if the item in the
+         * table already has a version. To update a versioned item, read it first and include its current version.
          *
          * @param ignoreNulls the boolean value
          * @return a builder of this type
@@ -272,6 +284,12 @@ public final class UpdateItemEnhancedRequest<T> {
 
         /**
          * Sets the mode that determines how null-valued attributes are handled during the update operation.
+         * <p>
+         * No {@link IgnoreNullsMode} applies to the version attribute
+         * ({@link software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute}). If the
+         * version attribute is {@code null}, the item is treated as new, so the update fails with a
+         * {@link software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException} if the item in the
+         * table already has a version. To update a versioned item, read it first and include its current version.
          *
          * @param ignoreNullsMode the {@link IgnoreNullsMode} to use
          * @return a builder of this type

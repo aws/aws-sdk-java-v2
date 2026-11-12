@@ -231,6 +231,11 @@ public class CustomizationConfig {
     private Boolean defaultNewRetries2026;
 
     /**
+     * Whether the client will apply a default read/write timeout by default.
+     */
+    private Boolean defaultEnableSocketTimeout2026;
+
+    /**
      * Whether to generate an abstract decorator class that delegates to the async service client
      */
     private boolean delegateAsyncClientClass;
@@ -730,6 +735,14 @@ public class CustomizationConfig {
 
     public void setDefaultNewRetries2026(Boolean defaultNewRetries2026) {
         this.defaultNewRetries2026 = defaultNewRetries2026;
+    }
+
+    public Boolean getDefaultEnableSocketTimeout2026() {
+        return defaultEnableSocketTimeout2026;
+    }
+
+    public void setDefaultEnableSocketTimeout2026(Boolean defaultEnableSocketTimeout2026) {
+        this.defaultEnableSocketTimeout2026 = defaultEnableSocketTimeout2026;
     }
 
     public ServiceConfig getServiceConfig() {

@@ -16,12 +16,18 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import io.reactivex.Flowable;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -35,6 +41,7 @@ import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
 
 class S3CrtRequestBodyStreamAdapterTest {
+    private static final String SIGNAL_MESSAGE = "the error is reported on the request's future";
 
     @Test
     void getRequestData_fillsInputBuffer_publisherBuffersAreSmaller() {
@@ -119,33 +126,70 @@ class S3CrtRequestBodyStreamAdapterTest {
     }
 
     @Test
-    public void sendRequestBody_publisherThrows_failsFutureWithoutThrowing() {
-        Publisher<ByteBuffer> errorPublisher = Flowable.error(new RuntimeException("Something wrong happened"));
+    void sendRequestBody_publisherThrows_failsFutureWithOriginalErrorAndThrows() {
+        RuntimeException bodyError = new RuntimeException("Something wrong happened");
+        Publisher<ByteBuffer> errorPublisher = Flowable.error(bodyError);
 
         SdkHttpContentPublisher requestBody = requestBody(errorPublisher, 0L);
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
         S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody, executeFuture);
 
-        assertThatNoException().isThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)));
+        assertThrowsSignal(adapter);
+        assertThat(executeFuture).hasFailedWithThrowableThat().isSameAs(bodyError);
 
-        assertThat(executeFuture).hasFailedWithThrowableThat()
-                                 .isInstanceOf(RuntimeException.class)
-                                 .hasMessageContaining("Something wrong happened");
+        // A later read must fail again, never report "0 bytes, not done" (#7437)
+        assertThrowsSignal(adapter);
+        assertThat(executeFuture).hasFailedWithThrowableThat().isSameAs(bodyError);
     }
 
     @Test
-    public void sendRequestBody_publisherThrowsCheckedException_failsFutureWithWrappedCause() {
-        Publisher<ByteBuffer> errorPublisher = Flowable.error(new IOException("Some I/O error happened"));
+    void sendRequestBody_publisherThrowsCheckedException_failsFutureWithWrappedCauseAndThrows() {
+        IOException ioError = new IOException("Some I/O error happened");
+        Publisher<ByteBuffer> errorPublisher = Flowable.error(ioError);
 
         SdkHttpContentPublisher requestBody = requestBody(errorPublisher, 0L);
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
         S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody, executeFuture);
 
-        assertThatNoException().isThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)));
-
+        assertThrowsSignal(adapter);
         assertThat(executeFuture).hasFailedWithThrowableThat()
                                  .isInstanceOf(UncheckedIOException.class)
-                                 .hasCauseInstanceOf(IOException.class);
+                                 .hasCause(ioError);
+
+        // A later read must fail again, never report "0 bytes, not done" (#7437)
+        assertThrowsSignal(adapter);
+        assertThat(executeFuture).hasFailedWithThrowableThat()
+                                 .isInstanceOf(UncheckedIOException.class)
+                                 .hasCause(ioError);
+    }
+
+    @Test
+    void sendRequestBody_publisherThrows_thrownSignalPrintsSingleLine() throws Exception {
+        SdkHttpContentPublisher requestBody = requestBody(Flowable.error(new RuntimeException("boom")), 0L);
+        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody, new CompletableFuture<>());
+
+        Throwable signal = catchThrowable(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)));
+        assertThat(signal).hasMessageContaining(SIGNAL_MESSAGE);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        signal.printStackTrace(new PrintStream(out, true, "UTF-8"));
+        assertThat(new String(out.toByteArray(), StandardCharsets.UTF_8)).isEqualTo(signal + System.lineSeparator());
+
+        StringWriter writer = new StringWriter();
+        signal.printStackTrace(new PrintWriter(writer, true));
+        assertThat(writer.toString()).isEqualTo(signal + System.lineSeparator());
+    }
+
+    /**
+     * The adapter must throw (not return) so CRT's native read fails and the meta request can finish. The thrown signal
+     * is not the original error, which is reported on the execute future instead.
+     */
+    private static void assertThrowsSignal(S3CrtRequestBodyStreamAdapter adapter) {
+        assertThatThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining(SIGNAL_MESSAGE)
+            .hasNoCause()
+            .satisfies(t -> assertThat(t.getStackTrace()).isEmpty());
     }
 
     private static class RequestTrackingPublisher implements Publisher<ByteBuffer> {

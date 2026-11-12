@@ -1796,6 +1796,23 @@
       ],
       "documentation":"<p>Searches for profiles within a specific domain using one or more predefined search keys (e.g., _fullName, _phone, _email, _account, etc.) and/or custom-defined search keys. A search key is a data type pair that consists of a <code>KeyName</code> and <code>Values</code> list.</p> <p>This operation supports searching for profiles with a minimum of 1 key-value(s) pair and up to 5 key-value(s) pairs using either <code>AND</code> or <code>OR</code> logic.</p>"
     },
+    "SearchRecommendations":{
+      "name":"SearchRecommendations",
+      "http":{
+        "method":"POST",
+        "requestUri":"/domains/{DomainName}/recommendations"
+      },
+      "input":{"shape":"SearchRecommendationsRequest"},
+      "output":{"shape":"SearchRecommendationsResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Retrieves recommendations for a profile in a specific domain. The profile is identified using a search key, which consists of a <code>KeyName</code> and a <code>KeyValues</code> list. The <code>KeyName</code> can be a predefined key (for example, <code>_profileId</code>, <code>_phone</code>, <code>_email</code>) or a custom-defined key.</p> <p>The search key must match exactly one profile. If no profile matches the search key, the operation returns a <code>ResourceNotFoundException</code>. If more than one profile matches the search key, the operation returns a <code>BadRequestException</code>. You can use the SearchProfiles API to review the matching profiles.</p>"
+    },
     "StartRecommender":{
       "name":"StartRecommender",
       "http":{
@@ -6611,6 +6628,18 @@
           "shape":"name",
           "documentation":"<p>The source of the object template.</p>"
         },
+        "DefaultMaxProfileObjectCount":{
+          "shape":"minSize0",
+          "documentation":"<p>The default maximum number of objects of this object type that can be stored per profile. This default applies when you don't set <code>MaxProfileObjectCount</code> on an object type created from this template. If this value isn't present, no default limit applies.</p>"
+        },
+        "DefaultMaxProfileObjectCountEffectiveAfter":{
+          "shape":"timestamp",
+          "documentation":"<p>The timestamp after which <code>DefaultMaxProfileObjectCount</code> takes effect. The default limit applies only to domains created after this time.</p>"
+        },
+        "StoreOnly":{
+          "shape":"boolean",
+          "documentation":"<p>Indicates whether the template is store-only. Objects of an object type created from a store-only template are ingested and stored, but the object type can't be used by calculated attributes or event triggers.</p>"
+        },
         "AllowProfileCreation":{
           "shape":"boolean",
           "documentation":"<p>Indicates whether a profile should be created when data is received if one doesn’t exist for an object of this type. The default is <code>FALSE</code>. If the AllowProfileCreation flag is set to <code>FALSE</code>, then the service tries to fetch a standard profile and associate this object with the profile. If it is set to <code>TRUE</code>, and if no match is found, then the service creates a new standard profile.</p>"
@@ -7786,6 +7815,13 @@
       "type":"map",
       "key":{"shape":"name"},
       "value":{"shape":"ObjectTypeKeyList"},
+      "sensitive":true
+    },
+    "KeyValuesList":{
+      "type":"list",
+      "member":{"shape":"string1To255"},
+      "max":10,
+      "min":1,
       "sensitive":true
     },
     "KmsArn":{
@@ -10601,10 +10637,39 @@
       },
       "documentation":"<p>Runtime diversity configuration for a <code>GetProfileRecommendations</code> request.</p>"
     },
+    "RecommendationMetadata":{
+      "type":"structure",
+      "members":{
+        "Columns":{
+          "shape":"MetadataColumnsList",
+          "documentation":"<p>A list of metadata column names from your Items dataset to include in the recommendation response.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for metadata to include in recommendation responses.</p>"
+    },
     "Recommendations":{
       "type":"list",
       "member":{"shape":"Recommendation"},
       "sensitive":true
+    },
+    "Recommender":{
+      "type":"structure",
+      "required":["Name"],
+      "members":{
+        "Name":{
+          "shape":"name",
+          "documentation":"<p>The unique name of the recommender.</p>"
+        },
+        "Filters":{
+          "shape":"RecommenderFilters",
+          "documentation":"<p>A list of filters to apply to the returned recommendations. Filters define criteria for including or excluding items from the recommendation results.</p>"
+        },
+        "PromotionalFilters":{
+          "shape":"RecommenderPromotionalFilters",
+          "documentation":"<p>A list of promotional filters to apply to the recommendations. Promotional filters allow you to promote specific items within a configurable subset of recommendation results.</p>"
+        }
+      },
+      "documentation":"<p>The recommender used to generate the recommendations.</p>"
     },
     "RecommenderConfig":{
       "type":"structure",
@@ -11344,6 +11409,68 @@
         "NextToken":{
           "shape":"token",
           "documentation":"<p>The pagination token from the previous SearchProfiles API call.</p>"
+        }
+      }
+    },
+    "SearchRecommendationsRequest":{
+      "type":"structure",
+      "required":[
+        "DomainName",
+        "KeyName",
+        "KeyValues",
+        "Recommender"
+      ],
+      "members":{
+        "DomainName":{
+          "shape":"name",
+          "documentation":"<p>The unique name of the domain.</p>",
+          "location":"uri",
+          "locationName":"DomainName"
+        },
+        "KeyName":{
+          "shape":"name",
+          "documentation":"<p>A searchable identifier of a customer profile. You can use a predefined key, such as <code>_profileId</code>, <code>_phone</code>, or <code>_email</code>, or a custom-defined key.</p>"
+        },
+        "KeyValues":{
+          "shape":"KeyValuesList",
+          "documentation":"<p>A list of key values. Provide one value for each field of the search key.</p>"
+        },
+        "Recommender":{
+          "shape":"Recommender",
+          "documentation":"<p>The recommender used to generate the recommendations.</p>"
+        },
+        "CandidateIds":{
+          "shape":"CandidateIdList",
+          "documentation":"<p>A list of item IDs to rank for the user. Use this when you want to re-rank a specific set of items rather than getting recommendations from the full item catalog. Required for personalized-ranking use cases.</p>"
+        },
+        "Context":{
+          "shape":"RecommenderContext",
+          "documentation":"<p>The contextual metadata used to provide dynamic runtime information to tailor recommendations.</p>"
+        },
+        "Diversity":{
+          "shape":"RecommendationDiversityConfig",
+          "documentation":"<p>Runtime diversity configuration for this request. Enables diversity-aware recommendations and optionally supplies values for placeholder-based diversity caps configured on the recommender.</p>"
+        },
+        "Metadata":{
+          "shape":"RecommendationMetadata",
+          "documentation":"<p>Configuration for metadata to include in recommendation responses.</p>"
+        },
+        "MaxRecommendations":{
+          "shape":"maxSize500",
+          "documentation":"<p>The maximum number of recommendations to return. The default value is 5.</p>"
+        }
+      }
+    },
+    "SearchRecommendationsResponse":{
+      "type":"structure",
+      "members":{
+        "ProfileId":{
+          "shape":"uuid",
+          "documentation":"<p>The unique identifier of the profile for which to retrieve recommendations.</p>"
+        },
+        "Recommendations":{
+          "shape":"Recommendations",
+          "documentation":"<p>List of recommendations generated by the recommender.</p>"
         }
       }
     },

@@ -222,6 +222,25 @@ public class EndpointOverrideEndpointResolutionTest {
                                 .setExpectedSigningServiceName("s3")
                                 .setExpectedSigningRegion(Region.US_WEST_2));
 
+        // An override that spells out the protocol's own default port must still have the rules-engine-resolved host
+        // applied. The port ends up in the resolved authority, but getUri() omits it again because it is the standard
+        // port for the scheme.
+        cases.add(new TestCase().setCaseName("normal bucket with the default https port spelled out")
+                                .setGetObjectBucketName("bucketname")
+                                .setEndpointUrl("https://beta.example.com:443")
+                                .setClientRegion(Region.US_WEST_2)
+                                .setExpectedEndpoint("https://bucketname.beta.example.com/object")
+                                .setExpectedSigningServiceName("s3")
+                                .setExpectedSigningRegion(Region.US_WEST_2));
+
+        cases.add(new TestCase().setCaseName("normal bucket with the default http port spelled out")
+                                .setGetObjectBucketName("bucketname")
+                                .setEndpointUrl("http://beta.example.com:80")
+                                .setClientRegion(Region.US_WEST_2)
+                                .setExpectedEndpoint("http://bucketname.beta.example.com/object")
+                                .setExpectedSigningServiceName("s3")
+                                .setExpectedSigningRegion(Region.US_WEST_2));
+
         cases.add(new TestCase().setCaseName("access point")
                                 .setGetObjectBucketName("arn:aws:s3:us-west-2:123456789012:accesspoint:myendpoint")
                                 .setEndpointUrl("https://beta.example.com")

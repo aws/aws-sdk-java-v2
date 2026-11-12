@@ -16,22 +16,29 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static software.amazon.awssdk.utils.DateUtils.parseIso8601Date;
 
 import com.google.common.jimfs.Jimfs;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Instant;
 import java.util.Arrays;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
 class ResumableFileDownloadTest {
@@ -115,6 +122,45 @@ class ResumableFileDownloadTest {
         ResumableFileDownload deserializedDownload =
             ResumableFileDownload.fromBytes(SdkBytes.fromByteBuffer(serializedDownload.asByteBuffer()));
         assertThat(deserializedDownload).isEqualTo(standardDownloadObject);
+    }
+
+    @Test
+    void serializeToFile_newFile_isOwnerOnly(@TempDir Path tempDir) throws IOException {
+        assumePosix();
+        Path file = tempDir.resolve("token.json");
+
+        standardDownloadObject.serializeToFile(file);
+
+        assertThat(PosixFilePermissions.toString(Files.getPosixFilePermissions(file))).isEqualTo("rw-------");
+        assertThat(ResumableFileDownload.fromFile(file)).isEqualTo(standardDownloadObject);
+    }
+
+    @Test
+    void serializeToFile_existingFile_isRestrictedToOwnerAndOverwritten(@TempDir Path tempDir) throws IOException {
+        assumePosix();
+        Path file = tempDir.resolve("token.json");
+        Files.write(file, "old content that is longer than nothing".getBytes(StandardCharsets.UTF_8));
+        Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("rw-r--r--"));
+
+        standardDownloadObject.serializeToFile(file);
+
+        assertThat(PosixFilePermissions.toString(Files.getPosixFilePermissions(file))).isEqualTo("rw-------");
+        assertThat(new String(Files.readAllBytes(file), StandardCharsets.UTF_8))
+            .isEqualTo(standardDownloadObject.serializeToString());
+    }
+
+    @Test
+    void serializeToFile_missingParentDirectory_throwsSdkClientException(@TempDir Path tempDir) {
+        assumePosix();
+        Path file = tempDir.resolve("missing").resolve("token.json");
+
+        assertThatThrownBy(() -> standardDownloadObject.serializeToFile(file))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Failed to write to");
+    }
+
+    private static void assumePosix() {
+        assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"));
     }
 
     private static ResumableFileDownload resumableFileDownload() {

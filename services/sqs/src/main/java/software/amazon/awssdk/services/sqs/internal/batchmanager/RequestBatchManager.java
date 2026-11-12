@@ -116,9 +116,9 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
                                    Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
         flushBuffer(batchKey, flushableRequests);
         requestsAndResponsesMaps.cancelAndReplaceScheduledFlush(batchKey,
-                                                                scheduleBufferFlush(batchKey,
-                                                                       sendRequestFrequency.toMillis(),
-                                                                       scheduledExecutor));
+                                                                () -> scheduleBufferFlush(batchKey,
+                                                                                          sendRequestFrequency.toMillis(),
+                                                                                          scheduledExecutor));
     }
 
     private void flushBuffer(String batchKey, Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
@@ -162,7 +162,10 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     private void performScheduledFlush(String batchKey) {
         Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractedEntries =
             requestsAndResponsesMaps.extractEntriesForScheduledFlush(batchKey, maxBatchItems);
-        if (!extractedEntries.isEmpty()) {
+        if (extractedEntries.isEmpty()) {
+            // The buffer has been idle for a whole period: release its key slot and cancel its timer.
+            requestsAndResponsesMaps.evictIfEmpty(batchKey);
+        } else {
             flushBuffer(batchKey, extractedEntries);
         }
     }

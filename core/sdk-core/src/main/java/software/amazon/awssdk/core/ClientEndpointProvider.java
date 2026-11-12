@@ -19,6 +19,7 @@ import java.net.URI;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.StaticClientEndpointProvider;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.utils.FunctionalUtils;
 
 /**
  * Client endpoint providers are responsible for resolving client-level endpoints. {@link EndpointProvider}s are
@@ -47,6 +48,20 @@ public interface ClientEndpointProvider {
      * Retrieve the client endpoint from this provider.
      */
     URI clientEndpoint();
+
+    /**
+     * Returns the client endpoint as a string with the query and user-info components stripped, as the rules engine's
+     * {@code ParseURL} rejects a URI carrying query parameters. Returns {@code null} if the endpoint is not overridden.
+     */
+    default String sanitizedEndpointString() {
+        if (!isEndpointOverridden()) {
+            return null;
+        }
+        URI endpoint = clientEndpoint();
+        return FunctionalUtils.invokeSafely(
+            () -> new URI(endpoint.getScheme(), null, endpoint.getHost(), endpoint.getPort(),
+                          endpoint.getPath(), null, endpoint.getFragment()).toString());
+    }
 
     /**
      * Returns true if this endpoint was specified as an override by the customer, or false if it was determined

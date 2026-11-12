@@ -43,7 +43,8 @@ public final class DefaultCustomizationProcessor {
                 new S3ControlRemoveAccountIdHostPrefixProcessor(),
                 new ExplicitStringPayloadQueryProtocolProcessor(),
                 new LowercaseShapeValidatorProcessor(),
-                new LongPollingOperationProcessor()
+                new LongPollingOperationProcessor(),
+                new DefaultReadWriteTimeoutExemptionProcessor()
                 );
     }
 }

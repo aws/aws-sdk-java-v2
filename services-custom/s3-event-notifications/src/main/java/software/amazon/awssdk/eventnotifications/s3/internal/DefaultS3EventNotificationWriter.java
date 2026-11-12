@@ -21,9 +21,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.eventnotifications.s3.model.EventHoldDuration;
 import software.amazon.awssdk.eventnotifications.s3.model.GlacierEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.IntelligentTieringEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.LifecycleEventData;
+import software.amazon.awssdk.eventnotifications.s3.model.ObjectRetentionEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.ReplicationEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.RequestParameters;
 import software.amazon.awssdk.eventnotifications.s3.model.ResponseElements;
@@ -122,6 +124,29 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
             writeLifecyleEventData(writer, rec.getLifecycleEventData());
         }
 
+        if (rec.getObjectRetentionEventData() != null) {
+            writeObjectRetentionEventData(writer, rec.getObjectRetentionEventData());
+        }
+
+        writer.writeEndObject();
+    }
+
+    private void writeObjectRetentionEventData(JsonWriter writer, ObjectRetentionEventData objectRetentionEventData) {
+        writer.writeFieldName("objectRetentionEventData");
+        writer.writeStartObject();
+        writeStringField(writer, "mode", objectRetentionEventData.getMode());
+        writeStringField(writer, "retainUntilDate", objectRetentionEventData.getRetainUntilDate());
+        if (objectRetentionEventData.getEventHold() != null) {
+            writeStringField(writer, "eventHold", objectRetentionEventData.getEventHold());
+        }
+        EventHoldDuration eventHoldDuration = objectRetentionEventData.getEventHoldDuration();
+        if (eventHoldDuration != null && eventHoldDuration.getUnit() != null) {
+            writer.writeFieldName("eventHoldDuration");
+            writer.writeStartObject();
+            // Single {unit: value} pair, e.g. {"days": 90} or {"years": 1}.
+            writeNumericField(writer, eventHoldDuration.getUnit(), eventHoldDuration.getValue());
+            writer.writeEndObject();
+        }
         writer.writeEndObject();
     }
 

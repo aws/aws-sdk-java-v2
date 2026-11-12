@@ -1,0 +1,73 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2024-01-01",
+    "endpointPrefix": "reuse",
+    "jsonVersion": "1.1",
+    "protocol": "json",
+    "serviceAbbreviation": "Reuse",
+    "serviceFullName": "Output Shape Reused As Member Test Service",
+    "serviceId": "Reuse",
+    "signatureVersion": "v4",
+    "targetPrefix": "Reuse",
+    "uid": "reuse-2024-01-01"
+  },
+  "operations": {
+    "GetAppSubscriptionSummary": {
+      "name": "GetAppSubscriptionSummary",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "GetAppSubscriptionSummaryRequest"},
+      "output": {"shape": "GetAppSubscriptionSummaryResponse"}
+    },
+    "GetAppAnalyticsSummary": {
+      "name": "GetAppAnalyticsSummary",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "GetAppAnalyticsSummaryRequest"},
+      "output": {"shape": "GetAppAnalyticsSummaryResponse"}
+    }
+  },
+  "shapes": {
+    "GetAppSubscriptionSummaryRequest": {
+      "type": "structure",
+      "members": {
+        "AppId": {"shape": "String"}
+      }
+    },
+    "GetAppSubscriptionSummaryResponse": {
+      "type": "structure",
+      "members": {
+        "ActiveSubscriptions": {"shape": "Integer"},
+        "Plan": {"shape": "String"}
+      }
+    },
+    "GetAppAnalyticsSummaryRequest": {
+      "type": "structure",
+      "members": {
+        "AppId": {"shape": "String"}
+      }
+    },
+    "GetAppAnalyticsSummaryResponse": {
+      "type": "structure",
+      "members": {
+        "SubscriptionSummary": {"shape": "GetAppSubscriptionSummaryResponse"},
+        "SubscriptionSummaries": {"shape": "SubscriptionSummaryList"}
+      }
+    },
+    "SubscriptionSummaryList": {
+      "type": "list",
+      "member": {"shape": "GetAppSubscriptionSummaryResponse"}
+    },
+    "String": {
+      "type": "string"
+    },
+    "Integer": {
+      "type": "integer"
+    }
+  }
+}

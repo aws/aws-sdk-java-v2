@@ -45,6 +45,17 @@ public final class FailedFileDownload
         return exception;
     }
 
+    /**
+     * The request for the failed download.
+     *
+     * <p>
+     * If the object's key can't be mapped to a path inside the destination directory (for example, its relative path
+     * resolves outside the destination directory, or it isn't a valid path on the destination's file system), nothing is
+     * downloaded for it, and {@link #exception()} names the key and the reason. In that case,
+     * {@code request().destination()} is a placeholder path under the destination directory that does not exist and is
+     * not written by the SDK. This request isn't meant to be retried as is, and the destination directory must not be deleted to
+     * clean up after it. The object's key is available from {@code request().getObjectRequest().key()}.
+     */
     @Override
     public DownloadFileRequest request() {
         return request;

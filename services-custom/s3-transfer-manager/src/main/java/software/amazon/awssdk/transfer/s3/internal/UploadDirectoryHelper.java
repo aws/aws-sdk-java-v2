@@ -19,6 +19,7 @@ import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationO
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_PREFIX;
 
 import java.io.IOException;
+import java.nio.file.FileSystem;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -26,10 +27,14 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -56,10 +61,19 @@ public class UploadDirectoryHelper {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
 
     private final TransferManagerConfiguration transferConfiguration;
-    private final Function<UploadFileRequest, FileUpload> uploadFunction;
+    private final BiFunction<UploadFileRequest, Path, FileUpload> uploadFunction;
 
     public UploadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
                                  Function<UploadFileRequest, FileUpload> uploadFunction) {
+        this(transferConfiguration, (request, confineToRoot) -> uploadFunction.apply(request));
+    }
+
+    /**
+     * @param uploadFunction uploads one file. Its second argument, if not null, is the directory below which the file must
+     * be read without following a symbolic link in any path component.
+     */
+    UploadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
+                          BiFunction<UploadFileRequest, Path, FileUpload> uploadFunction) {
 
         this.transferConfiguration = transferConfiguration;
         this.uploadFunction = uploadFunction;
@@ -87,8 +101,17 @@ public class UploadDirectoryHelper {
         Path directory = uploadDirectoryRequest.source();
 
         validateDirectory(uploadDirectoryRequest);
+        boolean followSymbolicLinks = transferConfiguration.resolveUploadDirectoryFollowSymbolicLinks(uploadDirectoryRequest);
 
         Collection<FailedFileUpload> failedFileUploads = new ConcurrentLinkedQueue<>();
+
+        // Two files can only derive the same key if the delimiter can occur inside a file or directory name. Files.walk
+        // yields no empty or "." / ".." segments, so otherwise the relative paths, and therefore the keys, are distinct.
+        // Keyed by objectIdentity (bucket and key), because a transformer can route files to different buckets.
+        ConcurrentMap<String, Path> keysToPaths =
+            delimiterCanOccurInFileName(resolveDelimiter(uploadDirectoryRequest), directory.getFileSystem())
+            ? new ConcurrentHashMap<>()
+            : null;
 
         Stream<Path> stream = listFiles(directory, uploadDirectoryRequest);
 
@@ -100,7 +123,8 @@ public class UploadDirectoryHelper {
         CompletableFuture<Void> allOfFutures = new CompletableFuture<>();
 
         AsyncBufferingSubscriber<Path> bufferingSubscriber =
-            new AsyncBufferingSubscriber<>(path -> uploadSingleFile(uploadDirectoryRequest, failedFileUploads, path),
+            new AsyncBufferingSubscriber<>(path -> uploadSingleFile(uploadDirectoryRequest, failedFileUploads, keysToPaths,
+                                                                    followSymbolicLinks, path),
                                            allOfFutures, 
                                            transferConfiguration.option(
                                                TransferConfigurationOption.DIRECTORY_TRANSFER_MAX_CONCURRENCY
@@ -136,11 +160,23 @@ public class UploadDirectoryHelper {
 
     private CompletableFuture<CompletedFileUpload> uploadSingleFile(UploadDirectoryRequest uploadDirectoryRequest,
                                                                     Collection<FailedFileUpload> failedFileUploads,
+                                                                    ConcurrentMap<String, Path> keysToPaths,
+                                                                    boolean followSymbolicLinks,
                                                                     Path path) {
         int nameCount = uploadDirectoryRequest.source().getNameCount();
         UploadFileRequest uploadFileRequest = constructUploadRequest(uploadDirectoryRequest, nameCount, path);
+
+        // Checked after the transformer, so a transformer that gives the files distinct buckets or keys is honored.
+        Path earlier = keysToPaths == null ? null : keysToPaths.putIfAbsent(objectIdentity(uploadFileRequest), path);
+        if (earlier != null) {
+            return skipDuplicateKey(uploadDirectoryRequest, failedFileUploads, uploadFileRequest, earlier, path);
+        }
+
+        Path confineToRoot = resolveConfineToRoot(uploadDirectoryRequest, uploadFileRequest, followSymbolicLinks, path);
+
         log.debug(() -> String.format("Sending upload request (%s) for path (%s)", uploadFileRequest, path));
-        CompletableFuture<CompletedFileUpload> executionFuture = uploadFunction.apply(uploadFileRequest).completionFuture();
+        CompletableFuture<CompletedFileUpload> executionFuture =
+            uploadFunction.apply(uploadFileRequest, confineToRoot).completionFuture();
         CompletableFuture<CompletedFileUpload> future = executionFuture.whenComplete((r, t) -> {
             if (t != null) {
                 failedFileUploads.add(FailedFileUpload.builder()
@@ -151,6 +187,85 @@ public class UploadDirectoryHelper {
         });
         CompletableFutureUtils.forwardExceptionTo(future, executionFuture);
         return future;
+    }
+
+    /**
+     * Returns the directory below which the uploader must read {@code path} without following a symbolic link, or
+     * {@code null} if it may read the file normally.
+     *
+     * <p>
+     * With {@code followSymbolicLinks} false, {@link #listFiles} walks without {@link FileVisitOption#FOLLOW_LINKS} and keeps
+     * only regular files that are not links. Confining every read to the source directory applies the same rule each time
+     * the file is opened, including for retries and multipart parts.
+     *
+     * <p>
+     * With {@code followSymbolicLinks} true, links are allowed, so nothing is confined. A source that the
+     * {@code uploadFileRequestTransformer} replaced was chosen by the caller rather than by the walk, so it is not confined
+     * either.
+     */
+    private static Path resolveConfineToRoot(UploadDirectoryRequest uploadDirectoryRequest,
+                                             UploadFileRequest uploadFileRequest,
+                                             boolean followSymbolicLinks,
+                                             Path path) {
+        if (followSymbolicLinks || !uploadFileRequest.source().equals(path)) {
+            return null;
+        }
+        return uploadDirectoryRequest.source();
+    }
+
+    /**
+     * Reports {@code path} as a failed upload because an earlier file in this request is already being uploaded to the same
+     * bucket and key.
+     *
+     * <p>
+     * The failure keeps the real key in its request. This is deliberately the opposite of a refused key in downloadDirectory,
+     * which reports a placeholder destination: there, the real path is unsafe to touch, while here the key is a valid S3 key
+     * and is the only way for the caller to see which object the two files collided on. The cost is that the key belongs to
+     * the earlier file's object. A verbatim retry of this request overwrites that object, and a cleanup that deletes the keys
+     * of failed uploads deletes it, so callers must not blindly retry or delete failed keys. The exception message and the
+     * {@code s3Delimiter} Javadoc say so.
+     */
+    private static CompletableFuture<CompletedFileUpload> skipDuplicateKey(UploadDirectoryRequest uploadDirectoryRequest,
+                                                                           Collection<FailedFileUpload> failedFileUploads,
+                                                                           UploadFileRequest uploadFileRequest,
+                                                                           Path earlier,
+                                                                           Path path) {
+        String key = uploadFileRequest.putObjectRequest().key();
+        SdkClientException e = SdkClientException.create(String.format(
+            "Skipped uploading %s: %s is already being uploaded to key %s in this request. The delimiter \"%s\" appears in "
+            + "a file or directory name, so two files map to the same key. Retrying this request would overwrite that object.",
+            path, earlier, key, resolveDelimiter(uploadDirectoryRequest)));
+        log.debug(() -> e.getMessage());
+        failedFileUploads.add(FailedFileUpload.builder()
+                                              .exception(e)
+                                              .request(uploadFileRequest)
+                                              .build());
+        return CompletableFutureUtils.failedFuture(e);
+    }
+
+    /**
+     * The S3 object a request writes to. A bucket name can't contain "\0", so joining on it can't make two different
+     * bucket and key pairs equal.
+     */
+    private static String objectIdentity(UploadFileRequest uploadFileRequest) {
+        PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
+        return putObjectRequest.bucket() + "\0" + putObjectRequest.key();
+    }
+
+    /**
+     * Whether {@code delimiter} can occur inside a single file or directory name on {@code fileSystem}. Only then can two
+     * different files derive the same key. "/" is excluded on every file system because it is not allowed in a name on Unix
+     * or on Windows, where it is also accepted as a separator.
+     */
+    @SdkTestInternalApi
+    static boolean delimiterCanOccurInFileName(String delimiter, FileSystem fileSystem) {
+        return !delimiter.equals(fileSystem.getSeparator()) && !"/".equals(delimiter);
+    }
+
+    private static String resolveDelimiter(UploadDirectoryRequest uploadDirectoryRequest) {
+        return uploadDirectoryRequest.s3Delimiter()
+                                     .filter(s -> !s.isEmpty())
+                                     .orElse(DEFAULT_DELIMITER);
     }
 
     private Stream<Path> listFiles(Path directory, UploadDirectoryRequest request) {
@@ -208,10 +323,7 @@ public class UploadDirectoryHelper {
     private UploadFileRequest constructUploadRequest(UploadDirectoryRequest uploadDirectoryRequest,
                                                      int directoryNameCount,
                                                      Path path) {
-        String delimiter =
-            uploadDirectoryRequest.s3Delimiter()
-                                  .filter(s -> !s.isEmpty())
-                                  .orElse(DEFAULT_DELIMITER);
+        String delimiter = resolveDelimiter(uploadDirectoryRequest);
 
         String prefix = uploadDirectoryRequest.s3Prefix()
                                               .map(s -> normalizePrefix(s, delimiter))

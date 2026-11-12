@@ -78,6 +78,12 @@
       "output_token": "NextToken",
       "result_key": "CapacityReservationBillingRequests"
     },
+    "DescribeCapacityReservationDateChangeQuotes": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "CapacityReservationModificationQuotes"
+    },
     "DescribeCapacityReservationFleets": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -892,6 +898,12 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "CapacityReservationGroups"
+    },
+    "GetImageFindings": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "ImageFindings"
     },
     "GetInstanceTypesFromInstanceRequirements": {
       "input_token": "NextToken",

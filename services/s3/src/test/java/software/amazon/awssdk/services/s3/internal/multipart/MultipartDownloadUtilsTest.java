@@ -88,6 +88,36 @@ class MultipartDownloadUtilsTest {
     }
 
     @Test
+    void parseContentRange_oversizedNumericFields_shouldReturnNullWithoutThrowing() {
+        assertThat(MultipartDownloadUtils.parseContentRange("bytes 99999999999999999999-0/10")).isNull();
+        assertThat(MultipartDownloadUtils.parseContentRange("bytes 0-99999999999999999999/10")).isNull();
+        // Oversized total is not part of the [start, end] result, so start/end still parse
+        long[] result = MultipartDownloadUtils.parseContentRange("bytes 0-15/99999999999999999999");
+        assertThat(result).containsExactly(0L, 15L);
+    }
+
+    @Test
+    void parseContentRangeForTotalSize_oversizedTotal_shouldReturnEmptyWithoutThrowing() {
+        assertThat(MultipartDownloadUtils.parseContentRangeForTotalSize("bytes 0-15/99999999999999999999")).isEmpty();
+        assertThat(MultipartDownloadUtils.parseContentRangeForTotalSize("bytes 0-15/9223372036854775807"))
+            .contains(Long.MAX_VALUE);
+    }
+
+    @Test
+    void toFullObjectResponse_oversizedTotal_returnsUnchanged() {
+        GetObjectResponse response = GetObjectResponse.builder()
+            .contentLength(16L)
+            .contentRange("bytes 0-15/99999999999999999999")
+            .build();
+        response = setHttpResponse(response, 206, "Partial Content");
+
+        GetObjectResponse result = MultipartDownloadUtils.toFullObjectResponse(response);
+
+        assertThat(result.contentLength()).isEqualTo(16L);
+        assertThat(result.contentRange()).isEqualTo("bytes 0-15/99999999999999999999");
+    }
+
+    @Test
     void calculateTotalParts_shouldCalculateCorrectly() {
         assertThat(MultipartDownloadUtils.calculateTotalParts(32, 16)).isEqualTo(2);   // exact fit
         assertThat(MultipartDownloadUtils.calculateTotalParts(33, 16)).isEqualTo(3);   // remainder rounds up
