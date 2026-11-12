@@ -123,10 +123,9 @@ public @interface DynamoDBTypeConvertedTimestamp {
 
         /**
          * The default pattern in a fixed UTC zone is the format the mapper already writes for an unannotated
-         * {@link Date}, so this reproduces the bytes v1 wrote. Any other pattern or zone needs Joda-Time's pattern
-         * semantics. So does a {@code DateTime}, which carries its own chronology that a {@link Date} cannot
-         * represent. This returns {@code null} in those cases, and for a target type the factory cannot map to
-         * {@link Date}, so that the caller falls back to Joda-Time.
+         * {@link Date}, so this reproduces the bytes v1 wrote. Returns {@code null} for any other pattern or zone,
+         * and for a {@code DateTime}, which carries its own chronology that a {@link Date} cannot represent, so
+         * that the caller falls back to Joda-Time.
          */
         private static <T> DynamoDBTypeConverter<String,T> iso8601Converter(
                 Class<T> targetType, DynamoDBTypeConvertedTimestamp annotation) {
@@ -135,13 +134,8 @@ public @interface DynamoDBTypeConvertedTimestamp {
                 || !isFixedUtc(annotation.timeZone())) {
                 return null;
             }
-            try {
-                return DynamoDBTypeConverter.AbstractConverter.join(
-                    DEFAULT_FORMAT, StandardTypeConverters.factory().getConverter(Date.class, targetType));
-            } catch (DynamoDBMappingException e) {
-                // Not a type the standard Date converters handle; leave it to Joda-Time.
-                return null;
-            }
+            return DynamoDBTypeConverter.AbstractConverter.join(
+                DEFAULT_FORMAT, StandardTypeConverters.factory().getConverter(Date.class, targetType));
         }
 
         /** A fixed zero offset, so the pattern's literal {@code Z} is right for every instant. */

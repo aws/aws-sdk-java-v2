@@ -271,6 +271,22 @@ class DynamoDBMapperWithoutJodaTimeTest {
         }
     }
 
+    /** An unsupported attribute type must report itself, not blame the missing Joda-Time. */
+    @Test
+    void getTableModel_typeConvertedTimestampOnUnsupportedType_throwsUnsupportedTypeMessage() {
+        Throwable thrown = catchThrowable(() -> mapper.getTableModel(UnsupportedTypeTimestamp.class));
+
+        Throwable root = thrown;
+        while (root.getCause() != null) {
+            root = root.getCause();
+        }
+        assertThat(root)
+            .isInstanceOf(DynamoDBMappingException.class)
+            .hasMessageContaining("java.lang.Integer")
+            .hasMessageContaining("not supported")
+            .hasMessageNotContaining("Joda-Time");
+    }
+
     private static void assertMissingJodaTime(ThrowingCallable call, String message) {
         Throwable thrown = catchThrowable(call);
         assertThat(thrown).isInstanceOf(DynamoDBMappingException.class);
@@ -457,6 +473,30 @@ class DynamoDBMapperWithoutJodaTimeTest {
         @DynamoDBTypeConvertedTimestamp(timeZone = "America/New_York")
         public Date getCreated() {
             return super.getCreated();
+        }
+    }
+
+    @DynamoDBTable(tableName = "dates")
+    public static class UnsupportedTypeTimestamp {
+        private String id;
+        private Integer notADate;
+
+        @DynamoDBHashKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        @DynamoDBTypeConvertedTimestamp
+        public Integer getNotADate() {
+            return notADate;
+        }
+
+        public void setNotADate(Integer notADate) {
+            this.notADate = notADate;
         }
     }
 
