@@ -20,20 +20,22 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.TimeZone;
 
 import software.amazon.awssdk.annotations.SdkPreviewApi;
+import software.amazon.awssdk.mapper.dynamodb.internal.MapperDateUtils;
 
 /**
  * Annotation to format a timestamp object as a string with a date and time
  * pattern.
  *
- * <p>This annotation requires Joda-Time, which is an optional dependency of the
- * mapper. Add {@code joda-time:joda-time} to your application's dependencies to
- * use it. Without it, building the table model for a class that uses this
- * annotation fails with a {@link DynamoDBMappingException}.</p>
+ * <p>The default pattern and time zone need no extra dependency. Any other {@link #pattern()} or
+ * {@link #timeZone()} requires Joda-Time, an optional dependency of the mapper; without it, building the table
+ * model for such a field fails with a {@link DynamoDBMappingException}.</p>
  *
- * <p>The pattern is interpreted by Joda-Time's
+ * <p>Custom patterns are interpreted by Joda-Time's
  * <a href="https://www.joda.org/joda-time/apidocs/org/joda/time/format/DateTimeFormat.html">DateTimeFormat</a>,
  * as in the v1 mapper, so that values written by v1 read back unchanged. Most
  * patterns mean the same as in {@link java.text.SimpleDateFormat}, but some
@@ -79,15 +81,34 @@ public @interface DynamoDBTypeConvertedTimestamp {
      * Timestamp format converter.
      */
     static final class Converter<T> implements DynamoDBTypeConverter<String,T> {
+        private static final String DEFAULT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+
+        /** Writes what the mapper writes for an unannotated {@link Date}, and reads only that format back. */
+        private static final DynamoDBTypeConverter<String,Date> DEFAULT_FORMAT =
+            new DynamoDBTypeConverter<String,Date>() {
+                @Override
+                public String convert(Date date) {
+                    return MapperDateUtils.formatISO8601Date(date);
+                }
+
+                @Override
+                public Date unconvert(String value) {
+                    return MapperDateUtils.parseDefaultTimestamp(value);
+                }
+            };
+
         private final DynamoDBTypeConverter<String,T> delegate;
 
         public Converter(Class<T> targetType, DynamoDBTypeConvertedTimestamp annotation) {
-            // Check first, so a missing Joda-Time fails here with a clear message rather than as a
-            // NoClassDefFoundError.
-            if (!JodaTimeSupport.isAvailable()) {
+            DynamoDBTypeConverter<String,T> iso8601 = iso8601Converter(targetType, annotation);
+            if (iso8601 != null) {
+                this.delegate = iso8601;
+            } else if (JodaTimeSupport.isAvailable()) {
+                this.delegate = new JodaTimestampConverter<T>(targetType, annotation.pattern(), annotation.timeZone());
+            } else {
+                // Fail here with a clear message rather than as a NoClassDefFoundError.
                 throw JodaTimeSupport.missing("@DynamoDBTypeConvertedTimestamp");
             }
-            this.delegate = new JodaTimestampConverter<T>(targetType, annotation.pattern(), annotation.timeZone());
         }
 
         @Override
@@ -98,6 +119,28 @@ public @interface DynamoDBTypeConvertedTimestamp {
         @Override
         public final T unconvert(final String object) {
             return delegate.unconvert(object);
+        }
+
+        /**
+         * The default pattern in a fixed UTC zone is the format the mapper already writes for an unannotated
+         * {@link Date}, so this reproduces the bytes v1 wrote. Returns {@code null} for any other pattern or zone,
+         * and for a {@code DateTime}, which carries its own chronology that a {@link Date} cannot represent, so
+         * that the caller falls back to Joda-Time.
+         */
+        private static <T> DynamoDBTypeConverter<String,T> iso8601Converter(
+                Class<T> targetType, DynamoDBTypeConvertedTimestamp annotation) {
+            if (JodaTimeSupport.isDateTime(targetType)
+                || !DEFAULT_PATTERN.equals(annotation.pattern())
+                || !isFixedUtc(annotation.timeZone())) {
+                return null;
+            }
+            return DynamoDBTypeConverter.AbstractConverter.join(
+                DEFAULT_FORMAT, StandardTypeConverters.factory().getConverter(Date.class, targetType));
+        }
+
+        /** A fixed zero offset, so the pattern's literal {@code Z} is right for every instant. */
+        private static boolean isFixedUtc(String timeZone) {
+            return TimeZone.getTimeZone(timeZone).toZoneId().normalized().equals(ZoneOffset.UTC);
         }
     }
 

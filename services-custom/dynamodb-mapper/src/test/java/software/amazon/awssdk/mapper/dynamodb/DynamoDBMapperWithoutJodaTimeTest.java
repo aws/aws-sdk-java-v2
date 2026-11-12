@@ -26,6 +26,7 @@ import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -119,8 +120,61 @@ class DynamoDBMapperWithoutJodaTimeTest {
     }
 
     @Test
-    void getTableModel_typeConvertedTimestamp_throwsMissingJodaTimeMessage() {
-        assertMissingJodaTime(() -> mapper.getTableModel(TypeConvertedTimestamp.class),
+    void getTableModel_typeConvertedTimestampWithDefaults_roundTripsWithoutJodaTime() {
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        calendar.setTimeInMillis(MILLIS);
+        GregorianCalendar gregorian = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        gregorian.setTimeInMillis(MILLIS);
+        TypeConvertedTimestamp item = new TypeConvertedTimestamp();
+        item.setId("1");
+        item.setCreated(new Date(MILLIS));
+        item.setCalendar(calendar);
+        item.setGregorian(gregorian);
+        item.setEpochMillis(MILLIS);
+        item.setPrimitiveMillis(MILLIS);
+        item.setDateString("2023-11-14T22:13:20.123Z");
+
+        DynamoDBMapperTableModel<TypeConvertedTimestamp> model = mapper.getTableModel(TypeConvertedTimestamp.class);
+        Map<String, AttributeValue> stored = model.convert(item);
+        TypeConvertedTimestamp loaded = model.unconvert(stored);
+
+        assertThat(stored.get("created").s()).isEqualTo("2023-11-14T22:13:20.123Z");
+        assertThat(stored.get("calendar").s()).isEqualTo("2023-11-14T22:13:20.123Z");
+        assertThat(stored.get("gregorian").s()).isEqualTo("2023-11-14T22:13:20.123Z");
+        assertThat(stored.get("epochMillis").s()).isEqualTo("2023-11-14T22:13:20.123Z");
+        assertThat(stored.get("primitiveMillis").s()).isEqualTo("2023-11-14T22:13:20.123Z");
+        assertThat(stored.get("dateString").s()).isEqualTo("2023-11-14T22:13:20.123Z");
+        assertThat(loaded.getCreated()).isEqualTo(new Date(MILLIS));
+        assertThat(loaded.getCalendar().getTimeInMillis()).isEqualTo(MILLIS);
+        assertThat(loaded.getGregorian().getTimeInMillis()).isEqualTo(MILLIS);
+        assertThat(loaded.getEpochMillis()).isEqualTo(MILLIS);
+        assertThat(loaded.getPrimitiveMillis()).isEqualTo(MILLIS);
+        assertThat(loaded.getDateString()).isEqualTo("2023-11-14T22:13:20.123Z");
+    }
+
+    /** {@code GMT} is the same fixed zero offset as the default {@code UTC}, so it needs no Joda-Time either. */
+    @Test
+    void getTableModel_typeConvertedTimestampWithEquivalentUtcZone_roundTripsWithoutJodaTime() {
+        DynamoDBMapperTableModel<GmtTimeZoneTimestamp> model = mapper.getTableModel(GmtTimeZoneTimestamp.class);
+        GmtTimeZoneTimestamp item = new GmtTimeZoneTimestamp();
+        item.setId("1");
+        item.setCreated(new Date(MILLIS));
+
+        Map<String, AttributeValue> stored = model.convert(item);
+
+        assertThat(stored.get("created").s()).isEqualTo("2023-11-14T22:13:20.123Z");
+        assertThat(model.unconvert(stored).getCreated()).isEqualTo(new Date(MILLIS));
+    }
+
+    @Test
+    void getTableModel_typeConvertedTimestampWithCustomPattern_throwsMissingJodaTimeMessage() {
+        assertMissingJodaTime(() -> mapper.getTableModel(CustomPatternTimestamp.class),
+                              "@DynamoDBTypeConvertedTimestamp requires Joda-Time");
+    }
+
+    @Test
+    void getTableModel_typeConvertedTimestampWithCustomTimeZone_throwsMissingJodaTimeMessage() {
+        assertMissingJodaTime(() -> mapper.getTableModel(CustomTimeZoneTimestamp.class),
                               "@DynamoDBTypeConvertedTimestamp requires Joda-Time");
     }
 
@@ -215,6 +269,22 @@ class DynamoDBMapperWithoutJodaTimeTest {
                 return loaded;
             }
         }
+    }
+
+    /** An unsupported attribute type must report itself, not blame the missing Joda-Time. */
+    @Test
+    void getTableModel_typeConvertedTimestampOnUnsupportedType_throwsUnsupportedTypeMessage() {
+        Throwable thrown = catchThrowable(() -> mapper.getTableModel(UnsupportedTypeTimestamp.class));
+
+        Throwable root = thrown;
+        while (root.getCause() != null) {
+            root = root.getCause();
+        }
+        assertThat(root)
+            .isInstanceOf(DynamoDBMappingException.class)
+            .hasMessageContaining("java.lang.Integer")
+            .hasMessageContaining("not supported")
+            .hasMessageNotContaining("Joda-Time");
     }
 
     private static void assertMissingJodaTime(ThrowingCallable call, String message) {
@@ -318,6 +388,11 @@ class DynamoDBMapperWithoutJodaTimeTest {
     public static class TypeConvertedTimestamp {
         private String id;
         private Date created;
+        private Calendar calendar;
+        private GregorianCalendar gregorian;
+        private Long epochMillis;
+        private long primitiveMillis;
+        private String dateString;
 
         @DynamoDBHashKey
         public String getId() {
@@ -335,6 +410,102 @@ class DynamoDBMapperWithoutJodaTimeTest {
 
         public void setCreated(Date created) {
             this.created = created;
+        }
+
+        @DynamoDBTypeConvertedTimestamp
+        public Calendar getCalendar() {
+            return calendar;
+        }
+
+        public void setCalendar(Calendar calendar) {
+            this.calendar = calendar;
+        }
+
+        @DynamoDBTypeConvertedTimestamp
+        public GregorianCalendar getGregorian() {
+            return gregorian;
+        }
+
+        public void setGregorian(GregorianCalendar gregorian) {
+            this.gregorian = gregorian;
+        }
+
+        @DynamoDBTypeConvertedTimestamp
+        public Long getEpochMillis() {
+            return epochMillis;
+        }
+
+        public void setEpochMillis(Long epochMillis) {
+            this.epochMillis = epochMillis;
+        }
+
+        @DynamoDBTypeConvertedTimestamp
+        public long getPrimitiveMillis() {
+            return primitiveMillis;
+        }
+
+        public void setPrimitiveMillis(long primitiveMillis) {
+            this.primitiveMillis = primitiveMillis;
+        }
+
+        @DynamoDBTypeConvertedTimestamp
+        public String getDateString() {
+            return dateString;
+        }
+
+        public void setDateString(String dateString) {
+            this.dateString = dateString;
+        }
+    }
+
+    @DynamoDBTable(tableName = "dates")
+    public static class CustomPatternTimestamp extends TypeConvertedTimestamp {
+        @Override
+        @DynamoDBTypeConvertedTimestamp(pattern = "yyyyMMddHHmmssSSS")
+        public Date getCreated() {
+            return super.getCreated();
+        }
+    }
+
+    @DynamoDBTable(tableName = "dates")
+    public static class CustomTimeZoneTimestamp extends TypeConvertedTimestamp {
+        @Override
+        @DynamoDBTypeConvertedTimestamp(timeZone = "America/New_York")
+        public Date getCreated() {
+            return super.getCreated();
+        }
+    }
+
+    @DynamoDBTable(tableName = "dates")
+    public static class UnsupportedTypeTimestamp {
+        private String id;
+        private Integer notADate;
+
+        @DynamoDBHashKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        @DynamoDBTypeConvertedTimestamp
+        public Integer getNotADate() {
+            return notADate;
+        }
+
+        public void setNotADate(Integer notADate) {
+            this.notADate = notADate;
+        }
+    }
+
+    @DynamoDBTable(tableName = "dates")
+    public static class GmtTimeZoneTimestamp extends TypeConvertedTimestamp {
+        @Override
+        @DynamoDBTypeConvertedTimestamp(timeZone = "GMT")
+        public Date getCreated() {
+            return super.getCreated();
         }
     }
 }

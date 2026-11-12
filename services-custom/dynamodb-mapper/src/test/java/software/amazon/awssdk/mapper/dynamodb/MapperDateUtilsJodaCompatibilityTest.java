@@ -28,9 +28,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.mapper.dynamodb.internal.MapperDateUtils;
 
 /**
- * Checks that the {@code java.time} implementation of {@link MapperDateUtils} formats and parses exactly as the
- * original Joda-Time implementation ({@link JodaIso8601Reference}) did, so that dates written by the v1 mapper and
- * by earlier versions of this mapper read back, and new values are stored and sorted the same way.
+ * Checks that the {@code java.time} implementation of {@link MapperDateUtils} formats and parses as the original
+ * Joda-Time implementation ({@link JodaIso8601Reference}) did, except that values outside the range of {@link Date}
+ * are rejected instead of overflowing.
  */
 class MapperDateUtilsJodaCompatibilityTest {
 
@@ -70,6 +70,34 @@ class MapperDateUtilsJodaCompatibilityTest {
             .isEqualTo("10000-01-01T00:00:00.000Z");
         assertThat(MapperDateUtils.formatISO8601Date(new Date(Long.MIN_VALUE)))
             .isEqualTo("-292275055-05-16T16:47:04.192Z");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "0000-01-01T00:00:00.000Z",
+        "0000-02-29T23:59:59.999Z",
+        "1900-02-28T23:59:59.999Z",
+        "1969-12-31T23:59:59.999Z",
+        "1970-01-01T00:00:00.000Z",
+        "2000-02-29T00:00:00.000Z",
+        "9999-12-31T23:59:59.999Z"
+    })
+    void canonicalDateFastPath_matchesJodaAndRoundTrips(String input) {
+        Date expected = JodaIso8601Reference.parseISO8601Date(input);
+        assertThat(MapperDateUtils.parseISO8601Date(input)).isEqualTo(expected);
+        assertThat(MapperDateUtils.formatISO8601Date(expected)).isEqualTo(input);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "-0001-12-31T23:59:59.999Z",
+        "10000-01-01T00:00:00.000Z"
+    })
+    void datesOutsideCanonicalYearRange_useCompatibleFallback(String input) {
+        Date expected = JodaIso8601Reference.parseISO8601Date(input);
+        assertThat(MapperDateUtils.parseISO8601Date(input)).isEqualTo(expected);
+        assertThat(MapperDateUtils.formatISO8601Date(expected))
+            .isEqualTo(JodaIso8601Reference.formatISO8601Date(expected));
     }
 
     @ParameterizedTest
