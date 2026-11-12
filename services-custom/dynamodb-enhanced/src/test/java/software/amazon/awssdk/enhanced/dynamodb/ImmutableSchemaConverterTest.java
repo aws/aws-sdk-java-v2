@@ -54,6 +54,15 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  */
 public class ImmutableSchemaConverterTest {
 
+    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
+                                                        EnhancedType<?> collectionType,
+                                                        String role) {
+        return "Converter not found for " + nestedType
+               + " (" + role + " of " + collectionType + "). "
+               + "DefaultAttributeConverterProvider resolves collection " + role
+               + " types only from its own converters.";
+    }
+
     @BeforeEach
     void setUp() {
         clearSchemaCache(BeanTableSchema.class);
@@ -376,7 +385,9 @@ public class ImmutableSchemaConverterTest {
 
         assertThatThrownBy(() -> TableSchema.fromImmutableClass(UnsupportedSetModel.class))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(UnsupportedType.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(UnsupportedType.class),
+                                                      EnhancedType.setOf(UnsupportedType.class),
+                                                      "element"));
         assertThat(UnsupportedTypeOnlyProvider.current().requestedTypes()).hasSize(1);
         EnhancedType<?> requestedType = UnsupportedTypeOnlyProvider.current().requestedTypes().get(0);
         assertThat(requestedType.rawClass()).isEqualTo(Set.class);

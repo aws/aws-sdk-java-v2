@@ -507,7 +507,9 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     private static void requireTypeParameters(EnhancedType<?> type) {
         if (CollectionUtils.isNullOrEmpty(type.rawClassParameters())) {
-            throw new IllegalStateException("Converter not found for " + type + ". Type parameters are required for this type.");
+            throw new IllegalStateException(
+                "AttributeConverter not found for class " + type
+                + ". Type parameters are required for this type.");
         }
     }
 }

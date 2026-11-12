@@ -56,6 +56,15 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  */
 public class StaticImmutableSchemaConverterTest {
 
+    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
+                                                        EnhancedType<?> collectionType,
+                                                        String role) {
+        return "Converter not found for " + nestedType
+               + " (" + role + " of " + collectionType + "). "
+               + "DefaultAttributeConverterProvider resolves collection " + role
+               + " types only from its own converters.";
+    }
+
     @Test
     @DisplayName("Instant attribute selects InstantAsStringAttributeConverter and round-trips the input")
     void converterForAttribute_whenInstantValue_selectsInstantConverterAndRebuildsEqualValue() {
@@ -478,7 +487,7 @@ public class StaticImmutableSchemaConverterTest {
                     .getter(UnsupportedListItem::value).setter(UnsupportedListItem.Builder::value))
                 .build())
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(UnsupportedType.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(UnsupportedType.class), type, "element"));
         assertThat(custom.requestedTypes()).containsExactly(type);
     }
 

@@ -50,6 +50,15 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  */
 public class EnhancedDocumentConverterTest {
 
+    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
+                                                        EnhancedType<?> collectionType,
+                                                        String role) {
+        return "Converter not found for " + nestedType
+               + " (" + role + " of " + collectionType + "). "
+               + "DefaultAttributeConverterProvider resolves collection " + role
+               + " types only from its own converters.";
+    }
+
     @Test
     @DisplayName("Typed scalar conversion stores S text and reads the original string")
     void putThenGet_whenStringType_storesSTextAndReadsOriginalString() {
@@ -635,7 +644,7 @@ public class EnhancedDocumentConverterTest {
                                                  .build()
                                                  .toMap())
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(UnsupportedType.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(UnsupportedType.class), type, "element"));
         assertThat(provider.requestedTypes()).containsExactly(type);
     }
 

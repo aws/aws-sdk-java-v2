@@ -47,6 +47,15 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  */
 public class DefaultAttributeConverterProviderCollectionTest {
 
+    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
+                                                        EnhancedType<?> collectionType,
+                                                        String role) {
+        return "Converter not found for " + nestedType
+               + " (" + role + " of " + collectionType + "). "
+               + "DefaultAttributeConverterProvider resolves collection " + role
+               + " types only from its own converters.";
+    }
+
     // List declarations and nested list values.
     @Test
     @DisplayName("List conversion preserves order and duplicates as an ArrayList")
@@ -286,7 +295,7 @@ public class DefaultAttributeConverterProviderCollectionTest {
 
         assertThatThrownBy(() -> listProvider.converterFor(type))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(Object.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(Object.class), type, "element"));
     }
 
     @Test
@@ -297,7 +306,7 @@ public class DefaultAttributeConverterProviderCollectionTest {
 
         assertThatThrownBy(() -> listProvider.converterFor(type))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(ListDocumentType.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(ListDocumentType.class), type, "element"));
     }
 
     @Test
@@ -321,7 +330,7 @@ public class DefaultAttributeConverterProviderCollectionTest {
 
         assertThatThrownBy(() -> listProvider.converterFor(type))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(Object.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(Object.class), innerType, "element"));
     }
 
     @Test
@@ -589,7 +598,7 @@ public class DefaultAttributeConverterProviderCollectionTest {
 
         assertThatThrownBy(() -> setProvider.converterFor(type))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(Object.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(Object.class), type, "element"));
     }
 
     @Test
@@ -600,7 +609,7 @@ public class DefaultAttributeConverterProviderCollectionTest {
 
         assertThatThrownBy(() -> setProvider.converterFor(type))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(SetDocumentType.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(SetDocumentType.class), type, "element"));
     }
 
     @Test
@@ -975,7 +984,7 @@ public class DefaultAttributeConverterProviderCollectionTest {
 
         assertThatThrownBy(() -> mapProvider.converterFor(type))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(Object.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(Object.class), type, "value"));
     }
 
     @Test
@@ -986,7 +995,7 @@ public class DefaultAttributeConverterProviderCollectionTest {
 
         assertThatThrownBy(() -> mapProvider.converterFor(type))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(MapDocumentType.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(MapDocumentType.class), type, "value"));
     }
 
     @Test
@@ -1182,19 +1191,20 @@ public class DefaultAttributeConverterProviderCollectionTest {
 
         assertThatThrownBy(() -> mapProvider.converterFor(type))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(Object.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(Object.class), listType, "element"));
     }
 
     @Test
     @DisplayName("A nested list of an unsupported member reports that member in the error")
     void converterFor_whenNestedListOfUnsupportedType_throwsConverterNotFoundForMember() {
         DefaultAttributeConverterProvider mapProvider = new DefaultAttributeConverterProvider();
+        EnhancedType<List<MapUnsupportedType>> listType = EnhancedType.listOf(MapUnsupportedType.class);
         EnhancedType<Map<String, List<MapUnsupportedType>>> type =
-            EnhancedType.mapOf(EnhancedType.of(String.class), EnhancedType.listOf(MapUnsupportedType.class));
+            EnhancedType.mapOf(EnhancedType.of(String.class), listType);
 
         assertThatThrownBy(() -> mapProvider.converterFor(type))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(MapUnsupportedType.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(MapUnsupportedType.class), listType, "element"));
     }
 
     @Test

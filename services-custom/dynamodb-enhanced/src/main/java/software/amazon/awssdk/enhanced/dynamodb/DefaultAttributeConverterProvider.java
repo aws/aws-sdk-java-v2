@@ -168,7 +168,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
             } else if (type.rawClass().isAssignableFrom(List.class)) {
                 requireTypeParameters(type);
                 EnhancedType<T> innerType = (EnhancedType<T>) type.rawClassParameters().get(0);
-                AttributeConverter<?> innerConverter = converterFor(innerType);
+                AttributeConverter<?> innerConverter = converterFor(innerType, type);
                 return Optional.of((AttributeConverter<T>) ListAttributeConverter.create(innerConverter));
             } else if (type.rawClass().isEnum()) {
                 return Optional.of(EnumAttributeConverter.create(((EnhancedType<? extends Enum>) type).rawClass()));
@@ -197,13 +197,28 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
         }
     }
 
+    private <T> AttributeConverter<T> converterFor(EnhancedType<T> type,
+                                                    EnhancedType<?> containerType) {
+        return findConverter(type)
+            .orElseThrow(() -> converterNotFound(type, containerType));
+    }
+
+    private static IllegalStateException converterNotFound(EnhancedType<?> type,
+                                                           EnhancedType<?> containerType) {
+        String elementOrValue = containerType.rawClass().isAssignableFrom(Map.class) ? "value" : "element";
+        return new IllegalStateException("Converter not found for " + type
+                                         + " (" + elementOrValue + " of " + containerType + "). "
+                                         + "DefaultAttributeConverterProvider resolves collection " + elementOrValue
+                                         + " types only from its own converters.");
+    }
+
     @SuppressWarnings("unchecked")
     private <T> AttributeConverter<T> createMapConverter(EnhancedType<T> type) {
         EnhancedType<?> keyType = type.rawClassParameters().get(0);
         EnhancedType<T> valueType = (EnhancedType<T>) type.rawClassParameters().get(1);
 
         StringConverter<?> keyConverter = StringConverterProvider.defaultProvider().converterFor(keyType);
-        AttributeConverter<?> valueConverter = converterFor(valueType);
+        AttributeConverter<?> valueConverter = converterFor(valueType, type);
 
         return (AttributeConverter<T>) MapAttributeConverter.mapConverter(keyConverter, valueConverter);
     }
@@ -211,7 +226,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
     @SuppressWarnings("unchecked")
     private <T> AttributeConverter<T> createSetConverter(EnhancedType<T> type) {
         EnhancedType<T> innerType = (EnhancedType<T>) type.rawClassParameters().get(0);
-        AttributeConverter<?> innerConverter = converterFor(innerType);
+        AttributeConverter<?> innerConverter = converterFor(innerType, type);
 
         return (AttributeConverter<T>) SetAttributeConverter.setConverter(innerConverter);
     }

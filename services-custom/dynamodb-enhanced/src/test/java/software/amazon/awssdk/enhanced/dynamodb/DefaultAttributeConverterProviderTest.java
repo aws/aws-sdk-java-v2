@@ -87,7 +87,9 @@ public class DefaultAttributeConverterProviderTest {
 
         assertThatThrownBy(() -> provider.converterFor(EnhancedType.mapOf(String.class, Object.class)))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(Object.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(Object.class),
+                                                      EnhancedType.mapOf(String.class, Object.class),
+                                                      "value"));
     }
 
     @Test
@@ -96,7 +98,9 @@ public class DefaultAttributeConverterProviderTest {
 
         assertThatThrownBy(() -> provider.converterFor(EnhancedType.mapOf(String.class, CustomUnsupportedType.class)))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(CustomUnsupportedType.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(CustomUnsupportedType.class),
+                                                      EnhancedType.mapOf(String.class, CustomUnsupportedType.class),
+                                                      "value"));
     }
 
     @Test
@@ -114,7 +118,9 @@ public class DefaultAttributeConverterProviderTest {
 
         assertThatThrownBy(() -> provider.converterFor(EnhancedType.setOf(CustomUnsupportedType.class)))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(CustomUnsupportedType.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(CustomUnsupportedType.class),
+                                                      EnhancedType.setOf(CustomUnsupportedType.class),
+                                                      "element"));
     }
 
     @Test
@@ -132,7 +138,9 @@ public class DefaultAttributeConverterProviderTest {
 
         assertThatThrownBy(() -> provider.converterFor(EnhancedType.listOf(CustomUnsupportedType.class)))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(CustomUnsupportedType.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(CustomUnsupportedType.class),
+                                                      EnhancedType.listOf(CustomUnsupportedType.class),
+                                                      "element"));
     }
 
     @Test
@@ -156,6 +164,15 @@ public class DefaultAttributeConverterProviderTest {
         assertThat(provider.converterFor(EnhancedType.documentOf(TestDocument.class, schema))
                            .transformFrom(new TestDocument("value")).m())
             .containsEntry("value", AttributeValue.builder().s("value").build());
+    }
+
+    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
+                                                        EnhancedType<?> collectionType,
+                                                        String role) {
+        return "Converter not found for " + nestedType
+               + " (" + role + " of " + collectionType + "). "
+               + "DefaultAttributeConverterProvider resolves collection " + role
+               + " types only from its own converters.";
     }
 
     /**

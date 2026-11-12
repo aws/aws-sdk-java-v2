@@ -53,6 +53,15 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  */
 public class StaticSchemaConverterTest {
 
+    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
+                                                        EnhancedType<?> collectionType,
+                                                        String role) {
+        return "Converter not found for " + nestedType
+               + " (" + role + " of " + collectionType + "). "
+               + "DefaultAttributeConverterProvider resolves collection " + role
+               + " types only from its own converters.";
+    }
+
     @Test
     @DisplayName("UUID attribute selects UuidAttributeConverter and round-trips the input")
     void converterForAttribute_whenUuidValue_selectsUuidConverterAndReadsEqualValue() {
@@ -543,7 +552,7 @@ public class StaticSchemaConverterTest {
                 .getter(UnsupportedMapItem::getValue).setter(UnsupportedMapItem::setValue))
             .build())
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(UnsupportedType.class));
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(UnsupportedType.class), type, "value"));
         assertThat(custom.requestedTypes()).containsExactly(type);
     }
 

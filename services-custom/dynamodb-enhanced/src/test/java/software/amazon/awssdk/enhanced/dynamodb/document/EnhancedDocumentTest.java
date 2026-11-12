@@ -35,6 +35,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -503,6 +504,44 @@ class EnhancedDocumentTest {
         assertThatIllegalArgumentException().isThrownBy(
                                                 () -> EnhancedDocument.builder().build().get("listKey" , List.class))
                                             .withMessage("Values of type List are not supported by this API, please use the getList API instead");
+    }
+
+    @Test
+    void toMap_whenListHasNoTypeParameter_requiresTypeParameters() {
+        EnhancedDocument document = documentWithRawCollection("values", new ArrayList<>(), EnhancedType.of(List.class));
+
+        assertThatIllegalStateException()
+            .isThrownBy(document::toMap)
+            .withMessage("AttributeConverter not found for class " + EnhancedType.of(List.class)
+                         + ". Type parameters are required for this type.");
+    }
+
+    @Test
+    void toMap_whenMapHasNoTypeParameters_requiresTypeParameters() {
+        EnhancedDocument document = documentWithRawCollection("values", new HashMap<>(), EnhancedType.of(Map.class));
+
+        assertThatIllegalStateException()
+            .isThrownBy(document::toMap)
+            .withMessage("AttributeConverter not found for class " + EnhancedType.of(Map.class)
+                         + ". Type parameters are required for this type.");
+    }
+
+    @Test
+    void toMap_whenSetHasNoTypeParameter_usesProviderMessage() {
+        EnhancedDocument document = documentWithRawCollection("values", new HashSet<>(), EnhancedType.of(Set.class));
+
+        assertThatIllegalStateException()
+            .isThrownBy(document::toMap)
+            .withMessage("Converter not found for " + EnhancedType.of(Set.class)
+                         + ". Type parameters are required for this type.");
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static EnhancedDocument documentWithRawCollection(String name, Object value, EnhancedType type) {
+        return EnhancedDocument.builder()
+                               .attributeConverterProviders(defaultProvider())
+                               .put(name, value, type)
+                               .build();
     }
 
     @Test
