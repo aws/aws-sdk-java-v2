@@ -33,6 +33,7 @@ import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
@@ -66,6 +67,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final HttpMonitoringOptions httpMonitoringOptions;
     private final Boolean useEnvironmentVariableProxyOptionsValues;
     private final long maxNativeMemoryLimitInBytes;
+    private final S3CrtDirectBufferPoolConfiguration directBufferPoolConfiguration;
     private final Boolean memoryBufferDisabled;
 
     public S3NativeClientConfiguration(Builder builder) {
@@ -99,6 +101,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         // Using 0 so that CRT will calculate it based on targetThroughputGbps
         this.maxConcurrency = builder.maxConcurrency == null ? 0 : builder.maxConcurrency;
         this.maxNativeMemoryLimitInBytes = builder.maxNativeMemoryLimitInBytes == null ? 0 : builder.maxNativeMemoryLimitInBytes;
+        this.directBufferPoolConfiguration = builder.directBufferPoolConfiguration;
 
         this.endpointOverride = builder.endpointOverride;
 
@@ -195,6 +198,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return maxNativeMemoryLimitInBytes;
     }
 
+    public S3CrtDirectBufferPoolConfiguration directBufferPoolConfiguration() {
+        return directBufferPoolConfiguration;
+    }
+
     public int maxConcurrency() {
         return maxConcurrency;
     }
@@ -236,6 +243,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private StandardRetryOptions standardRetryOptions;
         private Long thresholdInBytes;
         private Long maxNativeMemoryLimitInBytes;
+        private S3CrtDirectBufferPoolConfiguration directBufferPoolConfiguration;
 
         private AttributeMap advancedOptions;
 
@@ -269,6 +277,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder maxNativeMemoryLimitInBytes(Long maxNativeMemoryLimitInBytes) {
             this.maxNativeMemoryLimitInBytes = maxNativeMemoryLimitInBytes;
+            return this;
+        }
+
+        public Builder directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration directBufferPoolConfiguration) {
+            this.directBufferPoolConfiguration = directBufferPoolConfiguration;
             return this;
         }
 

@@ -56,6 +56,10 @@ public class CodingConventionWithSuppressionTest {
                       ArchUtils.classNameToPattern(MakeHttpRequestStage.class),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.services.s3.internal.crt.S3CrtResponseHandlerAdapter"),
                       ArchUtils.classNameToPattern(
+                          "software.amazon.awssdk.services.s3.internal.crt.S3CrtBorrowedBufferResponseHandlerAdapter"),
+                      ArchUtils.classNameToPattern(
+                          "software.amazon.awssdk.services.s3.internal.crt.S3CrtBorrowedBufferInputStream"),
+                      ArchUtils.classNameToPattern(
                           "software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer"),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.AwsCrtHttpClientBase"),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils"),
