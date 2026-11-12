@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.smithy.service.s3;
+package software.amazon.awssdk.codegen.smithy.customization.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.codegen.smithy.service.SmithyServiceCustomizations;
+import software.amazon.awssdk.codegen.smithy.customization.SmithyServiceCustomizations;
 import software.amazon.smithy.model.shapes.ServiceShape;
 import software.amazon.smithy.model.shapes.ShapeId;
 

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.smithy.service;
+package software.amazon.awssdk.codegen.smithy.customization;
 
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;

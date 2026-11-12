@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.smithy.service.s3;
+package software.amazon.awssdk.codegen.smithy.customization.s3;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;

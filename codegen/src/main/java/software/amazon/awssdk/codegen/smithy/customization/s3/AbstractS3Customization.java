@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.smithy.service.s3;
+package software.amazon.awssdk.codegen.smithy.customization.s3;
 
 import java.util.Collections;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.codegen.smithy.service.SmithyServiceCustomization;
+import software.amazon.awssdk.codegen.smithy.customization.SmithyServiceCustomization;
 import software.amazon.smithy.model.shapes.ShapeId;
 
 /**

@@ -13,16 +13,22 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.smithy.service.s3;
+package software.amazon.awssdk.codegen.smithy.customization.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.codegen.model.service.AuthType;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 
-class S3SetAuthTypeTest {
+class S3ReplaceNotFoundTest {
     @Test
-    void signsWithTheS3VariantOfSigV4() {
-        assertThat(S3Fixtures.build().getMetadata().getAuthType()).isEqualTo(AuthType.S3);
+    void notFound_isNotGenerated() {
+        IntermediateModel model = S3Fixtures.build();
+
+        assertThat(model.getShapes()).doesNotContainKey("NotFoundException");
+        assertThat(model.getOperation("HeadBucket").getExceptions())
+            .extracting(e -> e.getExceptionName()).containsExactly("NoSuchBucketException");
+        assertThat(model.getOperation("HeadObject").getExceptions())
+            .extracting(e -> e.getExceptionName()).containsExactly("NoSuchKeyException");
     }
 }

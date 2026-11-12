@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.smithy.service.s3;
+package software.amazon.awssdk.codegen.smithy.customization.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.codegen.smithy.service.s3.S3Fixtures.XMLNS;
-import static software.amazon.awssdk.codegen.smithy.service.s3.S3Fixtures.intermediateModel;
-import static software.amazon.awssdk.codegen.smithy.service.s3.S3Fixtures.member;
-import static software.amazon.awssdk.codegen.smithy.service.s3.S3Fixtures.xmlRootShape;
+import static software.amazon.awssdk.codegen.smithy.customization.s3.S3Fixtures.XMLNS;
+import static software.amazon.awssdk.codegen.smithy.customization.s3.S3Fixtures.intermediateModel;
+import static software.amazon.awssdk.codegen.smithy.customization.s3.S3Fixtures.member;
+import static software.amazon.awssdk.codegen.smithy.customization.s3.S3Fixtures.xmlRootShape;
 
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
