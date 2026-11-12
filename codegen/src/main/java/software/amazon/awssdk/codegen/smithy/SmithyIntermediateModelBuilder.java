@@ -43,6 +43,7 @@ import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
+import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
 import software.amazon.awssdk.codegen.naming.DefaultSmithyNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.utils.ProtocolUtils;
@@ -67,7 +68,8 @@ import software.amazon.smithy.rulesengine.traits.ClientContextParamsTrait;
  * {@link software.amazon.awssdk.codegen.IntermediateModelBuilder}.
  *
  * <p>Source-model customizations are expected to have been applied to the model as smithy-build
- * transforms. Paginators come from {@code @paginated} and codegen overrides; waiters are not applied yet.
+ * transforms. Paginators and waiters come from {@code @paginated} and {@code @waitable}, with codegen overrides for
+ * what those traits cannot express.
  */
 public final class SmithyIntermediateModelBuilder {
 
@@ -154,6 +156,7 @@ public final class SmithyIntermediateModelBuilder {
         // The client methods follow isPaginated and the paginator classes follow the map, so the two must agree.
         operations.forEach((name, operation) -> operation.setPaginated(
             paginators.containsKey(name) && paginators.get(name).hasAllRequiredFields()));
+        Map<String, WaiterDefinition> waiters = AddSmithyWaiters.waiters(model, service);
 
         OperationModel endpointOperation = null;
         boolean endpointCacheRequired = false;
@@ -185,7 +188,7 @@ public final class SmithyIntermediateModelBuilder {
         IntermediateModel fullModel = new IntermediateModel(
             AddSmithyMetadata.constructMetadata(model, service, serviceIndex, namingStrategy, customConfig, protocol),
             operations, shapes, customConfig, endpointOperation,
-            paginators, namingStrategy, Collections.emptyMap(),
+            paginators, namingStrategy, waiters,
             endpointRuleSet, endpointTestSuiteModel, endpointBdd, clientContextParams);
 
         SmithyIntermediateModelPostprocessor.create(customConfig).postprocess(fullModel);

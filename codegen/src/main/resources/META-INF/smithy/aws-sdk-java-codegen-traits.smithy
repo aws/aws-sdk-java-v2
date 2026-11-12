@@ -44,3 +44,62 @@ structure paginatorOverride {
 list PaginatorMemberPaths {
     member: String
 }
+
+/// Java-only data for this operation's waiters, keyed by waiter name. Each entry gives maxAttempts, which Smithy
+/// waiters do not have. With delay and acceptors, the entry replaces the @waitable waiter, for a waiters-2.json
+/// waiter @waitable cannot express. With skip, no waiter is generated.
+@trait(selector: "operation")
+map waiterOverrides {
+    key: String
+    value: WaiterOverride
+}
+
+@private
+structure WaiterOverride {
+    skip: Boolean
+
+    @range(min: 1)
+    maxAttempts: Integer
+
+    @range(min: 0)
+    delay: Integer
+
+    acceptors: WaiterOverrideAcceptors
+}
+
+@private
+list WaiterOverrideAcceptors {
+    member: WaiterOverrideAcceptor
+}
+
+/// A waiters-2.json acceptor.
+@private
+structure WaiterOverrideAcceptor {
+    @required
+    matcher: WaiterOverrideMatcher
+
+    argument: String
+
+    @required
+    state: WaiterOverrideState
+
+    /// A string, number, or boolean.
+    @required
+    expected: Document
+}
+
+@private
+enum WaiterOverrideMatcher {
+    STATUS = "status"
+    ERROR = "error"
+    PATH = "path"
+    PATH_ALL = "pathAll"
+    PATH_ANY = "pathAny"
+}
+
+@private
+enum WaiterOverrideState {
+    SUCCESS = "success"
+    FAILURE = "failure"
+    RETRY = "retry"
+}

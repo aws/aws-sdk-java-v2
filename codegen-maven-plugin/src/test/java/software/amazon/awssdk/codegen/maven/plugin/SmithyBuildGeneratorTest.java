@@ -92,12 +92,14 @@ class SmithyBuildGeneratorTest {
               + " vendorParamsShape: aws.test#AwsVendorParams, expect: { success: {} } }])\n"
               + "operation Op { input: OpRequest, output: OpResponse }\n"
               + "structure OpResponse { name: String }\n"
+              + "apply Op @software.amazon.awssdk.codegen#waiterOverrides(OpDone: { maxAttempts: 5 })\n"
               + REQUEST);
         Path configFile = write(moduleDir.resolve("smithy-build.json"), config(SOURCES, PLUGIN));
 
         generate(project(moduleDir), configFile);
 
         assertTrue(containsFileEndingWith(outputDirectory(), "DemoClient.java"));
+        assertTrue(containsFileEndingWith(outputDirectory(), "DefaultDemoWaiter.java"));
     }
 
     @Test
