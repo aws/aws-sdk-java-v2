@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch",
-    "contributor": "",
-    "description": "Adds support for saving, retrieving, listing, and deleting CloudWatch metric data query definitions."
-}
