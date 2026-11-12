@@ -52,6 +52,7 @@ import software.amazon.awssdk.transfer.s3.internal.model.DefaultDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.ResumeTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
+import software.amazon.awssdk.transfer.s3.internal.utils.LogSanitizer;
 import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
@@ -271,7 +272,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
                                                                            progressUpdater, responseFileOption);
 
             newDownloadFileRequestFuture.complete(crtDownloadRequest);
-            log.debug(() -> "Sending downloadFileRequest " + crtDownloadRequest);
+            log.debug(() -> LogSanitizer.escapeControlCharacters("Sending downloadFileRequest " + crtDownloadRequest));
 
             initiateCrtDownload(crtDownloadRequest, progressUpdater, returnFuture);
             progressFuture.complete(progressUpdater.progress());

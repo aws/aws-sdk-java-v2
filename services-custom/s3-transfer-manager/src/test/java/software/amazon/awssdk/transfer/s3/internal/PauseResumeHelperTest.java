@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -23,14 +24,20 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
@@ -91,6 +98,33 @@ class PauseResumeHelperTest {
         assertThatThrownBy(() -> helper.validateResumeToken(upload))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(invalidField);
+    }
+
+    @Test
+    void hasResumeToken_keyWithControlCharacters_debugLogIsOneEscapedLine() {
+        UploadFileRequest uploadFileRequest =
+            UploadFileRequest.builder()
+                             .putObjectRequest(r -> r.bucket("bucket").key("key\r\nFORGED level=ERROR"))
+                             .source(file)
+                             .build();
+        ResumableFileUpload upload = ResumableFileUpload.builder()
+                                                        .fileLength(1000L)
+                                                        .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                                        .uploadFileRequest(uploadFileRequest)
+                                                        .build();
+        List<String> messages;
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            assertThat(helper.hasResumeToken(upload)).isFalse();
+            messages = logCaptor.loggedEvents()
+                                .stream()
+                                .filter(e -> PauseResumeHelper.class.getName().equals(e.getLoggerName()))
+                                .map(LogEvent::getMessage)
+                                .map(m -> m.getFormattedMessage())
+                                .collect(Collectors.toList());
+        }
+
+        assertThat(messages).allSatisfy(m -> assertThat(m).doesNotContain("\r", "\n"));
+        assertThat(messages).anySatisfy(m -> assertThat(m).contains("with key (key\\r\\nFORGED level=ERROR)"));
     }
 
     private ResumableFileUpload upload(Long fileLength, Long partSizeInBytes, Long totalParts, Long transferredParts) {

@@ -103,7 +103,7 @@ public class ChannelPipelineInitializerTest {
     }
 
     private ChannelPipelineInitializer createChannelPipelineInitializer(Protocol protocol, ProtocolNegotiation protocolNegotiation) {
-        AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
+        AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>(mock(ChannelPool.class));
         NettyConfiguration nettyConfiguration = new NettyConfiguration(GLOBAL_HTTP_DEFAULTS);
         SslContextProvider sslContextProvider = new SslContextProvider(nettyConfiguration,
                                                                        protocol,

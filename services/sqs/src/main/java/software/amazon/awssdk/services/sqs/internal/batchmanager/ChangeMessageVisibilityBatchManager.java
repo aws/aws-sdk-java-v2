@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
@@ -38,7 +37,8 @@ import software.amazon.awssdk.utils.Either;
 @SdkInternalApi
 public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<ChangeMessageVisibilityRequest,
     ChangeMessageVisibilityResponse,
-    ChangeMessageVisibilityBatchResponse> {
+    ChangeMessageVisibilityBatchResponse,
+    SqsBatchKey> {
 
     private final SqsAsyncClient sqsAsyncClient;
 
@@ -50,7 +50,7 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
     }
 
     private static ChangeMessageVisibilityBatchRequest createChangeMessageVisibilityBatchRequest(
-        List<IdentifiableMessage<ChangeMessageVisibilityRequest>> identifiedRequests, String batchKey) {
+        List<IdentifiableMessage<ChangeMessageVisibilityRequest>> identifiedRequests, SqsBatchKey batchKey) {
 
         List<ChangeMessageVisibilityBatchRequestEntry> entries =
             identifiedRequests.stream()
@@ -59,26 +59,18 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
                                   identifiedRequest.message()))
                               .collect(Collectors.toList());
 
-        // All requests have the same overrideConfiguration, so it's sufficient to retrieve it from the first request.
-        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
-                                                                                            .message()
-                                                                                            .overrideConfiguration();
+        AwsRequestOverrideConfiguration overrideConfiguration =
+            batchKey.overrideConfiguration()
+                    .map(AwsRequestOverrideConfiguration::toBuilder)
+                    .orElseGet(AwsRequestOverrideConfiguration::builder)
+                    .applyMutation(USER_AGENT_APPLIER)
+                    .build();
 
-        return overrideConfiguration
-            .map(config -> ChangeMessageVisibilityBatchRequest.builder()
-                                                              .queueUrl(batchKey)
-                                                              .overrideConfiguration(config.toBuilder()
-                                                                                           .applyMutation(USER_AGENT_APPLIER)
-                                                                                           .build())
-                                                              .entries(entries)
-                                                              .build())
-            .orElseGet(() -> ChangeMessageVisibilityBatchRequest.builder()
-                                                                .queueUrl(batchKey)
-                                                                .overrideConfiguration(o -> o
-                                                                    .applyMutation(USER_AGENT_APPLIER)
-                                                                    .build())
-                                                                .entries(entries)
-                                                                .build());
+        return ChangeMessageVisibilityBatchRequest.builder()
+                                                  .queueUrl(batchKey.queueUrl())
+                                                  .overrideConfiguration(overrideConfiguration)
+                                                  .entries(entries)
+                                                  .build();
     }
 
     private static ChangeMessageVisibilityBatchRequestEntry createChangeMessageVisibilityBatchRequestEntry(
@@ -112,16 +104,15 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
 
     @Override
     protected CompletableFuture<ChangeMessageVisibilityBatchResponse> batchAndSend(
-        List<IdentifiableMessage<ChangeMessageVisibilityRequest>> identifiedRequests, String batchKey) {
+        List<IdentifiableMessage<ChangeMessageVisibilityRequest>> identifiedRequests, SqsBatchKey batchKey) {
         ChangeMessageVisibilityBatchRequest batchRequest = createChangeMessageVisibilityBatchRequest(identifiedRequests,
                                                                                                      batchKey);
         return sqsAsyncClient.changeMessageVisibilityBatch(batchRequest);
     }
 
     @Override
-    protected String getBatchKey(ChangeMessageVisibilityRequest request) {
-        return  request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
-                       .orElseGet(request::queueUrl);
+    protected SqsBatchKey getBatchKey(ChangeMessageVisibilityRequest request) {
+        return SqsBatchKey.create(request.queueUrl(), request.overrideConfiguration());
     }
 
     @Override

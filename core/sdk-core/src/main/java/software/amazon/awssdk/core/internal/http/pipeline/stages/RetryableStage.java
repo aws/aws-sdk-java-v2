@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
@@ -107,17 +106,17 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
         retryableStageHelper.setLastResponse(response.httpResponse());
         if (!response.isSuccess()) {
             retryableStageHelper.adjustClockIfClockSkew(response);
-            throw responseException(response, context);
+            throw responseException(response, retryableStageHelper);
         }
         return response;
     }
 
-    private RuntimeException responseException(Response<OutputT> response, RequestExecutionContext context) {
+    private RuntimeException responseException(Response<OutputT> response, RetryableStageHelper retryableStageHelper) {
         Optional<Duration> optionalRetryAfter;
-        if (newRetries2026Enabled(context)) {
-            optionalRetryAfter = xAmzRetryAfter(response.httpResponse());
-        } else {
+        if (retryableStageHelper.usesLegacyRetryAfterHeaders()) {
             optionalRetryAfter = retryAfter(response.httpResponse());
+        } else {
+            optionalRetryAfter = xAmzRetryAfter(response.httpResponse());
         }
 
         if (optionalRetryAfter.isPresent()) {
@@ -156,12 +155,6 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                 return null;
             }
         });
-    }
-
-    private boolean newRetries2026Enabled(RequestExecutionContext executionContext) {
-        return executionContext.executionAttributes()
-                               .getOptionalAttribute(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED)
-                               .orElse(false);
     }
 
     private static void logIntParseException(String headerName, String headerValue, Throwable t) {

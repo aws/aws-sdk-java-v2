@@ -73,7 +73,10 @@ public class CodingConventionWithSuppressionTest {
                           "software.amazon.awssdk.transfer.s3.internal.model.CrtFileDownload"),
                       ArchUtils.classNameToPattern(CopyObjectHelper.class),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.WarmUpDiscovery"),
-                      ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.TargetedWarmUpInvoker")));
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.TargetedWarmUpInvoker"),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.retry.MaxAttemptsResolver"),
+                      Pattern.compile(".*/software/amazon/awssdk/core/retry/RetryMode\\$Resolver\\.class"),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.retries.internal.BaseRetryStrategy")));
 
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
         Arrays.asList(
