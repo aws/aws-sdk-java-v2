@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Security Agent",
+    "contributor": "",
+    "description": "Adds support for cleanup strategy in CreatePentestInput and UpdatePentestInput."
+}
