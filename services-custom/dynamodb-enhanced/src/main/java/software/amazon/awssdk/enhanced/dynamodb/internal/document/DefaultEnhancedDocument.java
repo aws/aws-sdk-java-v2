@@ -103,9 +103,6 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
                     converterForClass(type.rawClassParameters().get(1), chainConverterProvider));
             }
         }
-        // TODO: what about the case when type.rawClass() is Object or Unsupported type
-        // and we have overridden the default converter provider with a custom one that can / cannot handle this type?
-        // We should check for that case here.
         return Optional.ofNullable(chainConverterProvider.converterFor(type))
                        .orElseThrow(() -> new IllegalStateException(
                            "AttributeConverter not found for class " + type
