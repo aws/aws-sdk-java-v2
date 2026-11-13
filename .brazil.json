@@ -119,6 +119,8 @@
         "bundle-shading-tests": { "skipImport": true },
         "architecture-tests": {"skipImport":  true},
         "s3-tests": {"skipImport":  true},
+        "s3-mock-server-test-utils": { "skipImport": true },
+        "s3-download-wire-tests": { "skipImport": true },
         "warmup-tests": { "skipImport": true }
     },
 
