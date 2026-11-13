@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "New feature for Sagemaker Hyperpod Slurm clusters to install Extensions and view cluster operations."
-}

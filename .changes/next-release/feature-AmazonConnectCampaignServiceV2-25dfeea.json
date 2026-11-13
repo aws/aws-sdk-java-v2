@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonConnectCampaignServiceV2",
-    "contributor": "",
-    "description": "Adds LastModifiedTime to DescribeCampaign and ListCampaigns responses."
-}
