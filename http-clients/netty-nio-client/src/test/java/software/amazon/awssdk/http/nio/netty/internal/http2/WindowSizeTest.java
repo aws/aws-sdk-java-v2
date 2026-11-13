@@ -272,6 +272,12 @@ public class WindowSizeTest {
 
             Http2Frame frame = (Http2Frame) msg;
             receivedFrames.add(frame);
+            if (frame instanceof Http2HeadersFrame && ((Http2HeadersFrame) frame).isEndStream()) {
+                Http2HeadersFrame respHeaders = new DefaultHttp2HeadersFrame(
+                        new DefaultHttp2Headers().status("204"), true)
+                        .stream(((Http2HeadersFrame) frame).stream());
+                ctx.writeAndFlush(respHeaders);
+            }
             if (frame instanceof Http2DataFrame) {
                 Http2DataFrame dataFrame = (Http2DataFrame) frame;
                 if (dataFrame.isEndStream()) {
