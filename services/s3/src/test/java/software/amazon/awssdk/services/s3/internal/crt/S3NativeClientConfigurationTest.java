@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.net.URI;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,6 +25,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.crt.http.HttpProxyOptions;
+import software.amazon.awssdk.services.s3.crt.S3CrtProxyConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.testutils.LogCaptor;
 
@@ -61,7 +64,49 @@ class S3NativeClientConfigurationTest {
         );
     }
 
+    @ParameterizedTest
+    @MethodSource("proxyConnectionTypeCases")
+    void build_proxyConnectionType_followsEndpointScheme(URI endpointOverride,
+                                                         HttpProxyOptions.HttpProxyConnectionType expectedType) {
+        S3CrtHttpConfiguration httpConfig =
+            S3CrtHttpConfiguration.builder()
+                                  .proxyConfiguration(S3CrtProxyConfiguration.builder()
+                                                                             .scheme("http")
+                                                                             .host("localhost")
+                                                                             .port(8888)
+                                                                             .build())
+                                  .build();
+
+        try (S3NativeClientConfiguration config = buildConfig(httpConfig, endpointOverride)) {
+            assertThat(config.proxyOptions().getConnectionType()).isEqualTo(expectedType);
+        }
+    }
+
+    private static Stream<Arguments> proxyConnectionTypeCases() {
+        return Stream.of(
+            Arguments.of(URI.create("http://localhost:9000"),
+                         HttpProxyOptions.HttpProxyConnectionType.Forwarding),
+            Arguments.of(URI.create("HTTP://localhost:9000"),
+                         HttpProxyOptions.HttpProxyConnectionType.Forwarding),
+            Arguments.of(URI.create("https://s3.us-east-1.amazonaws.com"),
+                         HttpProxyOptions.HttpProxyConnectionType.Legacy),
+            Arguments.of(null, HttpProxyOptions.HttpProxyConnectionType.Legacy)
+        );
+    }
+
+    @Test
+    void build_whenPlaintextEndpointAndNoProxy_shouldNotSetProxyOptions() {
+        try (S3NativeClientConfiguration config = buildConfig(S3CrtHttpConfiguration.builder().build(),
+                                                              URI.create("http://localhost:9000"))) {
+            assertThat(config.proxyOptions()).isNull();
+        }
+    }
+
     private S3NativeClientConfiguration buildConfig(S3CrtHttpConfiguration httpConfig) {
+        return buildConfig(httpConfig, null);
+    }
+
+    private S3NativeClientConfiguration buildConfig(S3CrtHttpConfiguration httpConfig, URI endpointOverride) {
         S3NativeClientConfiguration.Builder builder =
             S3NativeClientConfiguration.builder()
                                        .signingRegion("us-east-1")
@@ -70,6 +115,9 @@ class S3NativeClientConfigurationTest {
                                                AwsBasicCredentials.create("foo", "bar")));
         if (httpConfig != null) {
             builder.httpConfiguration(httpConfig);
+        }
+        if (endpointOverride != null) {
+            builder.endpointOverride(endpointOverride);
         }
         return builder.build();
     }
