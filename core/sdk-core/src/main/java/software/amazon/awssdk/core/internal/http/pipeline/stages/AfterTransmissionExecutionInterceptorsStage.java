@@ -21,11 +21,13 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.Pair;
 
+/**
+ * Calls the read-only {@code afterTransmission} interceptors with the response exactly as received.
+ */
 @SdkInternalApi
 public class AfterTransmissionExecutionInterceptorsStage
     implements RequestPipeline<Pair<SdkHttpFullRequest, SdkHttpFullResponse>, Pair<SdkHttpFullRequest, SdkHttpFullResponse>> {
@@ -33,36 +35,19 @@ public class AfterTransmissionExecutionInterceptorsStage
     public Pair<SdkHttpFullRequest, SdkHttpFullResponse> execute(Pair<SdkHttpFullRequest, SdkHttpFullResponse> input,
                                                                  RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted(input.right());
-        InputStream originalResponseBody = input.right().content().orElse(null);
+        InputStream responseBody = input.right().content().orElse(null);
 
         // Update interceptor context
         InterceptorContext interceptorContext =
                 context.executionContext().interceptorContext().copy(b -> b.httpResponse(input.right())
-                                                                           .responseBody(originalResponseBody));
+                                                                           .responseBody(responseBody));
 
         // interceptors.afterTransmission
         context.interceptorChain().afterTransmission(interceptorContext, context.executionAttributes());
 
-        // interceptors.modifyHttpResponse
-        interceptorContext = context.interceptorChain().modifyHttpResponse(interceptorContext, context.executionAttributes());
-
-        // When no replacement is returned, the response retains its original body. Keep the context aligned with the
-        // actual response so later interceptor failures can clean up that body.
-        if (!interceptorContext.responseBody().isPresent() && originalResponseBody != null) {
-            interceptorContext = interceptorContext.copy(b -> b.responseBody(originalResponseBody));
-        }
-
-        // Store updated context
+        // Store updated context, so later stages can clean up the body if they fail
         context.executionContext().interceptorContext(interceptorContext);
 
-        InterruptMonitor.checkInterrupted((SdkHttpFullResponse) interceptorContext.httpResponse());
-
-        SdkHttpFullResponse response = (SdkHttpFullResponse) interceptorContext.httpResponse();
-
-        if (interceptorContext.responseBody().isPresent()) {
-            response = response.toBuilder().content(AbortableInputStream.create(interceptorContext.responseBody().get())).build();
-        }
-
-        return Pair.of(input.left(), response);
+        return input;
     }
 }
