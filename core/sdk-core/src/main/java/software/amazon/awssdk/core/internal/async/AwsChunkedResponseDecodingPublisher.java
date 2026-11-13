@@ -37,6 +37,7 @@ import software.amazon.awssdk.utils.async.DelegatingSubscription;
  *
  * <p>Emits at most one buffer per upstream buffer, and requests more when a buffer held only framing. Single
  * subscriber only.
+ *
  */
 @SdkInternalApi
 public final class AwsChunkedResponseDecodingPublisher implements SdkPublisher<ByteBuffer> {
