@@ -16,6 +16,7 @@
 package software.amazon.awssdk.regions.internal.util;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -23,7 +24,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Fault;
@@ -51,8 +54,12 @@ public class EC2MetadataUtilsTest {
     @Rule
     public WireMockRule mockMetadataEndpoint = new WireMockRule();
 
+    @Rule
+    public WireMockRule secondaryEndpoint = new WireMockRule(options().dynamicPort());
+
     @Before
     public void methodSetup() {
+        WireMock.configureFor("localhost", mockMetadataEndpoint.port());
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "http://localhost:" + mockMetadataEndpoint.port());
         EC2MetadataUtils.clearCache();
         EC2MetadataUtils.resetIsFallbackDisableResolved();
@@ -175,5 +182,50 @@ public class EC2MetadataUtilsTest {
 
         EC2MetadataUtils.fetchData(AMI_ID_RESOURCE, false, attempts);
         WireMock.verify(attempts, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE)));
+    }
+
+    @Test
+    public void getItems_pathStartingWithAt_throwsAndDoesNotContactOtherHost() {
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(TOKEN_STUB)));
+        stubSecondaryEndpoint();
+
+        String path = "@localhost:" + secondaryEndpoint.port() + AMI_ID_RESOURCE;
+
+        assertThatThrownBy(() -> EC2MetadataUtils.getItems(path))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("must start with '/'");
+
+        assertThat(secondaryEndpoint.getAllServeEvents()).isEmpty();
+        mockMetadataEndpoint.verify(0, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)));
+    }
+
+    @Test
+    public void fetchData_nullPath_throws() {
+        assertThatThrownBy(() -> EC2MetadataUtils.fetchData(null, false, 1))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("must start with '/'");
+    }
+
+    @Test
+    public void getAmiId_endpointOverrideWithTrailingSlash_usesSingleSlash() {
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(TOKEN_STUB)));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody(EMPTY_BODY)));
+
+        try {
+            System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),
+                               "http://localhost:" + mockMetadataEndpoint.port() + "/");
+
+            assertThat(EC2MetadataUtils.getAmiId()).isEqualTo(EMPTY_BODY);
+
+            WireMock.verify(getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE)));
+            assertThat(mockMetadataEndpoint.findAll(getRequestedFor(anyUrl())).get(0).getUrl()).isEqualTo(AMI_ID_RESOURCE);
+        } finally {
+            System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),
+                               "http://localhost:" + mockMetadataEndpoint.port());
+        }
+    }
+
+    private void stubSecondaryEndpoint() {
+        secondaryEndpoint.stubFor(get(anyUrl()).willReturn(aResponse().withBody(EMPTY_BODY)));
     }
 }
