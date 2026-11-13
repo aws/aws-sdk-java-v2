@@ -136,7 +136,7 @@ public class ReceiveSqsMessageHelper {
                             queueUrl, visibilityTimeout
                         ), throwable);
                     } else if (!response.failed().isEmpty()) {
-                        log.warn(() -> String.format(
+                        log.debug(() -> String.format(
                             "Failed to reset the visibility timeout of %d unprocessed messages for queueUrl: %s. "
                             + "As a result, these messages will remain invisible in the queue for the duration of the "
                             + "visibility timeout (%s).",

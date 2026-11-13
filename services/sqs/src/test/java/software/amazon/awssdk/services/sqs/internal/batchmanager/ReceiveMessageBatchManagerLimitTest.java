@@ -230,18 +230,18 @@ class ReceiveMessageBatchManagerLimitTest {
     }
 
     @Test
-    void batchRequest_whenEvictedBufferCloseThrows_logsWarnAndRunsAdmittedRequest() {
+    void batchRequest_whenEvictedBufferCloseThrows_logsDebugAndRunsAdmittedRequest() {
         ReceiveMessageBatchManager manager = manager(1, url -> new StubReceiveBatchManager(url, true));
         manager.batchRequest(request("idle")).join();
         stubFor("idle").closeFailure = new RuntimeException("close failed");
 
-        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
             CompletableFuture<ReceiveMessageResponse> response = manager.batchRequest(request("new"));
 
             assertThat(response).isCompleted();
             assertThat(logCaptor.loggedEvents()).anySatisfy(event -> {
-                assertThat(event.getLevel()).isEqualTo(Level.WARN);
-                assertThat(event.getMessage().getFormattedMessage()).contains("Failed to close a receive buffer");
+                assertThat(event.getLevel()).isEqualTo(Level.DEBUG);
+                assertThat(event.getThrown()).hasMessage("close failed");
             });
         }
         assertThat(manager.batchKeyCount()).isEqualTo(1);
@@ -256,12 +256,11 @@ class ReceiveMessageBatchManagerLimitTest {
         manager.batchRequest(request("c")).join();
         stubFor("b").closeFailure = new RuntimeException("close failed");
 
-        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
             manager.close();
 
             assertThat(logCaptor.loggedEvents())
-                .anySatisfy(event -> assertThat(event.getMessage().getFormattedMessage())
-                    .contains("Failed to close a receive buffer"));
+                .anySatisfy(event -> assertThat(event.getThrown()).hasMessage("close failed"));
         }
         assertThat(stubFor("a").closed).isTrue();
         assertThat(stubFor("c").closed).isTrue();

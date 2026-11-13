@@ -300,7 +300,7 @@ class ReceiveSqsMessageHelperTest {
     }
 
     @Test
-    void clear_whenChangeVisibilityReportsFailedEntries_logsWarnWithCount() throws Exception {
+    void clear_whenChangeVisibilityReportsFailedEntries_logsDebugWithCount() throws Exception {
         receiveThreeMessages();
         ChangeMessageVisibilityBatchResponse partialFailure =
             ChangeMessageVisibilityBatchResponse.builder()
@@ -310,11 +310,11 @@ class ReceiveSqsMessageHelperTest {
         when(sqsClient.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(partialFailure));
 
-        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
             assertThatCode(receiveSqsMessageHelper::clear).doesNotThrowAnyException();
 
             assertThat(logCaptor.loggedEvents()).anySatisfy(event -> {
-                assertThat(event.getLevel()).isEqualTo(Level.WARN);
+                assertThat(event.getLevel()).isEqualTo(Level.DEBUG);
                 assertThat(event.getMessage().getFormattedMessage())
                     .contains("Failed to reset the visibility timeout of 2 unprocessed messages for queueUrl: "
                               + QUEUE_URL);

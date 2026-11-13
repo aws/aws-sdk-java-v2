@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -88,7 +89,7 @@ final class ReceiveBufferMap {
             markInUse(entry);
         }
         if (evicted != null) {
-            closeQuietly(evicted.manager);
+            IoUtils.closeQuietlyV2(evicted.manager, log);
         }
         return entry;
     }
@@ -117,7 +118,7 @@ final class ReceiveBufferMap {
             buffers.clear();
             idle.clear();
         }
-        all.forEach(e -> closeQuietly(e.manager));
+        all.forEach(e -> IoUtils.closeQuietlyV2(e.manager, log));
     }
 
     int size() {
@@ -147,15 +148,6 @@ final class ReceiveBufferMap {
         buffers.remove(oldest.queueUrl);
         oldest.evicted = true;
         return oldest;
-    }
-
-    private static void closeQuietly(ReceiveBatchManager manager) {
-        try {
-            manager.close();
-        } catch (RuntimeException e) {
-            log.warn(() -> "Failed to close a receive buffer. Its prefetched messages reappear after their visibility timeout.",
-                     e);
-        }
     }
 
     /**
