@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.protocols.query.internal.unmarshall;
 
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADERS;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.time.Duration;
@@ -26,7 +28,6 @@ import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkPojo;
-import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -39,8 +40,6 @@ import software.amazon.awssdk.protocols.query.unmarshall.XmlErrorUnmarshaller;
  */
 @SdkInternalApi
 public final class AwsXmlErrorUnmarshaller {
-    private static final String X_AMZ_ID_2_HEADER = "x-amz-id-2";
-
     private final List<ExceptionMetadata> exceptions;
     private final Supplier<SdkPojo> defaultExceptionSupplier;
 
@@ -178,7 +177,7 @@ public final class AwsXmlErrorUnmarshaller {
     }
 
     private String matchRequestIdHeaders(SdkHttpFullResponse response) {
-        return HttpResponseHandler.X_AMZN_REQUEST_ID_HEADERS.stream()
+        return X_AMZN_REQUEST_ID_HEADERS.stream()
                                                             .map(h -> response.firstMatchingHeader(h))
                                                             .filter(Optional::isPresent)
                                                             .map(Optional::get)
