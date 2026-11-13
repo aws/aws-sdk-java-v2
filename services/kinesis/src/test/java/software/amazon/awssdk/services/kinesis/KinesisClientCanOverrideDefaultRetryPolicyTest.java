@@ -33,12 +33,19 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEventStream;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardRequest;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponseHandler;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
+import software.amazon.awssdk.utils.StringInputStream;
 
 public class KinesisClientCanOverrideDefaultRetryPolicyTest {
+    private final EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
     private WireMockServer wireMock = new WireMockServer(0);
 
     @Test
@@ -48,6 +55,7 @@ public class KinesisClientCanOverrideDefaultRetryPolicyTest {
             StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
 
         KinesisAsyncClient client = KinesisAsyncClient.builder()
+                                                      .region(Region.US_EAST_1)
                                                       .credentialsProvider(credentialsProvider)
                                                       .endpointOverride(endpointOverride)
                                                       .build();
@@ -63,6 +71,7 @@ public class KinesisClientCanOverrideDefaultRetryPolicyTest {
             StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
 
         KinesisAsyncClient client = KinesisAsyncClient.builder()
+                                                      .region(Region.US_EAST_1)
                                                       .credentialsProvider(credentialsProvider)
                                                       .overrideConfiguration(o -> o.retryStrategy(RetryMode.STANDARD))
                                                       .endpointOverride(endpointOverride)
@@ -79,6 +88,7 @@ public class KinesisClientCanOverrideDefaultRetryPolicyTest {
             StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
 
         KinesisAsyncClient client = KinesisAsyncClient.builder()
+                                                      .region(Region.US_EAST_1)
                                                       .credentialsProvider(credentialsProvider)
                                                       .endpointOverride(endpointOverride)
                                                       .addPlugin(c -> c.overrideConfiguration(o -> o.retryStrategy(RetryMode.STANDARD)))
@@ -95,6 +105,7 @@ public class KinesisClientCanOverrideDefaultRetryPolicyTest {
             StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
 
         KinesisAsyncClient client = KinesisAsyncClient.builder()
+                                                      .region(Region.US_EAST_1)
                                                       .credentialsProvider(credentialsProvider)
                                                       .endpointOverride(endpointOverride)
                                                       .build();
@@ -102,6 +113,90 @@ public class KinesisClientCanOverrideDefaultRetryPolicyTest {
         assertThrows(ExecutionException.class, () -> callSubscribeToShard(client, plugin));
         // Standard retry strategy does retry on subscribeToShard
         verifyRequestCount(3);
+    }
+
+    @Test
+    public void defaultRetryStrategyRetriesOtherOperations() {
+        KinesisAsyncClient client = clientBuilder().build();
+        assertThrows(ExecutionException.class, () -> client.listStreams().get(10, TimeUnit.SECONDS));
+        // The default STANDARD retry strategy makes three attempts
+        verifyRequestCount(3);
+    }
+
+    @Test
+    public void legacyRetryModeFromProfileDoesNotRetrySubscribeToShard() {
+        KinesisAsyncClient client = clientBuilder().overrideConfiguration(o -> o.defaultProfileFile(legacyProfile())
+                                                                                .defaultProfileName("default"))
+                                                   .build();
+        assertThrows(ExecutionException.class, () -> callSubscribeToShard(client));
+        verifyRequestCount(1);
+    }
+
+    @Test
+    public void legacyRetryModeFromProfileRetriesOtherOperations() {
+        KinesisAsyncClient client = clientBuilder().overrideConfiguration(o -> o.defaultProfileFile(legacyProfile())
+                                                                                .defaultProfileName("default"))
+                                                   .build();
+        assertThrows(ExecutionException.class, () -> client.listStreams().get(10, TimeUnit.SECONDS));
+        // The LEGACY retry policy makes four attempts
+        verifyRequestCount(4);
+    }
+
+    @Test
+    public void adaptiveRetryModeFromProfileDoesNotRetrySubscribeToShard() {
+        KinesisAsyncClient client = clientWithProfile("retry_mode = adaptive");
+        assertThrows(ExecutionException.class, () -> callSubscribeToShard(client));
+        verifyRequestCount(1);
+    }
+
+    @Test
+    public void adaptiveRetryModeFromProfileRetriesOtherOperations() {
+        KinesisAsyncClient client = clientWithProfile("retry_mode = adaptive");
+        assertThrows(ExecutionException.class, () -> client.listStreams().get(10, TimeUnit.SECONDS));
+        // The default ADAPTIVE_V2 retry strategy makes three attempts
+        verifyRequestCount(3);
+    }
+
+    @Test
+    public void retryModeFromPluginUsesMaxAttemptsFromClientProfile() {
+        KinesisAsyncClient client =
+            clientBuilder().overrideConfiguration(o -> o.defaultProfileFile(profile("max_attempts = 5"))
+                                                        .defaultProfileName("default"))
+                           .addPlugin(c -> c.overrideConfiguration(o -> o.retryStrategy(RetryMode.STANDARD)))
+                           .build();
+        assertThrows(ExecutionException.class, () -> client.listStreams().get(10, TimeUnit.SECONDS));
+        verifyRequestCount(5);
+    }
+
+    @Test
+    public void maxAttemptsFromClientProfileIsUsed() {
+        KinesisAsyncClient client = clientWithProfile("max_attempts = 5");
+        assertThrows(ExecutionException.class, () -> client.listStreams().get(10, TimeUnit.SECONDS));
+        verifyRequestCount(5);
+    }
+
+    private KinesisAsyncClientBuilder clientBuilder() {
+        return KinesisAsyncClient.builder()
+                                 .region(Region.US_EAST_1)
+                                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                                 .endpointOverride(URI.create("http://localhost:" + wireMock.port()));
+    }
+
+    private KinesisAsyncClient clientWithProfile(String property) {
+        return clientBuilder().overrideConfiguration(o -> o.defaultProfileFile(profile(property))
+                                                           .defaultProfileName("default"))
+                              .build();
+    }
+
+    private static ProfileFile legacyProfile() {
+        return profile("retry_mode = legacy");
+    }
+
+    private static ProfileFile profile(String property) {
+        return ProfileFile.builder()
+                          .content(new StringInputStream("[default]\n" + property))
+                          .type(ProfileFile.Type.CONFIGURATION)
+                          .build();
     }
 
     private void callSubscribeToShard(KinesisAsyncClient client, SdkPlugin... plugins) throws Exception {
@@ -123,6 +218,10 @@ public class KinesisClientCanOverrideDefaultRetryPolicyTest {
 
     @BeforeEach
     private void beforeEach() {
+        // Keep the host's retry settings and profile files from changing the expected attempt counts
+        clearRetrySettings();
+        environmentVariableHelper.set(ProfileFileSystemSetting.AWS_CONFIG_FILE, "does-not-exist");
+        environmentVariableHelper.set(ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE, "does-not-exist");
         wireMock.start();
         wireMock.stubFor(post(anyUrl())
                              .willReturn(
@@ -134,6 +233,20 @@ public class KinesisClientCanOverrideDefaultRetryPolicyTest {
     @AfterEach
     private void afterEach() {
         wireMock.stop();
+        environmentVariableHelper.reset();
+        clearRetrySettings();
+    }
+
+    private void clearRetrySettings() {
+        for (SdkSystemSetting setting : new SdkSystemSetting[] {SdkSystemSetting.AWS_RETRY_MODE,
+                                                                 SdkSystemSetting.AWS_MAX_ATTEMPTS}) {
+            environmentVariableHelper.remove(setting);
+            System.clearProperty(setting.property());
+        }
+        environmentVariableHelper.remove(ProfileFileSystemSetting.AWS_PROFILE);
+        System.clearProperty(ProfileFileSystemSetting.AWS_PROFILE.property());
+        System.clearProperty(ProfileFileSystemSetting.AWS_CONFIG_FILE.property());
+        System.clearProperty(ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE.property());
     }
 
 }

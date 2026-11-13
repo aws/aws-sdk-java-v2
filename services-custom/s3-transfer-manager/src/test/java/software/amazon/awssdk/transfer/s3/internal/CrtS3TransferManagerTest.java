@@ -41,6 +41,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.exceptions.verification.WantedButNotInvoked;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.listener.AsyncResponseTransformerListener.NotifyingAsyncResponseTransformer;
@@ -48,12 +49,14 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions.ResponseFileOption;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerProvider;
 import software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
@@ -147,6 +150,22 @@ public class CrtS3TransferManagerTest {
         assertThat(transformer).isInstanceOf(NotifyingAsyncResponseTransformer.class);
         assertThat(((NotifyingAsyncResponseTransformer<?, ?>) transformer).getDelegate())
             .isInstanceOf(CrtResponseFileResponseTransformer.class);
+    }
+
+    @Test
+    void download_withDirectBufferPoolTransformer_cancel_shouldForwardCancellation() {
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> clientFuture = new CompletableFuture<>();
+        when(s3AsyncClient.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(clientFuture);
+        DownloadRequest<ResponseInputStream<GetObjectResponse>> request =
+            DownloadRequest.builder()
+                           .getObjectRequest(r -> r.bucket("test").key("test"))
+                           .responseTransformer(S3CrtResponseTransformerProvider.toBlockingInputStreamFromDirectBufferPool())
+                           .build();
+
+        transferManager.download(request).completionFuture().cancel(true);
+
+        assertThat(clientFuture).isCancelled();
     }
 
     @Test

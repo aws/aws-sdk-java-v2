@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth.source;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.RETRY_MODE_STANDARD;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -84,11 +85,11 @@ class ProcessCredentialsProviderUserAgentTest {
         return Stream.of(
             Arguments.of(ProcessCredentialsProvider.builder()
                             .command(mockCommand)
-                            .build(), Arrays.asList("D", "w")),
+                            .build(), Arrays.asList(RETRY_MODE_STANDARD.value(), "w")),
 
             Arguments.of(ProcessCredentialsProvider.builder()
                             .command(mockCommandList)
-                            .build(), Arrays.asList("D", "w"))
+                            .build(), Arrays.asList(RETRY_MODE_STANDARD.value(), "w"))
         );
     }
 
@@ -113,7 +114,7 @@ class ProcessCredentialsProviderUserAgentTest {
         return Stream.of(
             Arguments.of(ProcessCredentialsProvider.builder()
                             .command(mockCommand)
-                            .build(), Arrays.asList("D", "w"))
+                            .build(), Arrays.asList(RETRY_MODE_STANDARD.value(), "w"))
         );
     }
 
