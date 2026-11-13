@@ -20,13 +20,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.codegen.smithy.customization.apigateway.ApiGatewayAddSdkTypesPosition;
-import software.amazon.awssdk.codegen.smithy.customization.cloudwatch.CloudWatchMergeErrorShapes;
 import software.amazon.awssdk.codegen.smithy.customization.pagesize.RetypePageSizes;
 import software.amazon.awssdk.codegen.smithy.customization.s3.S3Customizations;
 import software.amazon.awssdk.codegen.smithy.customization.s3control.S3ControlCustomizations;
-import software.amazon.awssdk.codegen.smithy.customization.shapename.QAppsSplitActionEnum;
-import software.amazon.awssdk.codegen.smithy.customization.shapename.RenameShapesToC2jNames;
 import software.amazon.smithy.aws.traits.ServiceTrait;
 import software.amazon.smithy.model.shapes.ServiceShape;
 
@@ -44,10 +40,6 @@ public final class SmithyServiceCustomizations {
         List<SmithyServiceCustomization> all = new ArrayList<>(S3Customizations.all());
         all.addAll(S3ControlCustomizations.all());
         all.add(new RetypePageSizes());
-        all.add(new CloudWatchMergeErrorShapes());
-        all.add(new QAppsSplitActionEnum());
-        all.add(new RenameShapesToC2jNames());
-        all.add(new ApiGatewayAddSdkTypesPosition());
         return Collections.unmodifiableList(all);
     }
 
