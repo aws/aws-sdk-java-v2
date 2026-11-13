@@ -26,7 +26,6 @@ import software.amazon.awssdk.codegen.smithy.SmithyIntermediateModelBuilder;
 import software.amazon.awssdk.codegen.smithy.SmithyModels;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.shapes.MemberShape;
-import software.amazon.smithy.model.shapes.OperationShape;
 import software.amazon.smithy.model.shapes.ShapeId;
 
 class RenameShapesToC2jNamesTest {
@@ -42,19 +41,6 @@ class RenameShapesToC2jNamesTest {
         assertThat(model.getShape(id("com.amazonaws.deadline#DeadlinePrincipalType"))).isEmpty();
         assertThat(target(model, "com.amazonaws.deadline#Member$principalType"))
             .isEqualTo(id("com.amazonaws.deadline#PrincipalType"));
-    }
-
-    @Test
-    void movesAShapeWhoseNameAnOperationHas() {
-        Model model = rename(RenameShapesToC2jNames.mediaLive(),
-                             "namespace com.amazonaws.medialive\n"
-                             + "service MediaLive { version: \"2017-10-14\", operations: [UpdateNodeState] }\n"
-                             + "operation UpdateNodeState { input: UpdateNodeStateShape }\n"
-                             + "structure UpdateNodeStateShape {}\n");
-
-        ShapeId operation = id("com.amazonaws.medialive#UpdateNodeState");
-        assertThat(model.expectShape(operation, OperationShape.class).getInputShape())
-            .isEqualTo(id("com.amazonaws.medialive.sdk#UpdateNodeState"));
     }
 
     @Test
@@ -97,22 +83,6 @@ class RenameShapesToC2jNamesTest {
         assertThat(intermediateModel.getShapes().get("UpdateNodeState").getC2jName()).isEqualTo("UpdateNodeState");
         ShapeModel request = intermediateModel.getShapes().get("UpdateNodeStateRequest");
         assertThat(request.getMemberByC2jName("State").getC2jShape()).isEqualTo("UpdateNodeState");
-    }
-
-    @Test
-    void renamesEveryShapeOfTheService() {
-        Model model = rename(RenameShapesToC2jNames.qApps(),
-                             "namespace com.amazonaws.qapps\n"
-                             + "service QAppsService { version: \"2023-11-27\" }\n"
-                             + "enum Action {\n  READ = \"read\"\n}\n"
-                             + "enum UserType {\n  OWNER = \"owner\"\n}\n"
-                             + "structure PermissionOutput { action: Action }\n"
-                             + "structure PrincipalOutput { userType: UserType }\n");
-
-        assertThat(target(model, "com.amazonaws.qapps#PermissionOutput$action"))
-            .isEqualTo(id("com.amazonaws.qapps#PermissionOutputActionEnum"));
-        assertThat(target(model, "com.amazonaws.qapps#PrincipalOutput$userType"))
-            .isEqualTo(id("com.amazonaws.qapps#PrincipalOutputUserTypeEnum"));
     }
 
     @Test

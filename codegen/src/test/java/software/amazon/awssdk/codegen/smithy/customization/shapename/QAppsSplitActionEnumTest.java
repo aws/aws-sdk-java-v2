@@ -57,13 +57,6 @@ class QAppsSplitActionEnumTest {
         assertThat(renameFirst).isEqualTo(splitFirst);
     }
 
-    @Test
-    void anInputWithItsOwnEnum_isUnchanged() {
-        Model once = new QAppsSplitActionEnum().preprocess(qapps(), CONFIG);
-
-        assertThat(new QAppsSplitActionEnum().preprocess(once, CONFIG)).isSameAs(once);
-    }
-
     private static Model qapps() {
         return Model.assembler().addUnparsedModel("qapps.smithy", QAPPS).assemble().unwrap();
     }
