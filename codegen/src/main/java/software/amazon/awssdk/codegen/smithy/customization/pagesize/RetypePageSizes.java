@@ -18,7 +18,6 @@ package software.amazon.awssdk.codegen.smithy.customization.pagesize;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,52 +37,16 @@ import software.amazon.smithy.model.transform.ModelTransformer;
  * validation.
  */
 @SdkInternalApi
-public final class RetypePageSizes implements SmithyServiceCustomization {
-    private static final Set<String> SDK_IDS =
-        Collections.unmodifiableSet(new HashSet<>(Arrays.asList("CloudFront", "Route 53", "Glacier")));
-    private static final Map<ShapeId, List<ShapeId>> MEMBERS_BY_TARGET = membersByTarget();
+final class RetypePageSizes implements SmithyServiceCustomization {
+    private final String sdkId;
+    private final Map<ShapeId, List<ShapeId>> membersByTarget;
 
-    @Override
-    public Set<String> sdkIds() {
-        return SDK_IDS;
+    private RetypePageSizes(String sdkId, Map<ShapeId, List<ShapeId>> membersByTarget) {
+        this.sdkId = sdkId;
+        this.membersByTarget = Collections.unmodifiableMap(membersByTarget);
     }
 
-    @Override
-    public Model preprocess(Model model, CustomizationConfig config) {
-        String namespace = model.getServiceShapes().iterator().next().getId().getNamespace();
-        List<Shape> replaced = new ArrayList<>();
-        MEMBERS_BY_TARGET.forEach((target, members) -> {
-            if (!target.getNamespace().equals(namespace)) {
-                return;
-            }
-            List<Shape> retargeted = retarget(model, members, target);
-            if (retargeted.isEmpty()) {
-                return;
-            }
-            if (!model.getShape(target).isPresent()) {
-                replaced.add(StringShape.builder().id(target).build());
-            } else if (!model.expectShape(target).isStringShape()) {
-                throw new IllegalStateException(target + " is not a string");
-            }
-            replaced.addAll(retargeted);
-        });
-        return ModelTransformer.create().replaceShapes(model, replaced);
-    }
-
-    private static List<Shape> retarget(Model model, List<ShapeId> members, ShapeId target) {
-        List<Shape> retargeted = new ArrayList<>();
-        for (ShapeId memberId : members) {
-            model.getShape(memberId).flatMap(Shape::asMemberShape).ifPresent(member -> {
-                if (!model.expectShape(member.getTarget()).isIntegerShape()) {
-                    throw new IllegalStateException(memberId + " no longer targets an integer");
-                }
-                retargeted.add(member.toBuilder().target(target).build());
-            });
-        }
-        return retargeted;
-    }
-
-    private static Map<ShapeId, List<ShapeId>> membersByTarget() {
+    static RetypePageSizes cloudFront() {
         Map<ShapeId, List<ShapeId>> members = new LinkedHashMap<>();
         put(members, "com.amazonaws.cloudfront", "string",
             "ListCachePoliciesRequest$MaxItems",
@@ -113,6 +76,11 @@ public final class RetypePageSizes implements SmithyServiceCustomization {
             "ListResponseHeadersPoliciesRequest$MaxItems",
             "ListStreamingDistributionsRequest$MaxItems",
             "ListVpcOriginsRequest$MaxItems");
+        return new RetypePageSizes("CloudFront", members);
+    }
+
+    static RetypePageSizes route53() {
+        Map<ShapeId, List<ShapeId>> members = new LinkedHashMap<>();
         put(members, "com.amazonaws.route53", "MaxResults",
             "ListCidrBlocksRequest$MaxResults",
             "ListCidrCollectionsRequest$MaxResults",
@@ -144,12 +112,57 @@ public final class RetypePageSizes implements SmithyServiceCustomization {
             "ListTrafficPolicyInstancesResponse$MaxItems",
             "ListTrafficPolicyVersionsRequest$MaxItems",
             "ListTrafficPolicyVersionsResponse$MaxItems");
+        return new RetypePageSizes("Route 53", members);
+    }
+
+    static RetypePageSizes glacier() {
+        Map<ShapeId, List<ShapeId>> members = new LinkedHashMap<>();
         put(members, "com.amazonaws.glacier", "string",
             "ListJobsInput$limit",
             "ListMultipartUploadsInput$limit",
             "ListPartsInput$limit",
             "ListVaultsInput$limit");
-        return Collections.unmodifiableMap(members);
+        return new RetypePageSizes("Glacier", members);
+    }
+
+    @Override
+    public Set<String> sdkIds() {
+        return Collections.singleton(sdkId);
+    }
+
+    @Override
+    public Model preprocess(Model model, CustomizationConfig config) {
+        List<Shape> replaced = new ArrayList<>();
+        membersByTarget.forEach((target, ids) -> {
+            List<Shape> members = retarget(model, ids, target);
+            if (!members.isEmpty()) {
+                addStringShapeIfAbsent(model, target, replaced);
+                replaced.addAll(members);
+            }
+        });
+        return ModelTransformer.create().replaceShapes(model, replaced);
+    }
+
+    private static List<Shape> retarget(Model model, List<ShapeId> members, ShapeId target) {
+        List<Shape> retargeted = new ArrayList<>();
+        for (ShapeId memberId : members) {
+            model.getShape(memberId).flatMap(Shape::asMemberShape).ifPresent(member -> {
+                if (!model.expectShape(member.getTarget()).isIntegerShape()) {
+                    throw new IllegalStateException(memberId + " no longer targets an integer");
+                }
+                retargeted.add(member.toBuilder().target(target).build());
+            });
+        }
+        return retargeted;
+    }
+
+    private static void addStringShapeIfAbsent(Model model, ShapeId target, List<Shape> replaced) {
+        Shape existing = model.getShape(target).orElse(null);
+        if (existing == null) {
+            replaced.add(StringShape.builder().id(target).build());
+        } else if (!existing.isStringShape()) {
+            throw new IllegalStateException(target + " is not a string");
+        }
     }
 
     private static void put(Map<ShapeId, List<ShapeId>> members, String namespace, String target, String... ids) {

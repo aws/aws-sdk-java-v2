@@ -28,7 +28,8 @@ class RetypePageSizesTest {
 
     @Test
     void retargetsListedMembersToANewStringShape() {
-        Model model = retype("namespace com.amazonaws.route53\n"
+        Model model = retype(RetypePageSizes.route53(),
+                             "namespace com.amazonaws.route53\n"
                              + "service AWSDnsV20130401 { version: \"2013-04-01\" }\n"
                              + "structure ListCidrBlocksRequest { MaxResults: Integer }\n"
                              + "structure ListHostedZonesRequest { MaxItems: Integer }\n"
@@ -44,7 +45,8 @@ class RetypePageSizesTest {
 
     @Test
     void retargetsListedMembersToAnExistingStringShape() {
-        Model model = retype("namespace com.amazonaws.cloudfront\n"
+        Model model = retype(RetypePageSizes.cloudFront(),
+                             "namespace com.amazonaws.cloudfront\n"
                              + "service Cloudfront2020_05_31 { version: \"2020-05-31\" }\n"
                              + "integer integer\n"
                              + "string string\n"
@@ -55,7 +57,8 @@ class RetypePageSizesTest {
 
     @Test
     void listedMemberThatNoLongerTargetsAnInteger_fails() {
-        assertThatThrownBy(() -> retype("namespace com.amazonaws.glacier\n"
+        assertThatThrownBy(() -> retype(RetypePageSizes.glacier(),
+                                        "namespace com.amazonaws.glacier\n"
                                         + "service Glacier { version: \"2012-06-01\" }\n"
                                         + "string string\n"
                                         + "structure ListVaultsInput { limit: Long }\n"))
@@ -63,12 +66,12 @@ class RetypePageSizesTest {
             .hasMessageContaining("ListVaultsInput$limit");
     }
 
-    private static Model retype(String smithy) {
+    private static Model retype(RetypePageSizes customization, String smithy) {
         Model model = Model.assembler()
                            .addUnparsedModel("test.smithy", "$version: \"2.0\"\n" + smithy)
                            .assemble()
                            .unwrap();
-        return new RetypePageSizes().preprocess(model, CustomizationConfig.create());
+        return customization.preprocess(model, CustomizationConfig.create());
     }
 
     private static void assertTarget(Model model, String member, String target) {
