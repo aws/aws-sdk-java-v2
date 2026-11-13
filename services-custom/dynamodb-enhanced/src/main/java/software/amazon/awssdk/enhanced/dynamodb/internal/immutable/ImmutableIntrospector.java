@@ -80,16 +80,7 @@ public class ImmutableIntrospector {
             getters.stream()
                    .map(getter -> {
                        validateGetter(getter);
-                       String propertyName = normalizeGetterName(getter);
-
-                       Method setter = extractSetterMethod(propertyName, indexedBuilderMethods, getter, builderClass)
-                           .orElseThrow(
-                               () -> generateExceptionForMethod(
-                                   getter,
-                                   "A method was found on the immutable class that does not appear to have a " +
-                                       "matching setter on the builder class."));
-
-                       return ImmutablePropertyDescriptor.create(propertyName, getter, setter);
+                       return resolvePropertyDescriptor(getter, indexedBuilderMethods, builderClass);
                    }).collect(Collectors.toList());
 
         if (!indexedBuilderMethods.isEmpty()) {
@@ -195,13 +186,74 @@ public class ImmutableIntrospector {
         }
 
         if (getterName.length() > 3
-            && Character.isUpperCase(getterName.charAt(3))
-            && getterName.startsWith(GET_PREFIX)) {
+            && getterName.startsWith(GET_PREFIX)
+            && isGetPrefixRemainderStart(getterName.charAt(3))) {
 
             return Character.toLowerCase(getterName.charAt(3)) + getterName.substring(4);
         }
 
         return getterName;
+    }
+
+    /**
+     * Returns true when the character immediately after a {@code get} prefix should trigger prefix stripping.
+     * Uppercase letters preserve existing stripping (for example {@code getId} to {@code id}).
+     * Underscore and dollar are also accepted so getters such as {@code get__encryption_keyId} and
+     * {@code get$encryptionKey} normalize to fluent builder names like {@code __encryption_keyId} /
+     * {@code $encryptionKey} (see issue #5589).
+     */
+    private static boolean isGetPrefixRemainderStart(char remainderStart) {
+        return Character.isUpperCase(remainderStart) || remainderStart == '_' || remainderStart == '$';
+    }
+
+    /**
+     * Resolves the immutable property name and matching builder method for a getter.
+     *
+     * <p>Prefers the normalized property name when a builder method with a valid signature exists for that name.
+     * For {@code get_}/{@code get$} getters only, if no valid normalized builder method exists, falls back to the
+     * getter's original method name so models that previously paired {@code get__encryption_keyId()} with a builder
+     * method also named {@code get__encryption_keyId(...)} continue to work. Ordinary {@code getX}/{@code isX}
+     * normalization is unchanged and does not use this fallback. A builder method that only matches by name but has
+     * an invalid signature is not treated as a match.
+     */
+    private ImmutablePropertyDescriptor resolvePropertyDescriptor(Method getter,
+                                                                  Map<String, Method> indexedBuilderMethods,
+                                                                  Class<?> builderClass) {
+        String normalizedName = normalizeGetterName(getter);
+        Optional<Method> setter = extractSetterMethod(normalizedName, indexedBuilderMethods, getter, builderClass);
+        String propertyName = normalizedName;
+
+        if (!setter.isPresent() && shouldAttemptLegacyGetterNameFallback(getter, normalizedName)) {
+            Optional<Method> legacySetter =
+                extractSetterMethod(getter.getName(), indexedBuilderMethods, getter, builderClass);
+            if (legacySetter.isPresent()) {
+                setter = legacySetter;
+                propertyName = getter.getName();
+            }
+        }
+
+        Method resolvedSetter = setter.orElseThrow(
+            () -> generateExceptionForMethod(
+                getter,
+                "A method was found on the immutable class that does not appear to have a " +
+                    "matching setter on the builder class."));
+
+        return ImmutablePropertyDescriptor.create(propertyName, getter, resolvedSetter);
+    }
+
+    /**
+     * Legacy fallback applies only when the new {@code _}/{@code $} get-prefix stripping changed the property key.
+     * It must not apply to ordinary {@code getId}/{@code isX} normalization, which historically never used the
+     * raw getter name as the lookup key after a successful strip.
+     */
+    private static boolean shouldAttemptLegacyGetterNameFallback(Method getter, String normalizedName) {
+        String getterName = getter.getName();
+        if (normalizedName.equals(getterName) || getterName.length() <= 3 || !getterName.startsWith(GET_PREFIX)) {
+            return false;
+        }
+
+        char remainderStart = getterName.charAt(3);
+        return remainderStart == '_' || remainderStart == '$';
     }
 
     private boolean isMethodBoolean(Method method) {
