@@ -53,6 +53,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.http.ConnectionPoolShutdownException;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -283,7 +284,10 @@ public class Apache5HttpClientWireMockTest extends SdkHttpClientTestSuite {
             client.prepareRequest(HttpExecuteRequest.builder().request(request).build()).call();
         }).isInstanceOfAny(
             IllegalStateException.class
-        ).hasMessageContaining("Connection pool shut down");
+        ).hasMessageContaining("Connection pool shut down")
+          .isInstanceOf(ConnectionPoolShutdownException.class)
+          .extracting(e -> ((ConnectionPoolShutdownException) e).reason())
+          .isEqualTo(ConnectionPoolShutdownException.Reason.CLIENT_CLOSED);
     }
 
     @Test

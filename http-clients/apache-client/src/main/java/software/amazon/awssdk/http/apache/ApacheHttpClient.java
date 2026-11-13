@@ -65,6 +65,8 @@ import org.apache.http.protocol.HttpRequestExecutor;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.ConnectionPoolShutdownException;
+import software.amazon.awssdk.http.ConnectionPoolShutdownException.Reason;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -114,10 +116,16 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
     private static final Logger log = Logger.loggerFor(ApacheHttpClient.class);
 
+    /** The exact message of Apache's IllegalStateException for a lease on a shut-down pool. */
+    private static final String POOL_SHUT_DOWN_MESSAGE = "Connection pool shut down";
+
     private final ApacheHttpRequestFactory apacheHttpRequestFactory = new ApacheHttpRequestFactory();
     private final ConnectionManagerAwareHttpClient httpClient;
     private final ApacheHttpRequestConfig requestConfig;
     private final AttributeMap resolvedOptions;
+
+    /** Set first thing in {@link #close()}, so that a request failing on the shut-down pool reports why. */
+    private volatile boolean closed;
 
     @SdkTestInternalApi
     ApacheHttpClient(ConnectionManagerAwareHttpClient httpClient,
@@ -254,6 +262,8 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
     @Override
     public void close() {
+        // First, so that a request failing because of the shutdown below reports that the client was closed.
+        closed = true;
         HttpClientConnectionManager cm = httpClient.getHttpClientConnectionManager();
         IdleConnectionReaper.getInstance().deregisterConnectionManager(cm);
         cm.shutdown();
@@ -265,6 +275,14 @@ public final class ApacheHttpClient implements SdkHttpClient {
         try {
             HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
             return createResponse(httpResponse, apacheRequest);
+        } catch (IllegalStateException e) {
+            if (e instanceof ConnectionPoolShutdownException || !POOL_SHUT_DOWN_MESSAGE.equals(e.getMessage())) {
+                // Never double-wrap, and leave any other IllegalStateException unchanged.
+                throw e;
+            }
+            // Nothing but close() and Apache's Error path shuts the pool down in an SDK-built client, and this client never
+            // rebuilds it.
+            throw ConnectionPoolShutdownException.create(closed ? Reason.CLIENT_CLOSED : Reason.SHUT_DOWN_AFTER_ERROR, e);
         } finally {
             THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.remove();
         }
