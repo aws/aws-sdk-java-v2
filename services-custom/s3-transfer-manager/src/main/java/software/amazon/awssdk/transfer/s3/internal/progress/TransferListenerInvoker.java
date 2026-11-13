@@ -42,6 +42,10 @@ public class TransferListenerInvoker implements TransferListener {
         this.listeners = Validate.paramNotNull(listeners, "listeners");
     }
 
+    public boolean hasListeners() {
+        return !listeners.isEmpty();
+    }
+
     @Override
     public void transferInitiated(Context.TransferInitiated context) {
         if (!initiated.getAndSet(true)) {
