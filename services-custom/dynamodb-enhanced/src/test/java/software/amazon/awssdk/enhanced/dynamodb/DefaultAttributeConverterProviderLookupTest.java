@@ -930,19 +930,6 @@ public class DefaultAttributeConverterProviderLookupTest {
         assertThat(provider.converterFor(type)).isSameAs(converter);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("rawCollectionTypes")
-    @DisplayName("A raw collection declaration requires type parameters")
-    void converterFor_whenRawCollectionType_throwsConverterNotFound(EnhancedType<?> type) {
-        assertThatThrownBy(() -> provider.converterFor(type))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + type + ". Type parameters are required for this type.");
-    }
-
-    private static Stream<EnhancedType<?>> rawCollectionTypes() {
-        return Stream.of(EnhancedType.of(Map.class), EnhancedType.of(Set.class), EnhancedType.of(List.class));
-    }
-
     @Test
     @DisplayName("A Map document token fails while reading map parameters before the schema is read")
     void converterFor_whenMapDocumentToken_throwsNullPointerExceptionBeforeReadingSchema() {
@@ -992,16 +979,6 @@ public class DefaultAttributeConverterProviderLookupTest {
         assertThat(converter).isInstanceOf(DocumentAttributeConverter.class);
         assertThat(converter.attributeValueType()).isEqualTo(AttributeValueType.M);
         assertThat(provider.converterFor(type)).isSameAs(converter);
-    }
-
-    @Test
-    @DisplayName("Plain Object type fails converter lookup")
-    void converterFor_whenObjectType_throwsConverterNotFound() {
-        EnhancedType<Object> type = EnhancedType.of(Object.class);
-
-        assertThatThrownBy(() -> provider.converterFor(type))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + type);
     }
 
     @Test

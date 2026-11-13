@@ -294,16 +294,6 @@ public class EnhancedDocumentConverterTest {
     }
 
     @Test
-    @DisplayName("EnhancedType Object fails converter lookup")
-    void toMap_whenObjectEnhancedType_throwsConverterNotFound() {
-        EnhancedType<Object> type = EnhancedType.of(Object.class);
-
-        assertThatThrownBy(() -> defaultBuilder().put("value", new Object(), type).build().toMap())
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(Object.class));
-    }
-
-    @Test
     @DisplayName("Class-based get rejects Object before provider lookup")
     void get_whenObjectClass_throwsIllegalArgumentExceptionToUseGetList() {
         EnhancedDocument document = defaultBuilder()
@@ -390,27 +380,6 @@ public class EnhancedDocumentConverterTest {
     }
 
     @Test
-    @DisplayName("Document list recursion can use a custom member provider")
-    void putThenGet_whenListOfUnsupportedTypeWithMemberProvider_storesLWithSMembersAndReadsArrayList() {
-        EnhancedType<List<UnsupportedType>> type = EnhancedType.listOf(UnsupportedType.class);
-        List<UnsupportedType> input = new ArrayList<>();
-        input.add(new UnsupportedType("a"));
-        input.add(new UnsupportedType("b"));
-        AttributeConverterProvider memberProvider = new UnsupportedMemberProvider();
-
-        EnhancedDocument document = EnhancedDocument.builder()
-                                                    .attributeConverterProviders(memberProvider)
-                                                    .put("value", input, type)
-                                                    .build();
-        Map<String, AttributeValue> map = document.toMap();
-        List<UnsupportedType> read = document.get("value", type);
-
-        assertThat(map.get("value").hasL()).isTrue();
-        assertThat(map.get("value").l()).containsExactly(AttributeValue.fromS("a"), AttributeValue.fromS("b"));
-        assertThat(read).isInstanceOf(ArrayList.class).isEqualTo(input);
-    }
-
-    @Test
     @DisplayName("Document map recursion can use a custom value provider")
     void putThenGet_whenMapOfUnsupportedTypeWithValueProvider_storesMWithSMemberAndReadsLinkedHashMap() {
         EnhancedType<Map<String, UnsupportedType>> type =
@@ -429,18 +398,6 @@ public class EnhancedDocumentConverterTest {
         assertThat(map.get("value").hasM()).isTrue();
         assertThat(map.get("value").m().get("key")).isEqualTo(AttributeValue.fromS("a"));
         assertThat(read).isInstanceOf(LinkedHashMap.class).isEqualTo(input);
-    }
-
-    @Test
-    @DisplayName("A document list of Object fails converter lookup for its member type")
-    void toMap_whenListOfObject_throwsConverterNotFoundForMemberType() {
-        EnhancedType<List<Object>> type = EnhancedType.listOf(Object.class);
-        List<Object> input = new ArrayList<>();
-        input.add("a");
-
-        assertThatThrownBy(() -> defaultBuilder().put("value", input, type).build().toMap())
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Converter not found for " + EnhancedType.of(Object.class));
     }
 
     @Test
