@@ -15,10 +15,14 @@
 
 package software.amazon.awssdk.codegen.smithy.customization;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.codegen.smithy.customization.pagesize.PageSizeCustomizations;
 import software.amazon.awssdk.codegen.smithy.customization.s3.S3Customizations;
+import software.amazon.awssdk.codegen.smithy.customization.s3control.S3ControlCustomizations;
 import software.amazon.smithy.aws.traits.ServiceTrait;
 import software.amazon.smithy.model.shapes.ServiceShape;
 
@@ -27,9 +31,16 @@ import software.amazon.smithy.model.shapes.ServiceShape;
  */
 @SdkInternalApi
 public final class SmithyServiceCustomizations {
-    private static final List<SmithyServiceCustomization> ALL = S3Customizations.all();
+    private static final List<SmithyServiceCustomization> ALL = all();
 
     private SmithyServiceCustomizations() {
+    }
+
+    private static List<SmithyServiceCustomization> all() {
+        List<SmithyServiceCustomization> all = new ArrayList<>(S3Customizations.all());
+        all.addAll(S3ControlCustomizations.all());
+        all.addAll(PageSizeCustomizations.all());
+        return Collections.unmodifiableList(all);
     }
 
     public static List<SmithyServiceCustomization> forService(ServiceShape service) {
