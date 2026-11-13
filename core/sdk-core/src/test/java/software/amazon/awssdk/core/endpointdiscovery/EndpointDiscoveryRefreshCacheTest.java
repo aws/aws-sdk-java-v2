@@ -22,10 +22,18 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Field;
 import java.net.URI;
+import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -87,6 +95,67 @@ public class EndpointDiscoveryRefreshCacheTest {
         assertThat(future.isCancelled()).isEqualTo(true);
         assertThatThrownBy(future::get).isInstanceOf(CancellationException.class);
 
+    }
+
+    @Test
+    public void get_concurrentCallsOnExpiredEntry_onlyRefreshesOnce() throws Exception {
+        // Regression test: returnCachedOrDefaultEndpoint used to check-then-act on an expired
+        // cache entry (isBefore(now) followed by an unguarded cache.put) with no synchronization,
+        // unlike the sibling "no cached entry yet" branch a few lines above it, which correctly
+        // uses cache.putIfAbsent as a compare-and-swap. Every thread that read the same expired
+        // entry before any of them wrote back independently decided to kick off a background
+        // refresh, causing duplicate discoverEndpoint calls under concurrent load right when an
+        // entry expires. There should only ever be exactly one refresh call per expiration.
+        AtomicInteger discoveryCalls = new AtomicInteger(0);
+        when(mockClient.discoverEndpoint(any())).thenAnswer(invocation -> {
+            discoveryCalls.incrementAndGet();
+            return CompletableFuture.completedFuture(
+                EndpointDiscoveryEndpoint.builder()
+                                          .endpoint(testURI)
+                                          .expirationTime(Instant.now().plusSeconds(60))
+                                          .build());
+        });
+
+        EndpointDiscoveryRequest request = EndpointDiscoveryRequest.builder()
+                                                                     .required(false)
+                                                                     .cacheKey(requestCacheKey)
+                                                                     .defaultEndpoint(testURI)
+                                                                     .build();
+
+        // Prime the cache with an already-expired entry, simulating the moment right after a
+        // real cache entry expires under concurrent load.
+        Field cacheField = EndpointDiscoveryRefreshCache.class.getDeclaredField("cache");
+        cacheField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, EndpointDiscoveryEndpoint> internalCache =
+            (Map<String, EndpointDiscoveryEndpoint>) cacheField.get(endpointDiscoveryRefreshCache);
+        internalCache.put(accessKey + ":" + requestCacheKey,
+                           EndpointDiscoveryEndpoint.builder()
+                                                     .endpoint(URI.create("stale_endpoint"))
+                                                     .expirationTime(Instant.now().minusSeconds(1))
+                                                     .build());
+
+        int threadCount = 50;
+        ExecutorService pool = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch ready = new CountDownLatch(threadCount);
+        CountDownLatch go = new CountDownLatch(1);
+        for (int i = 0; i < threadCount; i++) {
+            pool.submit(() -> {
+                ready.countDown();
+                try {
+                    go.await();
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                }
+                endpointDiscoveryRefreshCache.get(accessKey, request);
+            });
+        }
+        ready.await();
+        go.countDown();
+        pool.shutdown();
+        assertThat(pool.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+
+        assertThat(discoveryCalls.get()).isEqualTo(1);
     }
 
 }
