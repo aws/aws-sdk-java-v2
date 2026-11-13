@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon Simple Queue Service",
+    "contributor": "",
+    "description": "Limit the number of receive buffers the SQS batch manager keeps and release them when the batch manager is closed. A `receiveMessage` call on a queue that does not exist now fails with `QueueDoesNotExistException`, including when `waitTimeSeconds` is set. After the batch manager is closed, every `receiveMessage` call fails, including calls that are not batched."
+}
