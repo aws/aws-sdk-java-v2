@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 import java.net.URI;
 import java.time.Duration;
@@ -37,19 +38,21 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.retries.LegacyRetryStrategy;
+import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
+import software.amazon.awssdk.retries.internal.DefaultAwareRetryStrategy;
 
 public class RetryableStageTest extends BaseRetryableStageTest {
     private RetryStrategy mockRetryStrategy;
@@ -60,16 +63,22 @@ public class RetryableStageTest extends BaseRetryableStageTest {
 
     @BeforeEach
     void setup() {
-        mockRetryStrategy = mock(RetryStrategy.class);
         mockAcquireInitialTokenResponse = mock(AcquireInitialTokenResponse.class);
         mockRetryToken = mock(RetryToken.class);
 
         when(mockAcquireInitialTokenResponse.token()).thenReturn(mockRetryToken);
         when(mockAcquireInitialTokenResponse.delay()).thenReturn(Duration.ZERO);
 
-        when(mockRetryStrategy.acquireInitialToken(any())).thenReturn(mockAcquireInitialTokenResponse);
+        mockRetryStrategy = newMockRetryStrategy(RetryStrategy.class);
 
         mockDelegatePipeline = mock(RequestPipeline.class);
+    }
+
+    private RetryStrategy newMockRetryStrategy(Class<? extends RetryStrategy> strategyClass) {
+        RetryStrategy strategy = mock(strategyClass, withSettings().extraInterfaces(DefaultAwareRetryStrategy.class));
+        when(((DefaultAwareRetryStrategy) strategy).usesRetryBehavior21()).thenReturn(strategyClass != LegacyRetryStrategy.class);
+        when(strategy.acquireInitialToken(any())).thenReturn(mockAcquireInitialTokenResponse);
+        return strategy;
     }
 
     @ParameterizedTest
@@ -90,9 +99,7 @@ public class RetryableStageTest extends BaseRetryableStageTest {
                                                            .uri(URI.create("https://my-service.amazonaws.com"))
                                                            .build();
 
-        ExecutionAttributes execAttrs = ExecutionAttributes.builder()
-                                                           .put(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED, true)
-                                                           .build();
+        ExecutionAttributes execAttrs = ExecutionAttributes.builder().build();
 
         ExecutionContext execCtx = ExecutionContext.builder()
                                                    .executionAttributes(execAttrs)
@@ -140,6 +147,8 @@ public class RetryableStageTest extends BaseRetryableStageTest {
     @ParameterizedTest
     @MethodSource("retryAfterTestCases")
     void execute_retryableException_treatsRetryAfterCorrectly(RetryAfterTestCase testCase) throws Exception {
+        mockRetryStrategy = newMockRetryStrategy(testCase.isLegacyRetryStrategy() ? LegacyRetryStrategy.class
+                                                                                  : StandardRetryStrategy.class);
         SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
                                                                     .option(SdkClientOption.RETRY_STRATEGY, mockRetryStrategy)
                                                                     .build();
@@ -155,10 +164,7 @@ public class RetryableStageTest extends BaseRetryableStageTest {
                                                            .uri(URI.create("https://my-service.amazonaws.com"))
                                                            .build();
 
-        ExecutionAttributes execAttrs = ExecutionAttributes.builder()
-                                                           .put(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED,
-                                                                testCase.isNewRetries2026Enabled())
-                                                           .build();
+        ExecutionAttributes execAttrs = ExecutionAttributes.builder().build();
 
         ExecutionContext execCtx = ExecutionContext.builder()
                                                    .executionAttributes(execAttrs)

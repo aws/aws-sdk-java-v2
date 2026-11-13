@@ -35,6 +35,8 @@ import software.amazon.awssdk.utils.Validate;
 
 @RunWith(Parameterized.class)
 public class RetryModeTest {
+    private static final String OLD_GATE_PROPERTY = "aws.newRetries2026";
+    private static final String OLD_GATE_ENV_VAR = "AWS_NEW_RETRIES_2026";
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
 
     @Parameterized.Parameter
@@ -44,17 +46,19 @@ public class RetryModeTest {
     public static Collection<Object> data() {
         return Arrays.asList(new Object[] {
             // Test defaults
-            new TestData(null, null, null, null, null, null, null, RetryMode.LEGACY),
-            new TestData(null, null, "PropertyNotSet", null, null, null, null, RetryMode.LEGACY),
+            new TestData(null, null, null, null, null, null, null, RetryMode.STANDARD),
+            new TestData(null, null, "PropertyNotSet", null, null, null, null, RetryMode.STANDARD),
 
-            // default + new retries 2026
+            // the removed new retries 2026 setting has no effect on the default
             new TestData(null, null, null, null, "true", null, null, RetryMode.STANDARD),
             new TestData(null, null, null, null, null, "true", null, RetryMode.STANDARD),
             new TestData(null, null, null, null, null, null, true, RetryMode.STANDARD),
-
-            // new retries 2026 precedence
-            new TestData(null, null, null, null, "false", null, true, RetryMode.LEGACY),
-            new TestData(null, null, null, null, null, "false", true, RetryMode.LEGACY),
+            new TestData(null, null, null, null, "false", null, null, RetryMode.STANDARD),
+            new TestData(null, null, null, null, null, "false", null, RetryMode.STANDARD),
+            new TestData(null, null, null, null, null, null, false, RetryMode.STANDARD),
+            new TestData(null, null, null, null, "false", null, true, RetryMode.STANDARD),
+            new TestData(null, null, null, null, null, "false", true, RetryMode.STANDARD),
+            new TestData(null, null, null, RetryMode.LEGACY, "true", null, true, RetryMode.LEGACY),
 
             // Test resolution
             new TestData("legacy", null, null, null, null, null, null, RetryMode.LEGACY),
@@ -64,7 +68,7 @@ public class RetryModeTest {
             new TestData("sTanDaRd", null, null, null, null, null, null, RetryMode.STANDARD),
             new TestData("aDaPtIvE", null, null, null, null, null, null, RetryMode.ADAPTIVE_V2),
 
-            // new retries 2026 does not have an effect if retry mode set explicitly
+            // the removed new retries 2026 setting does not have an effect if retry mode set explicitly
             new TestData("legacy", null, null, null, "true", null, null, RetryMode.LEGACY),
             new TestData("standard", null, null, null, "true", null, null, RetryMode.STANDARD),
             new TestData("adaptive", null, null, null, "true", null, null, RetryMode.ADAPTIVE_V2),
@@ -106,10 +110,11 @@ public class RetryModeTest {
         System.clearProperty(ProfileFileSystemSetting.AWS_PROFILE.property());
         System.clearProperty(ProfileFileSystemSetting.AWS_CONFIG_FILE.property());
 
-        System.clearProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property());
+        System.clearProperty(OLD_GATE_PROPERTY);
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     public void differentCombinationOfConfigs_shouldResolveCorrectly() throws Exception {
         if (testData.envVarValue != null) {
             ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_RETRY_MODE.environmentVariable(), testData.envVarValue);
@@ -127,12 +132,12 @@ public class RetryModeTest {
         }
 
         if (testData.newRetries2026EnvVarValue != null) {
-            ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_NEW_RETRIES_2026.environmentVariable(),
+            ENVIRONMENT_VARIABLE_HELPER.set(OLD_GATE_ENV_VAR,
                                             testData.newRetries2026EnvVarValue);
         }
 
         if (testData.newRetries2026SystemProperty != null) {
-            System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), testData.newRetries2026SystemProperty);
+            System.setProperty(OLD_GATE_PROPERTY, testData.newRetries2026SystemProperty);
         }
 
         Callable<RetryMode> result = RetryMode.resolver()

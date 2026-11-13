@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -36,6 +38,8 @@ import software.amazon.awssdk.services.s3.model.CommonPrefix;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.testutils.LogCaptor;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 class ListObjectsHelperTest {
     private Function<ListObjectsV2Request,
@@ -125,6 +129,35 @@ class ListObjectsHelperTest {
                                                   assertThat(list.get(4)).isEqualTo(firstRequest.toBuilder().prefix("feb/").build());
                                               });
         assertThat(actualObjects).hasSize(10);
+    }
+
+    @Test
+    void listS3Objects_virtualDirectoryKeyWithControlCharacters_debugLogIsOneEscapedLine() {
+        String prefix = "dir\r\nFORGED level=ERROR/";
+        ListObjectsV2Response response = listObjectsV2Response(prefix, "real.txt").toBuilder().prefix(prefix).build();
+        when(listObjectsFunction.apply(any(ListObjectsV2Request.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        List<S3Object> actualObjects = new ArrayList<>();
+        List<String> messages;
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            listObjectsHelper.listS3ObjectsRecursively(ListObjectsV2Request.builder()
+                                                                           .bucket("bucket")
+                                                                           .prefix(prefix)
+                                                                           .build())
+                             .subscribe(actualObjects::add).join();
+            messages = logCaptor.loggedEvents()
+                                .stream()
+                                .filter(e -> S3TransferManager.class.getName().equals(e.getLoggerName()))
+                                .map(LogEvent::getMessage)
+                                .map(m -> m.getFormattedMessage())
+                                .collect(Collectors.toList());
+        }
+
+        assertThat(actualObjects).extracting(S3Object::key).containsExactly("real.txt");
+        assertThat(messages).allSatisfy(m -> assertThat(m).doesNotContain("\r", "\n"));
+        assertThat(messages).anySatisfy(m -> assertThat(m).isEqualTo(
+            "Skipping download for object (dir\\r\\nFORGED level=ERROR/) since it is a virtual directory"));
     }
 
     private ListObjectsV2Response listObjectsV2Response(String... keys) {

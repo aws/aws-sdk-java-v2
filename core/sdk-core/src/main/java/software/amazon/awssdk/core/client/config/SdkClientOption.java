@@ -308,7 +308,10 @@ public final class SdkClientOption<T> extends ClientOption<T> {
 
     /**
      * Option to specify the default for the {@code AWS_NEW_RETRIES_2026} feature gate for the SDK client.
+     *
+     * @deprecated This option is no longer used. The standard and adaptive retry modes use retry behavior 2.1.
      */
+    @Deprecated
     public static final SdkClientOption<Boolean> DEFAULT_NEW_RETRIES_2026 = new SdkClientOption<>(Boolean.class);
 
     /**
@@ -320,7 +323,10 @@ public final class SdkClientOption<T> extends ClientOption<T> {
 
     /**
      * Whether retries 2.1 behavior is enabled.
+     *
+     * @deprecated This option is no longer used. The standard and adaptive retry modes use retry behavior 2.1.
      */
+    @Deprecated
     public static final SdkClientOption<Boolean> NEW_RETRIES_2026_ENABLED = new SdkClientOption<>(Boolean.class);
 
     /**

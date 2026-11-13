@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
+import software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerProvider;
 import software.amazon.awssdk.services.s3.model.AnnotationDirective;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -332,6 +333,22 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *
      * <p>
      * See the static factory methods available in {@link AsyncResponseTransformer} for other use cases.
+     *
+     * <p>
+     * To download through the direct buffer pool of a CRT-based S3 client, pass a direct buffer pool transformer, such as
+     * {@link S3CrtResponseTransformerProvider#toBlockingInputStreamFromDirectBufferPool()}, unwrapped. See the transformer's
+     * documentation for when its result is ready and how it uses the pool. The transfer manager must be built on an
+     * {@link S3AsyncClient} created by {@link S3AsyncClient#crtBuilder()} with
+     * {@link S3CrtAsyncClientBuilder#directBufferPoolConfiguration} set. Otherwise, the transfer fails before request
+     * transmission.
+     * <p>
+     * With the direct buffer pool blocking stream transformer, {@link Download#completionFuture()} completes when the
+     * response stream is ready, not when the object has finished downloading. The rest downloads as the application reads
+     * the stream. Progress counts bytes CRT has received, which the application may not have read yet.
+     * {@link TransferListener#transferComplete} is called when CRT has received the whole object, which for a large object
+     * depends on the application reading the stream. Always close the stream. Closing it before CRT has received the whole
+     * object cancels the rest of the download and the transfer fails. Closing it afterward leaves the transfer complete, even
+     * if the application didn't read everything.
      *
      * @param downloadRequest the download request, containing a {@link GetObjectRequest} and {@link AsyncResponseTransformer}
      * @param <ResultT>       The type of data the {@link AsyncResponseTransformer} produces

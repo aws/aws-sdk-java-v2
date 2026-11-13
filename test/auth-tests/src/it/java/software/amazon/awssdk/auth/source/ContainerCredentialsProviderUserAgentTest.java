@@ -21,6 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.RETRY_MODE_STANDARD;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.time.Duration;
@@ -146,11 +147,11 @@ class ContainerCredentialsProviderUserAgentTest {
 
     private static Stream<Arguments> containerCredentialProviders() {
         return Stream.of(
-            Arguments.of(ContainerCredentialsProvider.create(), Arrays.asList("D", "z")),
+            Arguments.of(ContainerCredentialsProvider.create(), Arrays.asList(RETRY_MODE_STANDARD.value(), "z")),
 
             Arguments.of(ContainerCredentialsProvider.builder()
                             .endpoint(CONTAINER_SERVICE_ENDPOINT + wireMockServer.getPort())
-                            .build(), Arrays.asList("D", "z"))
+                            .build(), Arrays.asList(RETRY_MODE_STANDARD.value(), "z"))
         );
     }
 
@@ -175,7 +176,7 @@ class ContainerCredentialsProviderUserAgentTest {
 
     private static Stream<Arguments> containerCredentialProvidersWithSessionToken() {
         return Stream.of(
-            Arguments.of(ContainerCredentialsProvider.create(), Arrays.asList("D", "z"))
+            Arguments.of(ContainerCredentialsProvider.create(), Arrays.asList(RETRY_MODE_STANDARD.value(), "z"))
         );
     }
 
@@ -201,7 +202,7 @@ class ContainerCredentialsProviderUserAgentTest {
 
     private static Stream<Arguments> containerCredentialProvidersWithAuthToken() {
         return Stream.of(
-            Arguments.of(ContainerCredentialsProvider.create(), Arrays.asList("D", "z"))
+            Arguments.of(ContainerCredentialsProvider.create(), Arrays.asList(RETRY_MODE_STANDARD.value(), "z"))
         );
     }
 

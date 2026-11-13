@@ -48,6 +48,8 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -61,6 +63,8 @@ import software.amazon.awssdk.services.s3.multipart.PauseObservable;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.FileUtils;
+import software.amazon.awssdk.testutils.LogCaptor;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
@@ -669,6 +673,92 @@ public class UploadDirectoryHelperTest {
         assertThat(roots).containsOnlyKeys(jimfs.getPath("test/1"), replacement);
         assertThat(roots.get(jimfs.getPath("test/1"))).isEqualTo(directory);
         assertThat(roots.get(replacement)).isEqualTo(NO_ROOT);
+    }
+
+    @Test
+    void uploadDirectory_fileNameWithControlCharacters_debugLogIsOneEscapedLineAndKeyIsUnchanged() throws Exception {
+        try (FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix())) {
+            Path source = fileSystem.getPath("/src");
+            Files.createDirectory(source);
+            String forgedName = "report.txt\r\nFORGED level=ERROR";
+            String escName = "esc\u001b[2J.txt";
+            Files.write(source.resolve(forgedName), "a".getBytes(StandardCharsets.UTF_8));
+            Files.write(source.resolve(escName), "b".getBytes(StandardCharsets.UTF_8));
+            ArgumentCaptor<UploadFileRequest> requestCaptor = ArgumentCaptor.forClass(UploadFileRequest.class);
+            when(singleUploadFunction.apply(requestCaptor.capture())).thenReturn(completedUpload());
+
+            List<String> messages;
+            try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+                uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                            .source(source)
+                                                                            .bucket("bucket")
+                                                                            .build())
+                                     .completionFuture()
+                                     .get(5, TimeUnit.SECONDS);
+                messages = transferManagerDebugMessages(logCaptor);
+            }
+
+            assertThat(requestCaptor.getAllValues()).extracting(r -> r.putObjectRequest().key())
+                                                    .containsExactlyInAnyOrder(forgedName, escName);
+            List<String> sendMessages = messages.stream()
+                                                .filter(m -> m.startsWith("Sending upload request"))
+                                                .collect(Collectors.toList());
+            assertThat(sendMessages).hasSize(2);
+            assertThat(sendMessages).allSatisfy(UploadDirectoryHelperTest::assertNoControlCharacters);
+            assertThat(sendMessages).anySatisfy(m -> assertThat(m).contains("report.txt\\r\\nFORGED level=ERROR"));
+            assertThat(sendMessages).anySatisfy(m -> assertThat(m).contains("esc\\u001b[2J.txt"));
+        }
+    }
+
+    @Test
+    void uploadDirectory_duplicateKeyWithControlCharacters_debugLogIsEscapedAndExceptionIsUnchanged() throws Exception {
+        try (FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix())) {
+            Path source = fileSystem.getPath("/dup");
+            Files.createDirectories(source.resolve("a"));
+            String name = "b\r\nFORGED";
+            Files.write(source.resolve("a").resolve(name), "nested".getBytes(StandardCharsets.UTF_8));
+            Files.write(source.resolve("a-" + name), "flat".getBytes(StandardCharsets.UTF_8));
+            when(singleUploadFunction.apply(any(UploadFileRequest.class))).thenReturn(completedUpload());
+
+            CompletedDirectoryUpload result;
+            List<String> messages;
+            try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+                result = uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
+                                                                                     .source(source)
+                                                                                     .bucket("bucket")
+                                                                                     .s3Delimiter("-")
+                                                                                     .build())
+                                              .completionFuture()
+                                              .get(5, TimeUnit.SECONDS);
+                messages = transferManagerDebugMessages(logCaptor);
+            }
+
+            assertThat(result.failedTransfers()).hasSize(1);
+            FailedFileUpload failed = result.failedTransfers().iterator().next();
+            assertThat(failed.request().putObjectRequest().key()).isEqualTo("a-" + name);
+            assertThat(failed.exception()).hasMessageContaining("to key a-" + name + " in this request");
+
+            List<String> skipMessages = messages.stream()
+                                                .filter(m -> m.startsWith("Skipped uploading"))
+                                                .collect(Collectors.toList());
+            assertThat(skipMessages).hasSize(1);
+            assertNoControlCharacters(skipMessages.get(0));
+            assertThat(skipMessages.get(0)).contains("to key a-b\\r\\nFORGED in this request");
+            assertThat(messages).allSatisfy(UploadDirectoryHelperTest::assertNoControlCharacters);
+        }
+    }
+
+    private static List<String> transferManagerDebugMessages(LogCaptor logCaptor) {
+        return logCaptor.loggedEvents()
+                        .stream()
+                        .filter(e -> S3TransferManager.class.getName().equals(e.getLoggerName()))
+                        .map(LogEvent::getMessage)
+                        .map(m -> m.getFormattedMessage())
+                        .collect(Collectors.toList());
+    }
+
+    private static void assertNoControlCharacters(String message) {
+        assertThat(message).doesNotContain("\r", "\n", "\u001b");
     }
 
     private static final Path NO_ROOT = Paths.get("no-confinement-root");
