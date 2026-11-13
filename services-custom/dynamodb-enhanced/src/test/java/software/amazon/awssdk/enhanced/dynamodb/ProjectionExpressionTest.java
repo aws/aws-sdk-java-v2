@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,7 @@ public class ProjectionExpressionTest {
     static {
         EXPECTED_ATTRIBUTE_NAMES.put("#AMZN_MAPPED_attribute", "attribute");
         EXPECTED_ATTRIBUTE_NAMES.put("#AMZN_MAPPED_Attribute", "Attribute");
-        EXPECTED_ATTRIBUTE_NAMES.put("#AMZN_MAPPED_firstiteminlist[0]", "firstiteminlist[0]");
+        EXPECTED_ATTRIBUTE_NAMES.put("#AMZN_MAPPED_firstiteminlist", "firstiteminlist");
         EXPECTED_ATTRIBUTE_NAMES.put("#AMZN_MAPPED_March_2021", "March-2021");
         EXPECTED_ATTRIBUTE_NAMES.put("#AMZN_MAPPED_Why_Make_This_An_Attribute_Name", "Why.Make-This*An:Attribute:Name");
     }
@@ -50,23 +51,17 @@ public class ProjectionExpressionTest {
                                                                            .map(NestedAttributeName::create)
                                                                            .collect(Collectors.toList());
 
-        String expectedProjectionExpression = EXPECTED_ATTRIBUTE_NAMES.keySet()
-                                                                      .stream()
-                                                                      .collect(Collectors.joining(PROJ_EXP_SEPARATOR));
+        String expectedProjectionExpression = String.join(PROJ_EXP_SEPARATOR, EXPECTED_ATTRIBUTE_NAMES.keySet());
 
         assertProjectionExpression(attributeNames, EXPECTED_ATTRIBUTE_NAMES, expectedProjectionExpression);
     }
 
     @Test
     public void severalNestedAttributes_handledCorrectly() {
-        List<NestedAttributeName> attributeNames = Arrays.asList(NestedAttributeName.create(
-            EXPECTED_ATTRIBUTE_NAMES.values()
-                                    .stream()
-                                    .collect(Collectors.toList())));
+        List<NestedAttributeName> attributeNames = Collections.singletonList(NestedAttributeName.create(
+            new ArrayList<>(EXPECTED_ATTRIBUTE_NAMES.values())));
 
-        String expectedProjectionExpression = EXPECTED_ATTRIBUTE_NAMES.keySet()
-                                                                      .stream()
-                                                                      .collect(Collectors.joining(NESTING_SEPARATOR));
+        String expectedProjectionExpression = String.join(NESTING_SEPARATOR, EXPECTED_ATTRIBUTE_NAMES.keySet());
 
         assertProjectionExpression(attributeNames, EXPECTED_ATTRIBUTE_NAMES, expectedProjectionExpression);
     }
@@ -102,6 +97,109 @@ public class ProjectionExpressionTest {
                                               + "#AMZN_MAPPED_2_attribute_03";
 
         assertProjectionExpression(attributeNames, expectedAttributeNames, expectedProjectionExpression);
+    }
+
+    @Test
+    public void listDereference_rootIndex_mapsBaseNameAndKeepsSuffixInExpression() {
+        Map<String, String> expectedAttributeNames = new HashMap<>();
+        expectedAttributeNames.put("#AMZN_MAPPED_tags", "tags");
+
+        assertProjectionExpression(Collections.singletonList(NestedAttributeName.create("tags[0]")),
+                                   expectedAttributeNames,
+                                   "#AMZN_MAPPED_tags[0]");
+    }
+
+    @Test
+    public void listDereference_nestedMapAndList_mapsBaseNamesAndKeepsSuffix() {
+        Map<String, String> expectedAttributeNames = new HashMap<>();
+        expectedAttributeNames.put("#AMZN_MAPPED_metadata", "metadata");
+        expectedAttributeNames.put("#AMZN_MAPPED_values", "values");
+
+        assertProjectionExpression(Collections.singletonList(NestedAttributeName.create("metadata", "values[1]")),
+                                   expectedAttributeNames,
+                                   "#AMZN_MAPPED_metadata.#AMZN_MAPPED_values[1]");
+    }
+
+    @Test
+    public void listDereference_multipleIndexes_keepsRepeatedSuffix() {
+        Map<String, String> expectedAttributeNames = new HashMap<>();
+        expectedAttributeNames.put("#AMZN_MAPPED_values", "values");
+
+        assertProjectionExpression(Collections.singletonList(NestedAttributeName.create("values[1][2]")),
+                                   expectedAttributeNames,
+                                   "#AMZN_MAPPED_values[1][2]");
+    }
+
+    @Test
+    public void listDereference_listOfMapField_mapsBaseNamesAndKeepsSuffix() {
+        Map<String, String> expectedAttributeNames = new HashMap<>();
+        expectedAttributeNames.put("#AMZN_MAPPED_phoneNumbers", "phoneNumbers");
+        expectedAttributeNames.put("#AMZN_MAPPED_type", "type");
+
+        assertProjectionExpression(Collections.singletonList(NestedAttributeName.create("phoneNumbers[1]", "type")),
+                                   expectedAttributeNames,
+                                   "#AMZN_MAPPED_phoneNumbers[1].#AMZN_MAPPED_type");
+    }
+
+    @Test
+    public void listDereference_specialCharacterBaseName_sanitizesPlaceholderOnly() {
+        Map<String, String> expectedAttributeNames = new HashMap<>();
+        expectedAttributeNames.put("#AMZN_MAPPED_March_2021", "March-2021");
+
+        assertProjectionExpression(Collections.singletonList(NestedAttributeName.create("March-2021[0]")),
+                                   expectedAttributeNames,
+                                   "#AMZN_MAPPED_March_2021[0]");
+    }
+
+    @Test
+    public void listDereference_reusesPlaceholderForSameBaseName() {
+        Map<String, String> expectedAttributeNames = new HashMap<>();
+        expectedAttributeNames.put("#AMZN_MAPPED_tags", "tags");
+
+        List<NestedAttributeName> attributeNames = Arrays.asList(
+            NestedAttributeName.create("tags"),
+            NestedAttributeName.create("tags[0]")
+        );
+
+        assertProjectionExpression(attributeNames,
+                                   expectedAttributeNames,
+                                   "#AMZN_MAPPED_tags,#AMZN_MAPPED_tags[0]");
+    }
+
+    @Test
+    public void listDereference_disambiguateCollidingBaseNames() {
+        Map<String, String> expectedAttributeNames = new HashMap<>();
+        expectedAttributeNames.put("#AMZN_MAPPED_0_attr_1", "attr-1");
+        expectedAttributeNames.put("#AMZN_MAPPED_1_attr_1", "attr.1");
+
+        List<NestedAttributeName> attributeNames = Arrays.asList(
+            NestedAttributeName.create("attr-1[0]"),
+            NestedAttributeName.create("attr.1")
+        );
+
+        String expectedProjectionExpression = "#AMZN_MAPPED_0_attr_1[0],#AMZN_MAPPED_1_attr_1";
+
+        assertProjectionExpression(attributeNames, expectedAttributeNames, expectedProjectionExpression);
+    }
+
+    @Test
+    public void listDereference_malformedNonDigitSuffix_isNotPeeled() {
+        Map<String, String> expectedAttributeNames = new HashMap<>();
+        expectedAttributeNames.put("#AMZN_MAPPED_foo[a]", "foo[a]");
+
+        assertProjectionExpression(Collections.singletonList(NestedAttributeName.create("foo[a]")),
+                                   expectedAttributeNames,
+                                   "#AMZN_MAPPED_foo[a]");
+    }
+
+    @Test
+    public void listDereference_malformedEmptyBrackets_isNotPeeled() {
+        Map<String, String> expectedAttributeNames = new HashMap<>();
+        expectedAttributeNames.put("#AMZN_MAPPED_foo[]", "foo[]");
+
+        assertProjectionExpression(Collections.singletonList(NestedAttributeName.create("foo[]")),
+                                   expectedAttributeNames,
+                                   "#AMZN_MAPPED_foo[]");
     }
 
     private void assertProjectionExpression(List<NestedAttributeName> attributeNames,
