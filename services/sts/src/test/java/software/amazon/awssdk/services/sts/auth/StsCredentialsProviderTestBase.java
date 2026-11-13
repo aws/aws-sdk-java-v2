@@ -23,7 +23,10 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -40,6 +43,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
  * Validates the functionality of {@link StsCredentialsProvider} and its subclasses.
@@ -160,6 +164,41 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
             assertThat(((AwsSessionCredentials) secondResult).secretAccessKey()).isEqualTo("b");
             assertThat(((AwsSessionCredentials) secondResult).sessionToken()).isEqualTo("c");
         }
+    }
+
+    @Test
+    public void resolveCredentials_whenRefreshFails_warningNamesProviderClass() {
+        Credentials expiredCredentials = Credentials.builder()
+                                                    .accessKeyId("a")
+                                                    .secretAccessKey("b")
+                                                    .sessionToken("c")
+                                                    .expiration(Instant.now().minus(Duration.ofSeconds(5)))
+                                                    .build();
+        RequestT request = getRequest();
+        when(callClient(stsClient, request))
+            .thenReturn(getResponse(expiredCredentials))
+            .thenThrow(SdkClientException.create("STS service unavailable"));
+
+        try (StsCredentialsProvider credentialsProvider = createCredentialsProviderBuilder(request).stsClient(stsClient).build();
+             LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            credentialsProvider.resolveCredentials();
+            credentialsProvider.resolveCredentials();
+
+            List<String> refreshWarnings = logCaptor.loggedEvents().stream()
+                                                    .map(event -> event.getMessage().getFormattedMessage())
+                                                    .filter(message -> message.contains("Credential refresh failed"))
+                                                    .collect(Collectors.toList());
+            assertThat(refreshWarnings).hasSize(1);
+            assertThat(refreshWarnings.get(0)).startsWith("(" + refreshingProviderClass(credentialsProvider).getSimpleName()
+                                                          + "()) ");
+        }
+    }
+
+    /**
+     * The provider whose credentials cache refreshes, and so names itself in refresh log messages.
+     */
+    protected Class<?> refreshingProviderClass(StsCredentialsProvider credentialsProvider) {
+        return credentialsProvider.getClass();
     }
 
     @Test

@@ -51,6 +51,9 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     /**
      * Maximum time to wait for a blocking refresh lock before calling refresh again. This is to rate limit how many times we call
      * refresh. In the ideal case, refresh always occurs in a timely fashion and only one thread actually does the refresh.
+     *
+     * <p>Not used in {@link StaleValueBehavior#ALLOW} mode once a value is cached; see
+     * {@link #acquireRefreshLock(boolean, boolean)}.
      */
     private static final Duration BLOCKING_REFRESH_MAX_WAIT = Duration.ofSeconds(5);
 
@@ -191,13 +194,21 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                 return this.cachedValue.value();
             }
             log.debug(() -> "(" + cachedValueName + ") Cached value is stale and will be refreshed.");
-            refreshCache();
+            refreshCache(true);
         } else if (shouldInitiateCachePrefetch()) {
             if (refreshRateLimited()) {
                 return this.cachedValue.value();
             }
-            log.debug(() -> "(" + cachedValueName + ") Cached value has reached prefetch time and will be refreshed.");
-            prefetchCache();
+            if (this.cachedNonRecoverableError != null) {
+                // The last refresh failed with a non-recoverable error. Refresh on this caller's thread, so that the error
+                // reaches the caller even if the prefetch strategy refreshes in the background.
+                log.debug(() -> "(" + cachedValueName + ") Cached value has reached prefetch time and the last refresh "
+                               + "failed with a non-recoverable error. Refreshing on the calling thread.");
+                refreshCache(false);
+            } else {
+                log.debug(() -> "(" + cachedValueName + ") Cached value has reached prefetch time and will be refreshed.");
+                prefetchCache();
+            }
         }
 
         return this.cachedValue.value();
@@ -304,8 +315,8 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * Returns {@code true} if a non-recoverable error is cached and has not yet expired. While this returns
      * {@code true}, refresh attempts re-raise the cached error without contacting the credential source.
      *
-     * <p>Normally called under {@link #refreshLock}; tolerates the lock-acquisition timeout in {@link #refreshCache()}, which
-     * proceeds without the lock.
+     * <p>Normally called under {@link #refreshLock}; tolerates the lock-acquisition timeout in
+     * {@link #acquireRefreshLock(boolean, boolean)}, after which {@link #refreshCache(boolean)} proceeds without the lock.
      */
     private boolean nonRecoverableErrorCached() {
         RuntimeException error = this.cachedNonRecoverableError;
@@ -317,8 +328,8 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * Caches a non-recoverable error for a short jittered duration (1-5 seconds). This prevents a caller that catches
      * and retries in a loop from hammering the credential source with requests that are known to fail.
      *
-     * <p>Normally called under {@link #refreshLock}; tolerates the lock-acquisition timeout in {@link #refreshCache()}, which
-     * proceeds without the lock.
+     * <p>Normally called under {@link #refreshLock}; tolerates the lock-acquisition timeout in
+     * {@link #acquireRefreshLock(boolean, boolean)}, after which {@link #refreshCache(boolean)} proceeds without the lock.
      */
     private void cacheNonRecoverableError(RuntimeException error, Instant now) {
         this.cachedNonRecoverableError = error;
@@ -331,17 +342,25 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * Initiate a pre-fetch of the data using the configured {@link #prefetchStrategy}.
      */
     private void prefetchCache() {
-        prefetchStrategy.prefetch(this::refreshCache);
+        prefetchStrategy.prefetch(() -> refreshCache(false));
     }
 
     /**
-     * Perform a blocking refresh of the cached value. This will rate limit synchronous refresh calls based on the
-     * {@link #BLOCKING_REFRESH_MAX_WAIT} time. This ensures that when the data needs to be updated, we won't immediately hammer
-     * the underlying value refresher if it can get back to us in a reasonable time.
+     * Perform a blocking refresh of the cached value. How a caller waits for a refresh that is already in flight is described
+     * in {@link #acquireRefreshLock(boolean, boolean)}. A caller that waited for the lock re-checks the cached value, the
+     * cached non-recoverable error and the refresh backoff, so it reuses the result of the refresh it waited for.
+     *
+     * @param mandatory {@code true} if the cached value is stale (the mandatory refresh window), {@code false} if it has
+     *                  reached its prefetch time (the advisory refresh window).
      */
-    private void refreshCache() {
+    private void refreshCache(boolean mandatory) {
         try {
-            boolean lockAcquired = refreshLock.tryLock(BLOCKING_REFRESH_MAX_WAIT.getSeconds(), TimeUnit.SECONDS);
+            boolean singleFlight = staleValueBehavior == StaleValueBehavior.ALLOW && cachedValue != null;
+            boolean lockAcquired = acquireRefreshLock(singleFlight, mandatory);
+            if (!lockAcquired && singleFlight) {
+                // An advisory caller found a refresh in flight. Use the cached value instead of waiting.
+                return;
+            }
 
             try {
                 // Make sure the value was not refreshed while we waited for the lock.
@@ -384,6 +403,30 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted waiting to refresh a cached value.", e);
         }
+    }
+
+    /**
+     * Acquire the {@link #refreshLock} before refreshing.
+     *
+     * <p>In {@link StaleValueBehavior#ALLOW} mode with a value cached ({@code singleFlight}), only one refresh is ever in
+     * flight. A mandatory caller waits for the in-flight refresh to complete, however long it takes, and an advisory caller
+     * doesn't wait at all: if the lock is held, it returns {@code false} and the caller uses the cached value.
+     *
+     * <p>Otherwise ({@link StaleValueBehavior#STRICT} mode, or no value cached yet), a caller waits at most
+     * {@link #BLOCKING_REFRESH_MAX_WAIT} and then refreshes without the lock. This rate limits calls to the underlying supplier
+     * while giving it a reasonable time to respond.
+     *
+     * @return {@code true} if the lock was acquired and must be released by the caller.
+     */
+    private boolean acquireRefreshLock(boolean singleFlight, boolean mandatory) throws InterruptedException {
+        if (!singleFlight) {
+            return refreshLock.tryLock(BLOCKING_REFRESH_MAX_WAIT.getSeconds(), TimeUnit.SECONDS);
+        }
+        if (mandatory) {
+            refreshLock.lockInterruptibly();
+            return true;
+        }
+        return refreshLock.tryLock();
     }
 
     /**
@@ -871,6 +914,12 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          * <p>If a {@link Builder#nonRecoverableErrorPredicate(Predicate)} is configured and returns {@code true}
          * for the exception, it is re-thrown immediately and no backoff is set. The error is cached for 1-5 seconds, during
          * which refresh attempts re-throw it without calling the underlying supplier.
+         *
+         * <p>Once a value is cached, only one refresh is in flight at a time. Callers that find the cached value stale wait
+         * for the in-flight refresh to complete and reuse its result. Callers that find the cached value past its prefetch
+         * time don't wait: they return the cached value. After a non-recoverable error, callers past the prefetch time
+         * refresh on their own thread, even with a background prefetch strategy such as {@link NonBlocking}, so that the
+         * error reaches them.
          *
          * <p>Value retrieval will never fail as long as the cache has succeeded at least once,
          * unless the error is non-recoverable.

@@ -88,6 +88,14 @@ public class StsWebIdentityTokenCredentialsProviderBaseTest
                              BusinessMetricFeatureId.CREDENTIALS_ENV_VARS_STS_WEB_ID_TOKEN.value());
     }
 
+    /**
+     * Refreshes are done by the {@link StsAssumeRoleWithWebIdentityCredentialsProvider} that this provider delegates to.
+     */
+    @Override
+    protected Class<?> refreshingProviderClass(StsCredentialsProvider credentialsProvider) {
+        return StsAssumeRoleWithWebIdentityCredentialsProvider.class;
+    }
+
     private String getToken(Path file) {
         try (InputStream webIdentityTokenStream = Files.newInputStream(file)) {
             return IoUtils.toUtf8String(webIdentityTokenStream);
