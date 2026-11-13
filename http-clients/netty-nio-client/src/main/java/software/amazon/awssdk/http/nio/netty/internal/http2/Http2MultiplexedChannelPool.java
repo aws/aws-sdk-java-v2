@@ -36,7 +36,9 @@ import io.netty.handler.codec.http2.Http2LocalFlowController;
 import io.netty.handler.codec.http2.Http2Stream;
 import io.netty.handler.codec.http2.Http2StreamChannelBootstrap;
 import io.netty.util.AttributeKey;
+import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.PromiseCombiner;
 import java.io.IOException;
@@ -384,6 +386,12 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
         if (closed.compareAndSet(false, true)) {
             Future<?> closeCompleteFuture = doClose();
 
+            if (isInEventLoop()) {
+                // SimpleChannelPool#close() blocks until idle connections are closed, which may need this event loop.
+                closeCompleteFuture.addListener(f -> GlobalEventExecutor.INSTANCE.execute(connectionPool::close));
+                return;
+            }
+
             try {
                 if (!closeCompleteFuture.await(10, TimeUnit.SECONDS)) {
                     throw new RuntimeException("Event loop didn't close after 10 seconds.");
@@ -397,7 +405,18 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
             if (exception != null) {
                 throw new RuntimeException("Failed to close channel pool.", exception);
             }
+
+            connectionPool.close();
         }
+    }
+
+    private boolean isInEventLoop() {
+        for (EventExecutor eventExecutor : eventLoopGroup) {
+            if (eventExecutor.inEventLoop()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Future<?> doClose() {
@@ -415,10 +434,7 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
             }
             promiseCombiner.finish(releaseAllChannelsPromise);
 
-            releaseAllChannelsPromise.addListener(f -> {
-                connectionPool.close();
-                closeFinishedPromise.setSuccess(null);
-            });
+            releaseAllChannelsPromise.addListener(f -> closeFinishedPromise.setSuccess(null));
         });
 
         return closeFinishedPromise;

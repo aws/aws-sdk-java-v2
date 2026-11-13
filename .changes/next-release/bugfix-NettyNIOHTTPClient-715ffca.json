@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO HTTP Client",
+    "description": "Fixed BlockingOperationException and 10 second hang when closing an HTTP/2 connection pool whose idle connection shares the close event loop. See [#6863](https://github.com/aws/aws-sdk-java-v2/issues/6863).",
+    "contributor": "tuannx"
+}
