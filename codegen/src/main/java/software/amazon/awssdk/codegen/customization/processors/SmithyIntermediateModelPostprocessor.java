@@ -44,6 +44,7 @@ public final class SmithyIntermediateModelPostprocessor {
         processors.add(new UseLegacyEventGenerationSchemeProcessor());
         processors.add(new EventStreamSharedEventProcessor(config.getDuplicateAndRenameSharedEvents()));
         processors.add(new LongPollingOperationProcessor());
+        processors.add(new DefaultReadWriteTimeoutExemptionProcessor());
         return new SmithyIntermediateModelPostprocessor(processors);
     }
 
