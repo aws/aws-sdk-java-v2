@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "",
+    "description": "Adds support for customer-managed runtimes in the CreateFunction and UpdateFunctionConfiguration APIs. Functions can now use a customer-managed runtime and receive its updates automatically, or pin to a specific runtime version using the existing runtime controls."
+}
