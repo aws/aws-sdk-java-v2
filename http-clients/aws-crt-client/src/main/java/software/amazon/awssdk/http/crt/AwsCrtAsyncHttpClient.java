@@ -106,6 +106,22 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         AwsCrtAsyncHttpClient.Builder maxConcurrency(Integer maxConcurrency);
 
         /**
+         * Configure the maximum number of requests to an endpoint that can wait once {@link #maxConcurrency(Integer)} is in
+         * use: all connections for HTTP/1.1, or all streams for HTTP/2. When the limit is reached, a new request fails
+         * immediately instead of waiting.
+         *
+         * <p>
+         * By default (when this is not set), the number of waiting requests is not limited. This differs from
+         * {@code NettyNioAsyncHttpClient}, whose default is 10,000. To keep the Netty behavior when migrating, set this to
+         * 10,000 explicitly.
+         *
+         * @param maxPendingConnectionAcquires the maximum number of waiting requests per endpoint; must be positive, or
+         *                                     {@code null} to remove the limit (the default)
+         * @return The builder of the method chaining.
+         */
+        AwsCrtAsyncHttpClient.Builder maxPendingConnectionAcquires(Integer maxPendingConnectionAcquires);
+
+        /**
          * Configures the number of bytes that can be buffered in the client for sending and receiving data.
          * <p>
          * For requests, this is the number unsent bytes the client will buffer from the request content publisher until it has to
@@ -188,7 +204,8 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
                                                         healthChecksConfigurationBuilder);
 
         /**
-         * Configure the maximum amount of time that a connection should be allowed to remain open while idle.
+         * Configure the maximum amount of time that a connection should be allowed to remain open while idle. Applies to
+         * HTTP/1.1 and HTTP/2 connections.
          * @param connectionMaxIdleTime the maximum amount of connection idle time
          * @return The builder of the method chaining.
          */
@@ -202,7 +219,14 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         AwsCrtAsyncHttpClient.Builder connectionTimeout(Duration connectionTimeout);
 
         /**
-         * The amount of time to wait when acquiring a connection from the pool before giving up and timing out.
+         * The amount of time to wait when acquiring a connection from the pool before giving up and timing out. The default is
+         * 10 seconds.
+         *
+         * <p>
+         * For HTTP/2, this bounds only the wait for a new connection. A request waiting for a stream on an existing connection,
+         * because all {@link #maxConcurrency(Integer)} streams are in use, is not timed out; use
+         * {@link #maxPendingConnectionAcquires(Integer)} to bound how many requests can wait.
+         *
          * @param connectionAcquisitionTimeout the timeout duration
          * @return this builder for method chaining.
          */

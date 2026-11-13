@@ -45,8 +45,7 @@ public class CrtUtilsTest {
         2085, // AWS_ERROR_HTTP_MAX_CONCURRENT_STREAMS_EXCEEDED
         2087, // AWS_ERROR_HTTP_STREAM_MANAGER_CONNECTION_ACQUIRE_FAILURE
         2092, // AWS_ERROR_HTTP_RESPONSE_FIRST_BYTE_TIMEOUT
-        2093, // AWS_ERROR_HTTP_CONNECTION_MANAGER_ACQUISITION_TIMEOUT
-        2094  // AWS_ERROR_HTTP_CONNECTION_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED
+        2093  // AWS_ERROR_HTTP_CONNECTION_MANAGER_ACQUISITION_TIMEOUT
     })
     public void wrapWithIoExceptionIfRetryable_retryableCode_wrapsInIOException(int errorCode) {
         HttpException httpException = new HttpException(errorCode);
@@ -69,6 +68,7 @@ public class CrtUtilsTest {
         2078, // AWS_ERROR_HTTP_RST_STREAM_SENT - symmetric to 2077
         2079, // AWS_ERROR_HTTP_STREAM_NOT_ACTIVATED - API misuse on manual write
         2080, // AWS_ERROR_HTTP_STREAM_HAS_COMPLETED - API misuse or secondary signal during teardown
+        2094, // AWS_ERROR_HTTP_CONNECTION_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED - client-side overload; matches Netty
         2095  // AWS_ERROR_HTTP_STREAM_CANCELLED - explicit cancel by SDK abort path; not server-induced
     })
     public void wrapWithIoExceptionIfRetryable_nonRetryableCode_returnsHttpExceptionUnchanged(int errorCode) {
