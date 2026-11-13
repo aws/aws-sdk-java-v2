@@ -38,6 +38,7 @@ import io.netty.handler.codec.http2.Http2FrameCodec;
 import io.netty.handler.codec.http2.Http2FrameCodecBuilder;
 import io.netty.handler.codec.http2.Http2FrameLogger;
 import io.netty.handler.codec.http2.Http2Headers;
+import io.netty.handler.codec.http2.Http2HeadersFrame;
 import io.netty.handler.codec.http2.Http2MultiplexHandler;
 import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.logging.LogLevel;
@@ -241,16 +242,17 @@ public class PingTimeoutTest {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Http2Frame http2Frame) throws Exception {
-            if (http2Frame instanceof Http2DataFrame) {
-                Http2DataFrame dataFrame = (Http2DataFrame) http2Frame;
-                if (dataFrame.isEndStream()) {
-                    Http2Headers headers = new DefaultHttp2Headers().status("200");
-                    ctx.writeAndFlush(new DefaultHttp2HeadersFrame(headers, false));
-                    ctx.executor().scheduleAtFixedRate(() -> {
-                        DefaultHttp2DataFrame respData = new DefaultHttp2DataFrame(Unpooled.wrappedBuffer("hello".getBytes()), false);
-                        ctx.writeAndFlush(respData);
-                    }, 0, 2, TimeUnit.SECONDS);
-                }
+            // Bodyless requests end the stream on the HEADERS frame; others end it with a DATA frame.
+            boolean requestEnded =
+                (http2Frame instanceof Http2DataFrame && ((Http2DataFrame) http2Frame).isEndStream())
+                || (http2Frame instanceof Http2HeadersFrame && ((Http2HeadersFrame) http2Frame).isEndStream());
+            if (requestEnded) {
+                Http2Headers headers = new DefaultHttp2Headers().status("200");
+                ctx.writeAndFlush(new DefaultHttp2HeadersFrame(headers, false));
+                ctx.executor().scheduleAtFixedRate(() -> {
+                    DefaultHttp2DataFrame respData = new DefaultHttp2DataFrame(Unpooled.wrappedBuffer("hello".getBytes()), false);
+                    ctx.writeAndFlush(respData);
+                }, 0, 2, TimeUnit.SECONDS);
             }
         }
     }

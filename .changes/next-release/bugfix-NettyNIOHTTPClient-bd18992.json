@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO HTTP Client",
+    "description": "Fixed an issue where HTTP/2 requests without a body could fail with a stream reset after the server had already sent a complete response. Such requests now send END_STREAM on the HEADERS frame.",
+    "contributor": "crliao"
+}
