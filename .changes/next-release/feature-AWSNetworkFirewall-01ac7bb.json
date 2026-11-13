@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Network Firewall",
+    "contributor": "",
+    "description": "Releasing Firewall Proxy API and deprecating Egress Proxy API."
+}
