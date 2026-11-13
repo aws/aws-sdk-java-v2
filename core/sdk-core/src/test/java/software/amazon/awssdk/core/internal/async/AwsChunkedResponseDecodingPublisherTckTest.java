@@ -34,13 +34,15 @@ public class AwsChunkedResponseDecodingPublisherTckTest extends PublisherVerific
     }
 
     /**
-     * One single-byte chunk per upstream buffer, so one element each. The final terminal-chunk buffer emits nothing.
+     * Each single-byte chunk spans two upstream buffers: a framing-only size line, then the data and CRLF, so the TCK also
+     * covers the replacement request for framing-only buffers. The final terminal-chunk buffer emits nothing.
      */
     @Override
     public Publisher<ByteBuffer> createPublisher(long elements) {
         List<ByteBuffer> upstream = new ArrayList<>();
         for (long i = 0; i < elements; i++) {
-            upstream.add(ascii("1\r\na\r\n"));
+            upstream.add(ascii("1\r\n"));
+            upstream.add(ascii("a\r\n"));
         }
         upstream.add(ascii("0\r\ntrailer-key:abc==\r\n\r\n"));
         return new AwsChunkedResponseDecodingPublisher(Flowable.fromIterable(upstream), elements, null);

@@ -16,10 +16,12 @@
 package software.amazon.awssdk.core.internal.chunked;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
@@ -28,6 +30,8 @@ import software.amazon.awssdk.core.exception.SdkClientException;
  *
  * <p>Chunk data is never copied. While {@link #dataRemaining()} is zero, feed bytes to {@link #consumeFramingByte(int)};
  * otherwise pass data through and report it via {@link #consumeData(long)}. Call {@link #endOfInput()} when input ends.
+ *
+ * <p>Chunk extensions, including {@code chunk-signature}, are ignored; signatures are not verified.
  *
  * <p>After any error, every call rethrows it. Not thread safe.
  */
@@ -66,12 +70,20 @@ public final class AwsChunkedResponseParser {
 
     /**
      * @param expectedDecodedLength {@code x-amz-decoded-content-length}, or negative to skip the length check
-     * @param declaredTrailers      lower-case names from {@code x-amz-trailer}; others are rejected. {@code null} skips
-     *                              the check.
+     * @param declaredTrailers      names from {@code x-amz-trailer}, compared case-insensitively. Each must arrive, and no
+     *                              others are accepted. {@code null} skips both checks.
      */
     public AwsChunkedResponseParser(long expectedDecodedLength, Set<String> declaredTrailers) {
         this.expectedDecodedLength = expectedDecodedLength;
-        this.declaredTrailers = declaredTrailers;
+        this.declaredTrailers = declaredTrailers == null ? null : lowerCase(declaredTrailers);
+    }
+
+    private static Set<String> lowerCase(Set<String> names) {
+        Set<String> result = new HashSet<>();
+        for (String name : names) {
+            result.add(name.toLowerCase(Locale.ROOT));
+        }
+        return result;
     }
 
     /**
@@ -251,7 +263,14 @@ public final class AwsChunkedResponseParser {
 
     private void handleTrailerLine(String line) {
         if (line.isEmpty()) {
-            // End of trailers
+            // End of trailers: every declared trailer must have arrived
+            if (declaredTrailers != null) {
+                Set<String> missing = new TreeSet<>(declaredTrailers);
+                missing.removeAll(trailers.keySet());
+                if (!missing.isEmpty()) {
+                    throw fail("Declared trailer not received: " + truncate(String.join(", ", missing)));
+                }
+            }
             state = State.COMPLETE;
             return;
         }

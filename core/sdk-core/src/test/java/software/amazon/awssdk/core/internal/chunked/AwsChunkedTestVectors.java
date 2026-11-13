@@ -102,6 +102,9 @@ public final class AwsChunkedTestVectors {
         v.add(new Vector("declared trailer is accepted",
                          "5\r\nhello\r\n0\r\nx-amz-response-checksum-crc32:abc==\r\n\r\n", 5, declared(CRC32_TRAILER),
                          "hello", trailers(CRC32_TRAILER, "abc=="), null));
+        v.add(new Vector("declared trailer name is case-insensitive",
+                         "5\r\nhello\r\n0\r\nx-amz-response-checksum-crc32:abc==\r\n\r\n", 5,
+                         declared("X-Amz-Response-Checksum-CRC32"), "hello", trailers(CRC32_TRAILER, "abc=="), null));
         v.add(new Vector("unknown decoded length skips length check",
                          "5\r\nhello\r\n0\r\n\r\n", -1, null, "hello", trailers(), null));
         v.add(success("chunk size line at max length is accepted",
@@ -143,6 +146,9 @@ public final class AwsChunkedTestVectors {
         v.add(new Vector("undeclared trailer",
                          "5\r\nhello\r\n0\r\nother-trailer:abc==\r\n\r\n", 5, declared(CRC32_TRAILER), null, null,
                          "Trailer not declared in x-amz-trailer: other-trailer"));
+        v.add(new Vector("declared trailer not received",
+                         "5\r\nhello\r\n0\r\n\r\n", 5, declared(CRC32_TRAILER), null, null,
+                         "Declared trailer not received: x-amz-response-checksum-crc32"));
         v.add(error("trailer section over max length", manyTrailers(), "Trailer section exceeds maximum length"));
 
         // Truncation
