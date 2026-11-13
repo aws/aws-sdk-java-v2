@@ -19,13 +19,11 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchManager.USER_AGENT_APPLIER;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
@@ -35,6 +33,7 @@ import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRes
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
 
@@ -128,15 +127,21 @@ public class ReceiveSqsMessageHelper {
         if (!isEmpty()) {
             CompletableFuture<ChangeMessageVisibilityBatchResponse> nackedMessages = nackMessages();
             if (nackedMessages != null) {
-                nackedMessages.exceptionally(throwable -> {
-                    log.warn(() -> String.format(
-                        "Failed to reset the visibility timeout of unprocessed messages for queueUrl: %s. "
-                        + "As a result, these unprocessed messages will remain invisible in the queue for the "
-                        + "duration of the visibility timeout (%s).",
-                        queueUrl, visibilityTimeout
-                    ), throwable);
-
-                    return null;
+                nackedMessages.whenComplete((response, throwable) -> {
+                    if (throwable != null) {
+                        log.warn(() -> String.format(
+                            "Failed to reset the visibility timeout of unprocessed messages for queueUrl: %s. "
+                            + "As a result, these unprocessed messages will remain invisible in the queue for the "
+                            + "duration of the visibility timeout (%s).",
+                            queueUrl, visibilityTimeout
+                        ), throwable);
+                    } else if (!response.failed().isEmpty()) {
+                        log.debug(() -> String.format(
+                            "Failed to reset the visibility timeout of %d unprocessed messages for queueUrl: %s. "
+                            + "As a result, these messages will remain invisible in the queue for the duration of the "
+                            + "visibility timeout (%s).",
+                            response.failed().size(), queueUrl, visibilityTimeout));
+                    }
                 });
             }
         }
@@ -144,19 +149,18 @@ public class ReceiveSqsMessageHelper {
 
 
     private CompletableFuture<ChangeMessageVisibilityBatchResponse> nackMessages() {
-        if (messages == null || messages.isEmpty()) {
+        List<ChangeMessageVisibilityBatchRequestEntry> entries = new ArrayList<>();
+        Message message;
+        while ((message = messages.poll()) != null) {
+            entries.add(ChangeMessageVisibilityBatchRequestEntry.builder()
+                                                                .id(String.valueOf(entries.size()))
+                                                                .receiptHandle(message.receiptHandle())
+                                                                .visibilityTimeout(0)
+                                                                .build());
+        }
+        if (entries.isEmpty()) {
             return null;
         }
-
-        List<ChangeMessageVisibilityBatchRequestEntry> entries =
-            IntStream.range(0, messages.size())
-                     .mapToObj(i -> ChangeMessageVisibilityBatchRequestEntry.builder()
-                                                                            .id(String.valueOf(i))
-                                                                            .receiptHandle(Objects.requireNonNull(messages.poll())
-                                                                                                  .receiptHandle())
-                                                                            .visibilityTimeout(0)
-                                                                            .build())
-                     .collect(Collectors.toList());
 
         ChangeMessageVisibilityBatchRequest batchRequest =
             ChangeMessageVisibilityBatchRequest.builder()
@@ -165,7 +169,11 @@ public class ReceiveSqsMessageHelper {
                                                .overrideConfiguration(o -> o.applyMutation(USER_AGENT_APPLIER))
                                                .build();
 
-        return asyncClient.changeMessageVisibilityBatch(batchRequest);
+        try {
+            return asyncClient.changeMessageVisibilityBatch(batchRequest);
+        } catch (RuntimeException e) {
+            return CompletableFutureUtils.failedFuture(e);
+        }
     }
 
     /**

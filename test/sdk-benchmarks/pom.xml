@@ -81,6 +81,11 @@
             <artifactId>dynamodb</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sqs</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.amazonaws</groupId>
