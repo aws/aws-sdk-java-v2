@@ -1,0 +1,6 @@
+{
+    "type": "perf-improvement",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Improve transfer throughput when `maxInFlightParts` is high by removing unnecessary CPU contention in transfer progress updates."
+}

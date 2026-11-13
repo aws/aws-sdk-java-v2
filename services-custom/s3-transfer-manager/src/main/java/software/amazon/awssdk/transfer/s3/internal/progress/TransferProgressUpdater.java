@@ -100,12 +100,10 @@ public class TransferProgressUpdater {
                 @Override
                 public void subscriberOnNext(ByteBuffer byteBuffer) {
                     if (!disableIncrementalProgress) {
-                        incrementBytesTransferred(byteBuffer.limit());
-                        progress.snapshot().ratioTransferred().ifPresent(ratioTransferred -> {
-                            if (Double.compare(ratioTransferred, 1.0) == 0) {
-                                endOfStreamFutureCompleted();
-                            }
-                        });
+                        long transferredBytes = incrementBytesTransferred(byteBuffer.limit());
+                        if (progress.reachesTotalBytes(transferredBytes)) {
+                            endOfStreamFutureCompleted();
+                        }
                     }
                 }
 
@@ -186,7 +184,7 @@ public class TransferProgressUpdater {
                 // is in flight. Seed it here so that ratioTransferred() is available during the download; the exact value
                 // from the response Content-Length replaces this once the transfer completes.
                 long contentLength = s3MetaRequestProgress.getContentLength();
-                if (contentLength > 0 && !progress.snapshot().totalBytes().isPresent()) {
+                if (contentLength > 0 && !progress.hasTotalBytes()) {
                     updateTotalBytes(contentLength, null);
                 }
                 incrementBytesTransferred(s3MetaRequestProgress.getBytesTransferred());
@@ -289,7 +287,7 @@ public class TransferProgressUpdater {
                     public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
                         long previousPartBytes = partBytesTransferred.getAndSet(0);
                         if (previousPartBytes > 0) {
-                            progress.updateAndGet(b -> b.transferredBytes(b.getTransferredBytes() - previousPartBytes));
+                            progress.addTransferredBytes(-previousPartBytes);
                         }
                     }
 
@@ -382,7 +380,7 @@ public class TransferProgressUpdater {
     }
 
     private void resetBytesTransferred() {
-        progress.updateAndGet(b -> b.transferredBytes(0L));
+        progress.resetTransferredBytes();
     }
 
     /**
@@ -398,11 +396,17 @@ public class TransferProgressUpdater {
         }
     }
 
-    public void incrementBytesTransferred(long numBytes) {
-        TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
-            b.transferredBytes(b.getTransferredBytes() + numBytes);
-        });
-        listenerInvoker.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
+    /**
+     * Adds {@code numBytes} to the transferred byte count, notifies listeners if there are any, and returns the new count. The
+     * returned count is not capped at the total.
+     */
+    public long incrementBytesTransferred(long numBytes) {
+        long transferredBytes = progress.addTransferredBytes(numBytes);
+        if (listenerInvoker.hasListeners()) {
+            TransferProgressSnapshot snapshot = progress.snapshot(transferredBytes);
+            listenerInvoker.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
+        }
+        return transferredBytes;
     }
 
     public void registerCompletion(CompletableFuture<? extends CompletedObjectTransfer> future) {

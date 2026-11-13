@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.transfer.s3.internal.progress;
 
+import java.util.OptionalLong;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Mutable;
@@ -24,11 +26,12 @@ import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgr
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 
 /**
- * An SDK-internal implementation of {@link TransferProgress}. This implementation acts as a thin wrapper around {@link
- * AtomicReference}, where calls to get the latest {@link #snapshot()} simply return the latest reference, while {@link
- * TransferProgressUpdater} is responsible for continuously updating the latest reference.
+ * An SDK-internal implementation of {@link TransferProgress}. The transferred byte count is kept in an {@link AtomicLong} and the
+ * rest of the snapshot in an {@link AtomicReference}. {@link #snapshot()} combines the two, while {@link TransferProgressUpdater}
+ * is responsible for updating them.
  *
  * @see TransferProgress
  */
@@ -37,29 +40,102 @@ import software.amazon.awssdk.utils.ToString;
 @SdkInternalApi
 public final class DefaultTransferProgress implements TransferProgress {
 
+    /**
+     * The transferred byte count. This is the only source of truth for transferred bytes, and may be outside
+     * {@code [0, totalBytes]}; snapshots cap it to that range.
+     */
+    private final AtomicLong transferredBytes;
+
+    /**
+     * The total bytes and response. Its transferred byte count is replaced by {@link #transferredBytes} on every read.
+     */
     private final AtomicReference<TransferProgressSnapshot> snapshot;
 
     public DefaultTransferProgress(TransferProgressSnapshot snapshot) {
+        this.transferredBytes = new AtomicLong(snapshot.transferredBytes());
         this.snapshot = new AtomicReference<>(snapshot);
     }
 
     /**
-     * Atomically convert the current snapshot reference to its {@link Builder}, perform updates using the provided {@link
-     * Consumer}, and save the result as the latest snapshot.
+     * Atomically updates the total bytes or response of the latest snapshot and returns the result. The updater sees the current
+     * transferred byte count but must not change it.
+     *
+     * @throws IllegalArgumentException if the updater changes the transferred byte count
      */
-    public TransferProgressSnapshot updateAndGet(Consumer<DefaultTransferProgressSnapshot.Builder> updater) {
-        return this.snapshot.updateAndGet(s -> ((DefaultTransferProgressSnapshot) s).copy(updater));
+    public TransferProgressSnapshot updateAndGet(Consumer<Builder> updater) {
+        TransferProgressSnapshot updated =
+            snapshot.updateAndGet(s -> ((DefaultTransferProgressSnapshot) s).copy(b -> applyUpdate(b, updater)));
+        return withTransferredBytes(updated, transferredBytes.get());
+    }
+
+    /**
+     * Adds {@code numBytes}, which may be negative, to the transferred byte count and returns the new count.
+     */
+    public long addTransferredBytes(long numBytes) {
+        return transferredBytes.addAndGet(numBytes);
+    }
+
+    /**
+     * Sets the transferred byte count to zero.
+     */
+    public void resetTransferredBytes() {
+        transferredBytes.set(0L);
+    }
+
+    /**
+     * Returns whether the total size of the transfer is known.
+     */
+    public boolean hasTotalBytes() {
+        return snapshot.get().totalBytes().isPresent();
+    }
+
+    /**
+     * Returns whether {@code numBytes} reaches the total size of the transfer, or {@code false} if the total is unknown.
+     */
+    public boolean reachesTotalBytes(long numBytes) {
+        OptionalLong totalBytes = snapshot.get().totalBytes();
+        return totalBytes.isPresent() && numBytes >= totalBytes.getAsLong();
+    }
+
+    /**
+     * Returns the latest snapshot with its transferred byte count set to {@code numBytes}, capped to {@code [0, totalBytes]}.
+     */
+    public TransferProgressSnapshot snapshot(long numBytes) {
+        return withTransferredBytes(snapshot.get(), numBytes);
     }
 
     @Override
     public TransferProgressSnapshot snapshot() {
-        return snapshot.get();
+        return snapshot(transferredBytes.get());
+    }
+
+    private void applyUpdate(Builder builder, Consumer<Builder> updater) {
+        long currentBytes = transferredBytes.get();
+        builder.transferredBytes(currentBytes);
+        updater.accept(builder);
+        Validate.isTrue(builder.getTransferredBytes() == currentBytes,
+                        "updateAndGet must not change transferredBytes. Use addTransferredBytes or resetTransferredBytes.");
+        Long totalBytes = builder.getTotalBytes();
+        builder.transferredBytes(capBytes(currentBytes, totalBytes == null ? Long.MAX_VALUE : totalBytes));
+    }
+
+    private static TransferProgressSnapshot withTransferredBytes(TransferProgressSnapshot snapshot, long numBytes) {
+        OptionalLong totalBytes = snapshot.totalBytes();
+        long cappedBytes = capBytes(numBytes, totalBytes.isPresent() ? totalBytes.getAsLong() : Long.MAX_VALUE);
+        if (snapshot.transferredBytes() == cappedBytes) {
+            return snapshot;
+        }
+        return ((DefaultTransferProgressSnapshot) snapshot).copy(b -> b.transferredBytes(cappedBytes));
+    }
+
+    private static long capBytes(long numBytes, long maxBytes) {
+        return Math.min(Math.max(0L, numBytes), maxBytes);
     }
 
     @Override
     public String toString() {
         return ToString.builder("TransferProgress")
-                       .add("snapshot", snapshot)
+                       .add("snapshot", snapshot())
                        .build();
     }
 }

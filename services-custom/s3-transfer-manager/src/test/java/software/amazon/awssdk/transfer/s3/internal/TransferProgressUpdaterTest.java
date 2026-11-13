@@ -25,14 +25,25 @@ import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -472,6 +483,95 @@ class TransferProgressUpdaterTest {
     }
 
     @Test
+    void incrementBytesTransferred_whenNoListeners_snapshotReflectsAllBytes() {
+        TransferProgressUpdater updater = new TransferProgressUpdater(Mockito.mock(TransferObjectRequest.class), 100L);
+
+        updater.incrementBytesTransferred(30);
+        updater.incrementBytesTransferred(40);
+
+        assertThat(updater.progress().snapshot().transferredBytes()).isEqualTo(70L);
+    }
+
+    @Test
+    void incrementBytesTransferred_whenNoListenersAndBytesExceedTotal_snapshotCapsAtTotal() {
+        TransferProgressUpdater updater = new TransferProgressUpdater(Mockito.mock(TransferObjectRequest.class), 100L);
+
+        updater.incrementBytesTransferred(150);
+
+        assertThat(updater.progress().snapshot().transferredBytes()).isEqualTo(100L);
+    }
+
+    @Test
+    void incrementBytesTransferred_whenListenerRegisteredAndBytesExceedTotal_notifiesWithCappedSnapshot() {
+        AtomicReference<TransferProgressSnapshot> notified = new AtomicReference<>();
+        TransferObjectRequest request = requestWithListener(c -> notified.set(c.progressSnapshot()));
+        TransferProgressUpdater updater = new TransferProgressUpdater(request, 100L);
+
+        long transferredBytes = updater.incrementBytesTransferred(150);
+
+        assertThat(transferredBytes).isEqualTo(150L);
+        assertThat(notified.get().transferredBytes()).isEqualTo(100L);
+        assertThat(notified.get().ratioTransferred()).hasValue(1.0);
+    }
+
+    @Test
+    void incrementBytesTransferred_whenListenerRegisteredAndCalledConcurrently_notifiesEachIncrementWithExactCount()
+        throws Exception {
+        int threads = 8;
+        int incrementsPerThread = 1_000;
+        long bytesPerIncrement = 3;
+        long totalBytes = threads * incrementsPerThread * bytesPerIncrement;
+        Queue<TransferProgressSnapshot> notified = new ConcurrentLinkedQueue<>();
+        TransferObjectRequest request = requestWithListener(c -> notified.add(c.progressSnapshot()));
+        TransferProgressUpdater updater = new TransferProgressUpdater(request, totalBytes);
+
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        try {
+            CountDownLatch start = new CountDownLatch(1);
+            List<Future<?>> futures = new ArrayList<>();
+            for (int i = 0; i < threads; i++) {
+                futures.add(executor.submit(() -> {
+                    start.await();
+                    for (int j = 0; j < incrementsPerThread; j++) {
+                        updater.incrementBytesTransferred(bytesPerIncrement);
+                    }
+                    return null;
+                }));
+            }
+            start.countDown();
+            for (Future<?> f : futures) {
+                f.get(30, TimeUnit.SECONDS);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+
+        List<Long> notifiedCounts = notified.stream()
+                                            .map(TransferProgressSnapshot::transferredBytes)
+                                            .sorted()
+                                            .collect(Collectors.toList());
+        List<Long> expectedCounts = LongStream.rangeClosed(1, (long) threads * incrementsPerThread)
+                                              .map(i -> i * bytesPerIncrement)
+                                              .boxed()
+                                              .collect(Collectors.toList());
+        assertThat(notifiedCounts).isEqualTo(expectedCounts);
+        assertThat(notified).allSatisfy(s -> assertThat(s.totalBytes()).hasValue(totalBytes));
+        assertThat(updater.progress().snapshot().transferredBytes()).isEqualTo(totalBytes);
+    }
+
+    @Test
+    void updateTotalBytes_whenTransferredBytesExceedTotal_raisesTotalToTransferredBytes() {
+        TransferProgressUpdater updater = new TransferProgressUpdater(Mockito.mock(TransferObjectRequest.class), null);
+        updater.incrementBytesTransferred(150);
+
+        updater.updateTotalBytes(100L);
+
+        TransferProgressSnapshot snapshot = updater.progress().snapshot();
+        assertThat(snapshot.transferredBytes()).isEqualTo(150L);
+        assertThat(snapshot.totalBytes()).hasValue(150L);
+    }
+
+    @Test
     void crtProgressListener_totalBytesUnknownUpFront_takesTotalBytesFromCrtProgress() {
         TransferProgressUpdater updater = new TransferProgressUpdater(Mockito.mock(TransferObjectRequest.class), null);
         PublisherListener<S3MetaRequestProgress> listener = updater.crtProgressListener();
@@ -535,6 +635,18 @@ class TransferProgressUpdaterTest {
         transformer.onStream(SdkPublisher.adapt(new SimplePublisher<>()));
 
         assertThat(updater.progress().snapshot().transferredBytes()).isZero();
+    }
+
+    private static TransferObjectRequest requestWithListener(Consumer<TransferListener.Context.BytesTransferred> onBytes) {
+        TransferListener listener = new TransferListener() {
+            @Override
+            public void bytesTransferred(Context.BytesTransferred context) {
+                onBytes.accept(context);
+            }
+        };
+        TransferObjectRequest request = Mockito.mock(TransferObjectRequest.class);
+        when(request.transferListeners()).thenReturn(Collections.singletonList(listener));
+        return request;
     }
 
     private static AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> noOpTransformer() {

@@ -117,9 +117,11 @@ class LoggingTransferListenerTest {
         listener.transferInitiated(context);
 
         for (int i = 0; i <= TRANSFER_SIZE_IN_BYTES; i++) {
-            int bytes = i;
-            listener.bytesTransferred(context.copy(c -> c.progressSnapshot(
-                progress.updateAndGet(p -> p.transferredBytes((long) bytes)))));
+            if (i > 0) {
+                progress.addTransferredBytes(1);
+            }
+            TransferProgressSnapshot snapshot = progress.snapshot();
+            listener.bytesTransferred(context.copy(c -> c.progressSnapshot(snapshot)));
         }
 
         listener.transferComplete(context.copy(b -> b.progressSnapshot(progress.snapshot())
