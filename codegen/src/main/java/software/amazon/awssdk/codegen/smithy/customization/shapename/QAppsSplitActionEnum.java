@@ -32,7 +32,7 @@ import software.amazon.smithy.model.transform.ModelTransformer;
  * keeps its own enum class. Copies the current target, so it works before or after {@link RenameShapesToC2jNames}.
  */
 @SdkInternalApi
-public final class QAppsSplitActionEnum implements SmithyServiceCustomization {
+final class QAppsSplitActionEnum implements SmithyServiceCustomization {
     private static final ShapeId INPUT_ACTION = ShapeId.from("com.amazonaws.qapps#PermissionInput$action");
     private static final ShapeId INPUT_ACTION_ENUM = ShapeId.from("com.amazonaws.qapps#PermissionInputActionEnum");
 
@@ -43,7 +43,8 @@ public final class QAppsSplitActionEnum implements SmithyServiceCustomization {
 
     @Override
     public Model preprocess(Model model, CustomizationConfig config) {
-        MemberShape input = model.expectShape(INPUT_ACTION, MemberShape.class);
+        MemberShape input = model.getShape(INPUT_ACTION).flatMap(Shape::asMemberShape).orElseThrow(
+            () -> new IllegalStateException(INPUT_ACTION + " is not in the model, so its enum cannot be split"));
         if (input.getTarget().equals(INPUT_ACTION_ENUM)) {
             return model;
         }

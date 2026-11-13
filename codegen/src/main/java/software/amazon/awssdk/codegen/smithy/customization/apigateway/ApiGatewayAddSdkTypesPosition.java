@@ -24,6 +24,7 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 import software.amazon.awssdk.codegen.smithy.customization.SmithyServiceCustomization;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.shapes.MemberShape;
+import software.amazon.smithy.model.shapes.Shape;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.shapes.StructureShape;
 import software.amazon.smithy.model.transform.ModelTransformer;
@@ -32,7 +33,7 @@ import software.amazon.smithy.model.transform.ModelTransformer;
  * Adds {@code SdkTypes.position} as the first member, so {@code GetSdkTypesResponse.position()} stays.
  */
 @SdkInternalApi
-public final class ApiGatewayAddSdkTypesPosition implements SmithyServiceCustomization {
+final class ApiGatewayAddSdkTypesPosition implements SmithyServiceCustomization {
     private static final ShapeId SDK_TYPES = ShapeId.from("com.amazonaws.apigateway#SdkTypes");
     private static final ShapeId STRING = ShapeId.from("com.amazonaws.apigateway#String");
 
@@ -43,11 +44,16 @@ public final class ApiGatewayAddSdkTypesPosition implements SmithyServiceCustomi
 
     @Override
     public Model preprocess(Model model, CustomizationConfig config) {
-        StructureShape sdkTypes = model.expectShape(SDK_TYPES, StructureShape.class);
+        StructureShape sdkTypes = model.getShape(SDK_TYPES).flatMap(Shape::asStructureShape).orElseThrow(
+            () -> new IllegalStateException(SDK_TYPES + " is not a structure in the model, so position cannot be "
+                                            + "added"));
         if (sdkTypes.getMember("position").isPresent()) {
             return model;
         }
-        model.expectShape(STRING);
+        if (!model.getShape(STRING).isPresent()) {
+            throw new IllegalStateException(STRING + " is not in the model, so " + SDK_TYPES
+                                            + "$position cannot be added");
+        }
         List<MemberShape> members = new ArrayList<>();
         members.add(MemberShape.builder().id(SDK_TYPES.withMember("position")).target(STRING).build());
         members.addAll(sdkTypes.members());

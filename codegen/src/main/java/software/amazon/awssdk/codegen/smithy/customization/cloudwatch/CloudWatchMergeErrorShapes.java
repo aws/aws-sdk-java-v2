@@ -42,7 +42,7 @@ import software.amazon.smithy.model.transform.ModelTransformer;
  * </ul>
  */
 @SdkInternalApi
-public final class CloudWatchMergeErrorShapes implements SmithyServiceCustomization {
+final class CloudWatchMergeErrorShapes implements SmithyServiceCustomization {
     private static final String NAMESPACE = "com.amazonaws.cloudwatch";
     private static final Map<ShapeId, ShapeId> MERGED = merged();
 
@@ -56,7 +56,10 @@ public final class CloudWatchMergeErrorShapes implements SmithyServiceCustomizat
         Map<ShapeId, ShapeId> merged = new LinkedHashMap<>();
         MERGED.forEach((from, to) -> {
             if (model.getShape(from).isPresent()) {
-                model.expectShape(to);
+                if (!model.getShape(to).isPresent()) {
+                    throw new IllegalStateException(to + " is not in the model, so " + from
+                                                    + " cannot be merged into it");
+                }
                 merged.put(from, to);
             }
         });

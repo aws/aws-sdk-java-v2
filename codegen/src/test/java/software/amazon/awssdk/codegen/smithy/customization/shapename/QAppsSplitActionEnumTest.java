@@ -47,7 +47,7 @@ class QAppsSplitActionEnumTest {
     @Test
     void splitBeforeOrAfterTheRenames_givesTheSameModel() {
         QAppsSplitActionEnum split = new QAppsSplitActionEnum();
-        RenameShapesToC2jNames rename = new RenameShapesToC2jNames();
+        RenameShapesToC2jNames rename = RenameShapesToC2jNames.qApps();
 
         Model splitFirst = rename.preprocess(split.preprocess(qapps(), CONFIG), CONFIG);
         Model renameFirst = split.preprocess(rename.preprocess(qapps(), CONFIG), CONFIG);

@@ -15,9 +15,7 @@
 
 package software.amazon.awssdk.codegen.smithy.customization.shapename;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -33,44 +31,71 @@ import software.amazon.smithy.model.transform.ModelTransformer;
  * to a {@code .sdk} namespace, since class names ignore the namespace.
  */
 @SdkInternalApi
-public final class RenameShapesToC2jNames implements SmithyServiceCustomization {
-    private static final Set<String> SDK_IDS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-        "deadline", "Notifications", "QApps", "MediaLive", "Pinpoint", "Bedrock AgentCore Control")));
-    private static final Map<ShapeId, ShapeId> RENAMES = renames();
+final class RenameShapesToC2jNames implements SmithyServiceCustomization {
+    private final String sdkId;
+    private final Map<ShapeId, ShapeId> renames;
 
-    @Override
-    public Set<String> sdkIds() {
-        return SDK_IDS;
+    private RenameShapesToC2jNames(String sdkId, Map<ShapeId, ShapeId> renames) {
+        this.sdkId = sdkId;
+        this.renames = Collections.unmodifiableMap(renames);
     }
 
-    @Override
-    public Model preprocess(Model model, CustomizationConfig config) {
-        String namespace = model.getServiceShapes().iterator().next().getId().getNamespace();
-        Map<ShapeId, ShapeId> renamed = new LinkedHashMap<>();
-        RENAMES.forEach((from, to) -> {
-            if (from.getNamespace().equals(namespace)) {
-                model.expectShape(from);
-                renamed.put(from, to);
-            }
-        });
-        return ModelTransformer.create().renameShapes(model, renamed);
-    }
-
-    private static Map<ShapeId, ShapeId> renames() {
+    static RenameShapesToC2jNames deadline() {
         Map<ShapeId, ShapeId> renames = new LinkedHashMap<>();
         put(renames, "com.amazonaws.deadline#DeadlinePrincipalType", "com.amazonaws.deadline#PrincipalType");
+        return new RenameShapesToC2jNames("deadline", renames);
+    }
+
+    static RenameShapesToC2jNames notifications() {
+        Map<ShapeId, ShapeId> renames = new LinkedHashMap<>();
         put(renames, "com.amazonaws.notifications#NotificationEventSchema",
             "com.amazonaws.notifications#NotificationEvent");
+        return new RenameShapesToC2jNames("Notifications", renames);
+    }
+
+    static RenameShapesToC2jNames qApps() {
+        Map<ShapeId, ShapeId> renames = new LinkedHashMap<>();
         put(renames, "com.amazonaws.qapps#Action", "com.amazonaws.qapps#PermissionOutputActionEnum");
         put(renames, "com.amazonaws.qapps#UserType", "com.amazonaws.qapps#PrincipalOutputUserTypeEnum");
+        return new RenameShapesToC2jNames("QApps", renames);
+    }
+
+    static RenameShapesToC2jNames mediaLive() {
+        Map<ShapeId, ShapeId> renames = new LinkedHashMap<>();
         put(renames, "com.amazonaws.medialive#UpdateNodeStateShape", "com.amazonaws.medialive.sdk#UpdateNodeState");
+        return new RenameShapesToC2jNames("MediaLive", renames);
+    }
+
+    static RenameShapesToC2jNames pinpoint() {
+        Map<ShapeId, ShapeId> renames = new LinkedHashMap<>();
         put(renames, "com.amazonaws.pinpoint#CreateRecommenderConfigurationShape",
             "com.amazonaws.pinpoint.sdk#CreateRecommenderConfiguration");
         put(renames, "com.amazonaws.pinpoint#UpdateRecommenderConfigurationShape",
             "com.amazonaws.pinpoint.sdk#UpdateRecommenderConfiguration");
+        return new RenameShapesToC2jNames("Pinpoint", renames);
+    }
+
+    static RenameShapesToC2jNames bedrockAgentCoreControl() {
+        Map<ShapeId, ShapeId> renames = new LinkedHashMap<>();
         put(renames, "com.amazonaws.bedrockagentcorecontrol#GatewayApiKeyCredentialProvider",
             "com.amazonaws.bedrockagentcorecontrol.sdk#ApiKeyCredentialProvider");
-        return Collections.unmodifiableMap(renames);
+        return new RenameShapesToC2jNames("Bedrock AgentCore Control", renames);
+    }
+
+    @Override
+    public Set<String> sdkIds() {
+        return Collections.singleton(sdkId);
+    }
+
+    @Override
+    public Model preprocess(Model model, CustomizationConfig config) {
+        for (ShapeId from : renames.keySet()) {
+            if (!model.getShape(from).isPresent()) {
+                throw new IllegalStateException(from + " is not in the " + sdkId + " model. If the model now uses the "
+                                                + "C2J name, remove this rename.");
+            }
+        }
+        return ModelTransformer.create().renameShapes(model, renames);
     }
 
     private static void put(Map<ShapeId, ShapeId> renames, String from, String to) {
