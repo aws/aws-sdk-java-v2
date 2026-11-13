@@ -29,9 +29,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.DocumentAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.IntegerAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ListAttributeConverter;
@@ -53,15 +57,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * attribute types during schema creation and item conversion.
  */
 public class ImmutableSchemaConverterTest {
-
-    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
-                                                        EnhancedType<?> collectionType,
-                                                        String role) {
-        return "Converter not found for " + nestedType
-               + " (" + role + " of " + collectionType + "). "
-               + "DefaultAttributeConverterProvider resolves collection " + role
-               + " types only from its own converters.";
-    }
 
     @BeforeEach
     void setUp() {
@@ -477,6 +472,59 @@ public class ImmutableSchemaConverterTest {
         assertThatThrownBy(() -> TableSchema.fromImmutableClass(HashMapModel.class))
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("Converter not found for " + type);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("objectCollectionRows")
+    @DisplayName("An Object collection fails in the default provider")
+    void fromImmutableClass_whenObjectCollection_throwsForNestedObject(String name,
+                                                                       Class<?> immutableClass,
+                                                                       EnhancedType<?> collectionType,
+                                                                       String elementOrValue) {
+        assertThatThrownBy(() -> createImmutableSchema(immutableClass))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(Object.class), collectionType, elementOrValue));
+        if (declaresObjectProvider(immutableClass)) {
+            assertThat(ObjectProvider.current().requestedTypes())
+                .filteredOn(collectionType::equals)
+                .hasSize(1);
+            assertThat(ObjectProvider.current().requestedTypes())
+                .doesNotContain(EnhancedType.of(Object.class));
+        }
+    }
+
+    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
+                                                        EnhancedType<?> collectionType,
+                                                        String elementOrValue) {
+        return "Converter not found for " + nestedType
+               + " (" + elementOrValue + " of " + collectionType + "). "
+               + "DefaultAttributeConverterProvider resolves collection " + elementOrValue
+               + " types only from its own converters.";
+    }
+
+    private static Stream<Arguments> objectCollectionRows() {
+        return Stream.of(
+            Arguments.of("custom List", ObjectListWithObjectProviderModel.class,
+                         EnhancedType.listOf(Object.class), "element"),
+            Arguments.of("default Set", ObjectSetModel.class, EnhancedType.setOf(Object.class), "element"),
+            Arguments.of("custom Set", ObjectSetWithObjectProviderModel.class, EnhancedType.setOf(Object.class), "element"),
+            Arguments.of("default Map", ObjectMapModel.class, EnhancedType.mapOf(String.class, Object.class), "value"),
+            Arguments.of("custom Map", ObjectMapWithObjectProviderModel.class,
+                         EnhancedType.mapOf(String.class, Object.class), "value"));
+    }
+
+    private static void createImmutableSchema(Class<?> immutableClass) {
+        TableSchema.fromImmutableClass((Class) immutableClass);
+    }
+
+    private static boolean declaresObjectProvider(Class<?> immutableClass) {
+        for (Class<? extends AttributeConverterProvider> provider :
+            immutableClass.getAnnotation(DynamoDbImmutable.class).converterProviders()) {
+            if (provider == ObjectProvider.class) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @DynamoDbImmutable(builder = IntegerModel.Builder.class)
@@ -1687,6 +1735,230 @@ public class ImmutableSchemaConverterTest {
                 return (AttributeConverter<T>) new UnsupportedStringConverter();
             }
             return null;
+        }
+    }
+
+    @DynamoDbImmutable(builder = ObjectListWithObjectProviderModel.Builder.class, converterProviders = {
+        ObjectProvider.class,
+        DefaultAttributeConverterProvider.class
+    })
+    public static final class ObjectListWithObjectProviderModel {
+        private final String id;
+        private final List<Object> value;
+
+        private ObjectListWithObjectProviderModel(Builder b) {
+            this.id = b.id;
+            this.value = b.value;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        @DynamoDbPartitionKey
+        public String id() {
+            return id;
+        }
+
+        public List<Object> value() {
+            return value;
+        }
+
+        public static final class Builder {
+            private String id;
+            private List<Object> value;
+
+            public Builder id(String id) {
+                this.id = id;
+                return this;
+            }
+
+            public Builder value(List<Object> value) {
+                this.value = value;
+                return this;
+            }
+
+            public ObjectListWithObjectProviderModel build() {
+                return new ObjectListWithObjectProviderModel(this);
+            }
+        }
+    }
+
+    @DynamoDbImmutable(builder = ObjectSetModel.Builder.class)
+    public static final class ObjectSetModel {
+        private final String id;
+        private final Set<Object> value;
+
+        private ObjectSetModel(Builder b) {
+            this.id = b.id;
+            this.value = b.value;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        @DynamoDbPartitionKey
+        public String id() {
+            return id;
+        }
+
+        public Set<Object> value() {
+            return value;
+        }
+
+        public static final class Builder {
+            private String id;
+            private Set<Object> value;
+
+            public Builder id(String id) {
+                this.id = id;
+                return this;
+            }
+
+            public Builder value(Set<Object> value) {
+                this.value = value;
+                return this;
+            }
+
+            public ObjectSetModel build() {
+                return new ObjectSetModel(this);
+            }
+        }
+    }
+
+    @DynamoDbImmutable(builder = ObjectSetWithObjectProviderModel.Builder.class, converterProviders = {
+        ObjectProvider.class,
+        DefaultAttributeConverterProvider.class
+    })
+    public static final class ObjectSetWithObjectProviderModel {
+        private final String id;
+        private final Set<Object> value;
+
+        private ObjectSetWithObjectProviderModel(Builder b) {
+            this.id = b.id;
+            this.value = b.value;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        @DynamoDbPartitionKey
+        public String id() {
+            return id;
+        }
+
+        public Set<Object> value() {
+            return value;
+        }
+
+        public static final class Builder {
+            private String id;
+            private Set<Object> value;
+
+            public Builder id(String id) {
+                this.id = id;
+                return this;
+            }
+
+            public Builder value(Set<Object> value) {
+                this.value = value;
+                return this;
+            }
+
+            public ObjectSetWithObjectProviderModel build() {
+                return new ObjectSetWithObjectProviderModel(this);
+            }
+        }
+    }
+
+    @DynamoDbImmutable(builder = ObjectMapModel.Builder.class)
+    public static final class ObjectMapModel {
+        private final String id;
+        private final Map<String, Object> value;
+
+        private ObjectMapModel(Builder b) {
+            this.id = b.id;
+            this.value = b.value;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        @DynamoDbPartitionKey
+        public String id() {
+            return id;
+        }
+
+        public Map<String, Object> value() {
+            return value;
+        }
+
+        public static final class Builder {
+            private String id;
+            private Map<String, Object> value;
+
+            public Builder id(String id) {
+                this.id = id;
+                return this;
+            }
+
+            public Builder value(Map<String, Object> value) {
+                this.value = value;
+                return this;
+            }
+
+            public ObjectMapModel build() {
+                return new ObjectMapModel(this);
+            }
+        }
+    }
+
+    @DynamoDbImmutable(builder = ObjectMapWithObjectProviderModel.Builder.class, converterProviders = {
+        ObjectProvider.class,
+        DefaultAttributeConverterProvider.class
+    })
+    public static final class ObjectMapWithObjectProviderModel {
+        private final String id;
+        private final Map<String, Object> value;
+
+        private ObjectMapWithObjectProviderModel(Builder b) {
+            this.id = b.id;
+            this.value = b.value;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        @DynamoDbPartitionKey
+        public String id() {
+            return id;
+        }
+
+        public Map<String, Object> value() {
+            return value;
+        }
+
+        public static final class Builder {
+            private String id;
+            private Map<String, Object> value;
+
+            public Builder id(String id) {
+                this.id = id;
+                return this;
+            }
+
+            public Builder value(Map<String, Object> value) {
+                this.value = value;
+                return this;
+            }
+
+            public ObjectMapWithObjectProviderModel build() {
+                return new ObjectMapWithObjectProviderModel(this);
+            }
         }
     }
 }

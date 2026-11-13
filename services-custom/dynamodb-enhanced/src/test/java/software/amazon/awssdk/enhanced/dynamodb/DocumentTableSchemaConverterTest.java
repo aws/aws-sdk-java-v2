@@ -23,10 +23,17 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.enhanced.dynamodb.document.DocumentTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
@@ -337,6 +344,49 @@ public class DocumentTableSchemaConverterTest {
         verify(objectProvider).converterFor(EnhancedType.of(Object.class));
     }
 
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("objectProviderSuccessRows")
+    @DisplayName("A custom Object converter is used for Object and for list and map members")
+    void itemToMap_whenObjectProviderConvertsObject_storesCustomValue(String name,
+                                                                      EnhancedType<?> attributeType,
+                                                                      Object value,
+                                                                      AttributeValue storedValue,
+                                                                      Object expectedValue) {
+        ObjectProvider provider = new ObjectProvider();
+        DocumentTableSchema schema = schemaWithObjectProvider(provider);
+        EnhancedDocument document = documentWithTypedValue(value, attributeType);
+
+        Map<String, AttributeValue> stored = schema.itemToMap(document, false);
+        EnhancedDocument read = schema.mapToItem(stored);
+
+        assertThat(stored).containsEntry("value", storedValue);
+        assertThat(readTypedAttribute(read, attributeType)).isEqualTo(expectedValue);
+        assertThat(provider.requestedTypes()).isNotEmpty();
+        assertThat(provider.requestedTypes()).allMatch(requested -> EnhancedType.of(Object.class).equals(requested));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("objectCollectionFailureRows")
+    @DisplayName("An Object collection fails when the document cannot convert its member")
+    void itemToMap_whenObjectCollectionCannotBeConverted_throws(String name,
+                                                                EnhancedType<?> attributeType,
+                                                                Object value,
+                                                                boolean withObjectProvider,
+                                                                String message) {
+        ObjectProvider provider = withObjectProvider ? new ObjectProvider() : null;
+        DocumentTableSchema schema = withObjectProvider
+                                     ? schemaWithObjectProvider(provider)
+                                     : DocumentTableSchema.builder().build();
+        EnhancedDocument document = documentWithTypedValue(value, attributeType);
+
+        assertThatThrownBy(() -> schema.itemToMap(document, false))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage(message);
+        if (withObjectProvider) {
+            assertThat(provider.requestedTypes()).containsExactly(attributeType);
+        }
+    }
+
     private static TableSchema<DocumentType> documentSchema() {
         return StaticTableSchema.builder(DocumentType.class)
                                 .newItemSupplier(DocumentType::new)
@@ -457,4 +507,99 @@ public class DocumentTableSchemaConverterTest {
         }
     }
 
+    static final class ObjectStringConverter implements AttributeConverter<Object> {
+        @Override
+        public AttributeValue transformFrom(Object input) {
+            return AttributeValue.fromS("custom");
+        }
+
+        @Override
+        public Object transformTo(AttributeValue input) {
+            return "custom";
+        }
+
+        @Override
+        public EnhancedType<Object> type() {
+            return EnhancedType.of(Object.class);
+        }
+
+        @Override
+        public AttributeValueType attributeValueType() {
+            return AttributeValueType.S;
+        }
+    }
+
+    static final class ObjectProvider implements AttributeConverterProvider {
+        private final List<EnhancedType<?>> requestedTypes = new ArrayList<>();
+
+        @Override
+        public <T> AttributeConverter<T> converterFor(EnhancedType<T> enhancedType) {
+            requestedTypes.add(enhancedType);
+            if (EnhancedType.of(Object.class).equals(enhancedType)) {
+                return (AttributeConverter<T>) new ObjectStringConverter();
+            }
+            return null;
+        }
+
+        List<EnhancedType<?>> requestedTypes() {
+            return requestedTypes;
+        }
+    }
+
+    private static Stream<Arguments> objectProviderSuccessRows() {
+        EnhancedType<List<Object>> listType = EnhancedType.listOf(Object.class);
+        EnhancedType<Map<String, Object>> mapType = EnhancedType.mapOf(String.class, Object.class);
+        List<Object> list = new ArrayList<>();
+        list.add(new Object());
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("key", new Object());
+        return Stream.of(
+            Arguments.of("Object", EnhancedType.of(Object.class), new Object(),
+                         AttributeValue.fromS("custom"), "custom"),
+            Arguments.of("List", listType, list,
+                         AttributeValue.fromL(Collections.singletonList(AttributeValue.fromS("custom"))),
+                         Collections.singletonList("custom")),
+            Arguments.of("Map", mapType, map,
+                         AttributeValue.fromM(Collections.singletonMap("key", AttributeValue.fromS("custom"))),
+                         Collections.singletonMap("key", "custom")));
+    }
+
+    private static Stream<Arguments> objectCollectionFailureRows() {
+        EnhancedType<List<Object>> listType = EnhancedType.listOf(Object.class);
+        EnhancedType<Set<Object>> setType = EnhancedType.setOf(Object.class);
+        EnhancedType<Map<String, Object>> mapType = EnhancedType.mapOf(String.class, Object.class);
+        String missingObjectMessage = "Converter not found for " + EnhancedType.of(Object.class);
+        String nestedSetMessage = missingNestedConverterMessage(EnhancedType.of(Object.class), setType, "element");
+        return Stream.of(
+            Arguments.of("default List", listType, new ArrayList<>(), false, missingObjectMessage),
+            Arguments.of("default Map", mapType, new LinkedHashMap<>(), false, missingObjectMessage),
+            Arguments.of("default Set", setType, new HashSet<>(), false, nestedSetMessage),
+            Arguments.of("custom Set", setType, new HashSet<>(), true, nestedSetMessage));
+    }
+
+    private static EnhancedDocument documentWithTypedValue(Object value, EnhancedType<?> attributeType) {
+        return EnhancedDocument.builder()
+                               .put("value", value, (EnhancedType<Object>) attributeType)
+                               .build();
+    }
+
+    private static Object readTypedAttribute(EnhancedDocument document, EnhancedType<?> attributeType) {
+        return document.get("value", (EnhancedType<Object>) attributeType);
+    }
+
+    private static DocumentTableSchema schemaWithObjectProvider(ObjectProvider objectProvider) {
+        return DocumentTableSchema.builder()
+                                  .attributeConverterProviders(objectProvider,
+                                                               AttributeConverterProvider.defaultProvider())
+                                  .build();
+    }
+
+    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
+                                                        EnhancedType<?> containerType,
+                                                        String elementOrValue) {
+        return "Converter not found for " + nestedType
+               + " (" + elementOrValue + " of " + containerType + "). "
+               + "DefaultAttributeConverterProvider resolves collection " + elementOrValue
+               + " types only from its own converters.";
+    }
 }

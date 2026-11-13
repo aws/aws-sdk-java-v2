@@ -35,8 +35,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.DocumentAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.InstantAsStringAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ListAttributeConverter;
@@ -55,15 +59,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * unsupported attribute declarations during schema construction.
  */
 public class StaticImmutableSchemaConverterTest {
-
-    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
-                                                        EnhancedType<?> collectionType,
-                                                        String role) {
-        return "Converter not found for " + nestedType
-               + " (" + role + " of " + collectionType + "). "
-               + "DefaultAttributeConverterProvider resolves collection " + role
-               + " types only from its own converters.";
-    }
 
     @Test
     @DisplayName("Instant attribute selects InstantAsStringAttributeConverter and round-trips the input")
@@ -628,6 +623,66 @@ public class StaticImmutableSchemaConverterTest {
             .build())
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("Converter not found for " + type);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("objectCollectionRows")
+    @DisplayName("An Object collection fails in the default provider")
+    void build_whenObjectCollection_throwsForNestedObject(String name,
+                                                          EnhancedType<?> collectionType,
+                                                          String elementOrValue,
+                                                          boolean withObjectProvider) {
+        ObjectProvider provider = withObjectProvider ? new ObjectProvider() : null;
+
+        assertThatThrownBy(() -> buildObjectCollectionSchema(collectionType, provider))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(Object.class), collectionType, elementOrValue));
+        if (withObjectProvider) {
+            assertThat(provider.requestedTypes()).filteredOn(collectionType::equals).hasSize(1);
+            assertThat(provider.requestedTypes()).doesNotContain(EnhancedType.of(Object.class));
+        }
+    }
+
+    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
+                                                        EnhancedType<?> collectionType,
+                                                        String elementOrValue) {
+        return "Converter not found for " + nestedType
+               + " (" + elementOrValue + " of " + collectionType + "). "
+               + "DefaultAttributeConverterProvider resolves collection " + elementOrValue
+               + " types only from its own converters.";
+    }
+
+    private static Stream<Arguments> objectCollectionRows() {
+        return Stream.of(
+            Arguments.of("default List", EnhancedType.listOf(Object.class), "element", false),
+            Arguments.of("custom List", EnhancedType.listOf(Object.class), "element", true),
+            Arguments.of("default Set", EnhancedType.setOf(Object.class), "element", false),
+            Arguments.of("custom Set", EnhancedType.setOf(Object.class), "element", true),
+            Arguments.of("default Map", EnhancedType.mapOf(String.class, Object.class), "value", false),
+            Arguments.of("custom Map", EnhancedType.mapOf(String.class, Object.class), "value", true));
+    }
+
+    private static StaticImmutableTableSchema<ObjectItem, ObjectItem.Builder> buildObjectCollectionSchema(
+        EnhancedType<?> collectionType, ObjectProvider objectProvider) {
+        return buildTypedObjectCollectionSchema((EnhancedType<Object>) collectionType, objectProvider);
+    }
+
+    private static <T> StaticImmutableTableSchema<ObjectItem, ObjectItem.Builder> buildTypedObjectCollectionSchema(
+        EnhancedType<T> collectionType, ObjectProvider objectProvider) {
+        StaticImmutableTableSchema.Builder<ObjectItem, ObjectItem.Builder> builder =
+            StaticImmutableTableSchema.builder(ObjectItem.class, ObjectItem.Builder.class)
+                                      .newItemBuilder(ObjectItem.Builder::new, ObjectItem.Builder::build);
+        if (objectProvider != null) {
+            builder.attributeConverterProviders(objectProvider, DefaultAttributeConverterProvider.create());
+        }
+        return builder.addAttribute(EnhancedType.of(String.class), a -> a.name("id")
+                                                                         .getter(ObjectItem::id)
+                                                                         .setter(ObjectItem.Builder::id)
+                                                                         .tags(primaryPartitionKey()))
+                      .addAttribute(collectionType, a -> a.name("value")
+                                                          .getter(item -> null)
+                                                          .setter((itemBuilder, value) -> itemBuilder.value(value)))
+                      .build();
     }
 
     private static TableSchema<DocumentType> documentSchema() {
@@ -1611,5 +1666,4 @@ public class StaticImmutableSchemaConverterTest {
             return AttributeValueType.L;
         }
     }
-
 }

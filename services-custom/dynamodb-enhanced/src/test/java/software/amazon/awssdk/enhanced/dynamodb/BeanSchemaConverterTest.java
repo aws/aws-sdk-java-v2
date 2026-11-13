@@ -29,9 +29,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.DocumentAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ListAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.MapAttributeConverter;
@@ -52,15 +56,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * types during schema creation and item conversion.
  */
 public class BeanSchemaConverterTest {
-
-    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
-                                                        EnhancedType<?> collectionType,
-                                                        String role) {
-        return "Converter not found for " + nestedType
-               + " (" + role + " of " + collectionType + "). "
-               + "DefaultAttributeConverterProvider resolves collection " + role
-               + " types only from its own converters.";
-    }
 
     @BeforeEach
     void setUp() {
@@ -506,6 +501,59 @@ public class BeanSchemaConverterTest {
         assertThatThrownBy(() -> TableSchema.fromBean(HashMapBean.class))
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("Converter not found for " + type);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("objectCollectionRows")
+    @DisplayName("An Object collection fails in the default provider")
+    void fromBean_whenObjectCollection_throwsForNestedObject(String name,
+                                                             Class<?> beanClass,
+                                                             EnhancedType<?> collectionType,
+                                                             String elementOrValue) {
+        assertThatThrownBy(() -> createBeanSchema(beanClass))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage(missingNestedConverterMessage(EnhancedType.of(Object.class), collectionType, elementOrValue));
+        if (declaresObjectProvider(beanClass)) {
+            assertThat(ObjectProvider.current().requestedTypes())
+                .filteredOn(collectionType::equals)
+                .hasSize(1);
+            assertThat(ObjectProvider.current().requestedTypes())
+                .doesNotContain(EnhancedType.of(Object.class));
+        }
+    }
+
+    private static Stream<Arguments> objectCollectionRows() {
+        return Stream.of(
+            Arguments.of("default List", ObjectListBean.class, EnhancedType.listOf(Object.class), "element"),
+            Arguments.of("custom List", ObjectListWithObjectProviderBean.class, EnhancedType.listOf(Object.class), "element"),
+            Arguments.of("default Set", ObjectSetBean.class, EnhancedType.setOf(Object.class), "element"),
+            Arguments.of("custom Set", ObjectSetWithObjectProviderBean.class, EnhancedType.setOf(Object.class), "element"),
+            Arguments.of("default Map", ObjectMapBean.class, EnhancedType.mapOf(String.class, Object.class), "value"),
+            Arguments.of("custom Map", ObjectMapWithObjectProviderBean.class,
+                         EnhancedType.mapOf(String.class, Object.class), "value"));
+    }
+
+    private static void createBeanSchema(Class<?> beanClass) {
+        TableSchema.fromBean((Class) beanClass);
+    }
+
+    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
+                                                        EnhancedType<?> type,
+                                                        String elementOrValue) {
+        return "Converter not found for " + nestedType
+               + " (" + elementOrValue + " of " + type + "). "
+               + "DefaultAttributeConverterProvider resolves collection " + elementOrValue
+               + " types only from its own converters.";
+    }
+
+    private static boolean declaresObjectProvider(Class<?> beanClass) {
+        for (Class<? extends AttributeConverterProvider> provider :
+            beanClass.getAnnotation(DynamoDbBean.class).converterProviders()) {
+            if (provider == ObjectProvider.class) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @DynamoDbBean
@@ -1257,6 +1305,153 @@ public class BeanSchemaConverterTest {
                 return (AttributeConverter<T>) new UnsupportedStringConverter();
             }
             return null;
+        }
+    }
+
+    @DynamoDbBean
+    public static class ObjectListBean {
+        private String id;
+        private List<Object> value;
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public List<Object> getValue() {
+            return value;
+        }
+
+        public void setValue(List<Object> value) {
+            this.value = value;
+        }
+    }
+
+    @DynamoDbBean(converterProviders = {
+        ObjectProvider.class,
+        DefaultAttributeConverterProvider.class
+    })
+    public static class ObjectListWithObjectProviderBean {
+        private String id;
+        private List<Object> value;
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public List<Object> getValue() {
+            return value;
+        }
+
+        public void setValue(List<Object> value) {
+            this.value = value;
+        }
+    }
+
+    @DynamoDbBean
+    public static class ObjectSetBean {
+        private String id;
+        private Set<Object> value;
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Set<Object> getValue() {
+            return value;
+        }
+
+        public void setValue(Set<Object> value) {
+            this.value = value;
+        }
+    }
+
+    @DynamoDbBean(converterProviders = {
+        ObjectProvider.class,
+        DefaultAttributeConverterProvider.class
+    })
+    public static class ObjectSetWithObjectProviderBean {
+        private String id;
+        private Set<Object> value;
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Set<Object> getValue() {
+            return value;
+        }
+
+        public void setValue(Set<Object> value) {
+            this.value = value;
+        }
+    }
+
+    @DynamoDbBean
+    public static class ObjectMapBean {
+        private String id;
+        private Map<String, Object> value;
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Map<String, Object> getValue() {
+            return value;
+        }
+
+        public void setValue(Map<String, Object> value) {
+            this.value = value;
+        }
+    }
+
+    @DynamoDbBean(converterProviders = {
+        ObjectProvider.class,
+        DefaultAttributeConverterProvider.class
+    })
+    public static class ObjectMapWithObjectProviderBean {
+        private String id;
+        private Map<String, Object> value;
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Map<String, Object> getValue() {
+            return value;
+        }
+
+        public void setValue(Map<String, Object> value) {
+            this.value = value;
         }
     }
 }
