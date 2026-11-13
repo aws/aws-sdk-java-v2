@@ -12,7 +12,7 @@ There are three ways to run benchmarks.
 
 - Using the executable JAR (Preferred usage per JMH site)
 ```bash
-mvn clean install -P quick -pl :sdk-benchmarks --am
+mvn clean install -P quick -pl :sdk-benchmarks -am
 
 # Run specific benchmark
 java -jar target/benchmarks.jar ApacheHttpClientBenchmark
@@ -23,7 +23,7 @@ java -jar target/benchmarks.jar -wi 3 -i 3 -f 1
 
 - Using`mvn exec:exec` commands to invoke `BenchmarkRunner` main method
 ```bash
-   mvn clean install -P quick -pl :sdk-benchmarks --am
+   mvn clean install -P quick -pl :sdk-benchmarks -am
    mvn clean install -pl :bom-internal
    cd test/sdk-benchmarks
    mvn exec:exec
