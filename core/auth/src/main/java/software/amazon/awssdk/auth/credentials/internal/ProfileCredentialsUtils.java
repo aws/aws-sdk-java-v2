@@ -233,18 +233,9 @@ public final class ProfileCredentialsUtils {
     }
 
     private List<String> credentialProcessArgv() {
-        JsonNode node;
         String value = properties.get(ProfileProperty.CREDENTIAL_PROCESS_ARGV);
-        try (JsonParser parser = JsonNodeParser.DEFAULT_JSON_FACTORY.createParser(value)) {
-            parser.nextToken();
-            parser.skipChildren();
-            Validate.isTrue(parser.nextToken() == null,
-                            "Profile property 'credential_process_argv' must contain a single JSON array.");
-            node = COMMAND_PARSER.parse(value);
-        } catch (IOException e) {
-            throw new IllegalArgumentException(
-                "Profile property 'credential_process_argv' must be a valid JSON array of strings.");
-        }
+        validateSingleJsonValue(value);
+        JsonNode node = COMMAND_PARSER.parse(value);
 
         if (node == null || !node.isArray() || node.asArray().isEmpty()) {
             throw new IllegalArgumentException(
@@ -262,6 +253,18 @@ public final class ProfileCredentialsUtils {
         Validate.isTrue(!StringUtils.isBlank(command.get(0)),
                         "Profile property 'credential_process_argv' must start with a non-blank executable.");
         return command;
+    }
+
+    private void validateSingleJsonValue(String value) {
+        try (JsonParser parser = JsonNodeParser.DEFAULT_JSON_FACTORY.createParser(value)) {
+            parser.nextToken();
+            parser.skipChildren();
+            Validate.isTrue(parser.nextToken() == null,
+                            "Profile property 'credential_process_argv' must contain a single JSON array.");
+        } catch (IOException e) {
+            throw new IllegalArgumentException(
+                "Profile property 'credential_process_argv' must be a valid JSON array of strings.");
+        }
     }
 
     /**
