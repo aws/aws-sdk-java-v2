@@ -13,6 +13,11 @@ string deprecatedName
 @length(min: 1)
 string alternateBeanPropertyName
 
+/// The member's wire name on awsJson and rpcv2Cbor, which do not support @jsonName.
+@trait(selector: ":is(structure, union) > member")
+@length(min: 1)
+string wireName
+
 /// Unmarshalling ignores a value that cannot be converted to the member's type.
 @trait(selector: ":is(structure, union) > member")
 structure ignoreDataTypeConversionFailures {}
