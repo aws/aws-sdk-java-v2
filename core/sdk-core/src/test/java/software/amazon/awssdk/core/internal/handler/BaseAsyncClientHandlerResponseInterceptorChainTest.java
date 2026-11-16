@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
@@ -72,18 +73,53 @@ class BaseAsyncClientHandlerResponseInterceptorChainTest {
         assertThat(delegate.stream).isSameAs(ORIGINAL_BODY);
     }
 
-    private static void run(ExecutionInterceptor interceptor, CapturingHandler delegate) {
-        ExecutionContext context =
-            ExecutionContext.builder()
-                            .interceptorChain(new ExecutionInterceptorChain(Collections.singletonList(interceptor)))
-                            .interceptorContext(InterceptorContext.builder().request(ValidSdkObjects.sdkRequest()).build())
-                            .executionAttributes(new ExecutionAttributes())
-                            .build();
+    @Test
+    void responseChain_whenModifyHttpResponseThrows_afterTransmissionRanAndExceptionPropagates() {
+        RuntimeException failure = new RuntimeException("modifyHttpResponse boom");
+        ThrowingInterceptor interceptor = new ThrowingInterceptor(failure);
+        CapturingHandler delegate = new CapturingHandler();
 
+        ExecutionContext context = contextFor(interceptor);
         TransformingAsyncResponseHandler<Void> chain =
             BaseAsyncClientHandler.interceptorCallingResponseHandler(delegate, context);
-        chain.onHeaders(SdkHttpFullResponse.builder().statusCode(200).putHeader("x-test", "original").build());
+
+        // afterTransmission (outer handler) runs before modifyHttpResponse (inner handler) throws on the same onHeaders call.
+        assertThatThrownBy(() -> chain.onHeaders(httpResponse()))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("modifyHttpResponse boom");
+        assertThat(interceptor.afterTransmissionRan).isTrue();
+        assertThat(delegate.headers).isNull();
+    }
+
+    @Test
+    void responseChain_whenOnError_propagatesThroughBothWrappersToDelegate() {
+        RuntimeException error = new RuntimeException("stream failure");
+        CapturingHandler delegate = new CapturingHandler();
+
+        TransformingAsyncResponseHandler<Void> chain =
+            BaseAsyncClientHandler.interceptorCallingResponseHandler(delegate, contextFor(new RecordingInterceptor(false)));
+        chain.onError(error);
+
+        assertThat(delegate.error).isSameAs(error);
+    }
+
+    private static void run(ExecutionInterceptor interceptor, CapturingHandler delegate) {
+        TransformingAsyncResponseHandler<Void> chain =
+            BaseAsyncClientHandler.interceptorCallingResponseHandler(delegate, contextFor(interceptor));
+        chain.onHeaders(httpResponse());
         chain.onStream(ORIGINAL_BODY);
+    }
+
+    private static ExecutionContext contextFor(ExecutionInterceptor interceptor) {
+        return ExecutionContext.builder()
+                               .interceptorChain(new ExecutionInterceptorChain(Collections.singletonList(interceptor)))
+                               .interceptorContext(InterceptorContext.builder().request(ValidSdkObjects.sdkRequest()).build())
+                               .executionAttributes(new ExecutionAttributes())
+                               .build();
+    }
+
+    private static SdkHttpFullResponse httpResponse() {
+        return SdkHttpFullResponse.builder().statusCode(200).putHeader("x-test", "original").build();
     }
 
     private static ByteBuffer utf8(String s) {
@@ -93,6 +129,7 @@ class BaseAsyncClientHandlerResponseInterceptorChainTest {
     private static final class CapturingHandler implements TransformingAsyncResponseHandler<Void> {
         private SdkHttpResponse headers;
         private Publisher<ByteBuffer> stream;
+        private Throwable error;
 
         @Override
         public CompletableFuture<Void> prepare() {
@@ -111,6 +148,7 @@ class BaseAsyncClientHandlerResponseInterceptorChainTest {
 
         @Override
         public void onError(Throwable error) {
+            this.error = error;
         }
     }
 
@@ -151,6 +189,29 @@ class BaseAsyncClientHandlerResponseInterceptorChainTest {
             calls.add("modifyAsyncHttpResponse");
             modifyAsyncHttpResponsePublisher = context.responsePublisher().orElse(null);
             return modify ? Optional.of(MODIFIED_BODY) : context.responsePublisher();
+        }
+    }
+
+    /**
+     * Runs {@code afterTransmission} normally, then throws from {@code modifyHttpResponse}.
+     */
+    private static final class ThrowingInterceptor implements ExecutionInterceptor {
+        private final RuntimeException failure;
+        private boolean afterTransmissionRan;
+
+        private ThrowingInterceptor(RuntimeException failure) {
+            this.failure = failure;
+        }
+
+        @Override
+        public void afterTransmission(Context.AfterTransmission context, ExecutionAttributes executionAttributes) {
+            afterTransmissionRan = true;
+        }
+
+        @Override
+        public SdkHttpResponse modifyHttpResponse(Context.ModifyHttpResponse context,
+                                                  ExecutionAttributes executionAttributes) {
+            throw failure;
         }
     }
 }

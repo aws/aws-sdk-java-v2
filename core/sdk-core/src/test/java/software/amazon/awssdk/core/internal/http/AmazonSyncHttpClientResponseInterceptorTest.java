@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -95,6 +96,25 @@ class AmazonSyncHttpClientResponseInterceptorTest {
         assertThat(handled.right()).isEqualTo("original");
     }
 
+    @Test
+    void execute_whenModifyHttpResponseThrows_exceptionPropagates() {
+        RuntimeException failure = new RuntimeException("modifyHttpResponse boom");
+
+        assertThatThrownBy(() -> execute(new ThrowingInterceptor(failure)))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("modifyHttpResponse boom");
+    }
+
+    @Test
+    void execute_whenModifyHttpResponseThrows_afterTransmissionStillRan() {
+        ThrowingInterceptor interceptor = new ThrowingInterceptor(new RuntimeException("modifyHttpResponse boom"));
+
+        assertThatThrownBy(() -> execute(interceptor)).isInstanceOf(RuntimeException.class);
+
+        // afterTransmission runs in the preceding stage, so it is observed even though modifyHttpResponse then fails.
+        assertThat(interceptor.afterTransmissionRan).isTrue();
+    }
+
     private Pair<SdkHttpResponse, String> execute(ExecutionInterceptor interceptor) {
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         ExecutionContext executionContext =
@@ -157,6 +177,29 @@ class AmazonSyncHttpClientResponseInterceptorTest {
         public void beforeUnmarshalling(Context.BeforeUnmarshalling context, ExecutionAttributes executionAttributes) {
             calls.add("beforeUnmarshalling");
             beforeUnmarshallingResponse = context.httpResponse();
+        }
+    }
+
+    /**
+     * Runs {@code afterTransmission} normally, then throws from {@code modifyHttpResponse}.
+     */
+    private static final class ThrowingInterceptor implements ExecutionInterceptor {
+        private final RuntimeException failure;
+        private boolean afterTransmissionRan;
+
+        private ThrowingInterceptor(RuntimeException failure) {
+            this.failure = failure;
+        }
+
+        @Override
+        public void afterTransmission(Context.AfterTransmission context, ExecutionAttributes executionAttributes) {
+            afterTransmissionRan = true;
+        }
+
+        @Override
+        public SdkHttpResponse modifyHttpResponse(Context.ModifyHttpResponse context,
+                                                  ExecutionAttributes executionAttributes) {
+            throw failure;
         }
     }
 }
