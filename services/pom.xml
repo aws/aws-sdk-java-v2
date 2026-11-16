@@ -457,6 +457,9 @@
         <module>sagemakertrainingsessionruntime</module>
         <module>continuum</module>
         <module>accountaccessruntime</module>
+        <module>connectscheduling</module>
+        <module>opensearchmemory</module>
+        <module>sagemakerinferencerouterruntime</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
