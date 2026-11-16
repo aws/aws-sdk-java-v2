@@ -59,17 +59,18 @@ import software.amazon.smithy.model.transform.ModelTransformer;
  *     "renamed": {
  *       "ns#Result$RequestId": {
  *         "name": "directoryRequestId",
- *         "traits": { "smithy.api#jsonName": "RequestId" }
+ *         "traits": { "software.amazon.awssdk.codegen#wireName": "RequestId" }
  *       }
  *     }
  *   }
  * }
  * }</pre>
  *
- * <p>{@code traits} are added to the renamed member, replacing any trait with the same ID. They carry the wire name
- * when the old name was the wire name, so the rename changes only the generated Java. A renamed member moves to the
- * end of its container, as it does on the C2J path. URI and host-prefix labels bound to the member, and its key in
- * operation {@code @examples}, are renamed with it, because Smithy validates both against the member's name.
+ * <p>{@code traits} are added to the renamed member, replacing any trait with the same ID. The caller passes the
+ * wire-name trait in them when the old name was the wire name, so the rename changes only the generated Java. A
+ * renamed member moves to the end of its container, as it does on the C2J path. URI and host-prefix labels bound to
+ * the member, and its key in operation {@code @examples}, are renamed with it, because Smithy validates both against
+ * the member's name.
  *
  * <p>On the C2J path, {@code customization.config} renames a member with
  * {@code shapeModifiers.<shape>.modify[].<member>.emitPropertyName}, applied by {@code ShapeModifiersProcessor}. That

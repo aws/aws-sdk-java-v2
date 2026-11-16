@@ -572,11 +572,13 @@ class AddSmithyShapesMemberModelTest {
             struct(model, "Parent").getMember("NUL").get(), struct(model, "Parent"), null);
 
         assertThat(mm.getHttp().getMarshallLocationName()).isEqualTo("NUL");
+        assertThat(mm.getHttp().getUnmarshallLocationName()).isEqualTo("NUL");
     }
 
     private static void assertWireNameNamesMember(String protocol) {
         Model model = modelOf(
             "structure Parent {\n"
+            + "    @jsonName(\"Other\")\n"
             + "    @software.amazon.awssdk.codegen#wireName(\"NULL\")\n"
             + "    NUL: Boolean\n"
             + "}\n");
