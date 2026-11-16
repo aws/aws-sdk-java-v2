@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Streams",
+    "contributor": "",
+    "description": "Generate account-based endpoints for DynamoDB Streams requests when the account ID is available"
+}
