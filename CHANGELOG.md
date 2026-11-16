@@ -1,4 +1,121 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.59.2__ __2026-11-16__
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Adds resource tags functionality to the AWS Health service
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Updated CreateDeviceProfile to accept MaxEirp values up to 36 dBm in LoRaWANDeviceProfile. Previously the maximum value was 15.
+
+## __AWS Key Management Service__
+  - ### Features
+    - AWS KMS now supports sharing KMS keys across AWS accounts using AWS Resource Access Manager (AWS RAM). This release adds the optional ResourceOwners parameter to ListKeys, which lists keys owned by the caller's account (SELF), keys shared with the account through AWS RAM, or both.
+
+## __AWS Lambda__
+  - ### Features
+    - Adds support for GPU instances on Lambda Managed Instances in the CreateFunction and UpdateFunctionConfiguration APIs. Lambda Event Functions on Lambda Managed Instances can now set the accelerator memory using the new AcceleratorConfig parameter and run on capacity providers with GPU instances.
+
+## __AWS Lambda Core__
+  - ### Features
+    - Lambda network connectors now support service-managed Elastic IP addresses. This enables traffic routed through a connector to reach the public internet without a NAT gateway.
+
+## __AWS Network Firewall__
+  - ### Features
+    - Adds support for context-aware stateful rule groups, letting rules reference AWS resource IDs through ContextSets sourced from a Network Manager context store.
+
+## __AWS Network Manager__
+  - ### Features
+    - Context Sharing with Firewalls
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Add path validation to EC2MetadataUtils.
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - This release adds AWS Organizations integration, on-demand reports, recommendation and profile sharing, and automated basic profiles to the Well-Architected Agent.
+
+## __Amazon Athena__
+  - ### Features
+    - Adds an optional AttributesToGet parameter to ListDatabases and ListTableMetadata to return only requested database or table names (and table types) from the AWS Glue Data Catalog, reducing response time for large catalogs.
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Added support for Amazon Aurora DSQL advanced monitoring metric groups, which publish detailed database metrics and logs to Amazon CloudWatch Database Insights. Adds the metricGroups parameter to CreateCluster, UpdateCluster, and GetCluster.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Implement OAuth 2.0 Token Exchange (RFC 8693) for Cognito User Pools, enabling services to exchange a user's existing token for a new token that is appropriately scoped and audience-bound for a specific downstream service.
+
+## __Amazon Connect Scheduling__
+  - ### Features
+    - This release adds APIs for Amazon Connect Scheduling. Use them to create, get, approve, reject, and cancel agent time off requests, and to set agent time off balances.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds the DeleteAllEntitySessions API, which signs a user out of all of their active sessions in an Amazon Connect instance.
+
+## __Amazon DynamoDB Streams__
+  - ### Features
+    - Generate account-based endpoints for DynamoDB Streams requests when the account ID is available
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS gateway connectors now support a configurable deregistration delay (0-3600 seconds, default 300 seconds).
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds a new Transit Gateway Attachment type called Network Function. Launches associated KMS Keys for EBS Snapshots - associated KMS keys enable customers to share and copy snapshots encrypted with AWS Managed Keys across AWS accounts.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - ECR feature support for replicating image deletion and untagging.
+
+## __Amazon OpenSearch Memory__
+  - ### Features
+    - Initial release of Amazon OpenSearch Memory, which gives AI agents persistent memory. Store conversation and document events in a Space, have memories extracted from them automatically, and retrieve them with semantic, lexical, or hybrid search.
+
+## __Amazon S3 Vectors__
+  - ### Features
+    - Amazon S3 Vectors now supports hybrid search, providing metadata text search along with vector search.
+
+## __Amazon SageMaker Inference Router Runtime__
+  - ### Features
+    - Amazon SageMaker adds cross-region inference routing with new runtime APIs that intelligently route inference requests across endpoints in multiple AWS regions.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker adds Synthetic Data Generation, Auto-labeling, Data Quality Evaluation, and Data Transformation capabilities, Cross-Region Inference Routing, KV Aware routing for realtime inference endpoints.
+
+## __Amazon Simple Queue Service__
+  - ### Bugfixes
+    - Limit the number of receive buffers the SQS batch manager keeps and release them when the batch manager is closed. A `receiveMessage` call on a queue that does not exist now fails with `QueueDoesNotExistException`, including when `waitTimeSeconds` is set. After the batch manager is closed, every `receiveMessage` call fails, including calls that are not batched.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Adds the WorkspaceOsUserMode parameter to RegisterWorkspaceDirectory and DescribeWorkspaceDirectories, so customers can register an IAM Identity Center directory whose WorkSpaces use local operating system users instead of joining a domain.
+
+## __Connect Health__
+  - ### Features
+    - Adds dataset APIs and async medical coding jobs that can use a customer dataset (preview). Ambient listening sessions add medical coding job details and real-time periodontal chart and checklist events (preview). SubmitFeedback compares human-approved and AI-generated artifacts (preview).
+
+## __EMR Serverless__
+  - ### Features
+    - Amazon EMR Serverless now supports Flex, a new execution option for running data processing jobs on spare compute capacity at a discount.
+
+## __IAM Toolbox (Preview)__
+  - ### Features
+    - AWS IAM adds the GetRequestAuthorizationPolicy operation, per-check authorization results (checks) and extra policy metadata for resource-based policies (policySource) in GetRequestAuthorizationDetails for Access Troubleshooter.
+
+## __Network Flow Monitor__
+  - ### Features
+    - This release adds Performance Monitors to Amazon CloudWatch Network Monitoring. Without installing an agent, they track traffic in the VPCs you select and report an impact score (None, Low, Medium, or High) showing whether the AWS network is degrading your workloads.
+
+## __S3 Transfer Manager__
+  - ### Performance Improvements
+    - Improve transfer throughput when `maxInFlightParts` is high by removing unnecessary CPU contention in transfer progress updates.
+
 # __2.59.1__ __2026-11-13__
 ## __AWS CloudFormation__
   - ### Features
