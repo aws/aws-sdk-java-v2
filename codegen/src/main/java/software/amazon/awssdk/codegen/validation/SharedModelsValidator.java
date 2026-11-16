@@ -20,11 +20,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ListModel;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -33,6 +35,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 public final class SharedModelsValidator implements ModelValidator {
     private static final Logger LOG = Logger.loggerFor(SharedModelsValidator.class);
+    private static final Pattern WHITESPACE = Pattern.compile("\\s+");
 
     @Override
     public List<ValidationEntry> validateModels(ModelValidationContext context) {
@@ -102,7 +105,7 @@ public final class SharedModelsValidator implements ModelValidator {
                && Objects.equals(m1.getEndpointDiscovery(), m2.getEndpointDiscovery())
                && memberListsAreIdentical(m1.getMembers(), m2.getMembers())
                && Objects.equals(m1.getEnums(), m2.getEnums())
-               && Objects.equals(m1.getVariable(), m2.getVariable())
+               && variablesAreIdentical(m1.getVariable(), m2.getVariable())
                && Objects.equals(m1.getErrorCode(), m2.getErrorCode())
                && Objects.equals(m1.getHttpStatusCode(), m2.getHttpStatusCode())
                && Objects.equals(m1.getCustomization(), m2.getCustomization())
@@ -143,8 +146,8 @@ public final class SharedModelsValidator implements ModelValidator {
                && Objects.equals(m1.getName(), m2.getName())
                && Objects.equals(m1.getC2jName(), m2.getC2jName())
                && Objects.equals(m1.getC2jShape(), m2.getC2jShape())
-               && Objects.equals(m1.getVariable(), m2.getVariable())
-               && Objects.equals(m1.getSetterModel(), m2.getSetterModel())
+               && variablesAreIdentical(m1.getVariable(), m2.getVariable())
+               && variablesAreIdentical(m1.getSetterModel(), m2.getSetterModel())
                && Objects.equals(m1.getGetterModel(), m2.getGetterModel())
                && Objects.equals(m1.getHttp(), m2.getHttp())
                && Objects.equals(m1.getDeprecatedMessage(), m2.getDeprecatedMessage())
@@ -168,6 +171,23 @@ public final class SharedModelsValidator implements ModelValidator {
                && Objects.equals(m1.getDeprecatedFluentSetterMethodName(), m2.getDeprecatedFluentSetterMethodName())
                && Objects.equals(m1.getDeprecatedBeanStyleSetterMethodName(), m2.getDeprecatedBeanStyleSetterMethodName())
                && Objects.equals(m1.getContextParam(), m2.getContextParam());
+    }
+
+    /**
+     * Like {@link VariableModel#equals}, but ignores whitespace differences in documentation.
+     */
+    private static boolean variablesAreIdentical(VariableModel v1, VariableModel v2) {
+        if (v1 == null || v2 == null) {
+            return v1 == v2;
+        }
+        return Objects.equals(v1.getVariableName(), v2.getVariableName())
+               && Objects.equals(v1.getVariableType(), v2.getVariableType())
+               && Objects.equals(v1.getVariableDeclarationType(), v2.getVariableDeclarationType())
+               && Objects.equals(collapseWhitespace(v1.getDocumentation()), collapseWhitespace(v2.getDocumentation()));
+    }
+
+    private static String collapseWhitespace(String documentation) {
+        return documentation == null ? null : WHITESPACE.matcher(documentation).replaceAll(" ").trim();
     }
 
     private boolean listModelsAreIdentical(ListModel m1, ListModel m2) {

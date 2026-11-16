@@ -27,6 +27,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
 public class SharedModelsValidatorTest {
@@ -135,6 +136,49 @@ public class SharedModelsValidatorTest {
         List<ValidationEntry> validationEntries = runValidation(fooService, barService);
 
         assertThat(validationEntries).hasSize(1);
+    }
+
+    @Test
+    void validateModels_memberDocumentationDiffersOnlyInWhitespace_noValidationErrors() {
+        assertThat(validateOneMember(variable("String", "<p>An attribute of type String. For\n  example:</p>"),
+                                     variable("String", "<p>An attribute of type  String.  For example:</p>")))
+            .isEmpty();
+    }
+
+    @Test
+    void validateModels_memberDocumentationTextDiffers_emitsValidationError() {
+        assertThat(validateOneMember(variable("String", "<p>An attribute of type String.</p>"),
+                                     variable("String", "<p>An attribute of type Number.</p>")))
+            .hasSize(1);
+    }
+
+    @Test
+    void validateModels_memberTypeDiffers_emitsValidationError() {
+        assertThat(validateOneMember(variable("String", "<p>Same.</p>"), variable("Integer", "<p>Same.</p>")))
+            .hasSize(1);
+    }
+
+    private List<ValidationEntry> validateOneMember(VariableModel left, VariableModel right) {
+        return runValidation(serviceWithMember("Foo", left), serviceWithMember("Bar", right));
+    }
+
+    private static VariableModel variable(String type, String documentation) {
+        return new VariableModel("s", type).withDocumentation(documentation);
+    }
+
+    private static IntermediateModel serviceWithMember(String serviceName, VariableModel variable) {
+        MemberModel member = new MemberModel();
+        member.setName("S");
+        member.setVariable(variable);
+        member.setSetterModel(variable);
+        ShapeModel shape = new ShapeModel();
+        shape.setMembers(Arrays.asList(member));
+        Map<String, ShapeModel> shapes = new HashMap<>();
+        shapes.put("AttributeValue", shape);
+        IntermediateModel model = new IntermediateModel();
+        model.setMetadata(new Metadata().withServiceName(serviceName));
+        model.setShapes(shapes);
+        return model;
     }
 
     private List<ValidationEntry> runValidation(IntermediateModel m1, IntermediateModel m2) {
