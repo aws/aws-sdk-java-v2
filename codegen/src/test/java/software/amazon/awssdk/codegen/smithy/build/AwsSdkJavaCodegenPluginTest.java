@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.smithy.build;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -36,6 +37,7 @@ import software.amazon.smithy.build.model.ProjectionConfig;
 import software.amazon.smithy.build.model.SmithyBuildConfig;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.node.Node;
+import software.amazon.smithy.model.node.ObjectNode;
 
 class AwsSdkJavaCodegenPluginTest {
 
@@ -238,5 +240,66 @@ class AwsSdkJavaCodegenPluginTest {
                           .contains("Duration.ofSeconds(5)")
                           .contains("ResponseStatusAcceptor(200, WaiterState.SUCCESS)")
                           .contains("ResponseStatusAcceptor(404, WaiterState.RETRY)");
+    }
+
+    @Test
+    void twoClients_generateBothClientsAndShareModelClasses(@TempDir Path dir) throws IOException {
+        List<Path> generated = generateTwoClients(dir, "structure Record { name: String }\n");
+
+        assertThat(generated).extracting(p -> p.getFileName().toString())
+                             .contains("DemoClient.java", "DemoStreamsClient.java");
+        assertThat(generated).filteredOn(p -> p.getFileName().toString().equals("Record.java")).hasSize(1);
+    }
+
+    @Test
+    void twoClients_sharedShapesDiffer_fails(@TempDir Path dir) {
+        assertThatThrownBy(() -> generateTwoClients(dir, "structure Record { name: String, extra: String }\n"))
+            .hasStackTraceContaining("Validation failed");
+    }
+
+    private static List<Path> generateTwoClients(Path dir, String streamsRecord) throws IOException {
+        Path streamsConfig = dir.resolve("streams.config");
+        Files.write(streamsConfig,
+                    "{ \"shareModelConfig\": { \"shareModelWith\": \"demo\", \"packageName\": \"streams\" } }"
+                        .getBytes(StandardCharsets.UTF_8));
+        Model model = Model.assembler(LOADER)
+                           .discoverModels(LOADER)
+                           .addUnparsedModel("demo.smithy", clientModel("demo", "Demo", "structure Record { name: String }\n"))
+                           .addUnparsedModel("streams.smithy", clientModel("demostreams", "Demo Streams", streamsRecord))
+                           .assemble()
+                           .unwrap();
+        ObjectNode settings = Node.objectNodeBuilder()
+                                  .withMember("clients", Node.arrayNode(
+                                      Node.objectNode().withMember("service", "demostreams#Service")
+                                          .withMember("customizationConfig", streamsConfig.toString()),
+                                      Node.objectNode().withMember("service", "demo#Service")))
+                                  .build();
+        ProjectionConfig sdk = ProjectionConfig.builder()
+                                               .plugins(Collections.singletonMap(AwsSdkJavaCodegenPlugin.NAME, settings))
+                                               .build();
+        SmithyBuildResult result = SmithyBuild.create(LOADER)
+                                              .config(SmithyBuildConfig.builder()
+                                                                       .version("1.0")
+                                                                       .projections(Collections.singletonMap("sdk", sdk))
+                                                                       .build())
+                                              .model(model)
+                                              .outputDirectory(dir.resolve("out"))
+                                              .build();
+        return result.getProjectionResult("sdk").get()
+                     .getPluginManifest(AwsSdkJavaCodegenPlugin.NAME).get()
+                     .getFiles().stream().collect(Collectors.toList());
+    }
+
+    private static String clientModel(String namespace, String sdkId, String record) {
+        String op = namespace.equals("demo") ? "Op" : "GetRecords";
+        return "$version: \"2.0\"\nnamespace " + namespace + "\n\n"
+               + "use aws.api#service\nuse aws.auth#sigv4\nuse aws.protocols#restJson1\n"
+               + "@service(sdkId: \"" + sdkId + "\", arnNamespace: \"demo\")\n@sigv4(name: \"demo\")\n@restJson1\n"
+               + "service Service { version: \"2024-01-01\", operations: [" + op + "] }\n"
+               + "@http(method: \"POST\", uri: \"/" + op + "\")\n"
+               + "operation " + op + " { input: " + op + "Request, output: " + op + "Response }\n"
+               + "structure " + op + "Request { name: String }\n"
+               + "structure " + op + "Response { record: Record }\n"
+               + record;
     }
 }
