@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "Adds the DeleteAllEntitySessions API, which signs a user out of all of their active sessions in an Amazon Connect instance."
-}
