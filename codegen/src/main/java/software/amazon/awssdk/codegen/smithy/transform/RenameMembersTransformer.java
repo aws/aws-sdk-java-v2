@@ -74,7 +74,8 @@ import software.amazon.smithy.model.transform.ModelTransformer;
  * <p>On the C2J path, {@code customization.config} renames a member with
  * {@code shapeModifiers.<shape>.modify[].<member>.emitPropertyName}, applied by {@code ShapeModifiersProcessor}. That
  * processor keeps the old wire name itself by setting the member's {@code locationName} to the old name when none is
- * set. This transform does not, so the caller passes {@code @jsonName} or {@code @xmlName} in {@code traits}.
+ * set. This transform does not, so the caller passes {@code @jsonName}, {@code @xmlName} or {@code wireName} in
+ * {@code traits}.
  */
 @SdkInternalApi
 public final class RenameMembersTransformer implements ProjectionTransformer {

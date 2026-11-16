@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.smithy;
 
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
+import software.amazon.awssdk.codegen.smithy.traits.WireNameTrait;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.smithy.aws.traits.protocols.Ec2QueryNameTrait;
 import software.amazon.smithy.model.shapes.MemberShape;
@@ -81,15 +82,18 @@ final class SmithyWireNames {
 
     /**
      * Protocol-appropriate wire-name override, or {@code null} if none. XML protocols use {@code @xmlName};
-     * JSON protocols use {@code @jsonName}.
+     * restJson1 uses {@code @jsonName}; awsJson and rpcv2Cbor use {@code wireName}.
      */
     private static String memberNameOverride(String protocol, MemberShape member) {
         if (usesXmlNames(protocol)) {
             return member.getTrait(XmlNameTrait.class).map(XmlNameTrait::getValue).orElse(null);
         }
-        if (Protocol.REST_JSON.getValue().equalsIgnoreCase(protocol)
-            || Protocol.AWS_JSON.getValue().equalsIgnoreCase(protocol)) {
+        if (Protocol.REST_JSON.getValue().equalsIgnoreCase(protocol)) {
             return member.getTrait(JsonNameTrait.class).map(JsonNameTrait::getValue).orElse(null);
+        }
+        if (Protocol.AWS_JSON.getValue().equalsIgnoreCase(protocol)
+            || Protocol.SMITHY_RPC_V2_CBOR.getValue().equalsIgnoreCase(protocol)) {
+            return member.getTrait(WireNameTrait.class).map(WireNameTrait::getValue).orElse(null);
         }
         return null;
     }
