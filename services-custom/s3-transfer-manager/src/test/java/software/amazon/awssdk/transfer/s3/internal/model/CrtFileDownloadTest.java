@@ -172,6 +172,19 @@ class CrtFileDownloadTest {
     }
 
     @Test
+    void pause_fileWrittenSinceResumeAndTokenWithoutETag_takesETagFromResumedDownload() throws IOException {
+        ResumeToken token = downloadResumeToken(0, 1500);
+        when(token.getEtag()).thenReturn("");
+        when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(token));
+        CrtFileDownload fileDownload = fileDownload(resumedDownload());
+        Files.write(file.toPath(), new byte[1500]);
+
+        ResumableFileDownload resumable = fileDownload.pause();
+
+        assertThat(resumable.s3ObjectEtag()).hasValue(ETAG);
+    }
+
+    @Test
     void pause_pauseReturnsNoTokenAndNoResumedDownload_returnsNoObjectMetadata() {
         when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(null));
 
