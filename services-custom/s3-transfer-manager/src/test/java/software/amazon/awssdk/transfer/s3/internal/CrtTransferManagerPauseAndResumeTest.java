@@ -306,6 +306,25 @@ class CrtTransferManagerPauseAndResumeTest {
     }
 
     @Test
+    void resumeDownloadFile_objectNotModified_shouldSetIfMatchToResumedETag() {
+        Instant s3ObjectLastModified = Instant.now();
+        DownloadFileRequest downloadFileRequest = downloadFileRequest();
+        stubGetObject();
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse(s3ObjectLastModified, "etag")));
+
+        tm.resumeDownloadFile(r -> r.bytesTransferred(file.length())
+                                    .downloadFileRequest(downloadFileRequest)
+                                    .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                    .s3ObjectEtag("etag")
+                                    .s3ObjectLastModified(s3ObjectLastModified))
+          .completionFuture()
+          .join();
+
+        assertThat(capturedGetObjectRequest().ifMatch()).isEqualTo("etag");
+    }
+
+    @Test
     void resumeDownloadFile_objectEtagModified_shouldReplaceDestinationFile() {
         Instant s3ObjectLastModified = Instant.now();
         DownloadFileRequest downloadFileRequest = downloadFileRequest();
