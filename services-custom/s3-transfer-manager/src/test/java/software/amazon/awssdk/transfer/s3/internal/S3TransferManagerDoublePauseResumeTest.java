@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 
 import com.sun.net.httpserver.Headers;
@@ -27,6 +28,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -37,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,11 +52,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
@@ -190,6 +195,7 @@ class S3TransferManagerDoublePauseResumeTest {
         track(tm.resumeDownloadFile(secondPause)).completionFuture().get(STATE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 
         List<String> ranges = server.getRanges();
+        List<String> resumedIfMatches = server.getIfMatches().subList(firstGetOfFirstResume, ranges.size());
         byte[] actual = Files.readAllBytes(destination);
         byte[] expected = Arrays.copyOfRange(CONTENT, (int) fileStart, (int) lastByte + 1);
 
@@ -201,10 +207,35 @@ class S3TransferManagerDoublePauseResumeTest {
               .as("offset the first resume continued from (GETs: %s)", ranges).isEqualTo(fileStart + FIRST_PAUSE);
         assertThat(requestedOffset(ranges, firstGetOfSecondResume))
               .as("offset the second resume continued from (GETs: %s)", ranges).isEqualTo(fileStart + SECOND_PAUSE);
+        assertThat(resumedIfMatches)
+              .as("If-Match of every GET sent by the resumes (GETs: %s)", ranges)
+              .isNotEmpty()
+              .containsOnly(E_TAG);
         assertThat(firstDifference(actual, expected))
               .as("first offset at which the destination file (%d bytes) differs from the requested bytes (%d bytes)",
                   actual.length, expected.length)
               .isEqualTo(-1);
+    }
+
+    @ParameterizedTest(name = "{0} client")
+    @EnumSource(Client.class)
+    void resume_objectReplacedAfterHead_shouldFailWithPreconditionFailed(Client client) throws Exception {
+        tm = S3TransferManager.builder().s3Client(client == Client.JAVA ? javaClient : crtClient).build();
+        server.holdAt(FIRST_PAUSE);
+        FileDownload download = track(tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket(BUCKET).key(KEY))
+                                                            .destination(destination)));
+        awaitFileLength(FIRST_PAUSE, "before the pause");
+        ResumableFileDownload paused = download.pause();
+
+        server.holdNothing();
+        server.replaceObjectForGets("\"replacement\"");
+        FileDownload resumed = track(tm.resumeDownloadFile(paused));
+
+        assertThatThrownBy(() -> resumed.completionFuture().join())
+            .isInstanceOf(CompletionException.class)
+            .hasCauseInstanceOf(S3Exception.class)
+            .satisfies(e -> assertThat(((S3Exception) e.getCause()).statusCode()).isEqualTo(412));
+        assertThat(Files.readAllBytes(destination)).isEqualTo(Arrays.copyOf(CONTENT, (int) FIRST_PAUSE));
     }
 
     private FileDownload track(FileDownload download) {
@@ -281,7 +312,7 @@ class S3TransferManagerDoublePauseResumeTest {
      * limit is moved, which tests must only do after the client has paused, i.e. after the client gave up on them.
      * <p>
      * Supports HEAD and GET with no Range, {@code bytes=a-b}, {@code bytes=a-} and {@code bytes=-n}, and records the Range
-     * header of every GET it receives.
+     * and If-Match headers of every GET it receives. A GET whose If-Match does not match the object's ETag gets 412.
      */
     private static final class GatedObjectServer implements AutoCloseable {
         private static final int CHUNK_SIZE = 1024;
@@ -294,12 +325,15 @@ class S3TransferManagerDoublePauseResumeTest {
         private final HttpServer server;
         private final ExecutorService executor;
         private final List<String> getRanges = Collections.synchronizedList(new ArrayList<>());
+        private final List<String> getIfMatches = Collections.synchronizedList(new ArrayList<>());
 
         private volatile Hold hold = new Hold(Long.MAX_VALUE);
+        private volatile String getETag;
 
         GatedObjectServer(byte[] content, String eTag, Instant lastModified) throws IOException {
             this.content = content;
             this.eTag = eTag;
+            this.getETag = eTag;
             this.lastModified = HTTP_DATE.format(lastModified);
             this.executor = Executors.newCachedThreadPool(r -> {
                 Thread t = new Thread(r, "gated-object-server");
@@ -334,11 +368,23 @@ class S3TransferManagerDoublePauseResumeTest {
         }
 
         /**
-         * Forgets the recorded GETs and sends everything from now on, abandoning any held response.
+         * From now on, GETs see an object with the given ETag while HEAD still reports the original one, as if the object
+         * were replaced right after a client's HEAD.
+         */
+        void replaceObjectForGets(String newETag) {
+            getETag = newETag;
+        }
+
+        /**
+         * Forgets the recorded GETs and the replaced object, and sends everything from now on, abandoning any held response.
          */
         void reset() {
             holdNothing();
-            getRanges.clear();
+            getETag = eTag;
+            synchronized (getRanges) {
+                getRanges.clear();
+                getIfMatches.clear();
+            }
         }
 
         /**
@@ -347,6 +393,15 @@ class S3TransferManagerDoublePauseResumeTest {
         List<String> getRanges() {
             synchronized (getRanges) {
                 return new ArrayList<>(getRanges);
+            }
+        }
+
+        /**
+         * The If-Match header of every GET received so far, in the same order as {@link #getRanges()}.
+         */
+        List<String> getIfMatches() {
+            synchronized (getRanges) {
+                return new ArrayList<>(getIfMatches);
             }
         }
 
@@ -361,10 +416,25 @@ class S3TransferManagerDoublePauseResumeTest {
             try {
                 String method = exchange.getRequestMethod();
                 String range = exchange.getRequestHeaders().getFirst("Range");
+                String ifMatch = exchange.getRequestHeaders().getFirst("If-Match");
+                String responseETag = "GET".equals(method) ? getETag : eTag;
                 if ("GET".equals(method)) {
-                    getRanges.add(range);
+                    synchronized (getRanges) {
+                        getRanges.add(range);
+                        getIfMatches.add(ifMatch);
+                    }
                 } else if (!"HEAD".equals(method)) {
                     exchange.sendResponseHeaders(405, -1);
+                    return;
+                }
+
+                if (ifMatch != null && !ifMatch.equals(responseETag)) {
+                    byte[] error = ("<Error><Code>PreconditionFailed</Code>"
+                                    + "<Message>At least one of the pre-conditions you specified did not hold</Message>"
+                                    + "</Error>").getBytes(StandardCharsets.UTF_8);
+                    exchange.getResponseHeaders().set("Content-Type", "application/xml");
+                    exchange.sendResponseHeaders(412, error.length);
+                    exchange.getResponseBody().write(error);
                     return;
                 }
 
@@ -385,7 +455,7 @@ class S3TransferManagerDoublePauseResumeTest {
                 int status = range == null ? 200 : 206;
 
                 Headers headers = exchange.getResponseHeaders();
-                headers.set("ETag", eTag);
+                headers.set("ETag", responseETag);
                 headers.set("Last-Modified", lastModified);
                 headers.set("Accept-Ranges", "bytes");
                 if (range != null) {
