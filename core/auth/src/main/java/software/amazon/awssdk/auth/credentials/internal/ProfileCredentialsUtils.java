@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.auth.credentials.internal;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -45,7 +48,11 @@ import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.profiles.internal.ProfileSection;
+import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
+import software.amazon.awssdk.thirdparty.jackson.core.JsonParser;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -53,6 +60,8 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class ProfileCredentialsUtils {
+    private static final JsonNodeParser COMMAND_PARSER = JsonNodeParser.builder().removeErrorLocations(true).build();
+
     private static final String STS_PROFILE_CREDENTIALS_PROVIDER_FACTORY =
         "software.amazon.awssdk.services.sts.internal.StsProfileCredentialsProviderFactory";
     private static final String SSO_PROFILE_CREDENTIALS_PROVIDER_FACTORY =
@@ -150,7 +159,8 @@ public final class ProfileCredentialsUtils {
             return Optional.of(loginProfileCredentialsProvider());
         }
 
-        if (properties.containsKey(ProfileProperty.CREDENTIAL_PROCESS)) {
+        if (properties.containsKey(ProfileProperty.CREDENTIAL_PROCESS)
+            || properties.containsKey(ProfileProperty.CREDENTIAL_PROCESS_ARGV)) {
             return Optional.of(credentialProcessCredentialsProvider());
         }
 
@@ -204,16 +214,53 @@ public final class ProfileCredentialsUtils {
     }
 
     private CredentialsWithFeatureId credentialProcessCredentialsProvider() {
-        requireProperties(ProfileProperty.CREDENTIAL_PROCESS);
+        boolean hasArgv = properties.containsKey(ProfileProperty.CREDENTIAL_PROCESS_ARGV);
+        Validate.isTrue(!(hasArgv && properties.containsKey(ProfileProperty.CREDENTIAL_PROCESS)),
+                        "Profile '%s' has both credential_process and credential_process_argv. Configure only one.", name);
 
         String featureId = BusinessMetricFeatureId.CREDENTIALS_PROFILE_PROCESS.value();
-        AwsCredentialsProvider provider = ProcessCredentialsProvider.builder()
-                                         .command(properties.get(ProfileProperty.CREDENTIAL_PROCESS))
-                                         .staticAccountId(properties.get(ProfileProperty.AWS_ACCOUNT_ID))
-                                         .sourceChain(featureId)
-                                         .build();
+        ProcessCredentialsProvider.Builder builder = ProcessCredentialsProvider.builder()
+            .staticAccountId(properties.get(ProfileProperty.AWS_ACCOUNT_ID))
+            .sourceChain(featureId);
+        if (hasArgv) {
+            builder.command(credentialProcessArgv());
+        } else {
+            builder.command(properties.get(ProfileProperty.CREDENTIAL_PROCESS));
+        }
         
-        return new CredentialsWithFeatureId(provider, featureId);
+        return new CredentialsWithFeatureId(builder.build(), featureId);
+    }
+
+    private List<String> credentialProcessArgv() {
+        JsonNode node;
+        String value = properties.get(ProfileProperty.CREDENTIAL_PROCESS_ARGV);
+        try (JsonParser parser = JsonNodeParser.DEFAULT_JSON_FACTORY.createParser(value)) {
+            parser.nextToken();
+            parser.skipChildren();
+            Validate.isTrue(parser.nextToken() == null,
+                            "Profile property 'credential_process_argv' must contain a single JSON array.");
+            node = COMMAND_PARSER.parse(value);
+        } catch (IOException e) {
+            throw new IllegalArgumentException(
+                "Profile property 'credential_process_argv' must be a valid JSON array of strings.");
+        }
+
+        if (node == null || !node.isArray() || node.asArray().isEmpty()) {
+            throw new IllegalArgumentException(
+                "Profile property 'credential_process_argv' must be a non-empty JSON array of strings.");
+        }
+        List<String> command = new ArrayList<>();
+        for (JsonNode argument : node.asArray()) {
+            Validate.isTrue(argument.isString(),
+                            "Profile property 'credential_process_argv' must contain only strings.");
+            String argumentValue = argument.asString();
+            Validate.isTrue(argumentValue.indexOf('\0') < 0,
+                            "Profile property 'credential_process_argv' must not contain NUL characters.");
+            command.add(argumentValue);
+        }
+        Validate.isTrue(!StringUtils.isBlank(command.get(0)),
+                        "Profile property 'credential_process_argv' must start with a non-blank executable.");
+        return command;
     }
 
     /**

@@ -94,6 +94,14 @@ public final class ProfileProperty {
      */
     public static final String CREDENTIAL_PROCESS = "credential_process";
 
+    /**
+     * Specifies an external credentials process as a non-empty JSON array of strings, without invoking a shell.
+     * The first element is the executable and the remaining elements are passed as literal arguments.
+     *
+     * <p>This property cannot be combined with {@link #CREDENTIAL_PROCESS} in the same profile.
+     */
+    public static final String CREDENTIAL_PROCESS_ARGV = "credential_process_argv";
+
     public static final String WEB_IDENTITY_TOKEN_FILE = "web_identity_token_file";
 
     /**

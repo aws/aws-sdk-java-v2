@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "description": "Support credential_process_argv profiles that invoke external credential helpers directly without a shell.",
+    "contributor": "Munken"
+}

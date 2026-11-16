@@ -47,6 +47,16 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * <a href="https://docs.aws.amazon.com/cli/latest/topic/config-vars.html#sourcing-credentials-from-external-processes">sourcing credentials
  * from external processes</a> for more information.
  *
+ * <p>Profiles can use {@code credential_process_argv} to invoke an executable directly without requiring a shell:
+ * <pre>
+ * [profile example]
+ * credential_process_argv = ["/app/bin/credentials-helper", "--argument", "value with spaces"]
+ * </pre>
+ * The first array element is the executable. Remaining elements are literal arguments, without shell expansion,
+ * substitution, pipes, or redirection. The array must contain only strings and start with a non-blank executable.
+ * NUL characters are not permitted. This property cannot be combined with {@code credential_process} in the same profile.
+ * Existing {@code credential_process} commands continue to execute through the platform shell.
+ *
  * <p>
  * This class can be initialized using {@link #builder()}.
  *
