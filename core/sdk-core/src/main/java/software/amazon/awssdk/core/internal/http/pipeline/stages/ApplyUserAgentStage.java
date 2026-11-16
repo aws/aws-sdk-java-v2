@@ -27,8 +27,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ApiName;
+import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -59,9 +62,11 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     private static final Logger log = Logger.loggerFor(ApplyUserAgentStage.class);
 
     private final SdkClientConfiguration clientConfig;
+    private final ClientType clientType;
 
-    public ApplyUserAgentStage(HttpClientDependencies dependencies) {
+    public ApplyUserAgentStage(HttpClientDependencies dependencies, ClientType clientType) {
         this.clientConfig = dependencies.clientConfiguration();
+        this.clientType = clientType;
     }
 
     @Override
@@ -171,8 +176,8 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         return Pair.of(customApiNames, metricsFromApiNames);
     }
 
-    private static Optional<String> getBusinessMetricsString(ExecutionAttributes executionAttributes,
-                                                             Collection<String> metricsFromApiNames) {
+    private Optional<String> getBusinessMetricsString(ExecutionAttributes executionAttributes,
+                                                      Collection<String> metricsFromApiNames) {
         BusinessMetricCollection businessMetrics =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
         if (businessMetrics == null) {
@@ -189,12 +194,11 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         return Optional.of(businessMetrics.asBoundedString());
     }
 
-    private static Optional<Collection<String>> credentialProviderBusinessMetrics(
+    private Optional<Collection<String>> credentialProviderBusinessMetrics(
         ExecutionAttributes executionAttributes) {
         return Optional.ofNullable(
                            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME))
-                       .map(selectedAuthScheme ->
-                                CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity()))
+                       .flatMap(this::resolvedIdentity)
                        .flatMap(Identity::providerName)
                        .map(providerName -> {
                            if (StringUtils.isBlank(providerName)) {
@@ -202,6 +206,20 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
                            }
                            return Collections.singletonList(providerName);
                        });
+    }
+
+    /**
+     * Returns the identity of the selected auth scheme. A sync client waits for it. An async client
+     * runs this stage on the caller's thread, so it only uses an identity that has already resolved, and leaves out the
+     * credential provider metric otherwise rather than block the caller until the identity resolves.
+     */
+    private Optional<Identity> resolvedIdentity(SelectedAuthScheme<?> selectedAuthScheme) {
+        CompletableFuture<? extends Identity> identity = selectedAuthScheme.identity();
+        if (clientType == ClientType.ASYNC
+            && (!identity.isDone() || identity.isCompletedExceptionally())) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(CompletableFutureUtils.joinLikeSync(identity));
     }
 
     /**

@@ -29,10 +29,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SelectedAuthScheme;
@@ -72,7 +76,7 @@ public class ApplyUserAgentStageTest {
 
     @Test
     public void when_noAdditionalDataIsPresent_userAgentOnlyHasSdkValues() throws Exception {
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.SYNC);
 
         RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITHOUT_SOURCE), noOpRequest());
         SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
@@ -86,7 +90,7 @@ public class ApplyUserAgentStageTest {
     @Test
     public void when_userPrefixIsPresent_itIsAddedToUserAgent() throws Exception {
         String prefix = "Some completely opaque user prefix";
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent(), prefix, null));
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent(), prefix, null), ClientType.SYNC);
 
         RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITHOUT_SOURCE), noOpRequest());
         SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
@@ -100,7 +104,7 @@ public class ApplyUserAgentStageTest {
     @Test
     public void when_userSuffixIsPresent_itIsAddedToUserAgent() throws Exception {
         String suffix = "Some completely opaque user suffix";
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent(), null, suffix));
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent(), null, suffix), ClientType.SYNC);
 
         RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITHOUT_SOURCE), noOpRequest());
         SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
@@ -113,7 +117,7 @@ public class ApplyUserAgentStageTest {
 
     @Test
     public void when_requestContainsApiName_apiNamesArePresent() throws Exception {
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.SYNC);
 
         RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITH_SOURCE),
                                                               requestWithApiName("myLib", "1.0"));
@@ -126,7 +130,7 @@ public class ApplyUserAgentStageTest {
 
     @Test
     public void when_requestContainsMetadata_metadataIsPresent() throws Exception {
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.SYNC);
 
         RequestExecutionContext ctx = requestExecutionContext(
             executionAttributes(Arrays.asList(
@@ -144,7 +148,7 @@ public class ApplyUserAgentStageTest {
 
     @Test
     public void when_identityContainsProvider_authSourceIsPresent() throws Exception {
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.SYNC);
 
         RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITH_SOURCE), noOpRequest());
         SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
@@ -155,8 +159,59 @@ public class ApplyUserAgentStageTest {
     }
 
     @Test
+    public void when_asyncClientAndIdentityResolved_authSourceIsPresent() throws Exception {
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.ASYNC);
+
+        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITH_SOURCE), noOpRequest());
+        SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
+
+        assertThat(userAgent(request)).contains("m/w");
+    }
+
+    @Test
+    public void when_asyncClientAndIdentityNotResolved_userAgentIsAddedWithoutAuthSource() throws Exception {
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.ASYNC);
+
+        CompletableFuture<AwsCredentialsIdentity> identity = new CompletableFuture<>();
+        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(identity), noOpRequest());
+        SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
+
+        assertThat(identity).isNotDone();
+        assertThat(userAgent(request)).startsWith("aws-sdk-java").doesNotContain("m/w");
+    }
+
+    @Test
+    public void when_asyncClientAndIdentityFailed_userAgentIsAddedWithoutAuthSource() throws Exception {
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.ASYNC);
+
+        CompletableFuture<AwsCredentialsIdentity> identity = new CompletableFuture<>();
+        identity.completeExceptionally(new IllegalStateException("no credentials"));
+        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(identity), noOpRequest());
+        SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
+
+        assertThat(userAgent(request)).startsWith("aws-sdk-java").doesNotContain("m/w");
+    }
+
+    @Test
+    public void when_syncClientAndIdentityNotYetResolved_waitsForAuthSource() throws Exception {
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.SYNC);
+
+        CompletableFuture<AwsCredentialsIdentity> identity = new CompletableFuture<>();
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        try {
+            scheduler.schedule(() -> identity.complete(IDENTITY_WITH_SOURCE), 100, TimeUnit.MILLISECONDS);
+            RequestExecutionContext ctx = requestExecutionContext(executionAttributes(identity), noOpRequest());
+            SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
+
+            assertThat(userAgent(request)).contains("m/w");
+        } finally {
+            scheduler.shutdownNow();
+        }
+    }
+
+    @Test
     public void when_userAgentHeaderAlreadyPresent_AndSdkOptionAdditionalHeaderNotPresent_doesNotOverwrite() throws Exception {
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.SYNC);
 
         String existingUserAgent = "CustomUserAgent/1.0";
         SdkHttpFullRequest.Builder requestWithExistingHeader = SdkHttpFullRequest.builder()
@@ -172,7 +227,7 @@ public class ApplyUserAgentStageTest {
 
     @Test
     public void when_userAgentHeaderPresentButEmpty_sdkAddsUserAgent() throws Exception {
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.SYNC);
 
         SdkHttpFullRequest.Builder requestWithEmptyHeader = SdkHttpFullRequest.builder()
                                                                               .putHeader(HEADER_USER_AGENT, "");
@@ -187,7 +242,7 @@ public class ApplyUserAgentStageTest {
 
     @Test
     public void when_userAgentHeaderPresentButNull_sdkAddsHeader() throws Exception {
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.SYNC);
         String headerValue = null;
         SdkHttpFullRequest.Builder requestWithNullHeader = SdkHttpFullRequest.builder()
                                                                              .putHeader(HEADER_USER_AGENT, headerValue);
@@ -202,7 +257,7 @@ public class ApplyUserAgentStageTest {
 
     @Test
     public void when_userAgentHeaderAbsent_sdkAddsHeader() throws Exception {
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.SYNC);
 
         SdkHttpFullRequest.Builder requestWithoutHeader = SdkHttpFullRequest.builder();
 
@@ -228,7 +283,7 @@ public class ApplyUserAgentStageTest {
                                                                               .clientConfiguration(clientConfiguration)
                                                                               .build();
 
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(httpClientDependencies);
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(httpClientDependencies, ClientType.SYNC);
 
         SdkHttpFullRequest.Builder request = SdkHttpFullRequest.builder();
 
@@ -241,6 +296,12 @@ public class ApplyUserAgentStageTest {
         assertThat(userAgentHeaders).isNull();
     }
 
+
+    private static String userAgent(SdkHttpFullRequest.Builder request) {
+        List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
+        return userAgentHeaders.get(0);
+    }
 
     private static HttpClientDependencies dependencies(String clientUserAgent) {
         return dependencies(clientUserAgent, null, null);
@@ -287,9 +348,13 @@ public class ApplyUserAgentStageTest {
     }
 
     private static ExecutionAttributes executionAttributes(AwsCredentialsIdentity identity) {
+        return executionAttributes(CompletableFuture.completedFuture(identity));
+    }
+
+    private static ExecutionAttributes executionAttributes(CompletableFuture<AwsCredentialsIdentity> identity) {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
-                                         new SelectedAuthScheme<>(CompletableFuture.completedFuture(identity),
+                                         new SelectedAuthScheme<>(identity,
                                                          EMPTY_SELECTED_AUTH_SCHEME.signer(),
                                                          EMPTY_SELECTED_AUTH_SCHEME.authSchemeOption()));
         return executionAttributes;
