@@ -209,6 +209,16 @@ class ProfileProcessCredentialsProviderTest {
     }
 
     @Test
+    void resolveCredentials_noProcessProperties_usesStaticCredentials() {
+        ProfileFile file = profileFile("aws_access_key_id = akid\naws_secret_access_key = skid",
+                                       ProfileFile.Type.CONFIGURATION);
+
+        try (ProfileCredentialsProvider provider = profileProvider(file)) {
+            assertThat(provider.resolveCredentials().accessKeyId()).isEqualTo("akid");
+        }
+    }
+
+    @Test
     void resolveCredentials_bothProcessProperties_rejectsAmbiguousConfiguration() {
         ProfileFile file = profileFile("credential_process = must-not-execute\n"
                                        + "credential_process_argv = " + commandJson("static", "value"),
@@ -219,7 +229,7 @@ class ProfileProcessCredentialsProviderTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("credential_process")
                 .hasMessageContaining("credential_process_argv")
-                .hasMessageContaining("both");
+                .hasMessageContaining("must configure exactly one");
         }
     }
 

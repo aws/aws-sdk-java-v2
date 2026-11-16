@@ -214,9 +214,10 @@ public final class ProfileCredentialsUtils {
     }
 
     private CredentialsWithFeatureId credentialProcessCredentialsProvider() {
+        boolean hasCommand = properties.containsKey(ProfileProperty.CREDENTIAL_PROCESS);
         boolean hasArgv = properties.containsKey(ProfileProperty.CREDENTIAL_PROCESS_ARGV);
-        Validate.isTrue(!(hasArgv && properties.containsKey(ProfileProperty.CREDENTIAL_PROCESS)),
-                        "Profile '%s' has both credential_process and credential_process_argv. Configure only one.", name);
+        Validate.isTrue(hasCommand != hasArgv,
+                        "Profile '%s' must configure exactly one of credential_process or credential_process_argv.", name);
 
         String featureId = BusinessMetricFeatureId.CREDENTIALS_PROFILE_PROCESS.value();
         ProcessCredentialsProvider.Builder builder = ProcessCredentialsProvider.builder()
