@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
 import static software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage.HEADER_USER_AGENT;
@@ -181,15 +182,15 @@ public class ApplyUserAgentStageTest {
     }
 
     @Test
-    public void when_asyncClientAndIdentityFailed_userAgentIsAddedWithoutAuthSource() throws Exception {
+    public void when_asyncClientAndIdentityFailed_throwsIdentityFailure() {
         ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.ASYNC);
 
+        IllegalStateException failure = new IllegalStateException("no credentials");
         CompletableFuture<AwsCredentialsIdentity> identity = new CompletableFuture<>();
-        identity.completeExceptionally(new IllegalStateException("no credentials"));
+        identity.completeExceptionally(failure);
         RequestExecutionContext ctx = requestExecutionContext(executionAttributes(identity), noOpRequest());
-        SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
 
-        assertThat(userAgent(request)).startsWith("aws-sdk-java").doesNotContain("m/w");
+        assertThatThrownBy(() -> stage.execute(SdkHttpFullRequest.builder(), ctx)).isSameAs(failure);
     }
 
     @Test

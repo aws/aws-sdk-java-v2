@@ -209,14 +209,13 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     }
 
     /**
-     * Returns the identity of the selected auth scheme. A sync client waits for it. An async client
-     * runs this stage on the caller's thread, so it only uses an identity that has already resolved, and leaves out the
-     * credential provider metric otherwise rather than block the caller until the identity resolves.
+     * Returns the identity of the selected auth scheme. A sync client waits for it. An async client runs this stage on the
+     * caller's thread, so while the identity is still being resolved it leaves out the credential provider metric rather
+     * than block the caller.
      */
     private Optional<Identity> resolvedIdentity(SelectedAuthScheme<?> selectedAuthScheme) {
         CompletableFuture<? extends Identity> identity = selectedAuthScheme.identity();
-        if (clientType == ClientType.ASYNC
-            && (!identity.isDone() || identity.isCompletedExceptionally())) {
+        if (clientType == ClientType.ASYNC && !identity.isDone()) {
             return Optional.empty();
         }
         return Optional.ofNullable(CompletableFutureUtils.joinLikeSync(identity));
