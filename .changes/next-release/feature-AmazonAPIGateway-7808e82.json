@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon API Gateway",
-    "contributor": "",
-    "description": "API Gateway now adds support for JWT authorizers on REST APIs."
-}
