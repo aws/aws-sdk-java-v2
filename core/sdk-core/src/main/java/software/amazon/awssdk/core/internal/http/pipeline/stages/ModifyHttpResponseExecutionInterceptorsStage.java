@@ -35,12 +35,8 @@ public class ModifyHttpResponseExecutionInterceptorsStage
     @Override
     public Pair<SdkHttpFullRequest, SdkHttpFullResponse> execute(Pair<SdkHttpFullRequest, SdkHttpFullResponse> input,
                                                                  RequestExecutionContext context) throws Exception {
-        InputStream responseBody = input.right().content().orElse(null);
-
-        // Update interceptor context
-        InterceptorContext interceptorContext =
-                context.executionContext().interceptorContext().copy(b -> b.httpResponse(input.right())
-                                                                           .responseBody(responseBody));
+        InterceptorContext interceptorContext = context.executionContext().interceptorContext();
+        InputStream responseBody = interceptorContext.responseBody().orElse(null);
 
         // interceptors.modifyHttpResponse
         interceptorContext = context.interceptorChain().modifyHttpResponse(interceptorContext, context.executionAttributes());

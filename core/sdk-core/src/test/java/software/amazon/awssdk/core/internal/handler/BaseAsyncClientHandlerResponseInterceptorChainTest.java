@@ -89,6 +89,8 @@ class BaseAsyncClientHandlerResponseInterceptorChainTest {
             .hasMessageContaining("modifyHttpResponse boom");
         assertThat(interceptor.afterTransmissionRan).isTrue();
         assertThat(delegate.headers).isNull();
+        // The context stored by afterTransmission, which failure handling reads, holds the received response
+        assertThat(context.interceptorContext().httpResponse().firstMatchingHeader("x-test")).hasValue("original");
     }
 
     @Test

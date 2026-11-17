@@ -97,22 +97,17 @@ class AmazonSyncHttpClientResponseInterceptorTest {
     }
 
     @Test
-    void execute_whenModifyHttpResponseThrows_exceptionPropagates() {
-        RuntimeException failure = new RuntimeException("modifyHttpResponse boom");
-
-        assertThatThrownBy(() -> execute(new ThrowingInterceptor(failure)))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("modifyHttpResponse boom");
-    }
-
-    @Test
-    void execute_whenModifyHttpResponseThrows_afterTransmissionStillRan() {
+    void execute_whenModifyHttpResponseThrows_afterTransmissionRanAndExceptionPropagates() {
         ThrowingInterceptor interceptor = new ThrowingInterceptor(new RuntimeException("modifyHttpResponse boom"));
 
-        assertThatThrownBy(() -> execute(interceptor)).isInstanceOf(RuntimeException.class);
-
+        assertThatThrownBy(() -> execute(interceptor))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("modifyHttpResponse boom");
         // afterTransmission runs in the preceding stage, so it is observed even though modifyHttpResponse then fails.
         assertThat(interceptor.afterTransmissionRan).isTrue();
+        // Failure handling sees the received response stored by afterTransmission
+        assertThat(interceptor.failedExecutionResponse).hasValueSatisfying(
+            r -> assertThat(r.firstMatchingHeader("x-test")).hasValue("original"));
     }
 
     private Pair<SdkHttpResponse, String> execute(ExecutionInterceptor interceptor) {
@@ -181,11 +176,13 @@ class AmazonSyncHttpClientResponseInterceptorTest {
     }
 
     /**
-     * Runs {@code afterTransmission} normally, then throws from {@code modifyHttpResponse}.
+     * Runs {@code afterTransmission} normally, then throws from {@code modifyHttpResponse}, and records the response seen by
+     * {@code onExecutionFailure}.
      */
     private static final class ThrowingInterceptor implements ExecutionInterceptor {
         private final RuntimeException failure;
         private boolean afterTransmissionRan;
+        private Optional<SdkHttpResponse> failedExecutionResponse;
 
         private ThrowingInterceptor(RuntimeException failure) {
             this.failure = failure;
@@ -200,6 +197,11 @@ class AmazonSyncHttpClientResponseInterceptorTest {
         public SdkHttpResponse modifyHttpResponse(Context.ModifyHttpResponse context,
                                                   ExecutionAttributes executionAttributes) {
             throw failure;
+        }
+
+        @Override
+        public void onExecutionFailure(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
+            failedExecutionResponse = context.httpResponse();
         }
     }
 }

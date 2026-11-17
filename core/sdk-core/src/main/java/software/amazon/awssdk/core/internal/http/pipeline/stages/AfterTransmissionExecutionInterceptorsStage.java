@@ -45,7 +45,7 @@ public class AfterTransmissionExecutionInterceptorsStage
         // interceptors.afterTransmission
         context.interceptorChain().afterTransmission(interceptorContext, context.executionAttributes());
 
-        // Store updated context, so later stages can clean up the body if they fail
+        // Store updated context for the modifyHttpResponse stage
         context.executionContext().interceptorContext(interceptorContext);
 
         return input;

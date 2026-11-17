@@ -44,8 +44,7 @@ public final class AsyncModifyHttpResponseInterceptorCallingResponseHandler<T> i
 
     @Override
     public void onHeaders(SdkHttpResponse response) {
-        // Update interceptor context to include response
-        InterceptorContext interceptorContext = context.interceptorContext().copy(b -> b.httpResponse(response));
+        InterceptorContext interceptorContext = context.interceptorContext();
 
         // interceptors.modifyHttpResponse
         interceptorContext = context.interceptorChain().modifyHttpResponse(interceptorContext, context.executionAttributes());
