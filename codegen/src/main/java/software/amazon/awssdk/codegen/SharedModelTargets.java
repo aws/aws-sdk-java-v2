@@ -33,9 +33,6 @@ public final class SharedModelTargets {
     private SharedModelTargets() {
     }
 
-    /**
-     * Returns the models with the clients that share another client's model classes last.
-     */
     public static List<IntermediateModel> sharersLast(List<IntermediateModel> models) {
         List<IntermediateModel> ordered = new ArrayList<>(models);
         ordered.sort(Comparator.comparing(m -> shareModelConfig(m) != null));
@@ -43,7 +40,7 @@ public final class SharedModelTargets {
     }
 
     /**
-     * Returns the model whose classes {@code model} shares, or null when it shares none.
+     * Null when {@code model} shares no model classes.
      */
     public static IntermediateModel target(IntermediateModel model, List<IntermediateModel> models) {
         ShareModelConfig config = shareModelConfig(model);

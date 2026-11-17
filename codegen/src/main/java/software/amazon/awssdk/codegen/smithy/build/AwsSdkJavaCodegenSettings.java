@@ -79,16 +79,10 @@ public final class AwsSdkJavaCodegenSettings {
         return node.getStringMember(CUSTOMIZATION_CONFIG).map(s -> baseDir.resolve(s.getValue())).orElse(null);
     }
 
-    /**
-     * The clients to generate.
-     */
     public List<Client> clients() {
         return clients;
     }
 
-    /**
-     * One client to generate.
-     */
     public static final class Client {
         private final ShapeId service;
         private final Path customizationConfig;
@@ -99,15 +93,12 @@ public final class AwsSdkJavaCodegenSettings {
         }
 
         /**
-         * The client's service shape, or null when the model has only one service.
+         * Null when the model has only one service.
          */
         public ShapeId service() {
             return service;
         }
 
-        /**
-         * The client's customization file, if any.
-         */
         public Path customizationConfig() {
             return customizationConfig;
         }
