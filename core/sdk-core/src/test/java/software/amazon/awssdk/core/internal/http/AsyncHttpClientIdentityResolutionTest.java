@@ -16,18 +16,14 @@
 package software.amazon.awssdk.core.internal.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils.noOpResponseHandler;
 import static utils.HttpTestUtils.testAsyncClientBuilder;
 
 import java.io.ByteArrayInputStream;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.SelectedAuthScheme;
@@ -51,36 +47,21 @@ import utils.ValidSdkObjects;
  */
 class AsyncHttpClientIdentityResolutionTest {
 
-    private ExecutorService caller;
-    private CompletableFuture<AwsCredentialsIdentity> identityFuture;
-
-    @BeforeEach
-    void setup() {
-        caller = Executors.newSingleThreadExecutor();
-        identityFuture = new CompletableFuture<>();
-    }
-
-    @AfterEach
-    void teardown() {
-        identityFuture.cancel(true);
-        caller.shutdownNow();
-    }
-
     @Test
-    void execute_identityNotYetResolved_returnsWithoutWaitingForIdentity() throws Exception {
+    void execute_identityNotYetResolved_returnsWithoutWaitingForIdentity() {
         AmazonAsyncHttpClient client = testAsyncClientBuilder()
             .retryStrategy(DefaultRetryStrategy.doNotRetry())
             .asyncHttpClient(StubSdkAsyncHttpClient.create())
             .build();
+        CompletableFuture<AwsCredentialsIdentity> identityFuture = new CompletableFuture<>();
 
-        Future<CompletableFuture<Object>> execution = caller.submit(
+        CompletableFuture<Object> response = assertTimeoutPreemptively(
+            Duration.ofSeconds(5),
             () -> client.requestExecutionBuilder()
                         .request(request())
                         .originalRequest(NoopTestRequest.builder().build())
                         .executionContext(executionContext(identityFuture))
                         .execute(noOpResponseHandler()));
-
-        CompletableFuture<Object> response = execution.get(5, TimeUnit.SECONDS);
 
         assertThat(response).isNotDone();
     }
