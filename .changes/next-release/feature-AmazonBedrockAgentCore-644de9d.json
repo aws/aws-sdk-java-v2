@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock AgentCore",
+    "contributor": "",
+    "description": "Adds support for continuous insights and automatic dataset generation"
+}
