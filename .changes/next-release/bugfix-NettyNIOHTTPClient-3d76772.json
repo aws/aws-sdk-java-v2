@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO HTTP Client",
+    "contributor": "",
+    "description": "Fixed an issue where an I/O error, such as a read timeout, on one HTTP/2 stream, or a GOAWAY that refused a newer stream, ended the other requests on the same connection. Requests reading a response body with no Content-Length completed with a partial response and no error. Closing the client with HTTP/2 requests in flight now fails those requests with an IOException instead of returning a partial response."
+}

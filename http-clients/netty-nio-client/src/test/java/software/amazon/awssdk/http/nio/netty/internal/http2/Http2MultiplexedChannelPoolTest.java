@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -40,6 +41,7 @@ import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -255,6 +257,33 @@ public class Http2MultiplexedChannelPoolTest {
             assertThat(flowController.initialWindowSize(connectionStream)).isEqualTo(4128769);
 
             Mockito.verify(connectionPool, Mockito.times(1)).acquire();
+        } finally {
+            channel.close();
+        }
+    }
+
+    @Test
+    public void release_lastChildOfGoAwayConnection_shouldReleaseParentOnce() {
+        EmbeddedChannel channel = newHttp2Channel();
+        channel.attr(ChannelAttributeKey.MAX_CONCURRENT_STREAMS).set(3L);
+        try {
+            ChannelPool connectionPool = Mockito.mock(ChannelPool.class);
+            Mockito.when(connectionPool.acquire()).thenReturn(new DefaultPromise<Channel>(loopGroup.next()).setSuccess(channel));
+            Mockito.when(connectionPool.release(eq(channel), any(Promise.class)))
+                   .thenAnswer(invocation -> invocation.<Promise<Void>>getArgument(1).setSuccess(null));
+            Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup,
+                                                                                 Collections.emptySet(), null);
+            Future<Channel> acquire = h2Pool.acquire();
+            assertThat(acquire.awaitUninterruptibly(5, TimeUnit.SECONDS)).isTrue();
+            channel.runPendingTasks();
+            // The child has not written HEADERS, so its stream ID is below 1000 and the GOAWAY leaves it open.
+            h2Pool.handleGoAway(channel, 1000, new GoAwayException(0, "test"));
+
+            h2Pool.release(acquire.getNow());
+            channel.runPendingTasks();
+
+            Mockito.verify(connectionPool, Mockito.times(1)).release(eq(channel), any(Promise.class));
+            assertThat(channel.isOpen()).isFalse();
         } finally {
             channel.close();
         }

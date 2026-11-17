@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
@@ -200,6 +201,86 @@ public class GoAwayTest {
     // ID' given in the GOAWAY frame since it means they were processed fully
     @Test
     public void execute_goAwayReceived_lastStreamId_lowerStreamsNotClosed() throws InterruptedException {
+        GoAwayAfterTwoStreams scenario = goAwayBetweenStream3AndStream5();
+
+        waitForFuture(scenario.stream3Cf);
+        waitForFuture(scenario.stream5Cf);
+
+        // Note: asserting on the future itself rather than isCompletedExceptionally() so that the failure message carries
+        // the cause if stream 3 is unexpectedly closed.
+        assertThat(scenario.stream3Cf).isCompleted()
+                                      .isNotCompletedExceptionally();
+
+        assertThat(scenario.stream5Cf).isCompletedExceptionally();
+        assertThatThrownBy(scenario.stream5Cf::join).hasCauseInstanceOf(IOException.class)
+                                                    .hasMessageContaining("GOAWAY received from service");
+    }
+
+    @Test
+    public void execute_goAwayReceived_shouldCloseConnectionAfterLowerStreamCompletes() throws InterruptedException {
+        GoAwayAfterTwoStreams scenario = goAwayBetweenStream3AndStream5();
+
+        waitForFuture(scenario.stream3Cf);
+
+        assertThat(scenario.stream3Cf).isCompleted();
+        assertThat(scenario.stream3ServerChannel.closeFuture().await(2, TimeUnit.SECONDS))
+            .withFailMessage("The client did not close the connection within 2 seconds after its last stream completed.")
+            .isTrue();
+    }
+
+    @Test
+    public void execute_goAwayReceivedOnIdleConnection_shouldCloseConnection() throws Exception {
+        CompletableFuture<SocketChannel> servingChannel = new CompletableFuture<>();
+        byte[] payload = "hello".getBytes(StandardCharsets.UTF_8);
+        Supplier<Http2FrameListener> frameListenerSupplier = () -> new TestFrameListener() {
+            @Override
+            public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers, int padding, boolean endStream) {
+                onHeadersReadDelegator(ctx, streamId);
+            }
+
+            @Override
+            public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers, int streamDependency, short weight, boolean exclusive, int padding, boolean endStream) {
+                onHeadersReadDelegator(ctx, streamId);
+            }
+
+            private void onHeadersReadDelegator(ChannelHandlerContext ctx, int streamId) {
+                Http2Headers outboundHeaders = new DefaultHttp2Headers()
+                    .status("200")
+                    .add("content-type", "text/plain")
+                    .addInt("content-length", payload.length);
+
+                frameWriter().writeHeaders(ctx, streamId, outboundHeaders, 0, false, ctx.newPromise());
+                frameWriter().writeData(ctx, streamId, Unpooled.wrappedBuffer(payload), 0, true, ctx.newPromise());
+                ctx.flush();
+
+                servingChannel.complete((SocketChannel) ctx.channel());
+            }
+        };
+
+        endpointDriver = new SimpleEndpointDriver(frameListenerSupplier);
+        endpointDriver.init();
+
+        netty = NettyNioAsyncHttpClient.builder()
+                                       .protocol(Protocol.HTTP2)
+                                       .build();
+
+        sendGetRequest().get(5, TimeUnit.SECONDS); // stream ID 3
+        SocketChannel serverChannel = servingChannel.get(5, TimeUnit.SECONDS);
+
+        // The connection has no streams left. The server keeps TCP open after the GOAWAY.
+        endpointDriver.goAway(serverChannel, 3);
+
+        assertThat(serverChannel.closeFuture().await(2, TimeUnit.SECONDS))
+            .withFailMessage("The client did not close a connection with no streams within 2 seconds after it received "
+                             + "GOAWAY.")
+            .isTrue();
+    }
+
+    /**
+     * Sends stream 3, then stream 5, then GOAWAY with last stream ID 3, then the DATA for stream 3 500 ms later. The server
+     * answers stream 3 with HEADERS right away and never answers stream 5.
+     */
+    private GoAwayAfterTwoStreams goAwayBetweenStream3AndStream5() throws InterruptedException {
         ConcurrentHashMap<String, Set<Integer>> channelToStreams = new ConcurrentHashMap<>();
 
         CompletableFuture<Void> stream3Received = new CompletableFuture<>();
@@ -260,32 +341,41 @@ public class GoAwayTest {
             .withFailMessage("Server did not receive both requests within 10 seconds.")
             .isTrue();
 
+        SocketChannel stream3ServerChannel = null;
+
         // send the GOAWAY first, specifying that everything after 3 is not processed
-        endpointDriver.channels.forEach(ch -> {
+        for (SocketChannel ch : endpointDriver.channels) {
             Set<Integer> streams = channelToStreams.getOrDefault(ch.id().asShortText(), Collections.emptySet());
             if (streams.contains(3)) {
+                stream3ServerChannel = ch;
                 endpointDriver.goAway(ch, 3);
+
+                // now send the DATA for stream 3, which should still be valid. Send it 500 ms after the GOAWAY: without
+                // the delay the client reads the GOAWAY and the DATA in one batch, so stream 3 finished before the close
+                // queued after the GOAWAY ran. That is why this test passed while that close was still there.
+                ch.eventLoop().schedule(() -> endpointDriver.data(ch, 3, getPayload), 500, TimeUnit.MILLISECONDS);
             }
-        });
+        }
 
-        // now send the DATA for stream 3, which should still be valid
-        endpointDriver.channels.forEach(ch -> {
-            Set<Integer> streams = channelToStreams.getOrDefault(ch.id().asShortText(), Collections.emptySet());
-            if (streams.contains(3)) {
-                endpointDriver.data(ch, 3, getPayload);
-            }
-        });
+        assertThat(stream3ServerChannel)
+            .withFailMessage("No server connection received stream ID 3.")
+            .isNotNull();
 
-        waitForFuture(stream3Cf);
-        waitForFuture(stream5Cf);
+        return new GoAwayAfterTwoStreams(stream3Cf, stream5Cf, stream3ServerChannel);
+    }
 
-        // Note: asserting on the future itself rather than isCompletedExceptionally() so that the failure message carries
-        // the cause if stream 3 is unexpectedly closed.
-        assertThat(stream3Cf).isCompleted()
-                             .isNotCompletedExceptionally();
+    private static final class GoAwayAfterTwoStreams {
+        private final CompletableFuture<Void> stream3Cf;
+        private final CompletableFuture<Void> stream5Cf;
+        private final SocketChannel stream3ServerChannel;
 
-        assertThat(stream5Cf).isCompletedExceptionally();
-        assertThatThrownBy(stream5Cf::join).hasCauseInstanceOf(IOException.class);
+        private GoAwayAfterTwoStreams(CompletableFuture<Void> stream3Cf,
+                                      CompletableFuture<Void> stream5Cf,
+                                      SocketChannel stream3ServerChannel) {
+            this.stream3Cf = stream3Cf;
+            this.stream5Cf = stream5Cf;
+            this.stream3ServerChannel = stream3ServerChannel;
+        }
     }
 
     private CompletableFuture<Void> sendGetRequest() {
