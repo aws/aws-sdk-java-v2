@@ -169,7 +169,7 @@ public class ApplyUserAgentStageTest {
         assertThat(userAgent(request)).contains("m/w");
     }
 
-    @Test
+    @Test(timeout = 5_000)
     public void when_asyncClientAndIdentityNotResolved_userAgentIsAddedWithoutAuthSource() throws Exception {
         ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()), ClientType.ASYNC);
 
