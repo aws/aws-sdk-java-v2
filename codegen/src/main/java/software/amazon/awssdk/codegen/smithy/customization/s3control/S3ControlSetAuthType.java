@@ -20,7 +20,8 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 
 /**
- * Sets the auth type to {@code S3V4}, so the client signs with the S3 Control variant of SigV4.
+ * This customization keeps S3 Control signing with the S3 Control variant of SigV4, which C2J sets with
+ * {@code signatureVersion: s3v4}. The Smithy path maps {@code @sigv4} to plain SigV4.
  */
 @SdkInternalApi
 final class S3ControlSetAuthType extends AbstractS3ControlCustomization {

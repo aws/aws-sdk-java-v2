@@ -20,7 +20,8 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.EndpointTrait;
 
 /**
- * Removes the {@code {AccountId}.} host prefix; the endpoint rules put the account ID in the host.
+ * This customization removes the {@code {AccountId}.} host prefix, because the endpoint rules already put the account
+ * ID in the host.
  */
 @SdkInternalApi
 final class S3ControlRemoveAccountIdHostPrefix extends AbstractS3ControlCustomization {

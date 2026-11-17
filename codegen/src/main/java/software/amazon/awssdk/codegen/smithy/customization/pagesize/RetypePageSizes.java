@@ -27,21 +27,22 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.smithy.customization.SmithyServiceCustomization;
 import software.amazon.smithy.model.Model;
+import software.amazon.smithy.model.shapes.MemberShape;
 import software.amazon.smithy.model.shapes.Shape;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.shapes.StringShape;
 import software.amazon.smithy.model.transform.ModelTransformer;
 
 /**
- * Keeps the listed page-size members strings. Smithy requires a page size to be an integer, so this runs after
- * validation.
+ * This customization keeps the listed page-size members strings, as C2J has them. Smithy requires a page size to be an
+ * integer, so it runs after validation.
  */
 @SdkInternalApi
 final class RetypePageSizes implements SmithyServiceCustomization {
     private final String sdkId;
     private final Map<ShapeId, List<ShapeId>> membersByTarget;
 
-    private RetypePageSizes(String sdkId, Map<ShapeId, List<ShapeId>> membersByTarget) {
+    RetypePageSizes(String sdkId, Map<ShapeId, List<ShapeId>> membersByTarget) {
         this.sdkId = sdkId;
         this.membersByTarget = Collections.unmodifiableMap(membersByTarget);
     }
@@ -134,24 +135,22 @@ final class RetypePageSizes implements SmithyServiceCustomization {
     public Model preprocess(Model model, CustomizationConfig config) {
         List<Shape> replaced = new ArrayList<>();
         membersByTarget.forEach((target, ids) -> {
-            List<Shape> members = retarget(model, ids, target);
-            if (!members.isEmpty()) {
-                addStringShapeIfAbsent(model, target, replaced);
-                replaced.addAll(members);
-            }
+            addStringShapeIfAbsent(model, target, replaced);
+            replaced.addAll(retarget(model, ids, target));
         });
         return ModelTransformer.create().replaceShapes(model, replaced);
     }
 
-    private static List<Shape> retarget(Model model, List<ShapeId> members, ShapeId target) {
+    private List<Shape> retarget(Model model, List<ShapeId> members, ShapeId target) {
         List<Shape> retargeted = new ArrayList<>();
         for (ShapeId memberId : members) {
-            model.getShape(memberId).flatMap(Shape::asMemberShape).ifPresent(member -> {
-                if (!model.expectShape(member.getTarget()).isIntegerShape()) {
-                    throw new IllegalStateException(memberId + " no longer targets an integer");
-                }
-                retargeted.add(member.toBuilder().target(target).build());
-            });
+            MemberShape member = model.getShape(memberId).flatMap(Shape::asMemberShape).orElseThrow(
+                () -> new IllegalStateException(memberId + " is not in the " + sdkId + " model. If it was renamed, "
+                                                + "update this list."));
+            if (!model.expectShape(member.getTarget()).isIntegerShape()) {
+                throw new IllegalStateException(memberId + " no longer targets an integer");
+            }
+            retargeted.add(member.toBuilder().target(target).build());
         }
         return retargeted;
     }
