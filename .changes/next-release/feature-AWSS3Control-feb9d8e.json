@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS S3 Control",
+    "contributor": "",
+    "description": "Adds support for S3 Intelligent Tiering Access Tier and publishing to AWS Billing and Cost Management in S3 Storage Lens"
+}
