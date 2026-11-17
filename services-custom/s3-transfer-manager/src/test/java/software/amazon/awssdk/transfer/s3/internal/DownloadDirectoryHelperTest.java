@@ -50,6 +50,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -885,6 +886,27 @@ public class DownloadDirectoryHelperTest {
         assertNoTempFiles(directory);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"a", "\u00e9", "\u6f22", "\ud83d\ude00"})
+    void downloadDirectory_longFileName_shouldKeepTempFileNameWithin255Bytes(String character) throws Exception {
+        int bytesPerCharacter = character.getBytes(StandardCharsets.UTF_8).length;
+        String longName = IntStream.range(0, 255 / bytesPerCharacter).mapToObj(i -> character).collect(Collectors.joining());
+        stubSuccessfulListObjects(listObjectsHelper, longName);
+        ArgumentCaptor<DownloadFileRequest> requestCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
+        when(singleDownloadFunction.apply(requestCaptor.capture())).thenReturn(completedDownload());
+
+        downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder().destination(directory).bucket("bucket").build())
+                               .completionFuture().get(5, TimeUnit.SECONDS);
+
+        String tempName = requestCaptor.getValue().destination().getFileName().toString();
+        assertThat(tempName.getBytes(StandardCharsets.UTF_8).length).isLessThanOrEqualTo(255);
+        String keptName = tempName.substring(0, tempName.indexOf(".s3tmp."));
+        assertThat(keptName).isNotEqualTo(longName);
+        assertThat(longName).startsWith(keptName);
+        assertThat(keptName.codePoints().allMatch(c -> c == longName.codePointAt(0))).isTrue();
+        assertThat(requestCaptor.getValue().destination().getParent()).isEqualTo(directory);
+    }
+
     private Map<String, FileWritingDownload> stubFileWritingDownloads() {
         Map<String, FileWritingDownload> downloads = new ConcurrentHashMap<>();
         when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenAnswer(invocation -> {
@@ -913,7 +935,7 @@ public class DownloadDirectoryHelperTest {
             return;
         }
         try (java.util.stream.Stream<Path> paths = Files.walk(directory)) {
-            assertThat(paths.filter(p -> p.getFileName().toString().startsWith(".s3tm-"))).isEmpty();
+            assertThat(paths.filter(p -> p.getFileName().toString().contains(".s3tmp."))).isEmpty();
         }
     }
 
@@ -927,7 +949,8 @@ public class DownloadDirectoryHelperTest {
 
     private static void assertTempFileFor(Path actual, Path destination) {
         assertThat(actual.getParent()).isEqualTo(destination.getParent());
-        assertThat(actual.getFileName().toString()).startsWith(".s3tm-").endsWith(".part");
+        assertThat(actual.getFileName().toString()).matches(Pattern.quote(destination.getFileName().toString())
+                                                            + "\\.s3tmp\\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
     }
 
     /**

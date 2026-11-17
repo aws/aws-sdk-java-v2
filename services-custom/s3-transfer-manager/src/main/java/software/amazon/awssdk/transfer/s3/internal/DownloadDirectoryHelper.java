@@ -59,8 +59,8 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class DownloadDirectoryHelper {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
-    private static final String TEMP_FILE_PREFIX = ".s3tm-";
-    private static final String TEMP_FILE_SUFFIX = ".part";
+    private static final String TEMP_FILE_INFIX = ".s3tmp.";
+    private static final int MAX_FILE_NAME_BYTES = 255;
     private final TransferManagerConfiguration transferConfiguration;
     private final Function<DownloadFileRequest, FileDownload> downloadFileFunction;
     private final ListObjectsHelper listObjectsHelper;
@@ -242,8 +242,28 @@ public class DownloadDirectoryHelper {
         }
     }
 
+    /**
+     * Returns {@code <name>.s3tmp.<uuid>} next to the destination, shortening the name so the whole file name fits in 255 UTF-8
+     * bytes, the file name limit on common file systems.
+     */
     private static Path tempFileNextTo(Path destination) {
-        return destination.resolveSibling(TEMP_FILE_PREFIX + UUID.randomUUID() + TEMP_FILE_SUFFIX);
+        String suffix = TEMP_FILE_INFIX + UUID.randomUUID();
+        String name = truncateToUtf8Bytes(destination.getFileName().toString(), MAX_FILE_NAME_BYTES - suffix.length());
+        return destination.resolveSibling(name + suffix);
+    }
+
+    private static String truncateToUtf8Bytes(String value, int maxBytes) {
+        int bytes = 0;
+        for (int i = 0; i < value.length(); ) {
+            int codePoint = value.codePointAt(i);
+            int length = codePoint < 0x80 ? 1 : codePoint < 0x800 ? 2 : codePoint < 0x10000 ? 3 : 4;
+            if (bytes + length > maxBytes) {
+                return value.substring(0, i);
+            }
+            bytes += length;
+            i += Character.charCount(codePoint);
+        }
+        return value;
     }
 
     /**
