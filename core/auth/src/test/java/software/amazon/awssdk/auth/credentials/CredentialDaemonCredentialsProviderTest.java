@@ -39,7 +39,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 class CredentialDaemonCredentialsProviderTest {
-    private static final String DOC = "<CREDENTIAL_DAEMON_DOC>";
+    private static final String DOC = "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-credential-daemon.html";
     private static final String START_HINT = "Start the credential daemon and sign in; see " + DOC + ".";
     private static final String HEAD = "{\"jsonrpc\":\"2.0\",\"id\":1,";
 

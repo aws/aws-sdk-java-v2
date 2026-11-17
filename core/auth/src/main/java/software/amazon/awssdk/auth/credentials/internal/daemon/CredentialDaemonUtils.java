@@ -33,10 +33,8 @@ import software.amazon.awssdk.profiles.internal.ProfileSection;
  */
 @SdkInternalApi
 public final class CredentialDaemonUtils {
-    /**
-     * Where the documentation of the credential daemon will be. Kept as a placeholder until the documentation is published.
-     */
-    static final String CREDENTIAL_DAEMON_DOC = "<CREDENTIAL_DAEMON_DOC>";
+
+    static final String CREDENTIAL_DAEMON_DOC = "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-credential-daemon.html";
 
     static final String START_HINT = "Start the credential daemon and sign in; see " + CREDENTIAL_DAEMON_DOC + ".";
 

@@ -49,6 +49,7 @@ class CredentialDaemonClientLocateTest {
         new CredentialDaemonPlatform("Mac OS X", "OpenJDK 64-Bit Server VM", "Amazon.com Inc.", "java.net.UnixDomainSocketAddress");
     private static final String INSTALL_HINT = "Install the credential daemon or link its socket to "
                                                + "$HOME/.aws/credential-daemon.sock, or set AWS_CREDENTIAL_DAEMON_SOCKET";
+    private static final String DOC = "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-credential-daemon.html";
 
     private final Map<String, String> env = new HashMap<>();
     private final List<AutoCloseable> closeables = new ArrayList<>();
@@ -90,7 +91,7 @@ class CredentialDaemonClientLocateTest {
             assertThatThrownBy(() -> client(platform).locate())
                 .isInstanceOfSatisfying(CredentialDaemonException.class, e -> {
                     assertThat(e.errorCode()).isEqualTo(CredentialDaemonException.NOT_RUNNING);
-                    assertThat(e.getMessage()).contains(reason).contains(INSTALL_HINT).contains("<CREDENTIAL_DAEMON_DOC>");
+                    assertThat(e.getMessage()).contains(reason).contains(INSTALL_HINT).contains(DOC);
                 });
         }
     }

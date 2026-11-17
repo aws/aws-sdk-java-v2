@@ -29,6 +29,7 @@ import software.amazon.awssdk.auth.credentials.CredentialDaemonException;
 
 class CredentialDaemonPlatformTest {
     private static final String ADDRESS_CLASS = "java.net.UnixDomainSocketAddress";
+    private static final String DOC = "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-credential-daemon.html";
 
     static Stream<Arguments> unsupportedPlatforms() {
         return Stream.of(
@@ -52,7 +53,7 @@ class CredentialDaemonPlatformTest {
                 assertThat(e.errorCode()).isEqualTo(CredentialDaemonException.UNSUPPORTED_PLATFORM);
                 assertThat(e.getMessage()).contains("Linux or macOS and Java 16 or later")
                                           .contains(reason)
-                                          .contains("<CREDENTIAL_DAEMON_DOC>");
+                                          .contains(DOC);
             });
         assertThatThrownBy(() -> platform.address(Paths.get("/tmp/x.sock")))
             .isInstanceOf(CredentialDaemonException.class);
