@@ -85,6 +85,7 @@ public enum BusinessMetricFeatureId {
     CREDENTIALS_IMDS("0"),
     CREDENTIALS_PROFILE_LOGIN("AC"),
     CREDENTIALS_LOGIN("AD"),
+    CREDENTIAL_DAEMON("Aq"),
     UNKNOWN("Unknown");
 
     private static final Map<String, BusinessMetricFeatureId> VALUE_MAP =

@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
@@ -137,6 +138,14 @@ public final class ProfileFileReader {
         }
 
         Pair<String, String> property = propertyDefinition.get();
+
+        if (state.fileType == ProfileFile.Type.CREDENTIALS && ProfileProperty.DAEMON_CREDENTIAL.equals(property.left())) {
+            int lineNumber = state.currentLineNumber;
+            log.warn(() -> "Ignoring property '" + property.left() + "' on line " + lineNumber + " of the shared "
+                           + "credentials file; it is read only from the shared config file.");
+            state.ignoringCurrentProperty = true;
+            return;
+        }
 
         if (state.profiles.get(state.sectionReadInProgress).get(state.currentProfileBeingRead).containsKey(property.left())) {
             log.warn(() -> "Warning: Duplicate property '" + property.left() + "' detected on line " + state.currentLineNumber +

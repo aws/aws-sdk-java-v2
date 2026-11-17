@@ -106,6 +106,15 @@ public final class SsoOidcProfileTokenProviderFactory implements ChildProfileTok
         private final SsoOidcTokenProvider sdkTokenProvider;
 
         private SsoOidcProfileTokenProvider(ProfileFile profileFile, Profile profile) {
+            if (profile.property(ProfileProperty.DAEMON_CREDENTIAL).isPresent()
+                && profile.property(ProfileProperty.SSO_ACCOUNT_ID).isPresent()
+                && profile.property(ProfileProperty.SSO_ROLE_NAME).isPresent()) {
+                throw new IllegalArgumentException(
+                    "Profile " + profile.name() + " does not have a usable sso_session: its SSO session is held in the "
+                    + "credential daemon (daemon_credential). Services that use bearer tokens need an SSO session stored in "
+                    + "files; configure a profile with sso_session and sign in with a file-based SSO login.");
+            }
+
             String profileSsoSectionName = profile.property(
                 ProfileSection.SSO_SESSION
                     .getPropertyKeyName()).orElseThrow(() -> new IllegalStateException(

@@ -214,6 +214,11 @@ public final class ProfileProperty {
      */
     public static final String LOGIN_SESSION = "login_session";
 
+    /**
+     * The name of a credential held by a local credential daemon. Read only from the shared config file.
+     */
+    public static final String DAEMON_CREDENTIAL = "daemon_credential";
+
     private ProfileProperty() {
     }
 }

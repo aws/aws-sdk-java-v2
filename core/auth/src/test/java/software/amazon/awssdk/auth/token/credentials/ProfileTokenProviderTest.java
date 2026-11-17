@@ -75,6 +75,27 @@ class ProfileTokenProviderTest {
     }
 
     @Test
+    void resolveToken_whenDaemonHoldsSsoSession_raisesBearerTokenError() {
+        ProfileFile file = profileFile("[profile dev]\n"
+                                       + "daemon_credential = dev\n"
+                                       + "sso_session = s\n"
+                                       + "sso_account_id = 123456789012\n"
+                                       + "sso_role_name = Admin\n"
+                                       + "[sso-session s]\n"
+                                       + "sso_region = us-east-1\n"
+                                       + "sso_start_url = https://example.awsapps.com/start\n");
+
+        ProfileTokenProvider provider =
+            ProfileTokenProvider.builder().profileFile(() -> file).profileName("dev").build();
+
+        assertThatThrownBy(provider::resolveToken)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Profile dev does not have a usable sso_session: its SSO session is held in the credential daemon "
+                        + "(daemon_credential). Services that use bearer tokens need an SSO session stored in files; configure "
+                        + "a profile with sso_session and sign in with a file-based SSO login.");
+    }
+
+    @Test
     void resolveToken_profileFileSupplier_suppliesObjectPerCall() {
         ProfileFile file1 = profileFile("[profile sso]\n"
                                        + "aws_access_key_id = defaultAccessKey\n"
