@@ -5,3 +5,4 @@ software.amazon.awssdk.codegen.smithy.traits.IgnoreDataTypeConversionFailuresTra
 software.amazon.awssdk.codegen.smithy.traits.SyntheticTrait$Provider
 software.amazon.awssdk.codegen.smithy.traits.PaginatorOverrideTrait$Provider
 software.amazon.awssdk.codegen.smithy.traits.WaiterOverridesTrait$Provider
+software.amazon.awssdk.codegen.smithy.traits.WireNameTrait$Provider

@@ -538,6 +538,58 @@ class AddSmithyShapesMemberModelTest {
     }
 
     @Test
+    void jsonName_isIgnored_forAwsJson() {
+        Model model = modelOf(
+            "structure Parent {\n"
+            + "    @jsonName(\"SPARK_CONNECT\")\n"
+            + "    SparkConnect: String\n"
+            + "}\n");
+        MemberModel mm = probe(model, "json").translate(
+            struct(model, "Parent").getMember("SparkConnect").get(), struct(model, "Parent"), null);
+
+        assertThat(mm.getHttp().getMarshallLocationName()).isEqualTo("SparkConnect");
+        assertThat(mm.getHttp().getUnmarshallLocationName()).isEqualTo("SparkConnect");
+    }
+
+    @Test
+    void wireName_namesMember_forAwsJson() {
+        assertWireNameNamesMember("json");
+    }
+
+    @Test
+    void wireName_namesMember_forRpcV2Cbor() {
+        assertWireNameNamesMember("smithy-rpc-v2-cbor");
+    }
+
+    @Test
+    void wireName_isIgnored_forRestJson() {
+        Model model = modelOf(
+            "structure Parent {\n"
+            + "    @software.amazon.awssdk.codegen#wireName(\"NULL\")\n"
+            + "    NUL: Boolean\n"
+            + "}\n");
+        MemberModel mm = probe(model, "rest-json").translate(
+            struct(model, "Parent").getMember("NUL").get(), struct(model, "Parent"), null);
+
+        assertThat(mm.getHttp().getMarshallLocationName()).isEqualTo("NUL");
+        assertThat(mm.getHttp().getUnmarshallLocationName()).isEqualTo("NUL");
+    }
+
+    private static void assertWireNameNamesMember(String protocol) {
+        Model model = modelOf(
+            "structure Parent {\n"
+            + "    @jsonName(\"Other\")\n"
+            + "    @software.amazon.awssdk.codegen#wireName(\"NULL\")\n"
+            + "    NUL: Boolean\n"
+            + "}\n");
+        MemberModel mm = probe(model, protocol).translate(
+            struct(model, "Parent").getMember("NUL").get(), struct(model, "Parent"), null);
+
+        assertThat(mm.getHttp().getMarshallLocationName()).isEqualTo("NULL");
+        assertThat(mm.getHttp().getUnmarshallLocationName()).isEqualTo("NULL");
+    }
+
+    @Test
     void xmlName_overridesLocationName_forRestXml() {
         Model model = modelOf(
             "structure Parent {\n"
