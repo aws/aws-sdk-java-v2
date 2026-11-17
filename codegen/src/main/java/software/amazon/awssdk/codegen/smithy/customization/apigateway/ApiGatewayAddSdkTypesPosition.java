@@ -30,7 +30,8 @@ import software.amazon.smithy.model.shapes.StructureShape;
 import software.amazon.smithy.model.transform.ModelTransformer;
 
 /**
- * Adds {@code SdkTypes.position} as the first member, so {@code GetSdkTypesResponse.position()} stays.
+ * This customization keeps {@code GetSdkTypesResponse.position()}, because the Smithy model has no
+ * {@code SdkTypes.position}.
  */
 @SdkInternalApi
 final class ApiGatewayAddSdkTypesPosition implements SmithyServiceCustomization {

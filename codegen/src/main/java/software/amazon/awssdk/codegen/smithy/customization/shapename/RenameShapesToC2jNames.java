@@ -27,8 +27,8 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.transform.ModelTransformer;
 
 /**
- * Renames shapes back to the names their classes have. A shape whose name an operation or resource already has moves
- * to a {@code .sdk} namespace, since class names ignore the namespace.
+ * This customization keeps the class names of shapes that the Smithy models name differently from C2J. A shape whose
+ * name an operation or resource already has moves to a {@code .sdk} namespace, since class names ignore the namespace.
  */
 @SdkInternalApi
 final class RenameShapesToC2jNames implements SmithyServiceCustomization {

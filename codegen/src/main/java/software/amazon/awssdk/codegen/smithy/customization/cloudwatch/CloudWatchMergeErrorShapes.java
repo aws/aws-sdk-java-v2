@@ -34,12 +34,9 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.transform.ModelTransformer;
 
 /**
- * Each pair of error shapes below becomes one exception class, registered under one shape's error code. Points the
- * error references at that shape and removes the other:
- * <ul>
- *     <li>{@code LimitExceededException} becomes {@code LimitExceededFault}.</li>
- *     <li>{@code ResourceNotFound} becomes {@code ResourceNotFoundException}.</li>
- * </ul>
+ * This customization keeps CloudWatch's exceptions registered under the same error codes as today's client. Two pairs
+ * of error shapes map to one exception class each, so it keeps only the shape C2J uses: {@code LimitExceededFault}
+ * and {@code ResourceNotFoundException}.
  */
 @SdkInternalApi
 final class CloudWatchMergeErrorShapes implements SmithyServiceCustomization {

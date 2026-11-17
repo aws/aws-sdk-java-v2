@@ -28,8 +28,8 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.transform.ModelTransformer;
 
 /**
- * Gives {@code PermissionInput.action} its own copy of the enum it shares with {@code PermissionOutput.action}, so it
- * keeps its own enum class. Copies the current target, so it works before or after {@link RenameShapesToC2jNames}.
+ * This customization keeps QApps' {@code PermissionInputActionEnum}. Smithy has one enum for
+ * {@code PermissionInput.action} and {@code PermissionOutput.action}, where C2J has one each.
  */
 @SdkInternalApi
 final class QAppsSplitActionEnum implements SmithyServiceCustomization {
