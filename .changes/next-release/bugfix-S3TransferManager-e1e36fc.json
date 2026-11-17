@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Fixed an issue in `downloadDirectory` where objects whose keys resolve to the same local file, such as `a/b` and `a//b`, or keys that differ only in case on a case-insensitive file system, could leave a file that mixed the bytes of several objects. Each object is now written to a temporary file in the destination directory and moved into place once it is complete, and a failed download no longer deletes or truncates an existing file at its destination."
+}

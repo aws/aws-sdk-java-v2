@@ -28,19 +28,24 @@ import static software.amazon.awssdk.transfer.s3.util.S3ApiCallMockUtils.stubSuc
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
@@ -481,7 +486,7 @@ public class DownloadDirectoryHelperTest {
         assertThat(argumentCaptor.getAllValues()).allSatisfy(d -> {
             assertThat(d.getObjectRequest()).isEqualTo(newGetObjectRequest);
             assertThat(d.transferListeners()).isEqualTo(newTransferListener);
-            assertThat(d.destination()).isEqualTo(newDestination);
+            assertTempFileFor(d.destination(), newDestination);
         });
     }
 
@@ -579,16 +584,13 @@ public class DownloadDirectoryHelperTest {
 
         assertThat(actualRequests.size()).isEqualTo(keys.length);
 
-        List<String> destinations =
-            actualRequests.stream().map(u -> u.destination().toString())
-                          .collect(Collectors.toList());
 
         String jimfsSeparator = jimfs.getSeparator();
 
         List<String> expectedPaths =
             Arrays.asList("image.jpg", "title.jpg", "ghi/xyz.txt").stream()
                   .map(k -> DIRECTORY_NAME + jimfsSeparator + k.replace("/",jimfsSeparator)).collect(Collectors.toList());
-        assertThat(destinations).isEqualTo(expectedPaths);
+        assertDownloadedThroughTempFiles(actualRequests, expectedPaths);
     }
 
     @ParameterizedTest
@@ -615,16 +617,13 @@ public class DownloadDirectoryHelperTest {
 
         assertThat(actualRequests.size()).isEqualTo(keys.length);
 
-        List<String> destinations =
-            actualRequests.stream().map(u -> u.destination().toString())
-                          .collect(Collectors.toList());
 
         String jimfsSeparator = jimfs.getSeparator();
 
         List<String> expectedPaths =
             Arrays.asList("def/image.jpg", "def/title.jpg", "abcd").stream()
                   .map(k -> DIRECTORY_NAME + jimfsSeparator + k.replace("/",jimfsSeparator)).collect(Collectors.toList());
-        assertThat(destinations).isEqualTo(expectedPaths);
+        assertDownloadedThroughTempFiles(actualRequests, expectedPaths);
     }
 
     @ParameterizedTest
@@ -730,12 +729,9 @@ public class DownloadDirectoryHelperTest {
     private static void verifyDestinationPathForSingleDownload(FileSystem jimfs, String delimiter, String[] keys,
                                                                List<DownloadFileRequest> actualRequests) {
         String jimfsSeparator = jimfs.getSeparator();
-        List<String> destinations =
-            actualRequests.stream().map(u -> u.destination().toString())
-                          .collect(Collectors.toList());
         List<String> expectedPaths =
             Arrays.stream(keys).map(k -> DIRECTORY_NAME + jimfsSeparator + k.replace(delimiter, jimfsSeparator)).collect(Collectors.toList());
-        assertThat(destinations).isEqualTo(expectedPaths);
+        assertDownloadedThroughTempFiles(actualRequests, expectedPaths);
     }
 
     private FileDownload newSuccessfulDownload() {
@@ -790,5 +786,174 @@ public class DownloadDirectoryHelperTest {
                                        () -> DownloadFileRequest.builder().destination(Paths.get(
                                            ".")).getObjectRequest(GetObjectRequest.builder().build()).build(),
                                        null);
+    }
+
+    @Test
+    void downloadDirectory_keysResolvingToSameFile_shouldLeaveOneCompleteObject() throws Exception {
+        String longBody = "C2:x//y.txt";
+        String shortBody = "C2:x/y.txt";
+        stubSuccessfulListObjects(listObjectsHelper, "x//y.txt", "x/y.txt");
+        Map<String, FileWritingDownload> downloads = stubFileWritingDownloads();
+
+        DirectoryDownload directoryDownload = downloadDirectoryHelper.downloadDirectory(
+            DownloadDirectoryRequest.builder().destination(directory).bucket("bucket").build());
+
+        awaitStarted(downloads, "x//y.txt", "x/y.txt");
+        downloads.get("x//y.txt").succeed(longBody);
+        downloads.get("x/y.txt").succeed(shortBody);
+
+        CompletedDirectoryDownload completed = directoryDownload.completionFuture().get(5, TimeUnit.SECONDS);
+        assertThat(completed.failedTransfers()).isEmpty();
+        assertThat(readString(directory.resolve("x/y.txt"))).isEqualTo(shortBody);
+        assertNoTempFiles(directory);
+    }
+
+    @Test
+    void downloadDirectory_keyFailsAfterCollidingKeySucceeded_shouldKeepSucceededObject() throws Exception {
+        String body = "C2:x//y.txt";
+        stubSuccessfulListObjects(listObjectsHelper, "x//y.txt", "x/y.txt");
+        Map<String, FileWritingDownload> downloads = stubFileWritingDownloads();
+
+        DirectoryDownload directoryDownload = downloadDirectoryHelper.downloadDirectory(
+            DownloadDirectoryRequest.builder().destination(directory).bucket("bucket").build());
+
+        awaitStarted(downloads, "x//y.txt", "x/y.txt");
+        downloads.get("x//y.txt").succeed(body);
+        downloads.get("x/y.txt").fail(SdkClientException.create("connection reset"));
+
+        CompletedDirectoryDownload completed = directoryDownload.completionFuture().get(5, TimeUnit.SECONDS);
+        assertThat(completed.failedTransfers()).hasSize(1);
+        FailedFileDownload failed = completed.failedTransfers().iterator().next();
+        assertThat(failed.request().getObjectRequest().key()).isEqualTo("x/y.txt");
+        assertThat(failed.request().destination()).isEqualTo(directory.resolve("x/y.txt"));
+        assertThat(failed.exception()).isInstanceOf(SdkClientException.class).hasMessageContaining("connection reset");
+        assertThat(readString(directory.resolve("x/y.txt"))).isEqualTo(body);
+        assertNoTempFiles(directory);
+    }
+
+    @Test
+    void downloadDirectory_downloadFails_shouldKeepExistingFile() throws Exception {
+        Files.createDirectories(directory);
+        Files.write(directory.resolve("a.txt"), "existing".getBytes(StandardCharsets.UTF_8));
+        stubSuccessfulListObjects(listObjectsHelper, "a.txt");
+        Map<String, FileWritingDownload> downloads = stubFileWritingDownloads();
+
+        DirectoryDownload directoryDownload = downloadDirectoryHelper.downloadDirectory(
+            DownloadDirectoryRequest.builder().destination(directory).bucket("bucket").build());
+
+        awaitStarted(downloads, "a.txt");
+        downloads.get("a.txt").fail(SdkClientException.create("failed"));
+
+        CompletedDirectoryDownload completed = directoryDownload.completionFuture().get(5, TimeUnit.SECONDS);
+        assertThat(completed.failedTransfers()).hasSize(1);
+        assertThat(readString(directory.resolve("a.txt"))).isEqualTo("existing");
+        assertNoTempFiles(directory);
+    }
+
+    @Test
+    void downloadDirectory_downloadSucceeds_shouldReplaceExistingFile() throws Exception {
+        Files.createDirectories(directory);
+        Files.write(directory.resolve("a.txt"), "a longer existing body".getBytes(StandardCharsets.UTF_8));
+        stubSuccessfulListObjects(listObjectsHelper, "a.txt");
+        Map<String, FileWritingDownload> downloads = stubFileWritingDownloads();
+
+        DirectoryDownload directoryDownload = downloadDirectoryHelper.downloadDirectory(
+            DownloadDirectoryRequest.builder().destination(directory).bucket("bucket").build());
+
+        awaitStarted(downloads, "a.txt");
+        downloads.get("a.txt").succeed("new");
+
+        assertThat(directoryDownload.completionFuture().get(5, TimeUnit.SECONDS).failedTransfers()).isEmpty();
+        assertThat(readString(directory.resolve("a.txt"))).isEqualTo("new");
+        assertNoTempFiles(directory);
+    }
+
+    @Test
+    void downloadDirectory_cancelledDuringDownload_shouldRemoveTempFileAndNotCreateDestination() throws Exception {
+        stubSuccessfulListObjects(listObjectsHelper, "a.txt");
+        Map<String, FileWritingDownload> downloads = stubFileWritingDownloads();
+
+        DirectoryDownload directoryDownload = downloadDirectoryHelper.downloadDirectory(
+            DownloadDirectoryRequest.builder().destination(directory).bucket("bucket").build());
+
+        awaitStarted(downloads, "a.txt");
+        directoryDownload.completionFuture().cancel(true);
+
+        assertThatThrownBy(() -> downloads.get("a.txt").future.get(1, TimeUnit.SECONDS))
+            .isInstanceOf(CancellationException.class);
+        assertThat(Files.exists(directory.resolve("a.txt"))).isFalse();
+        assertNoTempFiles(directory);
+    }
+
+    private Map<String, FileWritingDownload> stubFileWritingDownloads() {
+        Map<String, FileWritingDownload> downloads = new ConcurrentHashMap<>();
+        when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenAnswer(invocation -> {
+            DownloadFileRequest request = invocation.getArgument(0);
+            FileWritingDownload download = new FileWritingDownload(request);
+            downloads.put(request.getObjectRequest().key(), download);
+            return newDownload(download.future);
+        });
+        return downloads;
+    }
+
+    private static void awaitStarted(Map<String, FileWritingDownload> downloads, String... keys) {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (!downloads.keySet().containsAll(Arrays.asList(keys))) {
+            assertThat(System.nanoTime()).as("downloads started: %s", downloads.keySet()).isLessThan(deadline);
+            LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(5));
+        }
+    }
+
+    private static String readString(Path path) throws IOException {
+        return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+    }
+
+    private static void assertNoTempFiles(Path directory) throws IOException {
+        if (!Files.exists(directory)) {
+            return;
+        }
+        try (java.util.stream.Stream<Path> paths = Files.walk(directory)) {
+            assertThat(paths.filter(p -> p.getFileName().toString().startsWith(".s3tm-"))).isEmpty();
+        }
+    }
+
+    private static void assertDownloadedThroughTempFiles(List<DownloadFileRequest> requests, List<String> expectedPaths) {
+        assertThat(requests).hasSameSizeAs(expectedPaths);
+        for (int i = 0; i < requests.size(); i++) {
+            Path actual = requests.get(i).destination();
+            assertTempFileFor(actual, actual.getFileSystem().getPath(expectedPaths.get(i)));
+        }
+    }
+
+    private static void assertTempFileFor(Path actual, Path destination) {
+        assertThat(actual.getParent()).isEqualTo(destination.getParent());
+        assertThat(actual.getFileName().toString()).startsWith(".s3tm-").endsWith(".part");
+    }
+
+    /**
+     * Writes to the requested destination the way the SDK's file writers do: the file is created and truncated when the
+     * download starts, the body is written from offset 0 without truncating when it arrives, and the file is deleted when the
+     * download fails.
+     */
+    private static final class FileWritingDownload {
+        private final DownloadFileRequest request;
+        private final CompletableFuture<CompletedFileDownload> future = new CompletableFuture<>();
+
+        FileWritingDownload(DownloadFileRequest request) throws IOException {
+            this.request = request;
+            Files.write(request.destination(), new byte[0]);
+        }
+
+        void succeed(String body) throws IOException {
+            try (FileChannel channel = FileChannel.open(request.destination(), StandardOpenOption.WRITE)) {
+                channel.write(ByteBuffer.wrap(body.getBytes(StandardCharsets.UTF_8)), 0);
+            }
+            future.complete(CompletedFileDownload.builder().response(GetObjectResponse.builder().build()).build());
+        }
+
+        void fail(SdkClientException exception) throws IOException {
+            Files.deleteIfExists(request.destination());
+            future.completeExceptionally(exception);
+        }
     }
 }

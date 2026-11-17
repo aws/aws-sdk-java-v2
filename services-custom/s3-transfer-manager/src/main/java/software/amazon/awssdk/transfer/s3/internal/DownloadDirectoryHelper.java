@@ -19,10 +19,12 @@ import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationO
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_PREFIX;
 
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.Queue;
 import java.util.UUID;
@@ -57,6 +59,8 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class DownloadDirectoryHelper {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
+    private static final String TEMP_FILE_PREFIX = ".s3tm-";
+    private static final String TEMP_FILE_SUFFIX = ".part";
     private final TransferManagerConfiguration transferConfiguration;
     private final Function<DownloadFileRequest, FileDownload> downloadFileFunction;
     private final ListObjectsHelper listObjectsHelper;
@@ -183,30 +187,100 @@ public class DownloadDirectoryHelper {
         }
 
         DownloadFileRequest downloadFileRequest = downloadFileRequest(downloadDirectoryRequest, s3Object, destinationPath);
+        // Several keys can resolve to the same local file, for example "a/b" and "a//b", or "A" and "a" on a case-insensitive
+        // file system. Each object is written to its own temporary file and moved over the destination only once it is
+        // complete, so concurrent downloads to one destination never interleave their bytes in it, and a failed download never
+        // truncates or deletes a file that another key already wrote there.
+        Path destination = downloadFileRequest.destination();
+        Path tempFile = tempFileNextTo(destination);
+        DownloadFileRequest tempFileRequest = downloadFileRequest.copy(b -> b.destination(tempFile));
 
         try {
             log.debug(() -> LogSanitizer.escapeControlCharacters("Sending download request " + downloadFileRequest));
             createParentDirectoriesIfNeeded(destinationPath);
 
             CompletableFuture<CompletedFileDownload> executionFuture =
-                downloadFileFunction.apply(downloadFileRequest).completionFuture();
-            CompletableFuture<CompletedFileDownload> future = executionFuture.whenComplete((r, t) -> {
-                if (t != null) {
-                    failedFileDownloads.add(FailedFileDownload.builder()
-                                                              .exception(t instanceof CompletionException ? t.getCause() : t)
-                                                              .request(downloadFileRequest)
-                                                              .build());
+                downloadFileFunction.apply(tempFileRequest).completionFuture();
+            CompletableFuture<CompletedFileDownload> future = new CompletableFuture<>();
+            // Attached to executionFuture rather than to the returned future, so the temporary file is also removed when the
+            // directory download cancels the returned future.
+            executionFuture.whenComplete((r, t) -> {
+                Throwable failure = t;
+                try {
+                    if (failure == null) {
+                        failure = moveIntoPlace(returnFuture, tempFile, destination);
+                    } else {
+                        deleteQuietly(tempFile);
+                    }
+                } catch (Throwable unexpected) {
+                    deleteQuietly(tempFile);
+                    failure = unexpected;
                 }
+
+                if (failure == null) {
+                    future.complete(r);
+                    return;
+                }
+                failedFileDownloads.add(FailedFileDownload.builder()
+                                                          .exception(failure instanceof CompletionException
+                                                                     ? failure.getCause() : failure)
+                                                          .request(downloadFileRequest)
+                                                          .build());
+                future.completeExceptionally(failure);
             });
             CompletableFutureUtils.forwardExceptionTo(future, executionFuture);
             return future;
 
         } catch (Throwable throwable) {
+            deleteQuietly(tempFile);
             failedFileDownloads.add(FailedFileDownload.builder()
                                                       .exception(throwable)
                                                       .request(downloadFileRequest)
                                                       .build());
             return CompletableFutureUtils.failedFuture(throwable);
+        }
+    }
+
+    private static Path tempFileNextTo(Path destination) {
+        return destination.resolveSibling(TEMP_FILE_PREFIX + UUID.randomUUID() + TEMP_FILE_SUFFIX);
+    }
+
+    /**
+     * Moves a completed download onto its destination, replacing any file already there. Returns the failure to report for the
+     * key, or null when the key succeeded.
+     */
+    private static Throwable moveIntoPlace(CompletableFuture<CompletedDirectoryDownload> returnFuture,
+                                           Path tempFile,
+                                           Path destination) {
+        // Nothing is moved into the destination directory once the directory download has been cancelled or has failed.
+        if (returnFuture.isCompletedExceptionally()) {
+            deleteQuietly(tempFile);
+            return SdkClientException.create("Download was cancelled before the file could be moved to " + destination);
+        }
+
+        if (!Files.exists(tempFile)) {
+            // The download did not create a file, so there is nothing to move. Leave the destination as it is.
+            return null;
+        }
+
+        try {
+            try {
+                Files.move(tempFile, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(tempFile, destination, StandardCopyOption.REPLACE_EXISTING);
+            }
+            return null;
+        } catch (IOException | RuntimeException e) {
+            deleteQuietly(tempFile);
+            return SdkClientException.create("Failed to move the downloaded file to " + destination, e);
+        }
+    }
+
+    private static void deleteQuietly(Path path) {
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException | RuntimeException e) {
+            log.debug(() -> LogSanitizer.escapeControlCharacters("Failed to delete temporary file " + path), e);
         }
     }
 
