@@ -37,6 +37,7 @@ public class AwsCrtClientBuilderBase<BuilderT> {
     private TlsVersion minTlsVersion;
     private Integer numEventLoopThreads;
     private Boolean useTrustStoreSystemProperties;
+    private Integer maxPendingConnectionAcquires;
 
     protected AwsCrtClientBuilderBase() {
     }
@@ -53,6 +54,16 @@ public class AwsCrtClientBuilderBase<BuilderT> {
         Validate.isPositiveOrNull(maxConcurrency, "maxConcurrency");
         standardOptions.put(SdkHttpConfigurationOption.MAX_CONNECTIONS, maxConcurrency);
         return thisBuilder();
+    }
+
+    public BuilderT maxPendingConnectionAcquires(Integer maxPendingConnectionAcquires) {
+        Validate.isPositiveOrNull(maxPendingConnectionAcquires, "maxPendingConnectionAcquires");
+        this.maxPendingConnectionAcquires = maxPendingConnectionAcquires;
+        return thisBuilder();
+    }
+
+    public Integer getMaxPendingConnectionAcquires() {
+        return this.maxPendingConnectionAcquires;
     }
 
     public BuilderT readBufferSizeInBytes(Long readBufferSize) {

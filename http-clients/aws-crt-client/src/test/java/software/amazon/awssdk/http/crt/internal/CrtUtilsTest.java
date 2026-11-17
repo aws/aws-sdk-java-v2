@@ -19,11 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.util.concurrent.CompletionException;
 import javax.net.ssl.SSLHandshakeException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
+import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.http.HttpMetric;
@@ -45,8 +47,7 @@ public class CrtUtilsTest {
         2085, // AWS_ERROR_HTTP_MAX_CONCURRENT_STREAMS_EXCEEDED
         2087, // AWS_ERROR_HTTP_STREAM_MANAGER_CONNECTION_ACQUIRE_FAILURE
         2092, // AWS_ERROR_HTTP_RESPONSE_FIRST_BYTE_TIMEOUT
-        2093, // AWS_ERROR_HTTP_CONNECTION_MANAGER_ACQUISITION_TIMEOUT
-        2094  // AWS_ERROR_HTTP_CONNECTION_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED
+        2093  // AWS_ERROR_HTTP_CONNECTION_MANAGER_ACQUISITION_TIMEOUT
     })
     public void wrapWithIoExceptionIfRetryable_retryableCode_wrapsInIOException(int errorCode) {
         HttpException httpException = new HttpException(errorCode);
@@ -69,6 +70,7 @@ public class CrtUtilsTest {
         2078, // AWS_ERROR_HTTP_RST_STREAM_SENT - symmetric to 2077
         2079, // AWS_ERROR_HTTP_STREAM_NOT_ACTIVATED - API misuse on manual write
         2080, // AWS_ERROR_HTTP_STREAM_HAS_COMPLETED - API misuse or secondary signal during teardown
+        2094, // AWS_ERROR_HTTP_CONNECTION_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED - client-side overload; matches Netty
         2095  // AWS_ERROR_HTTP_STREAM_CANCELLED - explicit cancel by SDK abort path; not server-induced
     })
     public void wrapWithIoExceptionIfRetryable_nonRetryableCode_returnsHttpExceptionUnchanged(int errorCode) {
@@ -128,5 +130,24 @@ public class CrtUtilsTest {
         assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).isEmpty();
         assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY)).isEmpty();
         assertThat(metrics.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES)).isEmpty();
+    }
+
+    @Test
+    public void wrapCrtException_streamManagerMaxPendingAcquisitionsExceeded_returnsCrtRuntimeExceptionUnchanged() {
+        CrtRuntimeException crtException =
+            new CrtRuntimeException(CrtUtils.CRT_STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED);
+
+        Throwable result = CrtUtils.wrapCrtException(new CompletionException(crtException));
+
+        assertThat(result).isSameAs(crtException);
+    }
+
+    @Test
+    public void wrapCrtException_otherCrtRuntimeException_wrapsInIOException() {
+        CrtRuntimeException crtException = new CrtRuntimeException(2087);
+
+        Throwable result = CrtUtils.wrapCrtException(crtException);
+
+        assertThat(result).isInstanceOf(IOException.class).hasCause(crtException);
     }
 }
