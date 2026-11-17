@@ -167,6 +167,11 @@ public class DownloadDirectoryHelper {
         }
     }
 
+    /**
+     * Downloads the object to a temporary file next to its destination and moves it into place once it is complete. Keys such
+     * as "a/b" and "a//b", or "A" and "a" on a case-insensitive file system, resolve to the same file, and writing to it
+     * directly would let their concurrent downloads mix bytes or delete each other's file.
+     */
     private CompletableFuture<CompletedFileDownload> doDownloadSingleFile(
         CompletableFuture<CompletedDirectoryDownload> returnFuture,
         DownloadDirectoryRequest downloadDirectoryRequest,
@@ -187,10 +192,6 @@ public class DownloadDirectoryHelper {
         }
 
         DownloadFileRequest downloadFileRequest = downloadFileRequest(downloadDirectoryRequest, s3Object, destinationPath);
-        // Several keys can resolve to the same local file, for example "a/b" and "a//b", or "A" and "a" on a case-insensitive
-        // file system. Each object is written to its own temporary file and moved over the destination only once it is
-        // complete, so concurrent downloads to one destination never interleave their bytes in it, and a failed download never
-        // truncates or deletes a file that another key already wrote there.
         Path destination = downloadFileRequest.destination();
         Path tempFile = tempFileNextTo(destination);
         DownloadFileRequest tempFileRequest = downloadFileRequest.copy(b -> b.destination(tempFile));
@@ -247,19 +248,17 @@ public class DownloadDirectoryHelper {
 
     /**
      * Moves a completed download onto its destination, replacing any file already there. Returns the failure to report for the
-     * key, or null when the key succeeded.
+     * key, or null when the key succeeded. A download that wrote no file succeeds and leaves the destination as it is.
      */
     private static Throwable moveIntoPlace(CompletableFuture<CompletedDirectoryDownload> returnFuture,
                                            Path tempFile,
                                            Path destination) {
-        // Nothing is moved into the destination directory once the directory download has been cancelled or has failed.
         if (returnFuture.isCompletedExceptionally()) {
             deleteQuietly(tempFile);
             return SdkClientException.create("Download was cancelled before the file could be moved to " + destination);
         }
 
         if (!Files.exists(tempFile)) {
-            // The download did not create a file, so there is nothing to move. Leave the destination as it is.
             return null;
         }
 
