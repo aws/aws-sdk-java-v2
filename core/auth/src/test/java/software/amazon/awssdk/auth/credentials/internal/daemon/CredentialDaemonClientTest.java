@@ -38,16 +38,19 @@ import java.nio.channels.spi.AbstractSelectionKey;
 import java.nio.channels.spi.AbstractSelector;
 import java.nio.channels.spi.SelectorProvider;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.CredentialDaemonException;
 import software.amazon.awssdk.auth.credentials.FakeCredentialDaemon;
+import software.amazon.awssdk.core.exception.AbortedException;
 
 class CredentialDaemonClientTest {
     private static final String SOCKET = "/tmp/never-connects.sock";
@@ -60,6 +63,11 @@ class CredentialDaemonClientTest {
         assumeTrue(FakeCredentialDaemon.isSupported());
         platform = CredentialDaemonPlatform.current();
         environment = k -> "AWS_CREDENTIAL_DAEMON_SOCKET".equals(k) ? Optional.of(SOCKET) : Optional.empty();
+    }
+
+    @AfterEach
+    void clearInterrupt() {
+        Thread.interrupted();
     }
 
     private CredentialDaemonClient client(Duration connectTimeout, Duration callTimeout,
@@ -111,6 +119,41 @@ class CredentialDaemonClientTest {
                 assertThat(e.getMessage()).contains("connection closed before a complete response was received");
                 assertThat(e.getCause()).isInstanceOf(IOException.class).hasMessage("Broken pipe");
             });
+    }
+
+    @Test
+    void fetch_whenInterruptedWhileConnecting_raisesAbortedException() {
+        HangingSocketChannel channel = new HangingSocketChannel();
+        CredentialDaemonClient client = client(Duration.ofSeconds(5), Duration.ofSeconds(5), () -> channel);
+        Thread.currentThread().interrupt();
+
+        long start = System.nanoTime();
+        assertThatThrownBy(() -> client.fetch(new CredentialDaemonRequest("dev", null, null)))
+            .isInstanceOf(AbortedException.class)
+            .isNotInstanceOf(CredentialDaemonException.class)
+            .hasMessageContaining("interrupted")
+            .hasMessageContaining(SOCKET);
+        assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofSeconds(4));
+        assertThat(Thread.currentThread().isInterrupted()).isTrue();
+        assertThat(channel.isOpen()).isFalse();
+    }
+
+    @Test
+    void fetch_whenInterruptedBeforeSendingTheRequest_raisesAbortedException() throws Exception {
+        try (FakeCredentialDaemon daemon = FakeCredentialDaemon.replying(
+                 FakeCredentialDaemon.successReply("ASIADAEMON", Instant.now().plus(Duration.ofMinutes(15))))) {
+            String socket = daemon.socketPath().toString();
+            environment = k -> "AWS_CREDENTIAL_DAEMON_SOCKET".equals(k) ? Optional.of(socket) : Optional.empty();
+            CredentialDaemonClient client = client(Duration.ofSeconds(5), Duration.ofSeconds(5), platform::openChannel);
+            Thread.currentThread().interrupt();
+
+            assertThatThrownBy(() -> client.fetch(new CredentialDaemonRequest("dev", null, null)))
+                .isInstanceOf(AbortedException.class)
+                .isNotInstanceOf(CredentialDaemonException.class)
+                .hasMessageContaining("interrupted")
+                .hasMessageContaining(socket);
+            assertThat(Thread.currentThread().isInterrupted()).isTrue();
+        }
     }
 
     @Test

@@ -73,7 +73,8 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  *
  * <p>
  * Failures are raised as {@link CredentialDaemonException}, whose {@link CredentialDaemonException#errorCode()} identifies
- * the failure.
+ * the failure. If the calling thread is interrupted during the call to the daemon, the provider raises
+ * {@link software.amazon.awssdk.core.exception.AbortedException} instead, and the thread's interrupt status stays set.
  *
  * <p>
  * This class can be created with {@link #builder()}.

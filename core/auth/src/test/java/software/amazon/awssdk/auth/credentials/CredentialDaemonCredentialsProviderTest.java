@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 class CredentialDaemonCredentialsProviderTest {
@@ -316,6 +317,39 @@ class CredentialDaemonCredentialsProviderTest {
                                           .contains(START_HINT);
             });
         assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofSeconds(4));
+    }
+
+    @Test
+    void resolveCredentials_whenInterruptedWhileWaitingForTheReply_raisesAbortedException() throws Exception {
+        daemon.responder(r -> FakeCredentialDaemon.NO_REPLY);
+        CredentialDaemonCredentialsProvider provider =
+            provider(CredentialDaemonCredentialsProvider.builder().credentialName("dev").callTimeout(Duration.ofSeconds(5)));
+        Thread caller = Thread.currentThread();
+        Thread interrupter = new Thread(() -> {
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                return;
+            }
+            caller.interrupt();
+        });
+
+        long start = System.nanoTime();
+        interrupter.start();
+        try {
+            assertThatThrownBy(provider::resolveCredentials)
+                .isInstanceOf(AbortedException.class)
+                .isNotInstanceOf(CredentialDaemonException.class)
+                .hasMessageContaining("interrupted")
+                .hasMessageContaining(daemon.socketPath().toString());
+            assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofSeconds(4));
+            assertThat(Thread.currentThread().isInterrupted()).isTrue();
+            assertThat(daemon.requests()).hasSize(1);
+        } finally {
+            interrupter.interrupt();
+            interrupter.join();
+            Thread.interrupted();
+        }
     }
 
     @Test

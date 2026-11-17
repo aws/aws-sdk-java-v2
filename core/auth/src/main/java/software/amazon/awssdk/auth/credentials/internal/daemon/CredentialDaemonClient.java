@@ -49,6 +49,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.CredentialDaemonCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.CredentialDaemonException;
+import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.utils.IoUtils;
@@ -109,6 +110,8 @@ public final class CredentialDaemonClient {
      * Fetches the credentials named in the request.
      *
      * @throws CredentialDaemonException if the credentials could not be fetched.
+     * @throws AbortedException if the thread is interrupted while connecting, writing the request or reading the response.
+     * The thread's interrupt status stays set.
      */
     public CredentialDaemonResponse fetch(CredentialDaemonRequest request) {
         platform.ensureSupported();
@@ -168,6 +171,9 @@ public final class CredentialDaemonClient {
                 }
                 return readLine(channel);
             } catch (IOException e) {
+                if (Thread.currentThread().isInterrupted()) {
+                    throw interrupted(path, e);
+                }
                 if (callTimedOut.get()) {
                     throw callTimeoutFailure(path);
                 }
@@ -191,6 +197,9 @@ public final class CredentialDaemonClient {
             }
             channel.configureBlocking(true);
         } catch (IOException | InvalidPathException e) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw interrupted(path, e);
+            }
             if (callTimedOut.get()) {
                 throw callTimeoutFailure(path);
             }
@@ -428,6 +437,11 @@ public final class CredentialDaemonClient {
         if (callTimedOut.compareAndSet(false, true)) {
             IoUtils.closeQuietly(channel, null);
         }
+    }
+
+    private static AbortedException interrupted(Path path, Exception e) {
+        return AbortedException.create("The thread was interrupted during the call to the credential daemon at " + path + ".",
+                                       e);
     }
 
     private static CredentialDaemonException connectFailure(Path path, Exception e) {
