@@ -2101,6 +2101,234 @@
             }
         },
         {
+            "documentation": "ResourceARN as ChannelARN test: Invalid ARN: unsupported resource type",
+            "expect": {
+                "error": "Invalid ARN: Unsupported resource type `accesspoint`. Expected: stream, channel, or queue."
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws:kinesis:us-east-1:298091445058:accesspoint/apu0zt8ge6utbndxe"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: Invalid ARN: Not Kinesis",
+            "expect": {
+                "error": "Invalid ARN: The ARN was not for the Kinesis service, found: s3."
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws:s3:us-east-1:298091445058:channel/apu0zt8ge6utbndxe"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: Invalid ARN: partitions mismatch",
+            "expect": {
+                "error": "Partition: aws from ARN doesn't match with partition name: aws-us-gov."
+            },
+            "params": {
+                "Region": "us-gov-west-1",
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws:kinesis:us-west-2:298091445058:channel/apu0zt8ge6utbndxe"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: OperationType not set",
+            "expect": {
+                "error": "Operation Type is not set. Please contact service team for resolution."
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "ResourceARN": "arn:aws:kinesis:us-east-1:298091445058:channel/apu0zt8ge6utbndxe"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: Missing channel id",
+            "expect": {
+                "error": "Invalid ARN: Missing channel id."
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws:kinesis:us-east-1:298091445058:channel"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: Invalid channel id (subdomains not allowed)",
+            "expect": {
+                "error": "Invalid ARN: Invalid channel id."
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws:kinesis:us-east-1:298091445058:channel/apu0zt8.ge6utbndxe"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: Custom Endpoint is specified",
+            "expect": {
+                "endpoint": {
+                    "url": "https://example.com"
+                }
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws:kinesis:us-east-1:298091445058:channel/apu0zt8ge6utbndxe",
+                "Endpoint": "https://example.com"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: endpoint targeting control operation type",
+            "expect": {
+                "endpoint": {
+                    "url": "https://apu0zt8ge6utbndxe.control-kinesis.us-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws:kinesis:us-east-1:298091445058:channel/apu0zt8ge6utbndxe"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: endpoint with fips targeting control operation type",
+            "expect": {
+                "endpoint": {
+                    "url": "https://apu0zt8ge6utbndxe.control-kinesis-fips.us-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseFIPS": true,
+                "UseDualStack": false,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws:kinesis:us-east-1:298091445058:channel/apu0zt8ge6utbndxe"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: endpoint with Dual Stack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://apu0zt8ge6utbndxe.control-kinesis.us-east-1.api.aws"
+                }
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseFIPS": false,
+                "UseDualStack": true,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws:kinesis:us-east-1:298091445058:channel/apu0zt8ge6utbndxe"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: endpoint with Dual Stack and FIPS enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://apu0zt8ge6utbndxe.control-kinesis-fips.us-east-1.api.aws"
+                }
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseFIPS": true,
+                "UseDualStack": true,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws:kinesis:us-east-1:298091445058:channel/apu0zt8ge6utbndxe"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: RegionMismatch: client region should be used for endpoint region",
+            "expect": {
+                "endpoint": {
+                    "url": "https://apu0zt8ge6utbndxe.control-kinesis.us-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws:kinesis:us-west-1:298091445058:channel/apu0zt8ge6utbndxe"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: Account endpoint with FIPS enabled for cn regions",
+            "expect": {
+                "endpoint": {
+                    "url": "https://apu0zt8ge6utbndxe.control-kinesis-fips.cn-northwest-1.amazonaws.com.cn"
+                }
+            },
+            "params": {
+                "Region": "cn-northwest-1",
+                "UseFIPS": true,
+                "UseDualStack": false,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws-cn:kinesis:cn-northwest-1:298091445058:channel/apu0zt8ge6utbndxe"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: Account endpoint with FIPS and DualStack enabled for cn regions",
+            "expect": {
+                "endpoint": {
+                    "url": "https://apu0zt8ge6utbndxe.control-kinesis-fips.cn-northwest-1.api.amazonwebservices.com.cn"
+                }
+            },
+            "params": {
+                "Region": "cn-northwest-1",
+                "UseFIPS": true,
+                "UseDualStack": true,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws-cn:kinesis:cn-northwest-1:298091445058:channel/apu0zt8ge6utbndxe"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: Account endpoint targeting control operation type in ADC regions",
+            "expect": {
+                "endpoint": {
+                    "url": "https://kinesis.us-iso-east-1.c2s.ic.gov"
+                }
+            },
+            "params": {
+                "Region": "us-iso-east-1",
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws-iso:kinesis:us-iso-east-1:298091445058:channel/apu0zt8ge6utbndxe"
+            }
+        },
+        {
+            "documentation": "ResourceARN as ChannelARN test: Account endpoint with fips targeting control operation type in ADC regions",
+            "expect": {
+                "endpoint": {
+                    "url": "https://kinesis-fips.us-iso-east-1.c2s.ic.gov"
+                }
+            },
+            "params": {
+                "Region": "us-iso-east-1",
+                "UseFIPS": true,
+                "UseDualStack": false,
+                "OperationType": "control",
+                "ResourceARN": "arn:aws-iso:kinesis:us-iso-east-1:298091445058:channel/apu0zt8ge6utbndxe"
+            }
+        },
+        {
             "documentation": "StreamId test: OperationType not set with StreamId",
             "expect": {
                 "error": "Operation Type is not set. Please contact service team for resolution."
