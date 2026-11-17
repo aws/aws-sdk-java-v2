@@ -45,6 +45,10 @@ public final class CrtUtils {
      * Corresponds to CRT error: AWS_IO_SOCKET_TIMEOUT
      */
     public static final int CRT_SOCKET_TIMEOUT = 1048;
+    /**
+     * Corresponds to CRT error: AWS_ERROR_HTTP_STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED
+     */
+    public static final int CRT_STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED = 2096;
 
     // HTTP error codes that the native CRT classifier (CRT.awsIsTransientError) does NOT mark as transient
     // but that the SDK considers recoverable. See enum aws_http_errors in aws-c-http/include/aws/http/http.h
@@ -65,8 +69,6 @@ public final class CrtUtils {
         codes.add(2092);
         // AWS_ERROR_HTTP_CONNECTION_MANAGER_ACQUISITION_TIMEOUT
         codes.add(2093);
-        // AWS_ERROR_HTTP_CONNECTION_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED
-        codes.add(2094);
         ADDITIONAL_RETRYABLE_ERROR_CODES = unmodifiableSet(codes);
     }
 
@@ -106,6 +108,13 @@ public final class CrtUtils {
             }
 
             return wrapWithIoExceptionIfRetryable((HttpException) throwable);
+        }
+
+        // The HTTP/2 stream manager reports its over-limit rejection as a CrtRuntimeException. Surface it as is, so it
+        // is not retried, instead of wrapping it in the retryable IOException below.
+        if (throwable instanceof CrtRuntimeException
+            && ((CrtRuntimeException) throwable).errorCode == CRT_STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED) {
+            return throwable;
         }
 
         if (throwable instanceof IllegalStateException || throwable instanceof CrtRuntimeException) {

@@ -106,6 +106,22 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         AwsCrtAsyncHttpClient.Builder maxConcurrency(Integer maxConcurrency);
 
         /**
+         * Configure the maximum number of requests to an endpoint that can wait once {@link #maxConcurrency(Integer)} is in
+         * use: all connections for HTTP/1.1, or all streams for HTTP/2. When the limit is reached, a new request fails
+         * immediately instead of waiting.
+         *
+         * <p>
+         * By default (when this is not set), the number of waiting requests is not limited. This differs from
+         * {@code NettyNioAsyncHttpClient}, whose default is 10,000. To keep the Netty behavior when migrating, set this to
+         * 10,000 explicitly.
+         *
+         * @param maxPendingConnectionAcquires the maximum number of waiting requests per endpoint; must be positive, or
+         *                                     {@code null} to remove the limit (the default)
+         * @return The builder of the method chaining.
+         */
+        AwsCrtAsyncHttpClient.Builder maxPendingConnectionAcquires(Integer maxPendingConnectionAcquires);
+
+        /**
          * Configures the number of bytes that can be buffered in the client for sending and receiving data.
          * <p>
          * For requests, this is the number unsent bytes the client will buffer from the request content publisher until it has to

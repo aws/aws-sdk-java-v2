@@ -166,6 +166,21 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
         AwsCrtHttpClient.Builder maxConcurrency(Integer maxConcurrency);
 
         /**
+         * Configure the maximum number of requests to an endpoint that can wait for a connection once
+         * {@link #maxConcurrency(Integer)} connections are in use. When the limit is reached, a new request fails
+         * immediately instead of waiting.
+         *
+         * <p>
+         * By default (when this is not set), the number of waiting requests is not limited; how long each request may wait is
+         * controlled by {@link #connectionAcquisitionTimeout(Duration)}.
+         *
+         * @param maxPendingConnectionAcquires the maximum number of waiting requests per endpoint; must be positive, or
+         *                                     {@code null} to remove the limit (the default)
+         * @return The builder of the method chaining.
+         */
+        AwsCrtHttpClient.Builder maxPendingConnectionAcquires(Integer maxPendingConnectionAcquires);
+
+        /**
          * Configures the number of unread bytes that can be buffered in the
          * client before we stop reading from the underlying TCP socket and wait for the Subscriber
          * to read more data.
