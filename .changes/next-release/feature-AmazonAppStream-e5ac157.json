@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon AppStream",
-    "contributor": "",
-    "description": "Adds support for In-Session SmartCard Redirection for Windows Multi-Session fleets"
-}

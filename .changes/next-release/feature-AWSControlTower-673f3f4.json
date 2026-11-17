@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Control Tower",
-    "contributor": "",
-    "description": "AWS Control Tower now reports source drift when an enabled baseline no longer matches the landing zone's configuration."
-}
