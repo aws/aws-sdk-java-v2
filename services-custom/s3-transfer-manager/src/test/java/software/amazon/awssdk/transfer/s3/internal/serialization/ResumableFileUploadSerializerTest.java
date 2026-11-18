@@ -199,4 +199,57 @@ class ResumableFileUploadSerializerTest {
                                                            + "\"Bucket\":\"BUCKET\",\"x-amz-sdk-checksum-algorithm\":\"CRC32\","
                                                            + "\"Key\":\"KEY\",\"x-amz-meta-\":{\"foo\":\"bar\"},"
                                                            + "\"x-amz-request-payer\":\"requester\"}}}";
+
+    @Test
+    void serialize_withSseCustomerKey_doesNotPersistKey() {
+        ResumableFileUpload resumable = sseCustomerUpload(SSE_CUSTOMER_KEY);
+
+        String serialized = new String(ResumableFileUploadSerializer.toJson(resumable), StandardCharsets.UTF_8);
+
+        assertThat(serialized).doesNotContain(SSE_CUSTOMER_KEY)
+                              .doesNotContain("\"x-amz-server-side-encryption-customer-key\"")
+                              .contains("\"x-amz-server-side-encryption-customer-algorithm\":\"AES256\"")
+                              .contains("\"x-amz-server-side-encryption-customer-key-MD5\":\"" + SSE_CUSTOMER_KEY_MD5 + "\"");
+
+        ResumableFileUpload deserialized =
+            ResumableFileUploadSerializer.fromJson(serialized.getBytes(StandardCharsets.UTF_8));
+        assertThat(deserialized).isEqualTo(sseCustomerUpload(null));
+    }
+
+    @Test
+    void deserialize_legacyTokenWithSseCustomerKey_restoresKey() {
+        ResumableFileUpload deserialized =
+            ResumableFileUploadSerializer.fromJson(LEGACY_SSE_C_UPLOAD_OBJECT.getBytes(StandardCharsets.UTF_8));
+
+        assertThat(deserialized).isEqualTo(sseCustomerUpload(SSE_CUSTOMER_KEY));
+        assertThat(deserialized.uploadFileRequest().putObjectRequest().sseCustomerKey()).isEqualTo(SSE_CUSTOMER_KEY);
+    }
+
+    private static ResumableFileUpload sseCustomerUpload(String sseCustomerKey) {
+        PutObjectRequest request = PutObjectRequest.builder()
+                                                   .bucket("BUCKET")
+                                                   .key("KEY")
+                                                   .sseCustomerAlgorithm("AES256")
+                                                   .sseCustomerKey(sseCustomerKey)
+                                                   .sseCustomerKeyMD5(SSE_CUSTOMER_KEY_MD5)
+                                                   .build();
+        return ResumableFileUpload.builder()
+                                  .uploadFileRequest(d -> d.source(Paths.get("test/request")).putObjectRequest(request))
+                                  .fileLength(5000L)
+                                  .fileLastModified(parseIso8601Date("2022-03-08T10:15:30Z"))
+                                  .multipartUploadId("id")
+                                  .totalParts(40L)
+                                  .partSizeInBytes(1024L)
+                                  .build();
+    }
+
+    private static final String SSE_CUSTOMER_KEY = "QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl8=";
+    private static final String SSE_CUSTOMER_KEY_MD5 = "bWQ1LW9mLXRoZS1rZXk=";
+
+    private static final String LEGACY_SSE_C_UPLOAD_OBJECT =
+        "{\"fileLength\":5000,\"fileLastModified\":1646734530.000,\"multipartUploadId\":\"id\",\"partSizeInBytes\":1024,"
+        + "\"totalParts\":40,\"uploadFileRequest\":{\"source\":\"test/request\",\"putObjectRequest\":{\"Bucket\":\"BUCKET\","
+        + "\"Key\":\"KEY\",\"x-amz-server-side-encryption-customer-algorithm\":\"AES256\","
+        + "\"x-amz-server-side-encryption-customer-key\":\"" + SSE_CUSTOMER_KEY + "\","
+        + "\"x-amz-server-side-encryption-customer-key-MD5\":\"" + SSE_CUSTOMER_KEY_MD5 + "\"}}}";
 }

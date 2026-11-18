@@ -18,14 +18,17 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
+import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.BORROWED_BUFFER_RESPONSE_LISTENER;
 import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.RESPONSE_FILE_OPTION;
 import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.RESPONSE_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
-import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.canResumeDownload;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.hasUnresumableRange;
+import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.isObjectOrFileModified;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toCrtDownloadFileRequest;
 
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -45,13 +48,18 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.internal.model.CrtFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.CrtFileUpload;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.ResumeTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
+import software.amazon.awssdk.transfer.s3.internal.utils.LogSanitizer;
+import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.model.Download;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
@@ -100,6 +108,14 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         doUpload(putObjectRequest, requestBody, returnFuture);
 
         return new DefaultUpload(returnFuture, progressUpdater.progress());
+    }
+
+    /**
+     * The CRT-based upload reads the file by path.
+     */
+    @Override
+    FileUpload uploadFile(UploadFileRequest uploadFileRequest, Path confineToRoot) {
+        return uploadFile(uploadFileRequest);
     }
 
     @Override
@@ -159,6 +175,40 @@ class CrtS3TransferManager extends GenericS3TransferManager {
     }
 
     /**
+     * Passes the direct buffer pool transformer unwrapped so the CRT client can use borrowed-buffer delivery. Borrowed buffers
+     * bypass the transformer's {@code onStream} publisher, so the usual progress wrapper cannot observe body delivery. This path
+     * receives the response, progress and completion through listeners attached to the request.
+     */
+    @Override
+    <ResultT> Download<ResultT> doDownloadWithDirectBufferPool(DownloadRequest<ResultT> downloadRequest,
+                                                               TransferProgressUpdater progressUpdater) {
+        AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer = downloadRequest.responseTransformer();
+        CompletableFuture<CompletedDownload<ResultT>> returnFuture = new CompletableFuture<>();
+        progressUpdater.registerCompletion(returnFuture);
+
+        try {
+            assertNotUnsupportedArn(downloadRequest.getObjectRequest().bucket(), "download");
+
+            Consumer<GetObjectResponse> responseListener = progressUpdater::downloadResponseReceived;
+            GetObjectRequest getObjectRequest = attachSdkAttribute(
+                downloadRequest.getObjectRequest(),
+                b -> b.putExecutionAttribute(BORROWED_BUFFER_RESPONSE_LISTENER, responseListener));
+            getObjectRequest = attachCrtSdkAttribute(
+                getObjectRequest,
+                b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtStreamProgressListener()));
+            CompletableFuture<ResultT> future = s3AsyncClient.getObject(getObjectRequest, responseTransformer);
+
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+                                                              r -> CompletedDownload.builder().result(r).build());
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
+        }
+
+        return new DefaultDownload<>(returnFuture, progressUpdater.progress());
+    }
+
+    /**
      * Downloads the object by handing the destination file to CRT, which writes the response body to it directly rather than
      * streaming the body back through the SDK.
      */
@@ -185,6 +235,13 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         CompletableFuture<TransferProgress> progressFuture = new CompletableFuture<>();
         CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture = new CompletableFuture<>();
         S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
+        AtomicReference<DownloadFileRequest> requestToSaveOnPauseRef = new AtomicReference<>(originalDownloadRequest);
+        // Created before the HEAD is sent, so it records the destination file before this resume can write to it.
+        CrtFileDownload fileDownload = new CrtFileDownload(returnFuture,
+                                                           new ResumeTransferProgress(progressFuture),
+                                                           observable,
+                                                           requestToSaveOnPauseRef::get,
+                                                           resumableFileDownload);
 
         CompletableFuture<HeadObjectResponse> headFuture =
             s3AsyncClient.headObject(b -> b.bucket(getObjectRequest.bucket()).key(getObjectRequest.key()));
@@ -193,7 +250,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         CompletableFutureUtils.forwardExceptionTo(returnFuture, headFuture);
 
         headFuture.thenAccept(headObjectResponse -> {
-            boolean restartFromBeginning = !canResumeDownload(resumableFileDownload, headObjectResponse)
+            boolean restartFromBeginning = isObjectOrFileModified(resumableFileDownload, headObjectResponse)
                                            || hasCompletedParts(resumableFileDownload)
                                            || hasUnresumableRange(originalDownloadRequest,
                                                                   resumableFileDownload.bytesTransferred(),
@@ -203,6 +260,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
             DownloadFileRequest newDownloadFileRequest = toCrtDownloadFileRequest(resumableFileDownload, headObjectResponse,
                                                                                  originalDownloadRequest,
                                                                                  restartFromBeginning);
+            requestToSaveOnPauseRef.set(requestToSaveOnPause(originalDownloadRequest, newDownloadFileRequest));
 
             // CRT appends to whatever the destination file already holds, so appending is only correct when the download is
             // genuinely being continued. Otherwise the file has to be replaced.
@@ -214,7 +272,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
                                                                            progressUpdater, responseFileOption);
 
             newDownloadFileRequestFuture.complete(crtDownloadRequest);
-            log.debug(() -> "Sending downloadFileRequest " + crtDownloadRequest);
+            log.debug(() -> LogSanitizer.escapeControlCharacters("Sending downloadFileRequest " + crtDownloadRequest));
 
             initiateCrtDownload(crtDownloadRequest, progressUpdater, returnFuture);
             progressFuture.complete(progressUpdater.progress());
@@ -223,25 +281,23 @@ class CrtS3TransferManager extends GenericS3TransferManager {
             return null;
         });
 
-        return new CrtFileDownload(returnFuture,
-                                   new ResumeTransferProgress(progressFuture),
-                                   observable,
-                                   () -> originalDownloadRequest,
-                                   resumableFileDownload);
+        return fileDownload;
     }
 
     /**
      * A download that was paused while fetching individual parts can leave gaps in the destination file, because parts are
      * written at their own offsets rather than in order. The CRT-based client only ever appends to the end of the file, so
-     * such a download cannot be continued and has to start over. This only arises when a {@link ResumableFileDownload}
-     * produced by the Java-based transfer manager is resumed with the CRT-based one.
+     * such a download cannot be continued and has to start over. Completed parts come from the Java-based transfer manager,
+     * either directly or carried over by a CRT pause that has not yet written to the file. The Java-based transfer manager
+     * restarts in the same way when the token no longer has the state needed to continue the parts, for example after the
+     * token was serialized.
      */
     private static boolean hasCompletedParts(ResumableFileDownload resumableFileDownload) {
         if (resumableFileDownload.completedParts().isEmpty()) {
             return false;
         }
-        log.debug(() -> "The paused download had completed individual parts, which the CRT-based S3 client cannot continue "
-                        + "from. The SDK will download the S3 object from the beginning.");
+        log.debug(() -> "The paused download had completed individual parts, so the destination file may have gaps between "
+                        + "them. The SDK will download the S3 object from the beginning.");
         return true;
     }
 

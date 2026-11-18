@@ -748,7 +748,7 @@ public final class StringUtils {
         // mchyzer Performance note: This creates very few new objects (one major goal)
         // let me know if there are performance requests, we can create a harness to measure
 
-        if (isEmpty(text)) {
+        if (isEmpty(text) || searchList == null || replacementList == null) {
             return text;
         }
 
@@ -763,31 +763,29 @@ public final class StringUtils {
                                                + replacementLength);
         }
 
-        // keep track of which still have matches
-        boolean[] noMoreMatchesForReplIndex = new boolean[searchLength];
+        // Cache, for each search string, the index of its next match at or after the current position.
+        // -1 means the search string is skipped (empty or null replacement) or has no more matches.
+        // A search string is only searched again once the current position has moved past its cached
+        // match, which keeps the total work linear in the length of the text.
+        int[] nextMatch = new int[searchLength];
 
         // index on index that the match was found
         int textIndex = -1;
         int replaceIndex = -1;
-        int tempIndex;
 
         // index of replace array that will replace the search string found
-        // NOTE: logic duplicated below START
         for (int i = 0; i < searchLength; i++) {
-            if (noMoreMatchesForReplIndex[i] || isEmpty(searchList[i]) || replacementList[i] == null) {
+            if (isEmpty(searchList[i]) || replacementList[i] == null) {
+                nextMatch[i] = -1;
                 continue;
             }
-            tempIndex = text.indexOf(searchList[i]);
+            nextMatch[i] = text.indexOf(searchList[i]);
 
-            // see if we need to keep searching for this
-            if (tempIndex == -1) {
-                noMoreMatchesForReplIndex[i] = true;
-            } else if (textIndex == -1 || tempIndex < textIndex) {
-                textIndex = tempIndex;
+            if (nextMatch[i] != -1 && (textIndex == -1 || nextMatch[i] < textIndex)) {
+                textIndex = nextMatch[i];
                 replaceIndex = i;
             }
         }
-        // NOTE: logic mostly below END
 
         // no search strings found, we are done
         if (textIndex == -1) {
@@ -816,9 +814,7 @@ public final class StringUtils {
 
         while (textIndex != -1) {
 
-            for (int i = start; i < textIndex; i++) {
-                buf.append(text.charAt(i));
-            }
+            buf.append(text, start, textIndex);
             buf.append(replacementList[replaceIndex]);
 
             start = textIndex + searchList[replaceIndex].length();
@@ -826,29 +822,21 @@ public final class StringUtils {
             textIndex = -1;
             replaceIndex = -1;
             // find the next earliest match
-            // NOTE: logic mostly duplicated above START
             for (int i = 0; i < searchLength; i++) {
-                if (noMoreMatchesForReplIndex[i] || searchList[i] == null ||
-                    searchList[i].isEmpty() || replacementList[i] == null) {
+                if (nextMatch[i] == -1) {
                     continue;
                 }
-                tempIndex = text.indexOf(searchList[i], start);
-
-                // see if we need to keep searching for this
-                if (tempIndex == -1) {
-                    noMoreMatchesForReplIndex[i] = true;
-                } else if (textIndex == -1 || tempIndex < textIndex) {
-                    textIndex = tempIndex;
+                if (nextMatch[i] < start) {
+                    // the cached match was consumed or overlapped by the last replacement
+                    nextMatch[i] = text.indexOf(searchList[i], start);
+                }
+                if (nextMatch[i] != -1 && (textIndex == -1 || nextMatch[i] < textIndex)) {
+                    textIndex = nextMatch[i];
                     replaceIndex = i;
                 }
             }
-            // NOTE: logic duplicated above END
-
         }
-        int textLength = text.length();
-        for (int i = start; i < textLength; i++) {
-            buf.append(text.charAt(i));
-        }
+        buf.append(text, start, text.length());
         return buf.toString();
     }
 

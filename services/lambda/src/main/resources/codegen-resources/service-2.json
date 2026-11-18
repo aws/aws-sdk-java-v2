@@ -92,7 +92,7 @@
         {"shape":"AliasLimitExceededException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Creates an <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">alias</a> for a Lambda function version. Use aliases to provide clients with a function identifier that you can update to invoke a different version.</p> <p>You can also map an alias to split invocation requests between two versions. Use the <code>RoutingConfig</code> parameter to specify a second version and the percentage of invocation requests that it receives.</p>",
+      "documentation":"<p>Creates an <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">alias</a> for a Lambda Event Function version. Use aliases to provide clients with a function identifier that you can update to invoke a different version.</p> <p>You can also map an alias to split invocation requests between two versions. Use the <code>RoutingConfig</code> parameter to specify a second version and the percentage of invocation requests that it receives.</p>",
       "idempotent":true
     },
     "CreateCapacityProvider":{
@@ -111,7 +111,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"CapacityProviderLimitExceededException"}
       ],
-      "documentation":"<p>Creates a capacity provider that manages compute resources for Lambda functions</p>",
+      "documentation":"<p>Creates a capacity provider that manages compute resources for Lambda Event Functions</p>",
       "idempotent":true
     },
     "CreateCodeSigningConfig":{
@@ -145,7 +145,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Creates a mapping between an event source and an Lambda function. Lambda reads items from the event source and invokes the function.</p> <p>For details about how to configure different event sources, see the following topics. </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html#services-dynamodb-eventsourcemapping\"> Amazon DynamoDB Streams</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-kinesis.html#services-kinesis-eventsourcemapping\"> Amazon Kinesis</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#events-sqs-eventsource\"> Amazon SQS</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-mq.html#services-mq-eventsourcemapping\"> Amazon MQ and RabbitMQ</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-msk.html\"> Amazon MSK</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/kafka-smaa.html\"> Apache Kafka</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-documentdb.html\"> Amazon DocumentDB</a> </p> </li> </ul> <p>The following error handling options are available for stream sources (DynamoDB, Kinesis, Amazon MSK, and self-managed Apache Kafka):</p> <ul> <li> <p> <code>BisectBatchOnFunctionError</code> – If the function returns an error, split the batch in two and retry.</p> </li> <li> <p> <code>MaximumRecordAgeInSeconds</code> – Discard records older than the specified age. The default value is infinite (-1). When set to infinite (-1), failed records are retried until the record expires</p> </li> <li> <p> <code>MaximumRetryAttempts</code> – Discard records after the specified number of retries. The default value is infinite (-1). When set to infinite (-1), failed records are retried until the record expires.</p> </li> <li> <p> <code>OnFailure</code> – Send discarded records to an Amazon SQS queue, Amazon SNS topic, Kafka topic, or Amazon S3 bucket. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html#invocation-async-destinations\">Adding a destination</a>.</p> </li> </ul> <p>The following option is available only for DynamoDB and Kinesis event sources:</p> <ul> <li> <p> <code>ParallelizationFactor</code> – Process multiple batches from each shard concurrently.</p> </li> </ul> <p>For information about which configuration parameters apply to each event source, see the following topics.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html#services-ddb-params\"> Amazon DynamoDB Streams</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-kinesis.html#services-kinesis-params\"> Amazon Kinesis</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#services-sqs-params\"> Amazon SQS</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-mq.html#services-mq-params\"> Amazon MQ and RabbitMQ</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-msk.html#services-msk-parms\"> Amazon MSK</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-kafka.html#services-kafka-parms\"> Apache Kafka</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-documentdb.html#docdb-configuration\"> Amazon DocumentDB</a> </p> </li> </ul>"
+      "documentation":"<p>Creates a mapping between an event source and an Lambda Event Function. Lambda reads items from the event source and invokes the function.</p> <p>For details about how to configure different event sources, see the following topics. </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html#services-dynamodb-eventsourcemapping\"> Amazon DynamoDB Streams</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-kinesis.html#services-kinesis-eventsourcemapping\"> Amazon Kinesis</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#events-sqs-eventsource\"> Amazon SQS</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-mq.html#services-mq-eventsourcemapping\"> Amazon MQ and RabbitMQ</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-msk.html\"> Amazon MSK</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/kafka-smaa.html\"> Apache Kafka</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-documentdb.html\"> Amazon DocumentDB</a> </p> </li> </ul> <p>The following error handling options are available for stream sources (DynamoDB, Kinesis, Amazon MSK, and self-managed Apache Kafka):</p> <ul> <li> <p> <code>BisectBatchOnFunctionError</code> – If the function returns an error, split the batch in two and retry.</p> </li> <li> <p> <code>MaximumRecordAgeInSeconds</code> – Discard records older than the specified age. The default value is infinite (-1). When set to infinite (-1), failed records are retried until the record expires</p> </li> <li> <p> <code>MaximumRetryAttempts</code> – Discard records after the specified number of retries. The default value is infinite (-1). When set to infinite (-1), failed records are retried until the record expires.</p> </li> <li> <p> <code>OnFailure</code> – Send discarded records to an Amazon SQS queue, Amazon SNS topic, Kafka topic, or Amazon S3 bucket. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html#invocation-async-destinations\">Adding a destination</a>.</p> </li> </ul> <p>The following option is available only for DynamoDB and Kinesis event sources:</p> <ul> <li> <p> <code>ParallelizationFactor</code> – Process multiple batches from each shard concurrently.</p> </li> </ul> <p>For information about which configuration parameters apply to each event source, see the following topics.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html#services-ddb-params\"> Amazon DynamoDB Streams</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-kinesis.html#services-kinesis-params\"> Amazon Kinesis</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#services-sqs-params\"> Amazon SQS</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-mq.html#services-mq-params\"> Amazon MQ and RabbitMQ</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-msk.html#services-msk-parms\"> Amazon MSK</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-kafka.html#services-kafka-parms\"> Apache Kafka</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-documentdb.html#docdb-configuration\"> Amazon DocumentDB</a> </p> </li> </ul>"
     },
     "CreateFunction":{
       "name":"CreateFunction",
@@ -168,7 +168,7 @@
         {"shape":"CodeStorageExceededException"},
         {"shape":"FunctionVersionsPerCapacityProviderLimitExceededException"}
       ],
-      "documentation":"<p>Creates a Lambda function. To create a function, you need a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-package.html\">deployment package</a> and an <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/intro-permission-model.html#lambda-intro-execution-role\">execution role</a>. The deployment package is a .zip file archive or container image that contains your function code. The execution role grants the function permission to use Amazon Web Services services, such as Amazon CloudWatch Logs for log streaming and X-Ray for request tracing.</p> <p>If the deployment package is a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/lambda-images.html\">container image</a>, then you set the package type to <code>Image</code>. For a container image, the code property must include the URI of a container image in the Amazon ECR registry. You do not need to specify the handler and runtime properties.</p> <p>If the deployment package is a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-package.html#gettingstarted-package-zip\">.zip file archive</a>, then you set the package type to <code>Zip</code>. For a .zip file archive, the code property specifies the location of the .zip file. You must also specify the handler and runtime properties. The code in the deployment package must be compatible with the target instruction set architecture of the function (<code>x86-64</code> or <code>arm64</code>). If you do not specify the architecture, then the default value is <code>x86-64</code>.</p> <p>When you create a function, Lambda provisions an instance of the function and its supporting resources. If your function connects to a VPC, this process can take a minute or so. During this time, you can't invoke or modify the function. The <code>State</code>, <code>StateReason</code>, and <code>StateReasonCode</code> fields in the response from <a>GetFunctionConfiguration</a> indicate when the function is ready to invoke. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/functions-states.html\">Lambda function states</a>.</p> <p>A function has an unpublished version, and can have published versions and aliases. The unpublished version changes when you update your function's code and configuration. A published version is a snapshot of your function code and configuration that can't be changed. An alias is a named resource that maps to a version, and can be changed to map to a different version. Use the <code>Publish</code> parameter to create version <code>1</code> of your function from its initial configuration.</p> <p>The other parameters let you configure version-specific and function-level settings. You can modify version-specific settings later with <a>UpdateFunctionConfiguration</a>. Function-level settings apply to both the unpublished and published versions of the function, and include tags (<a>TagResource</a>) and per-function concurrency limits (<a>PutFunctionConcurrency</a>).</p> <p>You can use code signing if your deployment package is a .zip file archive. To enable code signing for this function, specify the ARN of a code-signing configuration. When a user attempts to deploy a code package with <a>UpdateFunctionCode</a>, Lambda checks that the code package has a valid signature from a trusted publisher. The code-signing configuration includes set of signing profiles, which define the trusted publishers for this function.</p> <p>If another Amazon Web Services account or an Amazon Web Services service invokes your function, use <a>AddPermission</a> to grant permission by creating a resource-based Identity and Access Management (IAM) policy. You can grant permissions at the function level, on a version, or on an alias.</p> <p>To invoke your function directly, use <a>Invoke</a>. To invoke your function in response to events in other Amazon Web Services services, create an event source mapping (<a>CreateEventSourceMapping</a>), or configure a function trigger in the other service. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/lambda-invocation.html\">Invoking Lambda functions</a>.</p>",
+      "documentation":"<p>Creates a Lambda Event Function. To create a function, you need a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-package.html\">deployment package</a> and an <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/intro-permission-model.html#lambda-intro-execution-role\">execution role</a>. The deployment package is a .zip file archive or container image that contains your function code. The execution role grants the function permission to use Amazon Web Services services, such as Amazon CloudWatch Logs for log streaming and X-Ray for request tracing.</p> <p>If the deployment package is a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/lambda-images.html\">container image</a>, then you set the package type to <code>Image</code>. For a container image, the code property must include the URI of a container image in the Amazon ECR registry. You do not need to specify the handler and runtime properties.</p> <p>If the deployment package is a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-package.html#gettingstarted-package-zip\">.zip file archive</a>, then you set the package type to <code>Zip</code>. For a .zip file archive, the code property specifies the location of the .zip file. You must also specify the handler and runtime properties. The code in the deployment package must be compatible with the target instruction set architecture of the function (<code>x86-64</code> or <code>arm64</code>). If you do not specify the architecture, then the default value is <code>x86-64</code>.</p> <p>When you create a function, Lambda provisions an instance of the function and its supporting resources. If your function connects to a VPC, this process can take a minute or so. During this time, you can't invoke or modify the function. The <code>State</code>, <code>StateReason</code>, and <code>StateReasonCode</code> fields in the response from <a>GetFunctionConfiguration</a> indicate when the function is ready to invoke. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/functions-states.html\">Lambda function states</a>.</p> <p>A function has an unpublished version, and can have published versions and aliases. The unpublished version changes when you update your function's code and configuration. A published version is a snapshot of your function code and configuration that can't be changed. An alias is a named resource that maps to a version, and can be changed to map to a different version. Use the <code>Publish</code> parameter to create version <code>1</code> of your function from its initial configuration.</p> <p>The other parameters let you configure version-specific and function-level settings. You can modify version-specific settings later with <a>UpdateFunctionConfiguration</a>. Function-level settings apply to both the unpublished and published versions of the function, and include tags (<a>TagResource</a>) and per-function concurrency limits (<a>PutFunctionConcurrency</a>).</p> <p>You can use code signing if your deployment package is a .zip file archive. To enable code signing for this function, specify the ARN of a code-signing configuration. When a user attempts to deploy a code package with <a>UpdateFunctionCode</a>, Lambda checks that the code package has a valid signature from a trusted publisher. The code-signing configuration includes set of signing profiles, which define the trusted publishers for this function.</p> <p>If another Amazon Web Services account or an Amazon Web Services service invokes your function, use <a>AddPermission</a> to grant permission by creating a resource-based Identity and Access Management (IAM) policy. You can grant permissions at the function level, on a version, or on an alias.</p> <p>To invoke your function directly, use <a>Invoke</a>. To invoke your function in response to events in other Amazon Web Services services, create an event source mapping (<a>CreateEventSourceMapping</a>), or configure a function trigger in the other service. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/lambda-invocation.html\">Invoking Lambda functions</a>.</p>",
       "idempotent":true
     },
     "CreateFunctionUrlConfig":{
@@ -204,7 +204,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Deletes a Lambda function <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">alias</a>.</p>",
+      "documentation":"<p>Deletes a Lambda Event Function <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">alias</a>.</p>",
       "idempotent":true
     },
     "DeleteCapacityProvider":{
@@ -244,6 +244,25 @@
       "documentation":"<p>Deletes the code signing configuration. You can delete the code signing configuration only if no function is using it. </p>",
       "idempotent":true
     },
+    "DeleteDurableExecution":{
+      "name":"DeleteDurableExecution",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2025-12-01/durable-executions/{DurableExecutionArn}",
+        "responseCode":202
+      },
+      "input":{"shape":"DeleteDurableExecutionRequest"},
+      "output":{"shape":"DeleteDurableExecutionResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceConflictException"},
+        {"shape":"ServiceException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Deletes a completed Lambda <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a> and its data. The execution must be in a terminal state (<code>SUCCEEDED</code>, <code>FAILED</code>, <code>STOPPED</code>, or <code>TIMED_OUT</code>). Otherwise, this operation returns a <code>ResourceConflictException</code>.</p> <p>The execution has <code>DELETING</code> status until the deletion finishes. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-delete.html\">Deleting durable executions</a>.</p>",
+      "idempotent":true
+    },
     "DeleteEventSourceMapping":{
       "name":"DeleteEventSourceMapping",
       "http":{
@@ -280,7 +299,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Deletes a Lambda function. To delete a specific function version, use the <code>Qualifier</code> parameter. Otherwise, all versions and aliases are deleted. This doesn't require the user to have explicit permissions for <a>DeleteAlias</a>.</p> <note> <p>A deleted Lambda function cannot be recovered. Ensure that you specify the correct function name and version before deleting.</p> </note> <p>To delete Lambda event source mappings that invoke a function, use <a>DeleteEventSourceMapping</a>. For Amazon Web Services services and resources that invoke your function directly, delete the trigger in the service where you originally configured it.</p>",
+      "documentation":"<p>Deletes a Lambda Event Function. To delete a specific function version, use the <code>Qualifier</code> parameter. Otherwise, all versions and aliases are deleted. This doesn't require the user to have explicit permissions for <a>DeleteAlias</a>.</p> <note> <p>A deleted Lambda function cannot be recovered. Ensure that you specify the correct function name and version before deleting.</p> </note> <p>To delete Lambda event source mappings that invoke a function, use <a>DeleteEventSourceMapping</a>. For Amazon Web Services services and resources that invoke your function directly, delete the trigger in the service where you originally configured it.</p>",
       "idempotent":true
     },
     "DeleteFunctionCodeSigningConfig":{
@@ -316,7 +335,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Removes a concurrent execution limit from a function.</p>"
+      "documentation":"<p>Removes a concurrent execution limit from a Lambda Event Function.</p>"
     },
     "DeleteFunctionEventInvokeConfig":{
       "name":"DeleteFunctionEventInvokeConfig",
@@ -437,7 +456,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Returns details about a Lambda function <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">alias</a>.</p>",
+      "documentation":"<p>Returns details about a Lambda Event Function <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">alias</a>.</p>",
       "readonly":true
     },
     "GetCapacityProvider":{
@@ -573,7 +592,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Returns information about the function or function version, with a link to download the deployment package that's valid for 10 minutes. If you specify a function version, only details that are specific to that version are returned.</p>",
+      "documentation":"<p>Returns information about a Lambda Event Function or function version, with a link to download the deployment package that's valid for 10 minutes. If you specify a function version, only details that are specific to that version are returned.</p>",
       "readonly":true
     },
     "GetFunctionCodeSigningConfig":{
@@ -628,7 +647,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Returns the version-specific settings of a Lambda function or version. The output includes only options that can vary between versions of a function. To modify these settings, use <a>UpdateFunctionConfiguration</a>.</p> <p>To get all of a function's details, including function-level settings, use <a>GetFunction</a>.</p>",
+      "documentation":"<p>Returns the version-specific settings of a Lambda Event Function or version. The output includes only options that can vary between versions of a function. To modify these settings, use <a>UpdateFunctionConfiguration</a>.</p> <p>To get all of a function's details, including function-level settings, use <a>GetFunction</a>.</p>",
       "readonly":true
     },
     "GetFunctionEventInvokeConfig":{
@@ -840,6 +859,7 @@
       "input":{"shape":"InvocationRequest"},
       "output":{"shape":"InvocationResponse"},
       "errors":[
+        {"shape":"RuntimeAliasDeletedException"},
         {"shape":"CodeArtifactUserDeletedException"},
         {"shape":"ResourceNotReadyException"},
         {"shape":"ServiceQuotaExceededException"},
@@ -865,6 +885,7 @@
         {"shape":"EFSIOException"},
         {"shape":"KMSInvalidStateException"},
         {"shape":"ResourceConflictException"},
+        {"shape":"RuntimeVersionDeletedException"},
         {"shape":"ENILimitReachedException"},
         {"shape":"SnapStartNotReadyException"},
         {"shape":"ServiceException"},
@@ -884,7 +905,7 @@
         {"shape":"InvalidZipFileException"},
         {"shape":"EFSMountFailureException"}
       ],
-      "documentation":"<p>Invokes a Lambda function. You can invoke a function synchronously (and wait for the response), or asynchronously. By default, Lambda invokes your function synchronously (i.e. the<code>InvocationType</code> is <code>RequestResponse</code>). To invoke a function asynchronously, set <code>InvocationType</code> to <code>Event</code>. Lambda passes the <code>ClientContext</code> object to your function for synchronous invocations only.</p> <p>For synchronous invocations, the maximum payload size is 6 MB. For asynchronous invocations, the maximum payload size is 1 MB.</p> <p>For <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-sync.html\">synchronous invocation</a>, details about the function response, including errors, are included in the response body and headers. For either invocation type, you can find more information in the <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/monitoring-functions.html\">execution log</a> and <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html\">trace</a>.</p> <p>When an error occurs, your function may be invoked multiple times. Retry behavior varies by error type, client, event source, and invocation type. For example, if you invoke a function asynchronously and it returns an error, Lambda executes the function up to two more times. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-retries.html\">Error handling and automatic retries in Lambda</a>.</p> <p>For <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html\">asynchronous invocation</a>, Lambda adds events to a queue before sending them to your function. If your function does not have enough capacity to keep up with the queue, events may be lost. Occasionally, your function may receive the same event multiple times, even if no error occurs. To retain events that were not processed, configure your function with a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-dlq\">dead-letter queue</a>.</p> <p>The status code in the API response doesn't reflect function errors. Error codes are reserved for errors that prevent your function from executing, such as permissions errors, <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html\">quota</a> errors, or issues with your function's code and configuration. For example, Lambda returns <code>TooManyRequestsException</code> if running the function would cause you to exceed a concurrency limit at either the account level (<code>ConcurrentInvocationLimitExceeded</code>) or function level (<code>ReservedFunctionConcurrentInvocationLimitExceeded</code>).</p> <p>For functions with a long timeout, your client might disconnect during synchronous invocation while it waits for a response. Configure your HTTP client, SDK, firewall, proxy, or operating system to allow for long connections with timeout or keep-alive settings.</p> <p>This operation requires permission for the <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awslambda.html\">lambda:InvokeFunction</a> action. For details on how to set up permissions for cross-account invocations, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html#permissions-resource-xaccountinvoke\">Granting function access to other accounts</a>.</p>"
+      "documentation":"<p>Invokes a Lambda Event Function. You can invoke a function synchronously (and wait for the response), or asynchronously. By default, Lambda invokes your function synchronously (i.e. the<code>InvocationType</code> is <code>RequestResponse</code>). To invoke a function asynchronously, set <code>InvocationType</code> to <code>Event</code>. Lambda passes the <code>ClientContext</code> object to your function for synchronous invocations only.</p> <p>For synchronous invocations, the maximum payload size is 6 MB. For asynchronous invocations, the maximum payload size is 1 MB.</p> <p>For <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-sync.html\">synchronous invocation</a>, details about the function response, including errors, are included in the response body and headers. For either invocation type, you can find more information in the <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/monitoring-functions.html\">execution log</a> and <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html\">trace</a>.</p> <p>When an error occurs, your function may be invoked multiple times. Retry behavior varies by error type, client, event source, and invocation type. For example, if you invoke a function asynchronously and it returns an error, Lambda executes the function up to two more times. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-retries.html\">Error handling and automatic retries in Lambda</a>.</p> <p>For <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html\">asynchronous invocation</a>, Lambda adds events to a queue before sending them to your function. If your function does not have enough capacity to keep up with the queue, events may be lost. Occasionally, your function may receive the same event multiple times, even if no error occurs. To retain events that were not processed, configure your function with a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-dlq\">dead-letter queue</a>.</p> <p>The status code in the API response doesn't reflect function errors. Error codes are reserved for errors that prevent your function from executing, such as permissions errors, <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html\">quota</a> errors, or issues with your function's code and configuration. For example, Lambda returns <code>TooManyRequestsException</code> if running the function would cause you to exceed a concurrency limit at either the account level (<code>ConcurrentInvocationLimitExceeded</code>) or function level (<code>ReservedFunctionConcurrentInvocationLimitExceeded</code>).</p> <p>For functions with a long timeout, your client might disconnect during synchronous invocation while it waits for a response. Configure your HTTP client, SDK, firewall, proxy, or operating system to allow for long connections with timeout or keep-alive settings.</p> <p>This operation requires permission for the <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awslambda.html\">lambda:InvokeFunction</a> action. For details on how to set up permissions for cross-account invocations, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html#permissions-resource-xaccountinvoke\">Granting function access to other accounts</a>.</p>"
     },
     "InvokeAsync":{
       "name":"InvokeAsync",
@@ -939,6 +960,7 @@
       "input":{"shape":"InvokeWithResponseStreamRequest"},
       "output":{"shape":"InvokeWithResponseStreamResponse"},
       "errors":[
+        {"shape":"RuntimeAliasDeletedException"},
         {"shape":"CodeArtifactUserDeletedException"},
         {"shape":"ResourceNotReadyException"},
         {"shape":"ServiceQuotaExceededException"},
@@ -964,6 +986,7 @@
         {"shape":"EFSIOException"},
         {"shape":"KMSInvalidStateException"},
         {"shape":"ResourceConflictException"},
+        {"shape":"RuntimeVersionDeletedException"},
         {"shape":"ENILimitReachedException"},
         {"shape":"SnapStartNotReadyException"},
         {"shape":"ServiceException"},
@@ -980,7 +1003,7 @@
         {"shape":"InvalidZipFileException"},
         {"shape":"EFSMountFailureException"}
       ],
-      "documentation":"<p>Configure your Lambda functions to stream response payloads back to clients. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-response-streaming.html\">Configuring a Lambda function to stream responses</a>.</p> <p>This operation requires permission for the <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awslambda.html\">lambda:InvokeFunction</a> action. For details on how to set up permissions for cross-account invocations, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html#permissions-resource-xaccountinvoke\">Granting function access to other accounts</a>.</p>"
+      "documentation":"<p>Configure your Lambda Event Functions to stream response payloads back to clients. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-response-streaming.html\">Configuring a Lambda function to stream responses</a>.</p> <p>This operation requires permission for the <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awslambda.html\">lambda:InvokeFunction</a> action. For details on how to set up permissions for cross-account invocations, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html#permissions-resource-xaccountinvoke\">Granting function access to other accounts</a>.</p>"
     },
     "ListAliases":{
       "name":"ListAliases",
@@ -997,7 +1020,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Returns a list of <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">aliases</a> for a Lambda function.</p>",
+      "documentation":"<p>Returns a list of <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">aliases</a> for a Lambda Event Function.</p>",
       "readonly":true
     },
     "ListCapacityProviders":{
@@ -1084,7 +1107,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Retrieves a list of configurations for asynchronous invocation for a function.</p> <p>To configure options for asynchronous invocation, use <a>PutFunctionEventInvokeConfig</a>.</p>",
+      "documentation":"<p>Retrieves a list of configurations for asynchronous invocation for a Lambda Event Function. To retrieve more configurations, use the <code>Marker</code> parameter.</p> <p>To configure options for asynchronous invocation, use <a>PutFunctionEventInvokeConfig</a>.</p>",
       "readonly":true
     },
     "ListFunctionUrlConfigs":{
@@ -1137,7 +1160,7 @@
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"}
       ],
-      "documentation":"<p>Returns a list of Lambda functions, with the version-specific configuration of each. Lambda returns up to 50 functions per call.</p> <p>Set <code>FunctionVersion</code> to <code>ALL</code> to include all published versions of each function in addition to the unpublished version.</p> <note> <p>The <code>ListFunctions</code> operation returns a subset of the <a>FunctionConfiguration</a> fields. To get the additional fields (State, StateReasonCode, StateReason, LastUpdateStatus, LastUpdateStatusReason, LastUpdateStatusReasonCode, RuntimeVersionConfig) for a function or version, use <a>GetFunction</a>.</p> </note>",
+      "documentation":"<p>Returns a list of Lambda Event Functions, with the version-specific configuration of each. Lambda returns up to 50 functions per call.</p> <p>Set <code>FunctionVersion</code> to <code>ALL</code> to include all published versions of each function in addition to the unpublished version.</p> <note> <p>The <code>ListFunctions</code> operation returns a subset of the <a>FunctionConfiguration</a> fields. To get the additional fields (State, StateReasonCode, StateReason, LastUpdateStatus, LastUpdateStatusReason, LastUpdateStatusReasonCode, RuntimeVersionConfig) for a function or version, use <a>GetFunction</a>.</p> </note>",
       "readonly":true
     },
     "ListFunctionsByCodeSigningConfig":{
@@ -1243,8 +1266,31 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Returns a list of <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/versioning-aliases.html\">versions</a>, with the version-specific configuration of each. Lambda returns up to 50 versions per call.</p>",
+      "documentation":"<p>Returns a list of <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/versioning-aliases.html\">versions</a> of a Lambda Event Function, with the version-specific configuration of each. Lambda returns up to 50 versions per call.</p>",
       "readonly":true
+    },
+    "PauseDurableExecution":{
+      "name":"PauseDurableExecution",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2025-12-01/durable-executions/{DurableExecutionArn}/pause",
+        "responseCode":202
+      },
+      "input":{"shape":"PauseDurableExecutionRequest"},
+      "output":{"shape":"PauseDurableExecutionResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"KMSInvalidStateException"},
+        {"shape":"ResourceConflictException"},
+        {"shape":"ServiceException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"KMSNotFoundException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"KMSAccessDeniedException"},
+        {"shape":"KMSDisabledException"}
+      ],
+      "documentation":"<p>Pauses a running <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a>. While an execution is paused, Lambda doesn't invoke your function, but pending operations such as waits and callbacks continue to complete.</p> <p>If an invocation is in progress, the execution status changes to <code>PAUSING</code> until the invocation reaches its next checkpoint, and then changes to <code>PAUSED</code>. This operation returns a successful response while the execution status is still <code>RUNNING</code>, and the status changes when Lambda processes the request. For more information about pausing executions, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-pause-resume.html\">Pausing and resuming durable executions</a>.</p>",
+      "idempotent":true
     },
     "PublishLayerVersion":{
       "name":"PublishLayerVersion",
@@ -1283,7 +1329,7 @@
         {"shape":"FunctionVersionsPerCapacityProviderLimitExceededException"},
         {"shape":"PreconditionFailedException"}
       ],
-      "documentation":"<p>Creates a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/versioning-aliases.html\">version</a> from the current code and configuration of a function. Use versions to create a snapshot of your function code and configuration that doesn't change.</p> <p>Lambda doesn't publish a version if the function's configuration and code haven't changed since the last version. Use <a>UpdateFunctionCode</a> or <a>UpdateFunctionConfiguration</a> to update the function before publishing a version.</p> <p>Clients can invoke versions directly or with an alias. To create an alias, use <a>CreateAlias</a>.</p>"
+      "documentation":"<p>Creates a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/versioning-aliases.html\">version</a> from the current code and configuration of a Lambda Event Function. Use versions to create a snapshot of your function code and configuration that doesn't change.</p> <p>Lambda doesn't publish a version if the function's configuration and code haven't changed since the last version. Use <a>UpdateFunctionCode</a> or <a>UpdateFunctionConfiguration</a> to update the function before publishing a version.</p> <p>Clients can invoke versions directly or with an alias. To create an alias, use <a>CreateAlias</a>.</p>"
     },
     "PutFunctionCodeSigningConfig":{
       "name":"PutFunctionCodeSigningConfig",
@@ -1320,7 +1366,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Sets the maximum number of simultaneous executions for a function, and reserves capacity for that concurrency level.</p> <p>Concurrency settings apply to the function as a whole, including all published versions and the unpublished version. Reserving concurrency both ensures that your function has capacity to process the specified number of events simultaneously, and prevents it from scaling beyond that level. Use <a>GetFunction</a> to see the current setting for a function.</p> <p>Use <a>GetAccountSettings</a> to see your Regional concurrency limit. You can reserve concurrency for as many functions as you like, as long as you leave at least 100 simultaneous executions unreserved for functions that aren't configured with a per-function limit. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-scaling.html\">Lambda function scaling</a>.</p>"
+      "documentation":"<p>Sets the maximum number of simultaneous executions for a Lambda Event Function, and reserves capacity for that concurrency level.</p> <p>Concurrency settings apply to the function as a whole, including all published versions and the unpublished version. Reserving concurrency both ensures that your function has capacity to process the specified number of events simultaneously, and prevents it from scaling beyond that level. Use <a>GetFunction</a> to see the current setting for a function.</p> <p>Use <a>GetAccountSettings</a> to see your Regional concurrency limit. You can reserve concurrency for as many functions as you like, as long as you leave at least 100 simultaneous executions unreserved for functions that aren't configured with a per-function limit. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-scaling.html\">Lambda function scaling</a>.</p>"
     },
     "PutFunctionEventInvokeConfig":{
       "name":"PutFunctionEventInvokeConfig",
@@ -1356,7 +1402,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Sets your function's <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-recursion.html\">recursive loop detection</a> configuration.</p> <p>When you configure a Lambda function to output to the same service or resource that invokes the function, it's possible to create an infinite recursive loop. For example, a Lambda function might write a message to an Amazon Simple Queue Service (Amazon SQS) queue, which then invokes the same function. This invocation causes the function to write another message to the queue, which in turn invokes the function again.</p> <p>Lambda can detect certain types of recursive loops shortly after they occur. When Lambda detects a recursive loop and your function's recursive loop detection configuration is set to <code>Terminate</code>, it stops your function being invoked and notifies you.</p>"
+      "documentation":"<p>Sets the <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-recursion.html\">recursive loop detection</a> configuration for a Lambda Event Function.</p> <p>When you configure a Lambda function to output to the same service or resource that invokes the function, it's possible to create an infinite recursive loop. For example, a Lambda function might write a message to an Amazon Simple Queue Service (Amazon SQS) queue, which then invokes the same function. This invocation causes the function to write another message to the queue, which in turn invokes the function again.</p> <p>Lambda can detect certain types of recursive loops shortly after they occur. When Lambda detects a recursive loop and your function's recursive loop detection configuration is set to <code>Terminate</code>, it stops your function being invoked and notifies you.</p>"
     },
     "PutFunctionScalingConfig":{
       "name":"PutFunctionScalingConfig",
@@ -1445,6 +1491,7 @@
       "input":{"shape":"RemoveLayerVersionPermissionRequest"},
       "errors":[
         {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceConflictException"},
         {"shape":"ServiceException"},
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"},
@@ -1469,6 +1516,29 @@
         {"shape":"PreconditionFailedException"}
       ],
       "documentation":"<p>Revokes function-use permission from an Amazon Web Services service or another Amazon Web Services account. You can get the ID of the statement from the output of <a>GetPolicy</a>.</p>"
+    },
+    "ResumeDurableExecution":{
+      "name":"ResumeDurableExecution",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2025-12-01/durable-executions/{DurableExecutionArn}/resume",
+        "responseCode":202
+      },
+      "input":{"shape":"ResumeDurableExecutionRequest"},
+      "output":{"shape":"ResumeDurableExecutionResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"KMSInvalidStateException"},
+        {"shape":"ResourceConflictException"},
+        {"shape":"ServiceException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"KMSNotFoundException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"KMSAccessDeniedException"},
+        {"shape":"KMSDisabledException"}
+      ],
+      "documentation":"<p>Resumes a paused <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a>. If the pause interrupted an invocation, or an operation completed while the execution was paused, Lambda invokes your function. Otherwise, the execution continues to wait for its pending operations.</p> <p>If the execution status is <code>PAUSING</code>, this operation cancels the pause, and the in-progress invocation continues. This operation returns a successful response while the execution status is still <code>PAUSED</code> or <code>PAUSING</code>, and the status changes to <code>RUNNING</code> when Lambda processes the request. For more information about resuming executions, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-pause-resume.html\">Pausing and resuming durable executions</a>.</p>",
+      "idempotent":true
     },
     "SendDurableExecutionCallbackFailure":{
       "name":"SendDurableExecutionCallbackFailure",
@@ -1551,7 +1621,7 @@
         {"shape":"KMSAccessDeniedException"},
         {"shape":"KMSDisabledException"}
       ],
-      "documentation":"<p>Stops a running <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a>. The execution transitions to STOPPED status and cannot be resumed. Any in-progress operations are terminated.</p>"
+      "documentation":"<p>Stops a running or paused <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a>. The execution transitions to STOPPED status and cannot be resumed. Any in-progress operations are terminated.</p>"
     },
     "TagResource":{
       "name":"TagResource",
@@ -1604,7 +1674,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"PreconditionFailedException"}
       ],
-      "documentation":"<p>Updates the configuration of a Lambda function <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">alias</a>.</p>"
+      "documentation":"<p>Updates the configuration of a Lambda Event Function <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">alias</a>.</p>"
     },
     "UpdateCapacityProvider":{
       "name":"UpdateCapacityProvider",
@@ -1680,7 +1750,7 @@
         {"shape":"CodeStorageExceededException"},
         {"shape":"PreconditionFailedException"}
       ],
-      "documentation":"<p>Updates a Lambda function's code. If code signing is enabled for the function, the code package must be signed by a trusted publisher. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-codesigning.html\">Configuring code signing for Lambda</a>.</p> <p>If the function's package type is <code>Image</code>, then you must specify the code package in <code>ImageUri</code> as the URI of a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/lambda-images.html\">container image</a> in the Amazon ECR registry.</p> <p>If the function's package type is <code>Zip</code>, then you must specify the deployment package as a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-package.html#gettingstarted-package-zip\">.zip file archive</a>. Enter the Amazon S3 bucket and key of the code .zip file location. You can also provide the function code inline using the <code>ZipFile</code> field.</p> <p>The code in the deployment package must be compatible with the target instruction set architecture of the function (<code>x86-64</code> or <code>arm64</code>).</p> <p>The function's code is locked when you publish a version. You can't modify the code of a published version, only the unpublished version.</p> <note> <p>For a function defined as a container image, Lambda resolves the image tag to an image digest. In Amazon ECR, if you update the image tag to a new image, Lambda does not automatically update the function.</p> </note>"
+      "documentation":"<p>Updates a Lambda Event Function's code. If code signing is enabled for the function, the code package must be signed by a trusted publisher. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-codesigning.html\">Configuring code signing for Lambda</a>.</p> <p>If the function's package type is <code>Image</code>, then you must specify the code package in <code>ImageUri</code> as the URI of a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/lambda-images.html\">container image</a> in the Amazon ECR registry.</p> <p>If the function's package type is <code>Zip</code>, then you must specify the deployment package as a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-package.html#gettingstarted-package-zip\">.zip file archive</a>. Enter the Amazon S3 bucket and key of the code .zip file location. You can also provide the function code inline using the <code>ZipFile</code> field.</p> <p>The code in the deployment package must be compatible with the target instruction set architecture of the function (<code>x86-64</code> or <code>arm64</code>).</p> <p>The function's code is locked when you publish a version. You can't modify the code of a published version, only the unpublished version.</p> <note> <p>For a function defined as a container image, Lambda resolves the image tag to an image digest. In Amazon ECR, if you update the image tag to a new image, Lambda does not automatically update the function.</p> </note>"
     },
     "UpdateFunctionConfiguration":{
       "name":"UpdateFunctionConfiguration",
@@ -1702,7 +1772,7 @@
         {"shape":"CodeSigningConfigNotFoundException"},
         {"shape":"PreconditionFailedException"}
       ],
-      "documentation":"<p>Modify the version-specific settings of a Lambda function.</p> <p>When you update a function, Lambda provisions an instance of the function and its supporting resources. If your function connects to a VPC, this process can take a minute. During this time, you can't modify the function, but you can still invoke it. The <code>LastUpdateStatus</code>, <code>LastUpdateStatusReason</code>, and <code>LastUpdateStatusReasonCode</code> fields in the response from <a>GetFunctionConfiguration</a> indicate when the update is complete and the function is processing events with the new configuration. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/functions-states.html\">Lambda function states</a>.</p> <p>These settings can vary between versions of a function and are locked when you publish a version. You can't modify the configuration of a published version, only the unpublished version.</p> <p>To configure function concurrency, use <a>PutFunctionConcurrency</a>. To grant invoke permissions to an Amazon Web Services account or Amazon Web Services service, use <a>AddPermission</a>.</p>"
+      "documentation":"<p>Modifies the version-specific settings of a Lambda Event Function.</p> <p>When you update a function, Lambda provisions an instance of the function and its supporting resources. If your function connects to a VPC, this process can take a minute. During this time, you can't modify the function, but you can still invoke it. The <code>LastUpdateStatus</code>, <code>LastUpdateStatusReason</code>, and <code>LastUpdateStatusReasonCode</code> fields in the response from <a>GetFunctionConfiguration</a> indicate when the update is complete and the function is processing events with the new configuration. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/functions-states.html\">Lambda function states</a>.</p> <p>These settings can vary between versions of a function and are locked when you publish a version. You can't modify the configuration of a published version, only the unpublished version.</p> <p>To configure function concurrency, use <a>PutFunctionConcurrency</a>. To grant invoke permissions to an Amazon Web Services account or Amazon Web Services service, use <a>AddPermission</a>.</p>"
     },
     "UpdateFunctionEventInvokeConfig":{
       "name":"UpdateFunctionEventInvokeConfig",
@@ -1738,10 +1808,25 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Updates the configuration for a Lambda function URL.</p>"
+      "documentation":"<p>Updates the configuration for a function URL of a Lambda Event Function.</p>"
     }
   },
   "shapes":{
+    "AcceleratorConfig":{
+      "type":"structure",
+      "required":["AcceleratorMemorySize"],
+      "members":{
+        "AcceleratorMemorySize":{
+          "shape":"AcceleratorMemoryGB",
+          "documentation":"<p>The minimum amount of memory (in GB) of each accelerator device exposed to the execution environment. Lambda might allocate more, depending on the accelerator instance types available.</p>"
+        }
+      },
+      "documentation":"<p>The accelerator resource settings for a Lambda execution environment, including the amount of accelerator memory to allocate.</p>"
+    },
+    "AcceleratorMemoryGB":{
+      "type":"integer",
+      "box":true
+    },
     "AccountLimit":{
       "type":"structure",
       "members":{
@@ -1799,7 +1884,7 @@
       ],
       "members":{
         "LayerName":{
-          "shape":"LayerName",
+          "shape":"LayerNameOrArn",
           "documentation":"<p>The name or Amazon Resource Name (ARN) of the layer.</p>",
           "location":"uri",
           "locationName":"LayerName"
@@ -2338,7 +2423,10 @@
     },
     "CapacityProviderPredefinedMetricType":{
       "type":"string",
-      "enum":["LambdaCapacityProviderAverageCPUUtilization"]
+      "enum":[
+        "LambdaCapacityProviderAverageCPUUtilization",
+        "LambdaCapacityProviderAverageGPUUtilization"
+      ]
     },
     "CapacityProviderScalingConfig":{
       "type":"structure",
@@ -2462,6 +2550,10 @@
         "TenantId":{
           "shape":"TenantId",
           "documentation":"<p>The tenant identifier for the chained invocation.</p>"
+        },
+        "XAmznTraceId":{
+          "shape":"XAmznTraceId",
+          "documentation":"<p>The X-Ray trace header to use when starting the chained invocation. This parameter is optional. If you omit this value, the child invocation inherits the parent durable execution's trace header.</p> <p>Specify this value on the <code>START</code> update for the chained invocation operation. For more information about the header format, see <a href=\"https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html#xray-concepts-tracingheader\">Tracing header</a> in the <i>X-Ray Developer Guide</i>.</p>"
         }
       },
       "documentation":"<p>Configuration options for chained function invocations in durable executions, including retry settings and timeout configuration.</p>"
@@ -3036,7 +3128,7 @@
         },
         "MaximumBatchingWindowInSeconds":{
           "shape":"MaximumBatchingWindowInSeconds",
-          "documentation":"<p>The maximum amount of time, in seconds, that Lambda spends gathering records before invoking the function. You can configure <code>MaximumBatchingWindowInSeconds</code> to any value from 0 seconds to 300 seconds in increments of seconds.</p> <p>For Kinesis, DynamoDB, and Amazon SQS event sources, the default batching window is 0 seconds. For Amazon MSK, Self-managed Apache Kafka, Amazon MQ, and DocumentDB event sources, the default batching window is 500 ms. Note that because you can only change <code>MaximumBatchingWindowInSeconds</code> in increments of seconds, you cannot revert back to the 500 ms default batching window after you have changed it. To restore the default batching window, you must create a new event source mapping.</p> <p>Related setting: For Kinesis, DynamoDB, and Amazon SQS event sources, when you set <code>BatchSize</code> to a value greater than 10, you must set <code>MaximumBatchingWindowInSeconds</code> to at least 1.</p>"
+          "documentation":"<p>The maximum amount of time, in seconds, that Lambda spends gathering records before invoking the function. You can configure <code>MaximumBatchingWindowInSeconds</code> to any value from 0 seconds to 300 seconds in increments of seconds.</p> <p>For Kinesis, DynamoDB, and Amazon SQS event sources, the default batching window is 0 seconds. For Amazon MSK, Self-managed Apache Kafka, Amazon MQ, and DocumentDB event sources, the default batching window is 500 ms. Note that because you can only change <code>MaximumBatchingWindowInSeconds</code> in increments of seconds, you cannot revert back to the 500 ms default batching window after you have changed it. To restore the default batching window, you must create a new event source mapping.</p> <p>Related setting: For Kinesis, DynamoDB, and Amazon SQS event sources, when you set <code>BatchSize</code> to a value greater than 10, you must set <code>MaximumBatchingWindowInSeconds</code> to at least 1.</p> <p>Not supported for Kafka event source mappings when <code>ConsumptionMode</code> is <code>Queue</code>.</p>"
         },
         "ParallelizationFactor":{
           "shape":"ParallelizationFactor",
@@ -3044,11 +3136,11 @@
         },
         "StartingPosition":{
           "shape":"EventSourcePosition",
-          "documentation":"<p>The position in a stream from which to start reading. Required for Amazon Kinesis and Amazon DynamoDB Stream event sources. <code>AT_TIMESTAMP</code> is supported only for Amazon Kinesis streams, Amazon DocumentDB, Amazon MSK, and self-managed Apache Kafka.</p>"
+          "documentation":"<p>The position in a stream from which to start reading. Required for Amazon Kinesis and Amazon DynamoDB Stream event sources. <code>AT_TIMESTAMP</code> is supported only for Amazon Kinesis streams, Amazon DocumentDB, Amazon MSK, and self-managed Apache Kafka.</p> <p>Not supported for Kafka event source mappings when <code>ConsumptionMode</code> is <code>Queue</code>.</p>"
         },
         "StartingPositionTimestamp":{
           "shape":"Date",
-          "documentation":"<p>With <code>StartingPosition</code> set to <code>AT_TIMESTAMP</code>, the time from which to start reading. <code>StartingPositionTimestamp</code> cannot be in the future.</p>"
+          "documentation":"<p>With <code>StartingPosition</code> set to <code>AT_TIMESTAMP</code>, the time from which to start reading. <code>StartingPositionTimestamp</code> cannot be in the future.</p> <p>Not supported for Kafka event source mappings when <code>ConsumptionMode</code> is <code>Queue</code>.</p>"
         },
         "DestinationConfig":{
           "shape":"DestinationConfig",
@@ -3064,7 +3156,7 @@
         },
         "MaximumRetryAttempts":{
           "shape":"MaximumRetryAttemptsEventSourceMapping",
-          "documentation":"<p>(Kinesis, DynamoDB Streams, Amazon MSK, and self-managed Apache Kafka) Discard records after the specified number of retries. The default value is infinite (-1). When set to infinite (-1), failed records are retried until the record expires.</p>"
+          "documentation":"<p>(Kinesis, DynamoDB Streams, Amazon MSK, and self-managed Apache Kafka) Discard records after the specified number of retries. The default value is infinite (-1). When set to infinite (-1), failed records are retried until the record expires.</p> <p>For Kafka event source mappings with <code>ConsumptionMode</code> set to <code>Queue</code>, the value -1 (infinite retries) is not supported and the default is 0 (no retries). Lambda releases failed records back to the broker, which redelivers them up to the share group's <code>group.share.delivery.count.limit</code>.</p>"
         },
         "Tags":{
           "shape":"Tags",
@@ -3210,7 +3302,7 @@
         },
         "EphemeralStorage":{
           "shape":"EphemeralStorage",
-          "documentation":"<p>The size of the function's <code>/tmp</code> directory in MB. The default value is 512, but can be any whole number between 512 and 10,240 MB. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-ephemeral-storage\">Configuring ephemeral storage (console)</a>.</p>"
+          "documentation":"<p>The size of the function's <code>/tmp</code> directory in MB. The default value is 512, but can be any whole number between 512 and 10,240 MB. For functions that use <code>AcceleratorConfig</code>, the maximum is 32,768 MB. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-ephemeral-storage\">Configuring ephemeral storage (console)</a>.</p>"
         },
         "SnapStart":{
           "shape":"SnapStart",
@@ -3231,6 +3323,14 @@
         "DurableConfig":{
           "shape":"DurableConfig",
           "documentation":"<p>Configuration settings for durable functions. Enables creating functions with durability that can remember their state and continue execution even after interruptions.</p>"
+        },
+        "RuntimeConfig":{
+          "shape":"FunctionRuntimeConfig",
+          "documentation":"<p>The customer-managed runtime configuration for your function. Specifies the customer-managed runtime and the runtime alias that your function uses.</p>"
+        },
+        "AcceleratorConfig":{
+          "shape":"AcceleratorConfig",
+          "documentation":"<p>The accelerator resource settings for a Lambda execution environment.</p>"
         }
       }
     },
@@ -3378,6 +3478,28 @@
       "type":"structure",
       "members":{}
     },
+    "DeleteDurableExecutionRequest":{
+      "type":"structure",
+      "required":["DurableExecutionArn"],
+      "members":{
+        "DurableExecutionArn":{
+          "shape":"DurableExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the durable execution.</p>",
+          "location":"uri",
+          "locationName":"DurableExecutionArn"
+        }
+      }
+    },
+    "DeleteDurableExecutionResponse":{
+      "type":"structure",
+      "required":["DeletionRequestTimestamp"],
+      "members":{
+        "DeletionRequestTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The timestamp when Lambda accepted the deletion request (ISO 8601 format).</p>"
+        }
+      }
+    },
     "DeleteEventSourceMappingRequest":{
       "type":"structure",
       "required":["UUID"],
@@ -3486,7 +3608,7 @@
       ],
       "members":{
         "LayerName":{
-          "shape":"LayerName",
+          "shape":"LayerNameOrArn",
           "documentation":"<p>The name or Amazon Resource Name (ARN) of the layer.</p>",
           "location":"uri",
           "locationName":"LayerName"
@@ -3847,7 +3969,7 @@
           "documentation":"<p>The size of the function's <code>/tmp</code> directory.</p>"
         }
       },
-      "documentation":"<p>The size of the function's <code>/tmp</code> directory in MB. The default value is 512, but can be any whole number between 512 and 10,240 MB. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-ephemeral-storage\">Configuring ephemeral storage (console)</a>.</p>"
+      "documentation":"<p>The size of the function's <code>/tmp</code> directory in MB. The default value is 512, but can be any whole number between 512 and 10,240 MB. For functions that use <code>AcceleratorConfig</code>, the maximum is 32,768 MB. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-ephemeral-storage\">Configuring ephemeral storage (console)</a>.</p>"
     },
     "EphemeralStorageSize":{
       "type":"integer",
@@ -3997,6 +4119,14 @@
         "InvocationCompletedDetails":{
           "shape":"InvocationCompletedDetails",
           "documentation":"<p>Details about a function invocation that completed.</p>"
+        },
+        "ExecutionPausedDetails":{
+          "shape":"ExecutionPausedDetails",
+          "documentation":"<p>The details of an <code>ExecutionPaused</code> event.</p>"
+        },
+        "ExecutionResumedDetails":{
+          "shape":"ExecutionResumedDetails",
+          "documentation":"<p>The details of an <code>ExecutionResumed</code> event.</p>"
         }
       },
       "documentation":"<p>An event that occurred during the execution of a durable function.</p>"
@@ -4034,6 +4164,20 @@
       },
       "documentation":"<p>Input information for an event.</p>"
     },
+    "EventPauseReason":{
+      "type":"structure",
+      "members":{
+        "Payload":{
+          "shape":"PauseReason",
+          "documentation":"<p>The reason that you provided when you paused the execution. This field is only present if you set <code>IncludeExecutionData</code> to <code>true</code> in the request.</p>"
+        },
+        "Truncated":{
+          "shape":"Truncated",
+          "documentation":"<p>Specifies whether Lambda omitted the reason from the response because <code>IncludeExecutionData</code> is <code>false</code>.</p>"
+        }
+      },
+      "documentation":"<p>The reason for pausing a durable execution, as recorded in the execution history.</p>"
+    },
     "EventResult":{
       "type":"structure",
       "members":{
@@ -4047,6 +4191,20 @@
         }
       },
       "documentation":"<p>Result information for an event.</p>"
+    },
+    "EventResumeReason":{
+      "type":"structure",
+      "members":{
+        "Payload":{
+          "shape":"ResumeReason",
+          "documentation":"<p>The reason that you provided when you resumed the execution. This field is only present if you set <code>IncludeExecutionData</code> to <code>true</code> in the request.</p>"
+        },
+        "Truncated":{
+          "shape":"Truncated",
+          "documentation":"<p>Specifies whether Lambda omitted the reason from the response because <code>IncludeExecutionData</code> is <code>false</code>.</p>"
+        }
+      },
+      "documentation":"<p>The reason for resuming a durable execution, as recorded in the execution history.</p>"
     },
     "EventSourceMappingArn":{
       "type":"string",
@@ -4278,7 +4436,9 @@
         "CallbackSucceeded",
         "CallbackFailed",
         "CallbackTimedOut",
-        "InvocationCompleted"
+        "InvocationCompleted",
+        "ExecutionPaused",
+        "ExecutionResumed"
       ]
     },
     "Events":{
@@ -4357,6 +4517,43 @@
       },
       "documentation":"<p>Details about a failed <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a>.</p>"
     },
+    "ExecutionPausedDetails":{
+      "type":"structure",
+      "required":[
+        "PauseRequestTimestamp",
+        "ExecutionTimeoutPaused"
+      ],
+      "members":{
+        "PauseRequestTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when you requested the pause, in <a href=\"https://www.w3.org/TR/NOTE-datetime\">ISO-8601 format</a> (YYYY-MM-DDThh:mm:ss.sTZD).</p>"
+        },
+        "Reason":{
+          "shape":"EventPauseReason",
+          "documentation":"<p>The reason that you provided when you paused the execution.</p>"
+        },
+        "ExecutionTimeoutPaused":{
+          "shape":"ExecutionTimeoutPaused",
+          "documentation":"<p>Specifies whether the pause also paused the execution timeout.</p>"
+        }
+      },
+      "documentation":"<p>Details about a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a> that paused. The event timestamp is when the execution paused.</p>"
+    },
+    "ExecutionResumedDetails":{
+      "type":"structure",
+      "required":["ResumeRequestTimestamp"],
+      "members":{
+        "ResumeRequestTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when you requested the resume, in <a href=\"https://www.w3.org/TR/NOTE-datetime\">ISO-8601 format</a> (YYYY-MM-DDThh:mm:ss.sTZD).</p>"
+        },
+        "Reason":{
+          "shape":"EventResumeReason",
+          "documentation":"<p>The reason that you provided when you resumed the execution.</p>"
+        }
+      },
+      "documentation":"<p>Details about a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a> that resumed. The event timestamp is when the execution resumed.</p>"
+    },
     "ExecutionStartedDetails":{
       "type":"structure",
       "required":[
@@ -4382,7 +4579,10 @@
         "SUCCEEDED",
         "FAILED",
         "TIMED_OUT",
-        "STOPPED"
+        "STOPPED",
+        "DELETING",
+        "PAUSING",
+        "PAUSED"
       ]
     },
     "ExecutionStatusList":{
@@ -4428,6 +4628,10 @@
       "box":true,
       "max":31622400,
       "min":1
+    },
+    "ExecutionTimeoutPaused":{
+      "type":"boolean",
+      "box":true
     },
     "ExecutionTimestamp":{"type":"timestamp"},
     "FileSystemArn":{
@@ -4746,7 +4950,7 @@
         },
         "EphemeralStorage":{
           "shape":"EphemeralStorage",
-          "documentation":"<p>The size of the function's <code>/tmp</code> directory in MB. The default value is 512, but can be any whole number between 512 and 10,240 MB. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-ephemeral-storage\">Configuring ephemeral storage (console)</a>.</p>"
+          "documentation":"<p>The size of the function's <code>/tmp</code> directory in MB. The default value is 512, but can be any whole number between 512 and 10,240 MB. For functions that use <code>AcceleratorConfig</code>, the maximum is 32,768 MB. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-ephemeral-storage\">Configuring ephemeral storage (console)</a>.</p>"
         },
         "SnapStart":{
           "shape":"SnapStartResponse",
@@ -4775,6 +4979,14 @@
         "DurableConfig":{
           "shape":"DurableConfig",
           "documentation":"<p>The function's durable execution configuration settings, if the function is configured for durability.</p>"
+        },
+        "RuntimeConfig":{
+          "shape":"FunctionRuntimeConfig",
+          "documentation":"<p>The customer-managed runtime configuration for your function. Specifies the customer-managed runtime and the runtime alias that your function uses.</p>"
+        },
+        "AcceleratorConfig":{
+          "shape":"AcceleratorConfig",
+          "documentation":"<p>The accelerator resource settings for a Lambda execution environment.</p>"
         }
       },
       "documentation":"<p>Details about a function's configuration.</p>"
@@ -4827,6 +5039,35 @@
       "member":{"shape":"FunctionResponseType"},
       "max":1,
       "min":0
+    },
+    "FunctionRuntimeAlias":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
+    "FunctionRuntimeArn":{
+      "type":"string",
+      "max":2048,
+      "min":48,
+      "pattern":"arn:[a-z-]+:lambda:[a-z0-9-]+:\\d{12}:runtime/.+"
+    },
+    "FunctionRuntimeConfig":{
+      "type":"structure",
+      "required":[
+        "RuntimeArn",
+        "RuntimeAlias"
+      ],
+      "members":{
+        "RuntimeArn":{
+          "shape":"FunctionRuntimeArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the customer-managed runtime that your function uses.</p>"
+        },
+        "RuntimeAlias":{
+          "shape":"FunctionRuntimeAlias",
+          "documentation":"<p>The name of the customer-managed runtime alias that your function uses. A runtime alias is a name that points to a runtime version.</p>"
+        }
+      },
+      "documentation":"<p>The customer-managed runtime configuration for your function. Specifies the customer-managed runtime and the runtime alias that your function uses.</p>"
     },
     "FunctionScalingConfig":{
       "type":"structure",
@@ -5140,15 +5381,15 @@
         },
         "InputPayload":{
           "shape":"InputPayload",
-          "documentation":"<p>The JSON input payload that was provided when the durable execution was started. For asynchronous invocations, this is limited to 256 KB. For synchronous invocations, this can be up to 6 MB.</p>"
+          "documentation":"<p>The JSON input payload that you provided when you started the durable execution. Asynchronous invocations support up to 1 MB, and synchronous invocations support up to 6 MB.</p>"
         },
         "Result":{
           "shape":"OutputPayload",
-          "documentation":"<p>The JSON result returned by the durable execution if it completed successfully. This field is only present when the execution status is <code>SUCCEEDED</code>. The result is limited to 256 KB.</p>"
+          "documentation":"<p>The JSON result returned by the durable execution if it completed successfully. This field is only present when the execution status is <code>SUCCEEDED</code>. Asynchronous invocations support up to 1 MB, and synchronous invocations support up to 6 MB.</p>"
         },
         "Error":{
           "shape":"ErrorObject",
-          "documentation":"<p>Error information if the durable execution failed. This field is only present when the execution status is <code>FAILED</code>, <code>TIMED_OUT</code>, or <code>STOPPED</code>. The combined size of all error fields is limited to 256 KB.</p>"
+          "documentation":"<p>Error information if the durable execution failed. This field is only present when the execution status is <code>FAILED</code>, <code>TIMED_OUT</code>, or <code>STOPPED</code>. The combined size of all error fields is limited to 1 MB.</p>"
         },
         "StartTimestamp":{
           "shape":"ExecutionTimestamp",
@@ -5156,7 +5397,7 @@
         },
         "Status":{
           "shape":"ExecutionStatus",
-          "documentation":"<p>The current status of the durable execution. Valid values are <code>RUNNING</code>, <code>SUCCEEDED</code>, <code>FAILED</code>, <code>TIMED_OUT</code>, and <code>STOPPED</code>.</p>"
+          "documentation":"<p>The durable execution has one of the following statuses:</p> <ul> <li> <p> <code>RUNNING</code> – The execution is running or waiting for pending operations to complete.</p> </li> <li> <p> <code>PAUSING</code> – The execution is waiting for an in-progress invocation to reach its next checkpoint before it pauses.</p> </li> <li> <p> <code>PAUSED</code> – The execution is paused, and Lambda doesn't invoke your function.</p> </li> <li> <p> <code>SUCCEEDED</code> – The execution completed successfully.</p> </li> <li> <p> <code>FAILED</code> – The execution completed with an error.</p> </li> <li> <p> <code>TIMED_OUT</code> – The execution exceeded its execution timeout.</p> </li> <li> <p> <code>STOPPED</code> – A <code>StopDurableExecution</code> request stopped the execution.</p> </li> <li> <p> <code>DELETING</code> – A <code>DeleteDurableExecution</code> request is deleting the execution and its data.</p> </li> </ul>"
         },
         "EndTimestamp":{
           "shape":"ExecutionTimestamp",
@@ -5177,6 +5418,14 @@
         "DurableConfig":{
           "shape":"DurableConfig",
           "documentation":"<p>Configuration settings for the durable execution, including execution timeout, retention period for execution history, and an optional ARN of the Key Management Service (KMS) customer managed key that is used to encrypt your durable execution's payload data, including input, output, and error payloads.</p>"
+        },
+        "PauseDetails":{
+          "shape":"PauseDetails",
+          "documentation":"<p>The details of the pause, including when you requested it and whether it pauses the execution timeout. This field is only present when the execution status is <code>PAUSING</code> or <code>PAUSED</code>.</p>"
+        },
+        "ExpectedExecutionTimeoutTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when the durable execution will time out, in Unix timestamp format. This value includes any extension from time the execution spent paused. While the execution is paused with its execution timeout paused, this value is 366 days after the start time. This field isn't present for completed executions.</p>"
         }
       },
       "documentation":"<p>The response from the GetDurableExecution operation, containing detailed information about the durable execution.</p>"
@@ -5507,7 +5756,7 @@
       ],
       "members":{
         "LayerName":{
-          "shape":"LayerName",
+          "shape":"LayerNameOrArn",
           "documentation":"<p>The name or Amazon Resource Name (ARN) of the layer.</p>",
           "location":"uri",
           "locationName":"LayerName"
@@ -5541,7 +5790,7 @@
       ],
       "members":{
         "LayerName":{
-          "shape":"LayerName",
+          "shape":"LayerNameOrArn",
           "documentation":"<p>The name or Amazon Resource Name (ARN) of the layer.</p>",
           "location":"uri",
           "locationName":"LayerName"
@@ -6289,6 +6538,13 @@
       "exception":true,
       "fault":true
     },
+    "KafkaEventSourceMappingConsumptionMode":{
+      "type":"string",
+      "enum":[
+        "Stream",
+        "Queue"
+      ]
+    },
     "KafkaSchemaRegistryAccessConfig":{
       "type":"structure",
       "members":{
@@ -6425,6 +6681,7 @@
         "FunctionError.TooManyExtensions",
         "FunctionError.InitResourceExhausted",
         "DisallowedByVpcEncryptionControl",
+        "IncompatibleAcceleratorInstanceTypes",
         "DependencyError"
       ]
     },
@@ -6465,6 +6722,12 @@
       "max":140,
       "min":1,
       "pattern":"(arn:(aws[a-zA-Z-]*)?:lambda:(eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:layer:[a-zA-Z0-9-_]+)|[a-zA-Z0-9-_]+"
+    },
+    "LayerNameOrArn":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"(arn:(aws[a-zA-Z-]*)?:lambda:(eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:layer:[a-zA-Z0-9-_]{1,140}|[a-zA-Z0-9-_]{1,140})"
     },
     "LayerPermissionAllowedAction":{
       "type":"string",
@@ -6745,7 +7008,7 @@
         },
         "Statuses":{
           "shape":"ExecutionStatusList",
-          "documentation":"<p>Filter executions by status. Valid values: RUNNING, SUCCEEDED, FAILED, TIMED_OUT, STOPPED.</p>",
+          "documentation":"<p>Filters the executions by status. Specify one of the following values:</p> <ul> <li> <p> <code>RUNNING</code> – The execution is running or waiting for pending operations to complete.</p> </li> <li> <p> <code>PAUSING</code> – The execution is waiting for an in-progress invocation to reach its next checkpoint before it pauses.</p> </li> <li> <p> <code>PAUSED</code> – The execution is paused, and Lambda doesn't invoke your function.</p> </li> <li> <p> <code>SUCCEEDED</code> – The execution completed successfully.</p> </li> <li> <p> <code>FAILED</code> – The execution completed with an error.</p> </li> <li> <p> <code>TIMED_OUT</code> – The execution exceeded its execution timeout.</p> </li> <li> <p> <code>STOPPED</code> – A <code>StopDurableExecution</code> request stopped the execution.</p> </li> <li> <p> <code>DELETING</code> – A <code>DeleteDurableExecution</code> request is deleting the execution and its data.</p> </li> </ul>",
           "location":"querystring",
           "locationName":"Statuses"
         },
@@ -7054,7 +7317,7 @@
           "locationName":"CompatibleRuntime"
         },
         "LayerName":{
-          "shape":"LayerName",
+          "shape":"LayerNameOrArn",
           "documentation":"<p>The name or Amazon Resource Name (ARN) of the layer.</p>",
           "location":"uri",
           "locationName":"LayerName"
@@ -7628,11 +7891,11 @@
         },
         "Payload":{
           "shape":"OperationPayload",
-          "documentation":"<p>The payload for successful operations. The maximum payload size is 6 MB for synchronous <code>EXECUTION</code> operations (RequestResponse invocationType), 1 MB for asynchronous <code>EXECUTION</code> (Event invocationType) and <code>CHAINED_INVOKE</code> operations, and 256 KB for <code>CONTEXT</code>, <code>STEP</code>, <code>WAIT</code>, and <code>CALLBACK</code> operations.</p>"
+          "documentation":"<p>The payload for successful operations. The maximum payload size is 6 MB for synchronous <code>EXECUTION</code> operations (RequestResponse invocationType), and 1 MB for asynchronous <code>EXECUTION</code> (Event invocationType), <code>CHAINED_INVOKE</code>, <code>CONTEXT</code>, <code>STEP</code>, <code>WAIT</code>, and <code>CALLBACK</code> operations.</p>"
         },
         "Error":{
           "shape":"ErrorObject",
-          "documentation":"<p>The error information for failed operations.</p>"
+          "documentation":"<p>The error information for failed operations. The combined size of all error fields is limited to 1 MB.</p>"
         },
         "ContextOptions":{
           "shape":"ContextOptions",
@@ -7696,6 +7959,63 @@
       "min":0,
       "pattern":"[\\s\\S]*"
     },
+    "PauseDetails":{
+      "type":"structure",
+      "required":[
+        "PauseRequestTimestamp",
+        "ExecutionTimeoutPaused"
+      ],
+      "members":{
+        "PauseRequestTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when you requested the pause, in <a href=\"https://www.w3.org/TR/NOTE-datetime\">ISO-8601 format</a> (YYYY-MM-DDThh:mm:ss.sTZD).</p>"
+        },
+        "Reason":{
+          "shape":"PauseReason",
+          "documentation":"<p>The reason that you provided when you paused the execution. This field is only present if you set <code>IncludeExecutionData</code> to <code>true</code> in the request.</p>"
+        },
+        "ExecutionTimeoutPaused":{
+          "shape":"ExecutionTimeoutPaused",
+          "documentation":"<p>Specifies whether the pause also pauses the execution timeout.</p>"
+        }
+      },
+      "documentation":"<p>Details about a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a> that is pausing or paused.</p>"
+    },
+    "PauseDurableExecutionRequest":{
+      "type":"structure",
+      "required":["DurableExecutionArn"],
+      "members":{
+        "DurableExecutionArn":{
+          "shape":"DurableExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the durable execution.</p>",
+          "location":"uri",
+          "locationName":"DurableExecutionArn"
+        },
+        "ClientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide so that the request completes no more than one time. If you repeat a request with the same client token and parameters within 15 minutes, Lambda doesn't pause the execution again and returns a successful response instead of an error.</p>",
+          "idempotencyToken":true
+        },
+        "Reason":{
+          "shape":"PauseReason",
+          "documentation":"<p>A description of why you're pausing the execution. Lambda records the reason in the execution history.</p>"
+        },
+        "ExecutionTimeoutPaused":{
+          "shape":"ExecutionTimeoutPaused",
+          "documentation":"<p>Specifies whether to pause the execution timeout while the execution is paused. If <code>true</code>, Lambda extends the execution timeout by the time the execution spends paused. An execution with a paused timeout still times out 366 days after it started. The default value is <code>true</code>.</p>"
+        }
+      }
+    },
+    "PauseDurableExecutionResponse":{
+      "type":"structure",
+      "members":{}
+    },
+    "PauseReason":{
+      "type":"string",
+      "max":1024,
+      "min":0,
+      "sensitive":true
+    },
     "PerExecutionEnvironmentMaxConcurrency":{
       "type":"integer",
       "box":true,
@@ -7717,9 +8037,9 @@
     },
     "PolicyResourceArn":{
       "type":"string",
-      "max":256,
+      "max":512,
       "min":0,
-      "pattern":"arn:(aws[a-zA-Z-]*)?:lambda:(eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:(runtime/|function:)[a-zA-Z0-9-_]+(:(\\$LATEST(\\.PUBLISHED)?|[a-zA-Z0-9-_])+)?"
+      "pattern":"arn:(aws[a-zA-Z-]*)?:lambda:(eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:(function:[a-zA-Z0-9-_]+(:(\\$LATEST(\\.PUBLISHED)?|[a-zA-Z0-9-_])+)?|runtime/[a-zA-Z0-9-_./]+)"
     },
     "PositiveInteger":{
       "type":"integer",
@@ -7895,7 +8215,7 @@
       ],
       "members":{
         "LayerName":{
-          "shape":"LayerName",
+          "shape":"LayerNameOrArn",
           "documentation":"<p>The name or Amazon Resource Name (ARN) of the layer.</p>",
           "location":"uri",
           "locationName":"LayerName"
@@ -8338,7 +8658,7 @@
       ],
       "members":{
         "LayerName":{
-          "shape":"LayerName",
+          "shape":"LayerNameOrArn",
           "documentation":"<p>The name or Amazon Resource Name (ARN) of the layer.</p>",
           "location":"uri",
           "locationName":"LayerName"
@@ -8517,6 +8837,37 @@
         "DryRun"
       ]
     },
+    "ResumeDurableExecutionRequest":{
+      "type":"structure",
+      "required":["DurableExecutionArn"],
+      "members":{
+        "DurableExecutionArn":{
+          "shape":"DurableExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the durable execution.</p>",
+          "location":"uri",
+          "locationName":"DurableExecutionArn"
+        },
+        "ClientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide so that the request completes no more than one time. If you repeat a request with the same client token and parameters within 15 minutes, Lambda doesn't resume the execution again and returns a successful response instead of an error.</p>",
+          "idempotencyToken":true
+        },
+        "Reason":{
+          "shape":"ResumeReason",
+          "documentation":"<p>A description of why you're resuming the execution. Lambda records the reason in the execution history.</p>"
+        }
+      }
+    },
+    "ResumeDurableExecutionResponse":{
+      "type":"structure",
+      "members":{}
+    },
+    "ResumeReason":{
+      "type":"string",
+      "max":1024,
+      "min":0,
+      "sensitive":true
+    },
     "RetentionPeriodInDays":{
       "type":"integer",
       "box":true,
@@ -8606,14 +8957,31 @@
         "python3.15",
         "java8.al2023",
         "java11.al2023",
-        "java17.al2023"
+        "java17.al2023",
+        "custom"
       ]
+    },
+    "RuntimeAliasDeletedException":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>Indicates the exception type for a deleted runtime alias.</p>"
+        },
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The runtime alias for your function is no longer available. Update your function to use an available runtime alias.</p>",
+      "error":{
+        "httpStatusCode":409,
+        "senderFault":true
+      },
+      "exception":true
     },
     "RuntimeVersionArn":{
       "type":"string",
       "max":2048,
       "min":26,
-      "pattern":"arn:(aws[a-zA-Z-]*):lambda:(eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}::runtime:.+"
+      "pattern":"((arn:(aws[a-zA-Z-]*):lambda:(eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}::runtime:.+)|(arn:(aws[a-zA-Z-]*):lambda:(eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:runtime/[A-Za-z0-9_.-]{1,128}/version/[A-Za-z0-9_.-]{1,128}))"
     },
     "RuntimeVersionConfig":{
       "type":"structure",
@@ -8628,6 +8996,22 @@
         }
       },
       "documentation":"<p>The ARN of the runtime and any errors that occured.</p>"
+    },
+    "RuntimeVersionDeletedException":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>Indicates the exception type for a deleted runtime version.</p>"
+        },
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The runtime version used by your function is no longer available. Update your function to use an available runtime version or runtime alias.</p>",
+      "error":{
+        "httpStatusCode":409,
+        "senderFault":true
+      },
+      "exception":true
     },
     "RuntimeVersionError":{
       "type":"structure",
@@ -8791,6 +9175,10 @@
         "SchemaRegistryConfig":{
           "shape":"KafkaSchemaRegistryConfig",
           "documentation":"<p>Specific configuration settings for a Kafka schema registry.</p>"
+        },
+        "ConsumptionMode":{
+          "shape":"KafkaEventSourceMappingConsumptionMode",
+          "documentation":"<p>The mode that Lambda uses to consume records from your self-managed Apache Kafka topic. Valid values are the following:</p> <ul> <li> <p> <code>Stream</code> (default) – Lambda consumes records using a Kafka consumer group and preserves the order of records within each partition.</p> </li> <li> <p> <code>Queue</code> – Lambda consumes records using a Kafka share group. Multiple consumers can process records from the same partition concurrently, so Lambda doesn't preserve per-partition order. To use Queue mode, your cluster must run Apache Kafka version 4.2 or later with share groups enabled.</p> </li> </ul> <p>If you omit this parameter, Lambda uses <code>Stream</code>.</p> <p>You cannot change <code>ConsumptionMode</code> after you create the event source mapping. To use a different consumption mode, create a new event source mapping.</p> <p>When <code>ConsumptionMode</code> is <code>Queue</code>, the <code>StartingPosition</code>, <code>StartingPositionTimestamp</code>, and <code>MaximumBatchingWindowInSeconds</code> parameters are not supported.</p>"
         }
       },
       "documentation":"<p>Specific configuration settings for a self-managed Apache Kafka event source.</p>"
@@ -8807,7 +9195,7 @@
         },
         "Error":{
           "shape":"ErrorObject",
-          "documentation":"<p>Error details describing why the callback operation failed.</p>"
+          "documentation":"<p>Error details describing why the callback operation failed. The combined size of all error fields is limited to 1 MB.</p>"
         }
       },
       "payload":"Error"
@@ -8844,7 +9232,7 @@
         },
         "Result":{
           "shape":"BinaryOperationPayload",
-          "documentation":"<p>The result data from the successful callback operation. Maximum size is 256 KB.</p>"
+          "documentation":"<p>The result data from the successful callback operation. Maximum size is 1 MB.</p>"
         }
       },
       "payload":"Result"
@@ -9120,6 +9508,7 @@
         "FunctionError.InitResourceExhausted",
         "DisallowedByVpcEncryptionControl",
         "DrainingDurableExecutions",
+        "IncompatibleAcceleratorInstanceTypes",
         "DependencyError"
       ]
     },
@@ -9220,7 +9609,7 @@
         },
         "Error":{
           "shape":"ErrorObject",
-          "documentation":"<p>Optional error details explaining why the execution is being stopped.</p>"
+          "documentation":"<p>Optional error details explaining why the execution is being stopped. The combined size of all error fields is limited to 1 MB.</p>"
         }
       },
       "payload":"Error"
@@ -9689,7 +10078,7 @@
         },
         "MaximumBatchingWindowInSeconds":{
           "shape":"MaximumBatchingWindowInSeconds",
-          "documentation":"<p>The maximum amount of time, in seconds, that Lambda spends gathering records before invoking the function. You can configure <code>MaximumBatchingWindowInSeconds</code> to any value from 0 seconds to 300 seconds in increments of seconds.</p> <p>For Kinesis, DynamoDB, and Amazon SQS event sources, the default batching window is 0 seconds. For Amazon MSK, Self-managed Apache Kafka, Amazon MQ, and DocumentDB event sources, the default batching window is 500 ms. Note that because you can only change <code>MaximumBatchingWindowInSeconds</code> in increments of seconds, you cannot revert back to the 500 ms default batching window after you have changed it. To restore the default batching window, you must create a new event source mapping.</p> <p>Related setting: For Kinesis, DynamoDB, and Amazon SQS event sources, when you set <code>BatchSize</code> to a value greater than 10, you must set <code>MaximumBatchingWindowInSeconds</code> to at least 1.</p>"
+          "documentation":"<p>The maximum amount of time, in seconds, that Lambda spends gathering records before invoking the function. You can configure <code>MaximumBatchingWindowInSeconds</code> to any value from 0 seconds to 300 seconds in increments of seconds.</p> <p>For Kinesis, DynamoDB, and Amazon SQS event sources, the default batching window is 0 seconds. For Amazon MSK, Self-managed Apache Kafka, Amazon MQ, and DocumentDB event sources, the default batching window is 500 ms. Note that because you can only change <code>MaximumBatchingWindowInSeconds</code> in increments of seconds, you cannot revert back to the 500 ms default batching window after you have changed it. To restore the default batching window, you must create a new event source mapping.</p> <p>Related setting: For Kinesis, DynamoDB, and Amazon SQS event sources, when you set <code>BatchSize</code> to a value greater than 10, you must set <code>MaximumBatchingWindowInSeconds</code> to at least 1.</p> <p>Not supported for Kafka event source mappings when <code>ConsumptionMode</code> is <code>Queue</code>.</p>"
         },
         "ParallelizationFactor":{
           "shape":"ParallelizationFactor",
@@ -9709,7 +10098,7 @@
         },
         "MaximumRetryAttempts":{
           "shape":"MaximumRetryAttemptsEventSourceMapping",
-          "documentation":"<p>(Kinesis, DynamoDB Streams, Amazon MSK, and self-managed Apache Kafka) Discard records after the specified number of retries. The default value is infinite (-1). When set to infinite (-1), failed records are retried until the record expires.</p>"
+          "documentation":"<p>(Kinesis, DynamoDB Streams, Amazon MSK, and self-managed Apache Kafka) Discard records after the specified number of retries. The default value is infinite (-1). When set to infinite (-1), failed records are retried until the record expires.</p> <p>For Kafka event source mappings with <code>ConsumptionMode</code> set to <code>Queue</code>, the value -1 (infinite retries) is not supported and the default is 0 (no retries). Lambda releases failed records back to the broker, which redelivers them up to the share group's <code>group.share.delivery.count.limit</code>.</p>"
         },
         "TumblingWindowInSeconds":{
           "shape":"TumblingWindowInSeconds",
@@ -9867,7 +10256,7 @@
         },
         "EphemeralStorage":{
           "shape":"EphemeralStorage",
-          "documentation":"<p>The size of the function's <code>/tmp</code> directory in MB. The default value is 512, but can be any whole number between 512 and 10,240 MB. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-ephemeral-storage\">Configuring ephemeral storage (console)</a>.</p>"
+          "documentation":"<p>The size of the function's <code>/tmp</code> directory in MB. The default value is 512, but can be any whole number between 512 and 10,240 MB. For functions that use <code>AcceleratorConfig</code>, the maximum is 32,768 MB. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-ephemeral-storage\">Configuring ephemeral storage (console)</a>.</p>"
         },
         "SnapStart":{
           "shape":"SnapStart",
@@ -9884,6 +10273,14 @@
         "DurableConfig":{
           "shape":"DurableConfig",
           "documentation":"<p>Configuration settings for <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable functions</a>, including execution timeout, retention period for execution history, and an optional ARN of the Key Management Service (KMS) customer managed key that is used to encrypt your durable execution's payload data, including input, output, and error payloads.</p>"
+        },
+        "RuntimeConfig":{
+          "shape":"FunctionRuntimeConfig",
+          "documentation":"<p>The customer-managed runtime configuration for your function. Specifies the customer-managed runtime and the runtime alias that your function uses.</p>"
+        },
+        "AcceleratorConfig":{
+          "shape":"AcceleratorConfig",
+          "documentation":"<p>The accelerator resource settings for a Lambda execution environment.</p>"
         }
       }
     },
@@ -10076,7 +10473,7 @@
           "documentation":"<p>The duration to wait, in seconds.</p>"
         }
       },
-      "documentation":"<p>Specifies how long to pause the durable execution.</p>"
+      "documentation":"<p>Specifies how long the durable execution waits.</p>"
     },
     "WaitOptionsWaitSecondsInteger":{
       "type":"integer",
@@ -10128,5 +10525,5 @@
       "min":0
     }
   },
-  "documentation":"<p><fullname>Lambda</fullname> <p> <b>Overview</b> </p> <p>Lambda is a compute service that lets you run code without provisioning or managing servers. Lambda runs your code on a high-availability compute infrastructure and performs all of the administration of the compute resources, including server and operating system maintenance, capacity provisioning and automatic scaling, code monitoring and logging. With Lambda, you can run code for virtually any type of application or backend service. For more information about the Lambda service, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/welcome.html\">What is Lambda</a> in the <b>Lambda Developer Guide</b>.</p> <p>The <i>Lambda API Reference</i> provides information about each of the API methods, including details about the parameters in each API request and response. </p> <p/> <p>You can use Software Development Kits (SDKs), Integrated Development Environment (IDE) Toolkits, and command line tools to access the API. For installation instructions, see <a href=\"http://aws.amazon.com/tools/\">Tools for Amazon Web Services</a>. </p> <p>For a list of Region-specific endpoints that Lambda supports, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/lambda-service.html\">Lambda endpoints and quotas </a> in the <i>Amazon Web Services General Reference.</i>. </p> <p>When making the API calls, you will need to authenticate your request by providing a signature. Lambda supports signature version 4. For more information, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/signature-version-4.html\">Signature Version 4 signing process</a> in the <i>Amazon Web Services General Reference.</i>. </p> <p> <b>CA certificates</b> </p> <p>Because Amazon Web Services SDKs use the CA certificates from your computer, changes to the certificates on the Amazon Web Services servers can cause connection failures when you attempt to use an SDK. You can prevent these failures by keeping your computer's CA certificates and operating system up-to-date. If you encounter this issue in a corporate environment and do not manage your own computer, you might need to ask an administrator to assist with the update process. The following list shows minimum operating system and Java versions:</p> <ul> <li> <p>Microsoft Windows versions that have updates from January 2005 or later installed contain at least one of the required CAs in their trust list. </p> </li> <li> <p>Mac OS X 10.4 with Java for Mac OS X 10.4 Release 5 (February 2007), Mac OS X 10.5 (October 2007), and later versions contain at least one of the required CAs in their trust list. </p> </li> <li> <p>Red Hat Enterprise Linux 5 (March 2007), 6, and 7 and CentOS 5, 6, and 7 all contain at least one of the required CAs in their default trusted CA list. </p> </li> <li> <p>Java 1.4.2_12 (May 2006), 5 Update 2 (March 2005), and all later versions, including Java 6 (December 2006), 7, and 8, contain at least one of the required CAs in their default trusted CA list. </p> </li> </ul> <p>When accessing the Lambda management console or Lambda API endpoints, whether through browsers or programmatically, you will need to ensure your client machines support any of the following CAs: </p> <ul> <li> <p>Amazon Root CA 1</p> </li> <li> <p>Starfield Services Root Certificate Authority - G2</p> </li> <li> <p>Starfield Class 2 Certification Authority</p> </li> </ul> <p>Root certificates from the first two authorities are available from <a href=\"https://www.amazontrust.com/repository/\">Amazon trust services</a>, but keeping your computer up-to-date is the more straightforward solution. To learn more about ACM-provided certificates, see <a href=\"http://aws.amazon.com/certificate-manager/faqs/#certificates\">Amazon Web Services Certificate Manager FAQs.</a> </p></p>"
+  "documentation":"<p><fullname>Lambda</fullname> <p> <b>Overview</b> </p> <p>Lambda is a compute service that lets you run code without provisioning or managing servers. Lambda runs your code on a high-availability compute infrastructure and performs all of the administration of the compute resources, including server and operating system maintenance, capacity provisioning and automatic scaling, code monitoring and logging. With Lambda, you can run code for virtually any type of application or backend service. For more information about the Lambda service, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/welcome.html\">What is Lambda</a> in the <b>Lambda Developer Guide</b>.</p> <p>Lambda Event Functions, previously known as Lambda functions, run your code in response to events and API calls. In the Lambda API, the Amazon Web Services SDKs, and the CLI, Event Functions are still called <i>functions</i>, for example in <code>CreateFunction</code> and <code>Invoke</code>. You don't need to change any existing code.</p> <p>The <i>Lambda API Reference</i> provides information about each of the API methods for Lambda Event Functions, including details about the parameters in each API request and response.</p> <p/> <p>You can use Software Development Kits (SDKs), Integrated Development Environment (IDE) Toolkits, and command line tools to access the API. For installation instructions, see <a href=\"http://aws.amazon.com/tools/\">Tools for Amazon Web Services</a>. </p> <p>For a list of Region-specific endpoints that Lambda supports, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/lambda-service.html\">Lambda endpoints and quotas </a> in the <i>Amazon Web Services General Reference.</i>. </p> <p>When making the API calls, you will need to authenticate your request by providing a signature. Lambda supports signature version 4. For more information, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/signature-version-4.html\">Signature Version 4 signing process</a> in the <i>Amazon Web Services General Reference.</i>. </p> <p> <b>CA certificates</b> </p> <p>Because Amazon Web Services SDKs use the CA certificates from your computer, changes to the certificates on the Amazon Web Services servers can cause connection failures when you attempt to use an SDK. You can prevent these failures by keeping your computer's CA certificates and operating system up-to-date. If you encounter this issue in a corporate environment and do not manage your own computer, you might need to ask an administrator to assist with the update process. The following list shows minimum operating system and Java versions:</p> <ul> <li> <p>Microsoft Windows versions that have updates from January 2005 or later installed contain at least one of the required CAs in their trust list. </p> </li> <li> <p>Mac OS X 10.4 with Java for Mac OS X 10.4 Release 5 (February 2007), Mac OS X 10.5 (October 2007), and later versions contain at least one of the required CAs in their trust list. </p> </li> <li> <p>Red Hat Enterprise Linux 5 (March 2007), 6, and 7 and CentOS 5, 6, and 7 all contain at least one of the required CAs in their default trusted CA list. </p> </li> <li> <p>Java 1.4.2_12 (May 2006), 5 Update 2 (March 2005), and all later versions, including Java 6 (December 2006), 7, and 8, contain at least one of the required CAs in their default trusted CA list. </p> </li> </ul> <p>When accessing the Lambda management console or Lambda API endpoints, whether through browsers or programmatically, you will need to ensure your client machines support any of the following CAs: </p> <ul> <li> <p>Amazon Root CA 1</p> </li> <li> <p>Starfield Services Root Certificate Authority - G2</p> </li> <li> <p>Starfield Class 2 Certification Authority</p> </li> </ul> <p>Root certificates from the first two authorities are available from <a href=\"https://www.amazontrust.com/repository/\">Amazon trust services</a>, but keeping your computer up-to-date is the more straightforward solution. To learn more about ACM-provided certificates, see <a href=\"http://aws.amazon.com/certificate-manager/faqs/#certificates\">Amazon Web Services Certificate Manager FAQs.</a> </p></p>"
 }

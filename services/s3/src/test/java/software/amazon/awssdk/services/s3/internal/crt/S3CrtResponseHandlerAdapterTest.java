@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +48,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
+import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -63,15 +65,27 @@ public class S3CrtResponseHandlerAdapterTest {
     @Mock
     private S3MetaRequestWrapper s3MetaRequest;
     private CompletableFuture<Void> future;
+    private S3CrtMetricPublisherDispatcher metricPublisherDispatcher;
 
     @Before
     public void setup() {
         future = new CompletableFuture<>();
         sdkResponseHandler = spy(new TestResponseHandler());
-        responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
-                                                                 sdkResponseHandler,
-                                                                 null,
-                                                                 CompletableFuture.completedFuture(s3MetaRequest));
+        metricPublisherDispatcher = new S3CrtMetricPublisherDispatcher();
+        responseHandlerAdapter = S3CrtResponseHandlerAdapter.builder()
+                                                            .executeFuture(future)
+                                                            .responseHandler(sdkResponseHandler)
+                                                            .httpExecutionAttributes(
+                                                                SdkHttpExecutionAttributes.builder().build())
+                                                            .metaRequestFuture(
+                                                                CompletableFuture.completedFuture(s3MetaRequest))
+                                                            .metricPublisherDispatcher(metricPublisherDispatcher)
+                                                            .build();
+    }
+
+    @After
+    public void teardown() {
+        metricPublisherDispatcher.close();
     }
 
     @Test
@@ -101,11 +115,15 @@ public class S3CrtResponseHandlerAdapterTest {
 
     @Test
     public void s3MetaRequestNotFinish_shouldFailFuture() throws Exception {
-        S3CrtResponseHandlerAdapter responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
-                                                                                             sdkResponseHandler,
-                                                                                             null,
-                                                                                             new CompletableFuture<>(),
-                                                                                             Duration.ofMillis(10));
+        S3CrtResponseHandlerAdapter responseHandlerAdapter =
+            S3CrtResponseHandlerAdapter.builder()
+                                       .executeFuture(future)
+                                       .responseHandler(sdkResponseHandler)
+                                       .httpExecutionAttributes(SdkHttpExecutionAttributes.builder().build())
+                                       .metaRequestFuture(new CompletableFuture<>())
+                                       .s3MetaRequestTimeout(Duration.ofMillis(10))
+                                       .metricPublisherDispatcher(metricPublisherDispatcher)
+                                       .build();
         int statusCode = 200;
         responseHandlerAdapter.onResponseHeaders(statusCode, new HttpHeader[0]);
         responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld1".getBytes()), 1, 2);

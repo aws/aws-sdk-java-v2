@@ -141,7 +141,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Creates an integration with a third-party provider. Returns the integration identifier and its initial status; when the provider requires interactive consent, an authorization URL is returned for the user to complete setup.</p>"
+      "documentation":"<p>Creates an integration with a third-party provider. Returns the integration identifier and its initial status; when the provider requires interactive consent, an authorization URL is returned for the user to complete setup.</p>",
+      "idempotent":true
     },
     "CreateOmniDashboard":{
       "name":"CreateOmniDashboard",
@@ -351,7 +352,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"InternalServerException"}
+        {"shape":"InternalServerException"},
+        {"shape":"ConflictException"}
       ],
       "documentation":"<p>Removes a dashboard from a space.</p>",
       "idempotent":true
@@ -368,7 +370,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"InternalServerException"}
+        {"shape":"InternalServerException"},
+        {"shape":"ConflictException"}
       ],
       "documentation":"<p>Removes a space and all of its resources.</p>",
       "idempotent":true
@@ -604,6 +607,24 @@
       ],
       "documentation":"<p>Returns temporary credentials for a space in an organization member account. The credentials are valid for one hour.</p> <p>The caller must be the organization's management account or a delegated administrator with access to the target space. The target account must be an active member of the same organization as the domain, and the space must already exist.</p>"
     },
+    "GetSpaceDataAccess":{
+      "name":"GetSpaceDataAccess",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetSpaceDataAccessInput"},
+      "output":{"shape":"GetSpaceDataAccessOutput"},
+      "errors":[
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"PolicyTooLargeException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Returns temporary credentials for working with data in a space, limited to the actions you request.</p> <p>The credentials allow only the requested actions that can be granted in the space and that your access grants allow. Requested actions that cannot be conferred are ignored rather than rejected.</p>"
+    },
     "GetTelemetryQueryResults":{
       "name":"GetTelemetryQueryResults",
       "http":{
@@ -773,6 +794,7 @@
       "errors":[
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServerException"}
       ],
@@ -2592,6 +2614,58 @@
       "min":36,
       "pattern":"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
     },
+    "DataAccessActionList":{
+      "type":"list",
+      "member":{"shape":"DataAccessActionName"},
+      "documentation":"<p>The actions of one requested scope (1-50 entries), all with the same service prefix.</p>",
+      "max":50,
+      "min":1
+    },
+    "DataAccessActionName":{
+      "type":"string",
+      "documentation":"<p>An action to include in the credentials, with its service prefix, for example &quot;logs:StartQuery&quot;. Wildcards are not supported.</p>",
+      "max":256,
+      "min":3,
+      "pattern":"[a-z0-9][a-z0-9-]*:[A-Za-z][A-Za-z0-9]*"
+    },
+    "DataAccessAuditContext":{
+      "type":"map",
+      "key":{"shape":"DataAccessAuditContextKeyString"},
+      "value":{"shape":"DataAccessAuditContextValueString"},
+      "documentation":"<p>Caller-supplied audit key-value pairs (at most 10 entries). Each key is 1-256 characters of letters, digits and _ . : / = + @ -. Each value is 1-256 printable characters: any character except a C0 or C1 control character (so no tab, carriage return or newline).</p>",
+      "max":10,
+      "min":0
+    },
+    "DataAccessAuditContextKeyString":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"[A-Za-z0-9_.:/=+@-]+(?![\\s\\S]).*"
+    },
+    "DataAccessAuditContextValueString":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"[^\\u0000-\\u001F\\u007F-\\u009F]+(?![\\s\\S]).*"
+    },
+    "DataAccessTarget":{
+      "type":"structure",
+      "required":["actions"],
+      "members":{
+        "actions":{
+          "shape":"DataAccessActionList",
+          "documentation":"<p>The actions of one service, each with its service prefix, for example &quot;logs:StartQuery&quot;.</p>"
+        }
+      },
+      "documentation":"<p>One requested scope: an explicit list of actions for one service. All actions in an entry share one service prefix. The same service may appear in more than one entry.</p>"
+    },
+    "DataAccessTargetList":{
+      "type":"list",
+      "member":{"shape":"DataAccessTarget"},
+      "documentation":"<p>The scopes requested for one data credential (1-10 entries, at most 100 actions in total).</p>",
+      "max":10,
+      "min":1
+    },
     "DeepLinkCode":{
       "type":"string",
       "documentation":"<p>A one-time deep-link code exchanged for a domain-scoped session. Sensitive: it can be redeemed for a session token, so it is redacted from request logs and CloudTrail.</p>",
@@ -3461,6 +3535,47 @@
       }
     },
     "GetSpaceCredentialsForOrganizationOutput":{
+      "type":"structure",
+      "required":["credentials"],
+      "members":{
+        "credentials":{
+          "shape":"AwsCredentials",
+          "documentation":"<p>The temporary AWS credentials for the space.</p>"
+        }
+      }
+    },
+    "GetSpaceDataAccessInput":{
+      "type":"structure",
+      "required":[
+        "spaceId",
+        "targetScopes"
+      ],
+      "members":{
+        "spaceId":{
+          "shape":"SpaceId",
+          "documentation":"<p>The unique ID of the space to return credentials for.</p>"
+        },
+        "targetScopes":{
+          "shape":"DataAccessTargetList",
+          "documentation":"<p>The actions to include in the credentials, grouped by service.</p>"
+        },
+        "durationSeconds":{
+          "shape":"GetSpaceDataAccessInputDurationSecondsInteger",
+          "documentation":"<p>The lifetime of the credentials, in seconds. Defaults to 3600.</p>"
+        },
+        "auditContext":{
+          "shape":"DataAccessAuditContext",
+          "documentation":"<p>Caller-supplied key-value pairs that are recorded for auditing. They do not affect authorization or the permissions of the credentials.</p>"
+        }
+      }
+    },
+    "GetSpaceDataAccessInputDurationSecondsInteger":{
+      "type":"integer",
+      "box":true,
+      "max":3600,
+      "min":900
+    },
+    "GetSpaceDataAccessOutput":{
       "type":"structure",
       "required":["credentials"],
       "members":{
@@ -4365,7 +4480,7 @@
       "type":"map",
       "key":{"shape":"String"},
       "value":{"shape":"String"},
-      "documentation":"<p>One LOGS query-selector block: EXACT store column -&gt; raw SCALAR value (mirroring the scalar MetadataAttributeMap). Keyed by the store column that carries the value (e.g. <code>resource.attributes['service.name']</code>, <code>attributes['aws.local.service']</code>, <code>@logGroupName</code>) so the selector matches the emitted signal. A dimension seen under several values (a service under two namespaces, several log groups) becomes several blocks with the same columns and different values, which the console ORs. Dedicated to the LOGS selector so its cap evolves independently of the metric attribute map and the TRACES map. Selector caps are deliberately DISTINCT from the metric caps.</p>",
+      "documentation":"<p>One LOGS query-selector block: an exact log-store column mapped to the raw value it carries, so the selector matches the emitted signal. Keys are store column names, not bare attribute names. Every block carries &quot;@logGroupName&quot;; alongside it a block carries either the entity columns (&quot;<code>@entities</code>.KeyAttributes.Name&quot;, &quot;.Type&quot;, &quot;.Environment&quot;, &quot;<code>@entities</code>.Attributes.PlatformType&quot;) or OTel columns (&quot;resource.attributes['service.name']&quot;, &quot;resource.attributes['service.namespace']&quot;, &quot;resource.attributes['cloud.provider'|'cloud.account.id'|'cloud.region']&quot;). A dimension seen under several values — several log groups, or a service under two namespaces — becomes several blocks with the same columns and different values, to be OR'd together.</p>",
       "max":10,
       "min":0
     },
@@ -4393,11 +4508,11 @@
         },
         "logs":{
           "shape":"LogMetadataList",
-          "documentation":"<p>Per-signal LOGS query selectors: a LIST of blocks the console ORs, each an AND of exact store column -&gt; raw values. Node-level (edges carry only traces). Populated when the request sets includeMetadata; derived labels (logSourceType) are added by the service projection, not stored here.</p>"
+          "documentation":"<p>LOGS query selectors: a list of blocks to OR together, each block an AND of exact store column to raw value. Present on node metadata only — edges carry trace selectors. Returned when the request sets includeMetadata.</p>"
         },
         "traces":{
           "shape":"TraceMetadataList",
-          "documentation":"<p>Per-signal TRACES query selectors (same block shape as logs). Present on both node and edge metadata. serviceName is derived at the service projection, not stored here.</p>"
+          "documentation":"<p>TRACES query selectors, same block shape as the logs selectors. Present on both node and edge metadata. Returned when the request sets includeMetadata.</p>"
         }
       },
       "documentation":"<p>Descriptive information about a context graph node or edge, as opposed to its identity and structure. Returned only when the request sets includeMetadata.</p>"
@@ -4410,19 +4525,20 @@
       "max":50,
       "min":0
     },
+    "MetricAggregationTemporality":{
+      "type":"string",
+      "documentation":"<p>Describes how an aggregating metric reports values over time. A delta value covers the preceding reporting interval. A cumulative value covers a fixed start time through the current reporting time, restarting when the stream resets.</p>",
+      "enum":[
+        "delta",
+        "cumulative"
+      ]
+    },
     "MetricMetadata":{
       "type":"structure",
       "members":{
         "name":{
           "shape":"String",
           "documentation":"<p>The metric name as emitted, such as &quot;Duration&quot;.</p>"
-        },
-        "namespace":{
-          "shape":"String",
-          "documentation":"<p>DEPRECATED: read attributes[&quot;service.namespace&quot;] instead. Retained (deprecated) for backward compatibility with existing consumers; will be removed once they migrate. The logical service grouping the metric belongs to.</p>",
-          "deprecated":true,
-          "deprecatedMessage":"Use attributes['service.namespace']; retained for backward compatibility.",
-          "deprecatedSince":"2026-08-19"
         },
         "preferredStat":{
           "shape":"String",
@@ -4434,21 +4550,37 @@
         },
         "attributes":{
           "shape":"MetadataAttributeMap",
-          "documentation":"<p>Per-metric qualifying attributes the console uses to query this metric's telemetry. These are the RAW, store-matching values keyed by their OTel names (&quot;service.name&quot;, &quot;service.namespace&quot;, &quot;cloud.provider&quot;, &quot;cloud.account.id&quot;, &quot;cloud.region&quot;, &quot;instrumentation_scope&quot;) — deliberately NOT the node's normalized/merged identity, so the query selectors match the emitted series. A merged node can carry different values per metric, which is why they live here rather than on the node.</p>"
+          "documentation":"<p>Per-metric qualifying attributes used to query this metric's telemetry. Keys are the metric store's own label names, not bare OTel attribute names: service identity arrives as &quot;@resource.service.name&quot; and &quot;@resource.service.namespace&quot;, and the instrumentation scope as &quot;@instrumentation.@name&quot;. Span-derived metrics can additionally carry the service as a bare data point &quot;service.name&quot; label. Cloud provider, account and region are not repeated per metric — read those from the node. Values are RAW, deliberately NOT the node's merged identity, so a selector built from them matches the emitted series. A merged node can carry different values per metric, which is why these live here rather than on the node.</p>"
         },
         "semantics":{
           "shape":"MetricSemantics",
           "documentation":"<p>What the metric means and the unit it is reported in.</p>"
+        },
+        "aggregationTemporality":{
+          "shape":"MetricAggregationTemporality",
+          "documentation":"<p>Aggregation temporality for the selected metric stream represented by this metadata entry. Present when known, including cumulative for OTel Summary metrics. Absent for Gauge metrics or when the information is unavailable.</p>"
+        },
+        "monotonicity":{
+          "shape":"MetricMonotonicity",
+          "documentation":"<p>Whether the selected Sum metric stream represented by this metadata entry is a non-negative accumulation. Absent for metrics other than Sum or when the information is unavailable.</p>"
         }
       },
-      "documentation":"<p>A single metric observed on a context graph node.</p>"
+      "documentation":"<p>A single metric observed on a context graph node or edge.</p>"
     },
     "MetricMetadataList":{
       "type":"list",
       "member":{"shape":"MetricMetadata"},
-      "documentation":"<p>Metrics observed on a context graph node. When more are observed than the cap, the backend keeps RED/OTel-semconv names (http/rpc server+client, span-metrics) ahead of the alphabetical remainder, so the metrics the console charts survive. Must match the backend MetricMetadataList cap or entries the backend kept get re-truncated here at the frontend boundary.</p>",
+      "documentation":"<p>Metrics observed on a context graph node or edge. When more are observed than the cap, the backend keeps RED/OTel-semconv names (http/rpc server+client, span-metrics) ahead of the alphabetical remainder, so the metrics the console charts survive. Must match the backend MetricMetadataList cap or entries the backend kept get re-truncated here at the frontend boundary.</p>",
       "max":50,
       "min":0
+    },
+    "MetricMonotonicity":{
+      "type":"string",
+      "documentation":"<p>Describes whether a Sum is a non-negative accumulation. For a monotonic Sum, delta values are non-negative and cumulative values do not decrease except when the stream resets. A non-monotonic Sum can report positive or negative changes.</p>",
+      "enum":[
+        "monotonic",
+        "non_monotonic"
+      ]
     },
     "MetricSemantics":{
       "type":"structure",
@@ -5228,7 +5360,7 @@
     },
     "PaginationToken":{
       "type":"string",
-      "documentation":"<p>Pagination token for context graph and insights.</p>",
+      "documentation":"<p>Pagination token for the context graph.</p>",
       "max":2048,
       "min":1
     },
@@ -5241,6 +5373,22 @@
         }
       },
       "documentation":"<p>Indicates whether a query returned partial results.</p>"
+    },
+    "PolicyTooLargeException":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{
+          "shape":"String",
+          "documentation":"<p>A description of the error.</p>"
+        }
+      },
+      "documentation":"<p>The requested actions produce a credential that exceeds the maximum size. Request fewer actions.</p>",
+      "error":{
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
     },
     "PrincipalId":{
       "type":"string",
@@ -5609,18 +5757,18 @@
         },
         "maxResults":{
           "shape":"SearchPrincipalsInputMaxResultsInteger",
-          "documentation":"<p>The maximum number of results to return. Defaults to 10. Valid only when searchQuery is *; other searches reject this parameter and return at most 10 results.</p>"
+          "documentation":"<p>The maximum number of results to return. Defaults to 100.</p>"
         },
         "nextToken":{
           "shape":"SearchPrincipalsNextToken",
-          "documentation":"<p>A token to retrieve the next page of results. Valid only when searchQuery is *; other searches do not paginate and reject this parameter. Tokens expire after 24 hours.</p>"
+          "documentation":"<p>A token to retrieve the next page of results. Supply the same searchQuery used on the request that returned it. Tokens expire after 24 hours.</p>"
         }
       }
     },
     "SearchPrincipalsInputMaxResultsInteger":{
       "type":"integer",
       "box":true,
-      "max":50,
+      "max":100,
       "min":1
     },
     "SearchPrincipalsInputSearchQueryString":{
@@ -6169,7 +6317,7 @@
       "type":"map",
       "key":{"shape":"String"},
       "value":{"shape":"String"},
-      "documentation":"<p>TRACES counterpart of LogMetadataAttributeMap — a dedicated per-signal map so the two evolve independently (same scalar shape and cap today).</p>",
+      "documentation":"<p>One TRACES query-selector block: an exact span-store column mapped to the raw value it carries. Keys are store column names, not bare attribute names — the service identity and cloud dimensions arrive as &quot;resource.attributes['service.name']&quot;, &quot;resource.attributes['service.namespace']&quot;, &quot;resource.attributes['cloud.provider']&quot;, &quot;resource.attributes['cloud.account.id']&quot;, &quot;resource.attributes['cloud.region']&quot; and &quot;resource.attributes['deployment.environment']&quot;, and span-level identity as &quot;attributes['aws.local.service']&quot; and &quot;attributes['aws.local.environment']&quot;. Not every column is present on every block; which ones appear depends on what the span carried.</p>",
       "max":10,
       "min":0
     },
@@ -6451,6 +6599,10 @@
         "name":{
           "shape":"UpdateSpaceInputNameString",
           "documentation":"<p>A new name for the space. Omit to leave unchanged. Must be 3-64 characters: lowercase letters, numbers, and hyphens. It must begin and end with a letter or number and cannot contain consecutive hyphens.</p>"
+        },
+        "agentCoreEvaluationRoleArn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the IAM role used by AgentCore online evaluation. Must be in the caller's account. Omit if the space does not use AgentCore online evaluation.</p>"
         },
         "encryptionConfiguration":{
           "shape":"EncryptionConfiguration",

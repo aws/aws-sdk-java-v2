@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 public class RateLimiterTokenBucketStoreTest {
@@ -84,5 +85,49 @@ public class RateLimiterTokenBucketStoreTest {
         // All pending futures should be failed
         assertThat(futures).allSatisfy(cf -> assertThatThrownBy(cf::join)
             .hasMessageContaining("Rate limiter bucket is closed"));
+    }
+
+    @Test
+    void close_whenPendingWaiterReentersStore_completes() throws InterruptedException {
+        ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
+        RateLimiterTokenBucketStore store = RateLimiterTokenBucketStore.builder()
+                                                                       .clock(new SystemClock())
+                                                                       .scheduler(scheduler)
+                                                                       .build();
+        RateLimiterTokenBucket tokenBucket = store.tokenBucketForScope("scope");
+        tokenBucket.updateRateAfterThrottling();
+        CompletableFuture<Void> waiter = tokenBucket.acquireAsync();
+        CompletableFuture<RateLimiterTokenBucket> dependent = waiter.handle((r, t) -> store.tokenBucketForScope("scope"));
+
+        AtomicReference<Throwable> failure = new AtomicReference<>();
+        Thread closingThread = new Thread(() -> {
+            try {
+                store.close();
+            } catch (Throwable t) {
+                failure.set(t);
+            }
+        }, "rate-limiter-store-close");
+        closingThread.setDaemon(true);
+        closingThread.start();
+        closingThread.join(5_000L);
+
+        assertThat(closingThread.isAlive()).isFalse();
+        assertThat(failure.get()).isNull();
+        assertThatThrownBy(dependent.join().acquireAsync()::join)
+            .hasMessageContaining("Rate limiter bucket is closed");
+    }
+
+    @Test
+    void tokenBucketForScope_afterClose_returnsClosedBucket() {
+        ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
+        RateLimiterTokenBucketStore store = RateLimiterTokenBucketStore.builder()
+                                                                       .clock(new SystemClock())
+                                                                       .scheduler(scheduler)
+                                                                       .build();
+
+        store.close();
+
+        assertThatThrownBy(store.tokenBucketForScope("scope").acquireAsync()::join)
+            .hasMessageContaining("Rate limiter bucket is closed");
     }
 }

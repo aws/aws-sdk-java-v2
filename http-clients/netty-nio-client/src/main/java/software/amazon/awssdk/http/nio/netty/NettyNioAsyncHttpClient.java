@@ -336,6 +336,11 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         /**
          * The amount of time to wait when acquiring a connection from the pool before giving up and timing out.
+         * <p>
+         * This time also includes opening a new connection when the pool doesn't have one ready. Set it to at
+         * least the {@link #connectionTimeout(Duration)}, or requests can fail with "Acquire operation took
+         * longer than ..." before the connection timeout is reached.
+         *
          * @param connectionAcquisitionTimeout the timeout duration
          * @return this builder for method chaining.
          */

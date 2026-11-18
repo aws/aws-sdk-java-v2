@@ -84,8 +84,8 @@ public final class DefaultFileUpload implements FileUpload {
         S3ResumeToken token = pauseObservable.pause();
 
         if (token == null) {
-            log.debug(() -> "The upload hasn't started yet, or it's a single object upload. There will be no S3ResumeToken "
-                            + "returned.");
+            log.debug(() -> "The upload hasn't started yet, it's a single object upload, or CompleteMultipartUpload was "
+                            + "already initiated. There will be no S3ResumeToken returned.");
             return resumableFileBuilder.build();
         }
 

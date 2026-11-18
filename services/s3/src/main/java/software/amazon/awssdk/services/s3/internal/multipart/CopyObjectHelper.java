@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.COPY_SOURCE_CONTENT_LENGTH_LISTENER;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -60,7 +62,10 @@ import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.FunctionalUtils;
+import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * An internal helper class that automatically uses multipart copy based on the size of the source object
@@ -68,6 +73,8 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 public final class CopyObjectHelper {
     private static final Logger log = Logger.loggerFor(S3AsyncClient.class);
+    private static final String LISTENER_ERROR_MESSAGE =
+        "Exception thrown by the copy progress listener. It will be ignored.";
 
     private final S3AsyncClient s3AsyncClient;
     private final long partSizeInBytes;
@@ -113,9 +120,13 @@ public final class CopyObjectHelper {
                               HeadObjectResponse headObjectResponse) {
         Long contentLength = headObjectResponse.contentLength();
 
+        copyObjectRequest.overrideConfiguration()
+                         .map(c -> c.executionAttributes().getAttribute(COPY_SOURCE_CONTENT_LENGTH_LISTENER))
+                         .ifPresent(listener -> notifyListener(() -> listener.accept(contentLength)));
+
         if (contentLength <= partSizeInBytes || contentLength <= uploadThreshold) {
             log.debug(() -> "Starting the copy as a single copy part request");
-            copyInOneChunk(copyObjectRequest, returnFuture);
+            copyInOneChunk(copyObjectRequest, returnFuture, contentLength);
         } else {
             log.debug(() -> "Starting the copy as multipart copy request");
             String sourceVersionId = headObjectResponse.versionId();
@@ -181,9 +192,11 @@ public final class CopyObjectHelper {
     }
 
     private CompletableFuture<List<Tag>> fetchSourceTagging(CopyObjectRequest copyObjectRequest, String sourceVersionId) {
+        AwsRequestOverrideConfiguration override = copyObjectRequest.overrideConfiguration().orElse(null);
         return s3AsyncClient.getObjectTagging(r -> r.bucket(copyObjectRequest.sourceBucket())
                                                     .key(copyObjectRequest.sourceKey())
-                                                    .versionId(sourceVersionId))
+                                                    .versionId(sourceVersionId)
+                                                    .overrideConfiguration(override))
                             .thenApply(response -> CollectionUtils.isNullOrEmpty(response.tagSet())
                                                    ? null : response.tagSet());
     }
@@ -197,10 +210,12 @@ public final class CopyObjectHelper {
         Map<String, byte[]> annotationBodies = new ConcurrentHashMap<>();
         Queue<CompletableFuture<Void>> fetchFutures = new ConcurrentLinkedQueue<>();
         CompletableFuture<Map<String, byte[]>> result = new CompletableFuture<>();
+        AwsRequestOverrideConfiguration override = copyObjectRequest.overrideConfiguration().orElse(null);
 
         s3AsyncClient.listObjectAnnotationsPaginator(r -> r.bucket(copyObjectRequest.sourceBucket())
                                                            .key(copyObjectRequest.sourceKey())
-                                                           .versionId(sourceVersionId))
+                                                           .versionId(sourceVersionId)
+                                                           .overrideConfiguration(override))
                      .subscribe(response -> fetchAnnotationBodies(copyObjectRequest, sourceVersionId, response, annotationBodies,
                                                                   fetchFutures))
                      .whenComplete((v, t) -> {
@@ -237,10 +252,12 @@ public final class CopyObjectHelper {
     private CompletableFuture<byte[]> fetchSingleAnnotation(CopyObjectRequest copyObjectRequest,
                                                             String sourceVersionId,
                                                             String annotationName) {
+        AwsRequestOverrideConfiguration override = copyObjectRequest.overrideConfiguration().orElse(null);
         return s3AsyncClient.getObjectAnnotation(r -> r.bucket(copyObjectRequest.sourceBucket())
                                                        .key(copyObjectRequest.sourceKey())
                                                        .versionId(sourceVersionId)
-                                                       .annotationName(annotationName),
+                                                       .annotationName(annotationName)
+                                                       .overrideConfiguration(override),
                                                  AsyncResponseTransformer.toBytes())
                             .thenApply(ResponseBytes::asByteArray);
     }
@@ -250,10 +267,12 @@ public final class CopyObjectHelper {
         CompleteMultipartUploadResponse completeResponse,
         List<Tag> tags) {
 
+        AwsRequestOverrideConfiguration override = copyObjectRequest.overrideConfiguration().orElse(null);
         return s3AsyncClient.putObjectTagging(r -> r.bucket(copyObjectRequest.destinationBucket())
                                                     .key(copyObjectRequest.destinationKey())
                                                     .versionId(completeResponse.versionId())
-                                                    .tagging(Tagging.builder().tagSet(tags).build()))
+                                                    .tagging(Tagging.builder().tagSet(tags).build())
+                                                    .overrideConfiguration(override))
                             .thenApply(r -> completeResponse);
     }
 
@@ -269,6 +288,7 @@ public final class CopyObjectHelper {
 
         String destVersionId = completeResponse.versionId();
         String destETag = completeResponse.eTag();
+        AwsRequestOverrideConfiguration override = copyObjectRequest.overrideConfiguration().orElse(null);
 
         log.debug(() -> String.format("Writing %d annotations to destination object", annotations.size()));
 
@@ -282,7 +302,8 @@ public final class CopyObjectHelper {
                                                                                   .key(copyObjectRequest.destinationKey())
                                                                                   .versionId(destVersionId)
                                                                                   .objectIfMatch(destETag)
-                                                                                  .annotationName(entry.getKey()),
+                                                                                  .annotationName(entry.getKey())
+                                                                                  .overrideConfiguration(override),
                                                                             AsyncRequestBody.fromBytes(entry.getValue()))
                                                        .thenRun(() -> succeededAnnotations.add(entry.getKey())));
         }
@@ -394,10 +415,7 @@ public final class CopyObjectHelper {
         String uploadId,
         AtomicBoolean mpuCompleted) {
 
-        PublisherListener<Long> progressListener = ctx.copyObjectRequest.overrideConfiguration()
-                                                                        .map(c -> c.executionAttributes()
-                                                                                   .getAttribute(JAVA_PROGRESS_LISTENER))
-                                                                        .orElseGet(PublisherListener::noOp);
+        PublisherListener<Long> progressListener = progressListener(ctx.copyObjectRequest);
 
         return (completeResponse, throwable) -> {
             if (throwable != null) {
@@ -415,7 +433,7 @@ public final class CopyObjectHelper {
                 }
             } else {
                 ctx.returnFuture.complete(SdkPojoConversionUtils.toCopyObjectResponse(completeResponse));
-                progressListener.subscriberOnComplete();
+                notifyListener(progressListener::subscriberOnComplete);
             }
         };
     }
@@ -470,9 +488,10 @@ public final class CopyObjectHelper {
                                                                                                  copyObjectRequest,
                                                                                                  contentLength);
 
-        uploadPartCopyRequests.forEach(uploadPartCopyRequest ->
-                                           sendIndividualUploadPartCopy(uploadId, completedParts, futures,
-                                                                        uploadPartCopyRequest));
+        PublisherListener<Long> progressListener = progressListener(copyObjectRequest);
+
+        uploadPartCopyRequests.forEach(requestPair -> sendIndividualUploadPartCopy(uploadId, completedParts, futures,
+                                                                                   requestPair, progressListener));
 
         return futures;
     }
@@ -480,7 +499,10 @@ public final class CopyObjectHelper {
     private void sendIndividualUploadPartCopy(String uploadId,
                                               AtomicReferenceArray<CompletedPart> completedParts,
                                               List<CompletableFuture<CompletedPart>> futures,
-                                              UploadPartCopyRequest uploadPartCopyRequest) {
+                                              Pair<UploadPartCopyRequest, Long> requestPair,
+                                              PublisherListener<Long> progressListener) {
+        UploadPartCopyRequest uploadPartCopyRequest = requestPair.left();
+        long partBytes = requestPair.right();
         Integer partNumber = uploadPartCopyRequest.partNumber();
         log.debug(() -> "Sending uploadPartCopyRequest with range: " + uploadPartCopyRequest.copySourceRange() + " uploadId: "
                         + uploadId);
@@ -489,8 +511,11 @@ public final class CopyObjectHelper {
             s3AsyncClient.uploadPartCopy(uploadPartCopyRequest);
 
         CompletableFuture<CompletedPart> convertFuture =
-            uploadPartCopyFuture.thenApply(uploadPartCopyResponse ->
-                                               convertUploadPartCopyResponse(completedParts, partNumber, uploadPartCopyResponse));
+            uploadPartCopyFuture.thenApply(uploadPartCopyResponse -> {
+                CompletedPart completedPart = convertUploadPartCopyResponse(completedParts, partNumber, uploadPartCopyResponse);
+                notifyListener(() -> progressListener.subscriberOnNext(partBytes));
+                return completedPart;
+            });
         futures.add(convertFuture);
 
         CompletableFutureUtils.forwardExceptionTo(convertFuture, uploadPartCopyFuture);
@@ -509,11 +534,35 @@ public final class CopyObjectHelper {
     }
 
     private void copyInOneChunk(CopyObjectRequest copyObjectRequest,
-                                CompletableFuture<CopyObjectResponse> returnFuture) {
+                                CompletableFuture<CopyObjectResponse> returnFuture,
+                                long contentLength) {
+        PublisherListener<Long> progressListener = progressListener(copyObjectRequest);
         CompletableFuture<CopyObjectResponse> copyObjectFuture =
             s3AsyncClient.copyObject(copyObjectRequest);
         CompletableFutureUtils.forwardExceptionTo(returnFuture, copyObjectFuture);
-        CompletableFutureUtils.forwardResultTo(copyObjectFuture, returnFuture);
+        copyObjectFuture.whenComplete((response, throwable) -> {
+            if (throwable != null) {
+                returnFuture.completeExceptionally(throwable);
+            } else {
+                // Report the whole object, even when it is empty, so a successful copy always calls bytesTransferred.
+                notifyListener(() -> progressListener.subscriberOnNext(contentLength));
+                returnFuture.complete(response);
+                notifyListener(progressListener::subscriberOnComplete);
+            }
+        });
+    }
+
+    private static PublisherListener<Long> progressListener(CopyObjectRequest copyObjectRequest) {
+        return copyObjectRequest.overrideConfiguration()
+                                .map(c -> c.executionAttributes().getAttribute(JAVA_PROGRESS_LISTENER))
+                                .orElseGet(PublisherListener::noOp);
+    }
+
+    /**
+     * Runs a progress listener call. A listener failure is logged and never fails or hangs the copy.
+     */
+    private static void notifyListener(UnsafeRunnable listenerCall) {
+        FunctionalUtils.runAndLogError(log.logger(), LISTENER_ERROR_MESSAGE, listenerCall);
     }
 
     private static final class MultipartCopyContext {

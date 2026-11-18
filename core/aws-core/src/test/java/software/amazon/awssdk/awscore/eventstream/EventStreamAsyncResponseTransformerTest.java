@@ -37,9 +37,9 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.eventstream.HeaderValue;
+import software.amazon.awssdk.eventstream.Message;
 import software.amazon.awssdk.utils.ImmutableMap;
-import software.amazon.eventstream.HeaderValue;
-import software.amazon.eventstream.Message;
 
 public class EventStreamAsyncResponseTransformerTest {
 

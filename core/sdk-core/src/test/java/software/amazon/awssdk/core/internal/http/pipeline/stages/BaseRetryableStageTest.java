@@ -37,60 +37,60 @@ class BaseRetryableStageTest {
 
     protected static Stream<RetryAfterTestCase> retryAfterTestCases() {
         return Stream.of(
-            // v2.0
+            // legacy (LegacyRetryStrategy or RetryPolicy)
             new RetryAfterTestCase()
+                .legacyRetryStrategy(true)
                 .description("Parses Retry-After correctly")
                 .retryAfter("1")
                 .expectedDelay(Duration.ofSeconds(1)),
 
             new RetryAfterTestCase()
+                .legacyRetryStrategy(true)
                 .description("Ignores format error")
                 .retryAfter("one second")
                 .expectedDelay(Duration.ZERO),
 
             new RetryAfterTestCase()
+                .legacyRetryStrategy(true)
                 .description("Ignores int overflow")
                 .retryAfter(Long.toString(Long.MAX_VALUE))
                 .expectedDelay(Duration.ZERO),
 
             new RetryAfterTestCase()
+                .legacyRetryStrategy(true)
                 .description("Ignores x-amz-retry-after")
                 .retryAfter("1")
                 .xAmzRetryAfter("50")
                 .expectedDelay(Duration.ofSeconds(1)),
 
             new RetryAfterTestCase()
+                .legacyRetryStrategy(true)
                 .description("No header, no delay")
                 .expectedDelay(Duration.ZERO),
 
-            // v2.1
+            // every other retry strategy
             new RetryAfterTestCase()
-                .newRetries2026Enabled(true)
                 .description("Parses x-amz-retry-after correctly")
                 .xAmzRetryAfter("1")
                 .expectedDelay(Duration.ofMillis(1)),
 
             new RetryAfterTestCase()
-                .newRetries2026Enabled(true)
                 .description("Ignores format error")
                 .xAmzRetryAfter("one second")
                 .expectedDelay(Duration.ZERO),
 
             new RetryAfterTestCase()
-                .newRetries2026Enabled(true)
                 .description("Ignores int overflow")
                 .xAmzRetryAfter(Long.toString(Long.MAX_VALUE))
                 .expectedDelay(Duration.ZERO),
 
             new RetryAfterTestCase()
-                .newRetries2026Enabled(true)
                 .description("Ignores Retry-After")
                 .retryAfter("1")
                 .xAmzRetryAfter("50")
                 .expectedDelay(Duration.ofMillis(50)),
 
             new RetryAfterTestCase()
-                .newRetries2026Enabled(true)
                 .description("No header, no delay")
                 .expectedDelay(Duration.ZERO)
         );
@@ -138,7 +138,7 @@ class BaseRetryableStageTest {
         private String description;
         private String retryAfter;
         private String xAmzRetryAfter;
-        private boolean newRetries2026Enabled;
+        private boolean legacyRetryStrategy;
         private Duration expectedDelay;
 
         public RetryAfterTestCase description(String description) {
@@ -164,13 +164,13 @@ class BaseRetryableStageTest {
             return xAmzRetryAfter;
         }
 
-        public RetryAfterTestCase newRetries2026Enabled(boolean newRetries2026Enabled) {
-            this.newRetries2026Enabled = newRetries2026Enabled;
+        public RetryAfterTestCase legacyRetryStrategy(boolean legacyRetryStrategy) {
+            this.legacyRetryStrategy = legacyRetryStrategy;
             return this;
         }
 
-        public boolean isNewRetries2026Enabled() {
-            return newRetries2026Enabled;
+        public boolean isLegacyRetryStrategy() {
+            return legacyRetryStrategy;
         }
 
         public RetryAfterTestCase expectedDelay(Duration expectedDelay) {
@@ -184,8 +184,8 @@ class BaseRetryableStageTest {
 
         @Override
         public String toString() {
-            if (newRetries2026Enabled) {
-                return "[v2.1] " + description;
+            if (legacyRetryStrategy) {
+                return "[legacy] " + description;
             }
             return description;
         }

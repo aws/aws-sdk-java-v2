@@ -232,11 +232,16 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     ClientOverrideConfiguration.Builder builder = configuration.asOverrideConfigurationBuilder();
     RetryMode retryMode = builder.retryMode();
     if (retryMode != null) {
-      configuration.option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.forRetryMode(retryMode));
+      configuration.option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.forRetryMode(retryMode, configuration.option(SdkClientOption.PROFILE_FILE_SUPPLIER), configuration.option(SdkClientOption.PROFILE_NAME)));
     } else {
       Consumer<RetryStrategy.Builder<?, ?>> configurator = builder.retryStrategyConfigurator();
       if (configurator != null) {
-        RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.defaultRetryStrategy().toBuilder();
+        RetryMode defaultRetryMode = RetryMode.resolver()
+                .profileFile(configuration.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                .profileName(configuration.option(SdkClientOption.PROFILE_NAME))
+                .defaultRetryMode(configuration.option(SdkClientOption.DEFAULT_RETRY_MODE)).resolve();
+        RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.forRetryMode(defaultRetryMode,
+                configuration.option(SdkClientOption.PROFILE_FILE_SUPPLIER), configuration.option(SdkClientOption.PROFILE_NAME)).toBuilder();
         configurator.accept(defaultBuilder);
         configuration.option(SdkClientOption.RETRY_STRATEGY, defaultBuilder.build());
       } else {

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.multipart;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
@@ -37,4 +38,11 @@ public final class S3MultipartExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Boolean> REPORT_PROGRESS_IN_SINGLE_CHUNK =
         new ExecutionAttribute<>("ReportProgressInSingleChunk");
+
+    /**
+     * Receives the content length of a copy's source object, as returned by HeadObject. It is called before any bytes of
+     * the copy are reported to {@link #JAVA_PROGRESS_LISTENER}, so the listener can know the total size of the copy.
+     */
+    public static final ExecutionAttribute<Consumer<Long>> COPY_SOURCE_CONTENT_LENGTH_LISTENER =
+        new ExecutionAttribute<>("CopySourceContentLengthListener");
 }

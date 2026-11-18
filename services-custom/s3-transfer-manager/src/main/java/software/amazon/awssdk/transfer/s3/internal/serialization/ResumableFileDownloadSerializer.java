@@ -91,7 +91,10 @@ public final class ResumableFileDownloadSerializer {
         jsonGenerator.writeFieldName("getObjectRequest");
         jsonGenerator.writeStartObject();
         validateNoRequestOverrideConfiguration(getObjectRequest);
-        getObjectRequest.sdkFields().forEach(field -> marshallPojoField(field, getObjectRequest, jsonGenerator));
+        getObjectRequest.sdkFields()
+                        .stream()
+                        .filter(TransferManagerMarshallingUtils::isPersisted)
+                        .forEach(field -> marshallPojoField(field, getObjectRequest, jsonGenerator));
         jsonGenerator.writeEndObject();
     }
 

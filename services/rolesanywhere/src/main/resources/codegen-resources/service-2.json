@@ -24,7 +24,8 @@
       "output":{"shape":"ProfileDetailResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Creates a <i>profile</i>, a list of the roles that Roles Anywhere service is trusted to assume. You use profiles to intersect permissions with IAM managed policies.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:CreateProfile</code>. </p>"
     },
@@ -39,7 +40,8 @@
       "output":{"shape":"TrustAnchorDetailResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Creates a trust anchor to establish trust between IAM Roles Anywhere and your certificate authority (CA). You can define a trust anchor as a reference to an Private Certificate Authority (Private CA) or by uploading a CA certificate. Your Amazon Web Services workloads can authenticate with the trust anchor using certificates issued by the CA in exchange for temporary Amazon Web Services credentials.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:CreateTrustAnchor</code>. </p>"
     },
@@ -55,7 +57,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Delete an entry from the attribute mapping rules enforced by a given profile.</p>",
       "idempotent":true
@@ -71,7 +74,8 @@
       "output":{"shape":"CrlDetailResponse"},
       "errors":[
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Deletes a certificate revocation list (CRL).</p> <p> <b>Required permissions: </b> <code>rolesanywhere:DeleteCrl</code>. </p>",
       "idempotent":true
@@ -87,7 +91,8 @@
       "output":{"shape":"ProfileDetailResponse"},
       "errors":[
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Deletes a profile.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:DeleteProfile</code>. </p>",
       "idempotent":true
@@ -103,7 +108,8 @@
       "output":{"shape":"TrustAnchorDetailResponse"},
       "errors":[
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Deletes a trust anchor.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:DeleteTrustAnchor</code>. </p>",
       "idempotent":true
@@ -119,7 +125,8 @@
       "output":{"shape":"CrlDetailResponse"},
       "errors":[
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Disables a certificate revocation list (CRL).</p> <p> <b>Required permissions: </b> <code>rolesanywhere:DisableCrl</code>. </p>"
     },
@@ -134,7 +141,8 @@
       "output":{"shape":"ProfileDetailResponse"},
       "errors":[
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Disables a profile. When disabled, temporary credential requests with this profile fail.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:DisableProfile</code>. </p>"
     },
@@ -149,7 +157,8 @@
       "output":{"shape":"TrustAnchorDetailResponse"},
       "errors":[
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Disables a trust anchor. When disabled, temporary credential requests specifying this trust anchor are unauthorized.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:DisableTrustAnchor</code>. </p>"
     },
@@ -164,7 +173,8 @@
       "output":{"shape":"CrlDetailResponse"},
       "errors":[
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Enables a certificate revocation list (CRL). When enabled, certificates stored in the CRL are unauthorized to receive session credentials.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:EnableCrl</code>. </p>"
     },
@@ -179,7 +189,8 @@
       "output":{"shape":"ProfileDetailResponse"},
       "errors":[
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Enables temporary credential requests for a profile. </p> <p> <b>Required permissions: </b> <code>rolesanywhere:EnableProfile</code>. </p>"
     },
@@ -194,7 +205,8 @@
       "output":{"shape":"TrustAnchorDetailResponse"},
       "errors":[
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Enables a trust anchor. When enabled, certificates in the trust anchor chain are authorized for trust validation. </p> <p> <b>Required permissions: </b> <code>rolesanywhere:EnableTrustAnchor</code>. </p>"
     },
@@ -208,7 +220,8 @@
       "input":{"shape":"ScalarCrlRequest"},
       "output":{"shape":"CrlDetailResponse"},
       "errors":[
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Gets a certificate revocation list (CRL).</p> <p> <b>Required permissions: </b> <code>rolesanywhere:GetCrl</code>. </p>",
       "readonly":true
@@ -224,7 +237,8 @@
       "output":{"shape":"ProfileDetailResponse"},
       "errors":[
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Gets a profile.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:GetProfile</code>. </p>",
       "readonly":true
@@ -240,7 +254,8 @@
       "output":{"shape":"SubjectDetailResponse"},
       "errors":[
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Gets a <i>subject</i>, which associates a certificate identity with authentication attempts. The subject stores auditing information such as the status of the last authentication attempt, the certificate data used in the attempt, and the last time the associated identity attempted authentication. </p> <p> <b>Required permissions: </b> <code>rolesanywhere:GetSubject</code>. </p>",
       "readonly":true
@@ -257,7 +272,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Gets a trust anchor.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:GetTrustAnchor</code>. </p>",
       "readonly":true
@@ -273,7 +289,8 @@
       "output":{"shape":"CrlDetailResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Imports the certificate revocation list (CRL). A CRL is a list of certificates that have been revoked by the issuing certificate Authority (CA).In order to be properly imported, a CRL must be in PEM format. IAM Roles Anywhere validates against the CRL before issuing credentials. </p> <p> <b>Required permissions: </b> <code>rolesanywhere:ImportCrl</code>. </p>"
     },
@@ -288,7 +305,8 @@
       "output":{"shape":"ListCrlsResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Lists all certificate revocation lists (CRL) in the authenticated account and Amazon Web Services Region.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:ListCrls</code>. </p>",
       "readonly":true
@@ -304,7 +322,8 @@
       "output":{"shape":"ListProfilesResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Lists all profiles in the authenticated account and Amazon Web Services Region.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:ListProfiles</code>. </p>",
       "readonly":true
@@ -320,7 +339,8 @@
       "output":{"shape":"ListSubjectsResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Lists the subjects in the authenticated account and Amazon Web Services Region.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:ListSubjects</code>. </p>",
       "readonly":true
@@ -337,7 +357,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Lists the tags attached to the resource.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:ListTagsForResource</code>. </p>",
       "readonly":true
@@ -353,7 +374,8 @@
       "output":{"shape":"ListTrustAnchorsResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Lists the trust anchors in the authenticated account and Amazon Web Services Region.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:ListTrustAnchors</code>. </p>",
       "readonly":true
@@ -370,7 +392,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Put an entry in the attribute mapping rules that will be enforced by a given profile. A mapping specifies a certificate field and one or more specifiers that have contextual meanings.</p>",
       "idempotent":true
@@ -387,7 +410,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Attaches a list of <i>notification settings</i> to a trust anchor.</p> <p>A notification setting includes information such as event name, threshold, status of the notification setting, and the channel to notify.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:PutNotificationSettings</code>. </p>"
     },
@@ -403,7 +427,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Resets the <i>custom notification setting</i> to IAM Roles Anywhere default setting. </p> <p> <b>Required permissions: </b> <code>rolesanywhere:ResetNotificationSettings</code>. </p>"
     },
@@ -420,6 +445,7 @@
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"},
         {"shape":"TooManyTagsException"}
       ],
       "documentation":"<p>Attaches tags to a resource.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:TagResource</code>. </p>"
@@ -436,7 +462,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Removes tags from the resource.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:UntagResource</code>. </p>"
     },
@@ -452,7 +479,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Updates the certificate revocation list (CRL). A CRL is a list of certificates that have been revoked by the issuing certificate authority (CA). IAM Roles Anywhere validates against the CRL before issuing credentials.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:UpdateCrl</code>. </p>"
     },
@@ -468,7 +496,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Updates a <i>profile</i>, a list of the roles that IAM Roles Anywhere service is trusted to assume. You use profiles to intersect permissions with IAM managed policies.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:UpdateProfile</code>. </p>",
       "idempotent":true
@@ -485,7 +514,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Updates a trust anchor. You establish trust between IAM Roles Anywhere and your certificate authority (CA) by configuring a trust anchor. You can define a trust anchor as a reference to an Private Certificate Authority (Private CA) or by uploading a CA certificate. Your Amazon Web Services workloads can authenticate with the trust anchor using certificates issued by the CA in exchange for temporary Amazon Web Services credentials.</p> <p> <b>Required permissions: </b> <code>rolesanywhere:UpdateTrustAnchor</code>. </p>",
       "idempotent":true
@@ -503,6 +533,12 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "AliasName":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"(?!.*//)([A-Za-z]([A-Za-z0-9_/-]*[A-Za-z0-9_-])?)?"
     },
     "AmazonResourceName":{
       "type":"string",
@@ -582,6 +618,10 @@
         "acceptRoleSessionName":{
           "shape":"Boolean",
           "documentation":"<p>Used to determine if a custom role session name will be accepted in a temporary credential request.</p>"
+        },
+        "aliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>An alias for the profile. When you set an alias, the response includes the alias ARN of the profile in <code>aliasArn</code>.</p> <p>An alias name contains 1 to 256 characters. It must begin with a letter (A-Z or a-z). It can contain only letters (A-Z and a-z), numbers (0-9), underscores (_), hyphens (-), and forward slashes (/). A forward slash can appear only between two other characters, so an alias name can't end with a forward slash or contain two in a row. Alias names that begin with <code>aws/</code>, in any combination of uppercase and lowercase letters, are reserved. Alias names are case sensitive.</p> <p>The alias name must be unique among resources of the same type in your account and Region. If another resource of the same type already has the alias, the request fails with a <code>ValidationException</code>. An invalid or reserved alias name also causes a <code>ValidationException</code>.</p> <p>If you omit this parameter or specify an empty string, the resource is created without an alias.</p>"
         }
       }
     },
@@ -610,6 +650,10 @@
           "shape":"Boolean",
           "documentation":"<p>Specifies whether the trust anchor is enabled.</p>"
         },
+        "crlDpRevocationEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether the trust anchor checks certificate revocation status against CRL distribution points.</p>"
+        },
         "tags":{
           "shape":"TagList",
           "documentation":"<p>The tags to attach to the trust anchor.</p>"
@@ -617,6 +661,10 @@
         "notificationSettings":{
           "shape":"NotificationSettings",
           "documentation":"<p>A list of notification settings to be associated to the trust anchor.</p>"
+        },
+        "aliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>An alias for the trust anchor. When you set an alias, the response includes the alias ARN of the trust anchor in <code>aliasArn</code>.</p> <p>An alias name contains 1 to 256 characters. It must begin with a letter (A-Z or a-z). It can contain only letters (A-Z and a-z), numbers (0-9), underscores (_), hyphens (-), and forward slashes (/). A forward slash can appear only between two other characters, so an alias name can't end with a forward slash or contain two in a row. Alias names that begin with <code>aws/</code>, in any combination of uppercase and lowercase letters, are reserved. Alias names are case sensitive.</p> <p>The alias name must be unique among resources of the same type in your account and Region. If another resource of the same type already has the alias, the request fails with a <code>ValidationException</code>. An invalid or reserved alias name also causes a <code>ValidationException</code>.</p> <p>If you omit this parameter or specify an empty string, the resource is created without an alias.</p>"
         }
       }
     },
@@ -654,6 +702,12 @@
       },
       "documentation":"<p>A record of a presented X509 credential from a temporary credential request. </p>"
     },
+    "CrlAliasArn":{
+      "type":"string",
+      "max":1011,
+      "min":1,
+      "pattern":"arn:aws(-[^:]+)?:rolesanywhere(:.*){2}(:alias/crl/.*)"
+    },
     "CrlDetail":{
       "type":"structure",
       "members":{
@@ -662,7 +716,7 @@
           "documentation":"<p>The unique identifier of the certificate revocation list (CRL).</p>"
         },
         "crlArn":{
-          "shape":"String",
+          "shape":"CrlResourceArn",
           "documentation":"<p>The ARN of the certificate revocation list (CRL).</p>"
         },
         "name":{
@@ -678,7 +732,7 @@
           "documentation":"<p>The state of the certificate revocation list (CRL) after a read or write operation.</p>"
         },
         "trustAnchorArn":{
-          "shape":"String",
+          "shape":"TrustAnchorResourceArn",
           "documentation":"<p>The ARN of the TrustAnchor the certificate revocation list (CRL) will provide revocation for. </p>"
         },
         "createdAt":{
@@ -688,6 +742,18 @@
         "updatedAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The ISO-8601 timestamp when the certificate revocation list (CRL) was last updated. </p>"
+        },
+        "aliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>The alias of the certificate revocation list (CRL). Present only if the CRL has an alias.</p>"
+        },
+        "aliasArn":{
+          "shape":"CrlAliasArn",
+          "documentation":"<p>The alias ARN of the certificate revocation list (CRL), in the form <code>arn:<i>partition</i>:rolesanywhere:<i>region</i>:<i>account</i>:alias/crl/<i>alias-name</i> </code>. Present only if the CRL has an alias.</p> <p>You can use the alias ARN in place of the resource ID or ARN in the request parameters whose descriptions say that they accept an alias ARN. Don't use the alias ARN in Identity and Access Management (IAM) policies. A policy statement that names an alias ARN doesn't apply to the resource that holds the alias. Write policies with the ARN that contains the resource ID instead.</p>"
+        },
+        "previousAliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>The alias that the resource had before the update request. IAM Roles Anywhere returns this value only in the response to an update request that changed or removed an existing alias. It isn't returned when the alias was unchanged, when the resource had no alias before the request, or by other operations.</p>"
         }
       },
       "documentation":"<p>The state of the certificate revocation list (CRL) after a read or write operation.</p>"
@@ -706,6 +772,18 @@
       "type":"list",
       "member":{"shape":"CrlDetail"}
     },
+    "CrlIdentifier":{
+      "type":"string",
+      "max":1011,
+      "min":1,
+      "pattern":"([a-f0-9]{8}-([a-z0-9]{4}-){3}[a-z0-9]{12}|arn:aws(-[^:]+)?:rolesanywhere(:.*){2}:(crl|alias/crl)/.*)"
+    },
+    "CrlResourceArn":{
+      "type":"string",
+      "max":1011,
+      "min":1,
+      "pattern":"arn:aws(-[^:]+)?:rolesanywhere(:.*){2}(:crl/.*)"
+    },
     "DeleteAttributeMappingRequest":{
       "type":"structure",
       "required":[
@@ -714,8 +792,8 @@
       ],
       "members":{
         "profileId":{
-          "shape":"Uuid",
-          "documentation":"<p>The unique identifier of the profile.</p>",
+          "shape":"ProfileIdentifier",
+          "documentation":"<p>The profile to act on. You can specify one of the following:</p> <ul> <li> <p>The profile ID.</p> </li> <li> <p>The profile ARN.</p> </li> <li> <p>The alias ARN of the profile.</p> </li> </ul> <p>An ARN must be for a profile in your account and Region.</p>",
           "location":"uri",
           "locationName":"profileId"
         },
@@ -768,8 +846,12 @@
           "documentation":"<p>A list of tags to attach to the certificate revocation list (CRL).</p>"
         },
         "trustAnchorArn":{
-          "shape":"TrustAnchorArn",
-          "documentation":"<p>The ARN of the TrustAnchor the certificate revocation list (CRL) will provide revocation for.</p>"
+          "shape":"TrustAnchorIdentifierArn",
+          "documentation":"<p>The ARN of the trust anchor that the certificate revocation list (CRL) provides revocation for. Specify the trust anchor ARN that contains the trust anchor ID. This parameter doesn't support alias ARNs. If you specify an alias ARN, the request fails with <code>ResourceNotFoundException</code>.</p>"
+        },
+        "aliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>An alias for the certificate revocation list (CRL). When you set an alias, the response includes the alias ARN of the CRL in <code>aliasArn</code>.</p> <p>An alias name contains 1 to 256 characters. It must begin with a letter (A-Z or a-z). It can contain only letters (A-Z and a-z), numbers (0-9), underscores (_), hyphens (-), and forward slashes (/). A forward slash can appear only between two other characters, so an alias name can't end with a forward slash or contain two in a row. Alias names that begin with <code>aws/</code>, in any combination of uppercase and lowercase letters, are reserved. Alias names are case sensitive.</p> <p>The alias name must be unique among resources of the same type in your account and Region. If another resource of the same type already has the alias, the request fails with a <code>ValidationException</code>. An invalid or reserved alias name also causes a <code>ValidationException</code>.</p> <p>If you omit this parameter or specify an empty string, the resource is created without an alias.</p>"
         }
       }
     },
@@ -1064,11 +1146,11 @@
       "max":50,
       "min":0
     },
-    "ProfileArn":{
+    "ProfileAliasArn":{
       "type":"string",
       "max":1011,
       "min":1,
-      "pattern":"arn:aws(-[^:]+)?:rolesanywhere(:.*){2}(:profile.*)"
+      "pattern":"arn:aws(-[^:]+)?:rolesanywhere(:.*){2}(:alias/profile/.*)"
     },
     "ProfileDetail":{
       "type":"structure",
@@ -1078,7 +1160,7 @@
           "documentation":"<p>The unique identifier of the profile.</p>"
         },
         "profileArn":{
-          "shape":"ProfileArn",
+          "shape":"ProfileResourceArn",
           "documentation":"<p>The ARN of the profile.</p>"
         },
         "name":{
@@ -1128,6 +1210,18 @@
         "attributeMappings":{
           "shape":"AttributeMappings",
           "documentation":"<p>A mapping applied to the authenticating end-entity certificate.</p>"
+        },
+        "aliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>The alias of the profile. Present only if the profile has an alias.</p>"
+        },
+        "aliasArn":{
+          "shape":"ProfileAliasArn",
+          "documentation":"<p>The alias ARN of the profile, in the form <code>arn:<i>partition</i>:rolesanywhere:<i>region</i>:<i>account</i>:alias/profile/<i>alias-name</i> </code>. Present only if the profile has an alias.</p> <p>You can use the alias ARN in place of the resource ID or ARN in the request parameters whose descriptions say that they accept an alias ARN. Don't use the alias ARN in Identity and Access Management (IAM) policies. A policy statement that names an alias ARN doesn't apply to the resource that holds the alias. Write policies with the ARN that contains the resource ID instead.</p>"
+        },
+        "previousAliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>The alias that the resource had before the update request. IAM Roles Anywhere returns this value only in the response to an update request that changed or removed an existing alias. It isn't returned when the alias was unchanged, when the resource had no alias before the request, or by other operations.</p>"
         }
       },
       "documentation":"<p>The state of the profile after a read or write operation.</p>"
@@ -1145,6 +1239,18 @@
       "type":"list",
       "member":{"shape":"ProfileDetail"}
     },
+    "ProfileIdentifier":{
+      "type":"string",
+      "max":1011,
+      "min":1,
+      "pattern":"([a-f0-9]{8}-([a-z0-9]{4}-){3}[a-z0-9]{12}|arn:aws(-[^:]+)?:rolesanywhere(:.*){2}:(profile|alias/profile)/.*)"
+    },
+    "ProfileResourceArn":{
+      "type":"string",
+      "max":1011,
+      "min":1,
+      "pattern":"arn:aws(-[^:]+)?:rolesanywhere(:.*){2}(:profile/.*)"
+    },
     "PutAttributeMappingRequest":{
       "type":"structure",
       "required":[
@@ -1154,8 +1260,8 @@
       ],
       "members":{
         "profileId":{
-          "shape":"Uuid",
-          "documentation":"<p>The unique identifier of the profile.</p>",
+          "shape":"ProfileIdentifier",
+          "documentation":"<p>The profile to act on. You can specify one of the following:</p> <ul> <li> <p>The profile ID.</p> </li> <li> <p>The profile ARN.</p> </li> <li> <p>The alias ARN of the profile.</p> </li> </ul> <p>An ARN must be for a profile in your account and Region.</p>",
           "location":"uri",
           "locationName":"profileId"
         },
@@ -1262,8 +1368,8 @@
       "required":["crlId"],
       "members":{
         "crlId":{
-          "shape":"Uuid",
-          "documentation":"<p>The unique identifier of the certificate revocation list (CRL).</p>",
+          "shape":"CrlIdentifier",
+          "documentation":"<p>The certificate revocation list (CRL) to act on. You can specify one of the following:</p> <ul> <li> <p>The CRL ID.</p> </li> <li> <p>The CRL ARN.</p> </li> <li> <p>The alias ARN of the CRL.</p> </li> </ul> <p>An ARN must be for a CRL in your account and Region.</p>",
           "location":"uri",
           "locationName":"crlId"
         }
@@ -1274,8 +1380,8 @@
       "required":["profileId"],
       "members":{
         "profileId":{
-          "shape":"Uuid",
-          "documentation":"<p>The unique identifier of the profile.</p>",
+          "shape":"ProfileIdentifier",
+          "documentation":"<p>The profile to act on. You can specify one of the following:</p> <ul> <li> <p>The profile ID.</p> </li> <li> <p>The profile ARN.</p> </li> <li> <p>The alias ARN of the profile.</p> </li> </ul> <p>An ARN must be for a profile in your account and Region.</p>",
           "location":"uri",
           "locationName":"profileId"
         }
@@ -1298,12 +1404,31 @@
       "required":["trustAnchorId"],
       "members":{
         "trustAnchorId":{
-          "shape":"Uuid",
-          "documentation":"<p>The unique identifier of the trust anchor.</p>",
+          "shape":"TrustAnchorIdentifier",
+          "documentation":"<p>The trust anchor to act on. You can specify one of the following:</p> <ul> <li> <p>The trust anchor ID.</p> </li> <li> <p>The trust anchor ARN.</p> </li> <li> <p>The alias ARN of the trust anchor.</p> </li> </ul> <p>An ARN must be for a trust anchor in your account and Region.</p>",
           "location":"uri",
           "locationName":"trustAnchorId"
         }
       }
+    },
+    "ServiceUnavailableException":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{
+          "shape":"String",
+          "documentation":"<p>The exception message.</p>"
+        },
+        "retryAfterSeconds":{
+          "shape":"Integer",
+          "documentation":"<p>The recommended number of seconds after which the client should retry the request.</p>"
+        }
+      },
+      "documentation":"<p>The request has failed due to a temporary failure of the service.</p>",
+      "error":{"httpStatusCode":503},
+      "exception":true,
+      "fault":true,
+      "retryable":{"throttling":false}
     },
     "Source":{
       "type":"structure",
@@ -1514,11 +1639,11 @@
       },
       "exception":true
     },
-    "TrustAnchorArn":{
+    "TrustAnchorAliasArn":{
       "type":"string",
       "max":1011,
       "min":1,
-      "pattern":"arn:aws(-[^:]+)?:rolesanywhere(:.*){2}(:trust-anchor.*)"
+      "pattern":"arn:aws(-[^:]+)?:rolesanywhere(:.*){2}(:alias/trust-anchor/.*)"
     },
     "TrustAnchorDetail":{
       "type":"structure",
@@ -1528,7 +1653,7 @@
           "documentation":"<p>The unique identifier of the trust anchor.</p>"
         },
         "trustAnchorArn":{
-          "shape":"String",
+          "shape":"TrustAnchorResourceArn",
           "documentation":"<p>The ARN of the trust anchor.</p>"
         },
         "name":{
@@ -1543,6 +1668,10 @@
           "shape":"Boolean",
           "documentation":"<p>Indicates whether the trust anchor is enabled.</p>"
         },
+        "crlDpRevocationEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether the trust anchor checks certificate revocation status against CRL distribution points.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The ISO-8601 timestamp when the trust anchor was created. </p>"
@@ -1554,6 +1683,18 @@
         "notificationSettings":{
           "shape":"NotificationSettingDetails",
           "documentation":"<p>A list of notification settings to be associated to the trust anchor.</p>"
+        },
+        "aliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>The alias of the trust anchor. Present only if the trust anchor has an alias.</p>"
+        },
+        "aliasArn":{
+          "shape":"TrustAnchorAliasArn",
+          "documentation":"<p>The alias ARN of the trust anchor, in the form <code>arn:<i>partition</i>:rolesanywhere:<i>region</i>:<i>account</i>:alias/trust-anchor/<i>alias-name</i> </code>. Present only if the trust anchor has an alias.</p> <p>You can use the alias ARN in place of the resource ID or ARN in the request parameters whose descriptions say that they accept an alias ARN. Don't use the alias ARN in Identity and Access Management (IAM) policies. A policy statement that names an alias ARN doesn't apply to the resource that holds the alias. Write policies with the ARN that contains the resource ID instead.</p>"
+        },
+        "previousAliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>The alias that the resource had before the update request. IAM Roles Anywhere returns this value only in the response to an update request that changed or removed an existing alias. It isn't returned when the alias was unchanged, when the resource had no alias before the request, or by other operations.</p>"
         }
       },
       "documentation":"<p>The state of the trust anchor after a read or write operation. </p>"
@@ -1571,6 +1712,24 @@
     "TrustAnchorDetails":{
       "type":"list",
       "member":{"shape":"TrustAnchorDetail"}
+    },
+    "TrustAnchorIdentifier":{
+      "type":"string",
+      "max":1011,
+      "min":1,
+      "pattern":"([a-f0-9]{8}-([a-z0-9]{4}-){3}[a-z0-9]{12}|arn:aws(-[^:]+)?:rolesanywhere(:.*){2}:(trust-anchor|alias/trust-anchor)/.*)"
+    },
+    "TrustAnchorIdentifierArn":{
+      "type":"string",
+      "max":1011,
+      "min":1,
+      "pattern":"arn:aws(-[^:]+)?:rolesanywhere(:.*){2}(:trust-anchor.*|:alias/trust-anchor/.*)"
+    },
+    "TrustAnchorResourceArn":{
+      "type":"string",
+      "max":1011,
+      "min":1,
+      "pattern":"arn:aws(-[^:]+)?:rolesanywhere(:.*){2}(:trust-anchor/.*)"
     },
     "TrustAnchorType":{
       "type":"string",
@@ -1606,8 +1765,8 @@
       "required":["crlId"],
       "members":{
         "crlId":{
-          "shape":"Uuid",
-          "documentation":"<p>The unique identifier of the certificate revocation list (CRL).</p>",
+          "shape":"CrlIdentifier",
+          "documentation":"<p>The certificate revocation list (CRL) to act on. You can specify one of the following:</p> <ul> <li> <p>The CRL ID.</p> </li> <li> <p>The CRL ARN.</p> </li> <li> <p>The alias ARN of the CRL.</p> </li> </ul> <p>An ARN must be for a CRL in your account and Region.</p>",
           "location":"uri",
           "locationName":"crlId"
         },
@@ -1618,6 +1777,10 @@
         "crlData":{
           "shape":"UpdateCrlRequestCrlDataBlob",
           "documentation":"<p>The x509 v3 specified certificate revocation list (CRL).</p>"
+        },
+        "aliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>The alias for the certificate revocation list (CRL).</p> <p>You can use this parameter in the following ways:</p> <ul> <li> <p>To set or change the alias, specify the new alias name. After the change, the previous alias ARN no longer identifies the resource. You can then assign the previous alias to another resource of the same type. A change can take a short time to take effect for requests that use an alias ARN.</p> </li> <li> <p>To remove the alias, specify an empty string.</p> </li> <li> <p>To keep the current alias, omit this parameter.</p> </li> </ul> <p>An alias name contains 1 to 256 characters. It must begin with a letter (A-Z or a-z). It can contain only letters (A-Z and a-z), numbers (0-9), underscores (_), hyphens (-), and forward slashes (/). A forward slash can appear only between two other characters, so an alias name can't end with a forward slash or contain two in a row. Alias names that begin with <code>aws/</code>, in any combination of uppercase and lowercase letters, are reserved. Alias names are case sensitive.</p> <p>The alias name must be unique among resources of the same type in your account and Region. If another resource of the same type already has the alias, the request fails with a <code>ValidationException</code>. An invalid or reserved alias name also causes a <code>ValidationException</code>.</p>"
         }
       }
     },
@@ -1631,8 +1794,8 @@
       "required":["profileId"],
       "members":{
         "profileId":{
-          "shape":"Uuid",
-          "documentation":"<p>The unique identifier of the profile.</p>",
+          "shape":"ProfileIdentifier",
+          "documentation":"<p>The profile to act on. You can specify one of the following:</p> <ul> <li> <p>The profile ID.</p> </li> <li> <p>The profile ARN.</p> </li> <li> <p>The alias ARN of the profile.</p> </li> </ul> <p>An ARN must be for a profile in your account and Region.</p>",
           "location":"uri",
           "locationName":"profileId"
         },
@@ -1659,6 +1822,10 @@
         "acceptRoleSessionName":{
           "shape":"Boolean",
           "documentation":"<p>Used to determine if a custom role session name will be accepted in a temporary credential request.</p>"
+        },
+        "aliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>The alias for the profile.</p> <p>You can use this parameter in the following ways:</p> <ul> <li> <p>To set or change the alias, specify the new alias name. After the change, the previous alias ARN no longer identifies the resource. You can then assign the previous alias to another resource of the same type. A change can take a short time to take effect for requests that use an alias ARN.</p> </li> <li> <p>To remove the alias, specify an empty string.</p> </li> <li> <p>To keep the current alias, omit this parameter.</p> </li> </ul> <p>An alias name contains 1 to 256 characters. It must begin with a letter (A-Z or a-z). It can contain only letters (A-Z and a-z), numbers (0-9), underscores (_), hyphens (-), and forward slashes (/). A forward slash can appear only between two other characters, so an alias name can't end with a forward slash or contain two in a row. Alias names that begin with <code>aws/</code>, in any combination of uppercase and lowercase letters, are reserved. Alias names are case sensitive.</p> <p>The alias name must be unique among resources of the same type in your account and Region. If another resource of the same type already has the alias, the request fails with a <code>ValidationException</code>. An invalid or reserved alias name also causes a <code>ValidationException</code>.</p>"
         }
       }
     },
@@ -1678,8 +1845,8 @@
       "required":["trustAnchorId"],
       "members":{
         "trustAnchorId":{
-          "shape":"Uuid",
-          "documentation":"<p>The unique identifier of the trust anchor.</p>",
+          "shape":"TrustAnchorIdentifier",
+          "documentation":"<p>The trust anchor to act on. You can specify one of the following:</p> <ul> <li> <p>The trust anchor ID.</p> </li> <li> <p>The trust anchor ARN.</p> </li> <li> <p>The alias ARN of the trust anchor.</p> </li> </ul> <p>An ARN must be for a trust anchor in your account and Region.</p>",
           "location":"uri",
           "locationName":"trustAnchorId"
         },
@@ -1690,6 +1857,14 @@
         "source":{
           "shape":"Source",
           "documentation":"<p>The trust anchor type and its related certificate data.</p>"
+        },
+        "crlDpRevocationEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether the trust anchor checks certificate revocation status against CRL distribution points.</p>"
+        },
+        "aliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>The alias for the trust anchor.</p> <p>You can use this parameter in the following ways:</p> <ul> <li> <p>To set or change the alias, specify the new alias name. After the change, the previous alias ARN no longer identifies the resource. You can then assign the previous alias to another resource of the same type. A change can take a short time to take effect for requests that use an alias ARN.</p> </li> <li> <p>To remove the alias, specify an empty string.</p> </li> <li> <p>To keep the current alias, omit this parameter.</p> </li> </ul> <p>An alias name contains 1 to 256 characters. It must begin with a letter (A-Z or a-z). It can contain only letters (A-Z and a-z), numbers (0-9), underscores (_), hyphens (-), and forward slashes (/). A forward slash can appear only between two other characters, so an alias name can't end with a forward slash or contain two in a row. Alias names that begin with <code>aws/</code>, in any combination of uppercase and lowercase letters, are reserved. Alias names are case sensitive.</p> <p>The alias name must be unique among resources of the same type in your account and Region. If another resource of the same type already has the alias, the request fails with a <code>ValidationException</code>. An invalid or reserved alias name also causes a <code>ValidationException</code>.</p>"
         }
       }
     },

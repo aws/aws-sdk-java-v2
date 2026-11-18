@@ -26,7 +26,7 @@ import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchCon
 import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchManager;
 import software.amazon.awssdk.utils.Either;
 
-public class SampleBatchManager extends RequestBatchManager<String, String, BatchResponse> {
+public class SampleBatchManager extends RequestBatchManager<String, String, BatchResponse, String> {
     private final CustomClient client;
 
 
@@ -34,6 +34,13 @@ public class SampleBatchManager extends RequestBatchManager<String, String, Batc
                                  ScheduledExecutorService executorService,
                                  CustomClient client) {
         super(RequestBatchConfiguration.builder(batchOverrideConfiguration).build(), executorService);
+        this.client = client;
+    }
+
+    protected SampleBatchManager(RequestBatchConfiguration requestBatchConfiguration,
+                                 ScheduledExecutorService executorService,
+                                 CustomClient client) {
+        super(requestBatchConfiguration, executorService);
         this.client = client;
     }
 

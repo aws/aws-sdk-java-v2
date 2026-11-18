@@ -17,16 +17,23 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 
+import java.util.OptionalLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.transfer.s3.internal.utils.LogSanitizer;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public class PauseResumeHelper {
+    /**
+     * The max number of parts on S3 side is 10,000
+     */
+    private static final long MAX_UPLOAD_PARTS = 10_000;
     private static final Logger log = Logger.loggerFor(PauseResumeHelper.class);
 
     protected boolean fileModified(ResumableFileUpload resumableFileUpload, S3AsyncClient s3AsyncClient) {
@@ -37,18 +44,20 @@ public class PauseResumeHelper {
         if (fileModified) {
             UploadFileRequest uploadFileRequest = resumableFileUpload.uploadFileRequest();
             PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
-            log.debug(() -> String.format("The file (%s) has been modified since "
-                                          + "the last pause. " +
-                                          "The SDK will upload the requested object in bucket"
-                                          + " (%s) with key (%s) from "
-                                          + "the "
-                                          + "beginning.",
-                                          uploadFileRequest.source(),
-                                          putObjectRequest.bucket(),
-                                          putObjectRequest.key()));
+            log.debug(() -> LogSanitizer.escapeControlCharacters(
+                String.format("The file (%s) has been modified since "
+                              + "the last pause. " +
+                              "The SDK will upload the requested object in bucket"
+                              + " (%s) with key (%s) from "
+                              + "the "
+                              + "beginning.",
+                              uploadFileRequest.source(),
+                              putObjectRequest.bucket(),
+                              putObjectRequest.key())));
             resumableFileUpload.multipartUploadId()
                                .ifPresent(id -> {
-                                   log.debug(() -> "Aborting previous upload with multipartUploadId: " + id);
+                                   log.debug(() -> LogSanitizer.escapeControlCharacters(
+                                       "Aborting previous upload with multipartUploadId: " + id));
                                    s3AsyncClient.abortMultipartUpload(
                                                     AbortMultipartUploadRequest.builder()
                                                                                .bucket(putObjectRequest.bucket())
@@ -56,13 +65,14 @@ public class PauseResumeHelper {
                                                                                .uploadId(id)
                                                                                .build())
                                                 .exceptionally(t -> {
-                                                    log.warn(() -> String.format("Failed to abort previous multipart upload "
-                                                                                 + "(id: %s)"
-                                                                                 + ". You may need to call "
-                                                                                 + "S3AsyncClient#abortMultiPartUpload to "
-                                                                                 + "free all storage consumed by"
-                                                                                 + " all parts. ",
-                                                                                 id), t);
+                                                    log.warn(() -> LogSanitizer.escapeControlCharacters(
+                                                        String.format("Failed to abort previous multipart upload "
+                                                                      + "(id: %s)"
+                                                                      + ". You may need to call "
+                                                                      + "S3AsyncClient#abortMultiPartUpload to "
+                                                                      + "free all storage consumed by"
+                                                                      + " all parts. ",
+                                                                      id)), t);
                                                     return null;
                                                 });
                                });
@@ -78,14 +88,44 @@ public class PauseResumeHelper {
         if (!hasResumeToken) {
             UploadFileRequest uploadFileRequest = resumableFileUpload.uploadFileRequest();
             PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
-            log.debug(() -> String.format("No resume token is found. " +
-                                          "The SDK will upload the requested object in bucket"
-                                          + " (%s) with key (%s) from "
-                                          + "the beginning.",
-                                          putObjectRequest.bucket(),
-                                          putObjectRequest.key()));
+            log.debug(() -> LogSanitizer.escapeControlCharacters(
+                String.format("No resume token is found. " +
+                              "The SDK will upload the requested object in bucket"
+                              + " (%s) with key (%s) from "
+                              + "the beginning.",
+                              putObjectRequest.bucket(),
+                              putObjectRequest.key())));
         }
 
         return hasResumeToken;
+    }
+
+    /**
+     * Checks that each part count and the part size present in the resume token are within the limits of a multipart upload.
+     *
+     * <p>Each field is checked on its own when it is present, whether or not the other fields are present.
+     */
+    protected void validateResumeToken(ResumableFileUpload resumableFileUpload) {
+        OptionalLong partSizeInBytes = resumableFileUpload.partSizeInBytes();
+        if (partSizeInBytes.isPresent()) {
+            long partSize = partSizeInBytes.getAsLong();
+            Validate.isTrue(partSize > 0, "Invalid resume token: partSizeInBytes %s must be greater than 0", partSize);
+        }
+
+        OptionalLong totalPartsInToken = resumableFileUpload.totalParts();
+        if (totalPartsInToken.isPresent()) {
+            long totalParts = totalPartsInToken.getAsLong();
+            Validate.isTrue(totalParts >= 1 && totalParts <= MAX_UPLOAD_PARTS,
+                            "Invalid resume token: totalParts %s must be between 1 and %s", totalParts, MAX_UPLOAD_PARTS);
+        }
+
+        OptionalLong transferredPartsInToken = resumableFileUpload.transferredParts();
+        if (transferredPartsInToken.isPresent()) {
+            long transferredParts = transferredPartsInToken.getAsLong();
+            long maxTransferredParts = totalPartsInToken.orElse(MAX_UPLOAD_PARTS);
+            Validate.isTrue(transferredParts >= 0 && transferredParts <= maxTransferredParts,
+                            "Invalid resume token: transferredParts %s must be between 0 and %s",
+                            transferredParts, maxTransferredParts);
+        }
     }
 }

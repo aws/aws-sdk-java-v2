@@ -18,18 +18,27 @@ package software.amazon.awssdk.profiles;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.LongSupplier;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.profiles.internal.ProfileFileReader;
 import software.amazon.awssdk.utils.StringInputStream;
 
 /**
  * Validate the functionality of {@link ProfileFile}.
  */
 public class ProfileFileTest {
+    private static final int CONTINUATION_BASE_LINE_COUNT = 5_000;
+
     @Test
     public void emptyFilesHaveNoProfiles() {
         assertThat(configFileProfiles("")).isEmpty();
@@ -261,6 +270,227 @@ public class ProfileFileTest {
                                                     "[profile foo]\n" +
                                                     " -continued"))
             .hasMessageContaining("Expected a profile or property definition");
+    }
+
+    @Test
+    public void continuationsSkipBlankAndCommentLines() {
+        assertThat(configFileProfiles("[profile foo]\n" +
+                                      "name = value\n" +
+                                      " -continued\n" +
+                                      "\n" +
+                                      "# Comment\n" +
+                                      "; Comment\n" +
+                                      " -and-continued\n" +
+                                      "name2 = value2"))
+            .isEqualTo(profiles(profile("foo",
+                                        property("name", "value\n-continued\n-and-continued"),
+                                        property("name2", "value2"))));
+    }
+
+    @Test
+    public void continuationsEndWithPropertyAndProfileDefinitions() {
+        assertThat(configFileProfiles("[profile foo]\n" +
+                                      "name = value\n" +
+                                      " -continued\n" +
+                                      "name2 = value2\n" +
+                                      " -continued2\n" +
+                                      "[profile bar]\n" +
+                                      "name = bar-value\n" +
+                                      " -bar-continued\n" +
+                                      "[profile foo]\n" +
+                                      "name3 = value3\n" +
+                                      " -continued3"))
+            .isEqualTo(profiles(profile("foo",
+                                        property("name", "value\n-continued"),
+                                        property("name2", "value2\n-continued2"),
+                                        property("name3", "value3\n-continued3")),
+                                profile("bar",
+                                        property("name", "bar-value\n-bar-continued"))));
+    }
+
+    @Test
+    public void continuationsBeforeIgnoredProfileAreKept() {
+        assertThat(configFileProfiles("[profile foo]\n" +
+                                      "name = value\n" +
+                                      " -continued\n" +
+                                      "[invalid]\n" +
+                                      "name = ignored\n" +
+                                      " -ignored"))
+            .isEqualTo(profiles(profile("foo", property("name", "value\n-continued"))));
+    }
+
+    @Test
+    public void duplicatePropertyAfterContinuationsUsesTheLastOneDefined() {
+        assertThat(configFileProfiles("[profile foo]\n" +
+                                      "name = value\n" +
+                                      " -continued\n" +
+                                      "name = value2\n" +
+                                      " -continued2"))
+            .isEqualTo(profiles(profile("foo", property("name", "value2\n-continued2"))));
+
+        assertThat(configFileProfiles("[profile foo]\n" +
+                                      "name = value\n" +
+                                      " -continued\n" +
+                                      "name = value2"))
+            .isEqualTo(profiles(profile("foo", property("name", "value2"))));
+    }
+
+    @Test
+    public void subPropertyContinuationsKeepKeyOrder() {
+        Map<String, Map<String, Map<String, String>>> parsed =
+            ProfileFileReader.parseFile(new StringInputStream("[profile foo]\n" +
+                                                              "s3 =\n" +
+                                                              "  max_concurrent_requests = 10\n" +
+                                                              "  addressing_style = path\n" +
+                                                              "name = value"),
+                                        ProfileFile.Type.CONFIGURATION);
+
+        Map<String, String> properties = parsed.get(ProfileFile.PROFILES_SECTION_TITLE).get("foo");
+        assertThat(properties.keySet()).containsExactly("s3",
+                                                        "s3.max_concurrent_requests",
+                                                        "s3.addressing_style",
+                                                        "name");
+        assertThat(properties.get("s3")).isEqualTo("\nmax_concurrent_requests = 10\naddressing_style = path");
+        assertThat(properties.get("s3.max_concurrent_requests")).isEqualTo("10");
+        assertThat(properties.get("s3.addressing_style")).isEqualTo("path");
+        assertThat(properties.get("name")).isEqualTo("value");
+    }
+
+    @Test
+    public void continuationAtEndOfFileIsKept() {
+        assertThat(configFileProfiles("[profile foo]\n" +
+                                      "name = value\n" +
+                                      " -continued\n"))
+            .isEqualTo(profiles(profile("foo", property("name", "value\n-continued"))));
+    }
+
+    @Test
+    public void continuationsEndWithNonProfileSectionDefinition() {
+        Map<String, Map<String, Map<String, String>>> parsed =
+            ProfileFileReader.parseFile(new StringInputStream("[profile foo]\n" +
+                                                              "name = value\n" +
+                                                              " -continued\n" +
+                                                              "[sso-session x]\n" +
+                                                              "sso_region = us-west-2\n" +
+                                                              " -sso-continued\n" +
+                                                              "start_url = someUrl"),
+                                        ProfileFile.Type.CONFIGURATION);
+
+        Map<String, String> fooProperties = new HashMap<>();
+        fooProperties.put("name", "value\n-continued");
+        assertThat(parsed.get(ProfileFile.PROFILES_SECTION_TITLE)).containsOnlyKeys("foo");
+        assertThat(parsed.get(ProfileFile.PROFILES_SECTION_TITLE).get("foo")).isEqualTo(fooProperties);
+
+        Map<String, String> ssoProperties = new HashMap<>();
+        ssoProperties.put("sso_region", "us-west-2\n-sso-continued");
+        ssoProperties.put("start_url", "someUrl");
+        assertThat(parsed.get("sso-session")).containsOnlyKeys("x");
+        assertThat(parsed.get("sso-session").get("x")).isEqualTo(ssoProperties);
+    }
+
+    @Test
+    public void continuationInDefaultIsDroppedByLaterProfileDefault() {
+        assertThat(configFileProfiles("[default]\n" +
+                                      "name = value\n" +
+                                      " -continued\n" +
+                                      "[profile default]\n" +
+                                      "name2 = value2\n" +
+                                      " -continued2"))
+            .isEqualTo(profiles(profile("default", property("name2", "value2\n-continued2"))));
+    }
+
+    @Test
+    public void manyContinuationLinesParseWithLinearAllocation() {
+        assumeTrue(ThreadAllocationCounter.isSupported());
+        long[] allocated = ThreadAllocationCounter.measure(ProfileFileTest::measureContinuationAllocation);
+
+        // Linear parsing allocates about 8 times as much for 8 times the lines. Re-copying the value on each line is
+        // quadratic, about 64 times as much.
+        // 16 sits between the two.
+        int baseLineCount = CONTINUATION_BASE_LINE_COUNT;
+        double ratio = (double) allocated[3] / allocated[0];
+        assertThat(ratio).as("allocation growth from %s to %s continuation lines, allocated bytes %s",
+                             baseLineCount, baseLineCount << 3, Arrays.toString(allocated))
+                         .isLessThan(16.0);
+    }
+
+    private static long[] measureContinuationAllocation(LongSupplier allocatedBytes) {
+        String continuation = "-a-continued-property-value";
+        int baseLineCount = CONTINUATION_BASE_LINE_COUNT;
+
+        // Warm up the parser before measuring, so JIT compilation does not skew the smallest size.
+        for (int i = 0; i < 3; i++) {
+            parseContinuations(baseLineCount * 2, continuation);
+        }
+
+        long[] allocated = new long[4];
+        for (int i = 0; i < allocated.length; i++) {
+            int lineCount = baseLineCount << i;
+            StringInputStream content = continuationContent(lineCount, continuation);
+
+            long before = allocatedBytes.getAsLong();
+            Map<String, Map<String, Map<String, String>>> parsed =
+                ProfileFileReader.parseFile(content, ProfileFile.Type.CONFIGURATION);
+            allocated[i] = allocatedBytes.getAsLong() - before;
+
+            String value = parsed.get(ProfileFile.PROFILES_SECTION_TITLE).get("foo").get("name");
+            assertThat(value).hasSize("value".length() + lineCount * (continuation.length() + 1));
+            assertThat(value).startsWith("value\n" + continuation + "\n").endsWith("\n" + continuation);
+        }
+        return allocated;
+    }
+
+    /**
+     * Counts the bytes the current thread allocates, with com.sun.management.ThreadMXBean.
+     *
+     * Only this class refers to com.sun.management, so the JVM loads that type only after {@link #isSupported()} has
+     * confirmed it exists. Call isSupported() before any other method.
+     */
+    private static final class ThreadAllocationCounter {
+        private static final String ALLOCATION_BEAN_CLASS = "com.sun.management.ThreadMXBean";
+
+        private static boolean isSupported() {
+            ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
+            try {
+                Class<?> allocationBeanClass = Class.forName(ALLOCATION_BEAN_CLASS, false,
+                                                             ThreadMXBean.class.getClassLoader());
+                return allocationBeanClass.isInstance(threadBean) && isAllocatedMemorySupported(threadBean);
+            } catch (ClassNotFoundException | LinkageError e) {
+                return false;
+            }
+        }
+
+        private static boolean isAllocatedMemorySupported(ThreadMXBean threadBean) {
+            return ((com.sun.management.ThreadMXBean) threadBean).isThreadAllocatedMemorySupported();
+        }
+
+        /**
+         * Run the measurement with allocation counting turned on, then restore the JVM-wide setting it had before.
+         */
+        private static long[] measure(Function<LongSupplier, long[]> measurement) {
+            com.sun.management.ThreadMXBean allocationBean =
+                (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
+            long threadId = Thread.currentThread().getId();
+            boolean wasEnabled = allocationBean.isThreadAllocatedMemoryEnabled();
+            allocationBean.setThreadAllocatedMemoryEnabled(true);
+            try {
+                return measurement.apply(() -> allocationBean.getThreadAllocatedBytes(threadId));
+            } finally {
+                allocationBean.setThreadAllocatedMemoryEnabled(wasEnabled);
+            }
+        }
+    }
+
+    private static Map<String, Map<String, Map<String, String>>> parseContinuations(int lineCount, String continuation) {
+        return ProfileFileReader.parseFile(continuationContent(lineCount, continuation), ProfileFile.Type.CONFIGURATION);
+    }
+
+    private static StringInputStream continuationContent(int lineCount, String continuation) {
+        StringBuilder content = new StringBuilder("[profile foo]\nname = value\n");
+        for (int i = 0; i < lineCount; i++) {
+            content.append(' ').append(continuation).append('\n');
+        }
+        return new StringInputStream(content.toString());
     }
 
     @Test

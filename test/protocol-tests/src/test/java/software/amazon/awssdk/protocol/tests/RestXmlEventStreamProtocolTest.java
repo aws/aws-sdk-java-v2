@@ -39,14 +39,14 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.eventstream.HeaderValue;
+import software.amazon.awssdk.eventstream.Message;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlAsyncClient;
 import software.amazon.awssdk.services.protocolrestxml.model.EventStream;
 import software.amazon.awssdk.services.protocolrestxml.model.EventStreamOperationResponse;
 import software.amazon.awssdk.services.protocolrestxml.model.EventStreamOperationResponseHandler;
 import software.amazon.awssdk.services.protocolrestxml.model.ProtocolRestXmlException;
-import software.amazon.eventstream.HeaderValue;
-import software.amazon.eventstream.Message;
 
 public class RestXmlEventStreamProtocolTest {
     private static final Region REGION = Region.US_WEST_2;

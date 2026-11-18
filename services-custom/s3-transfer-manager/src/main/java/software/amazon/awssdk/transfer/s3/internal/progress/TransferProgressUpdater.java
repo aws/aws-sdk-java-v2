@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
@@ -99,12 +100,10 @@ public class TransferProgressUpdater {
                 @Override
                 public void subscriberOnNext(ByteBuffer byteBuffer) {
                     if (!disableIncrementalProgress) {
-                        incrementBytesTransferred(byteBuffer.limit());
-                        progress.snapshot().ratioTransferred().ifPresent(ratioTransferred -> {
-                            if (Double.compare(ratioTransferred, 1.0) == 0) {
-                                endOfStreamFutureCompleted();
-                            }
-                        });
+                        long transferredBytes = incrementBytesTransferred(byteBuffer.limit());
+                        if (progress.reachesTotalBytes(transferredBytes)) {
+                            endOfStreamFutureCompleted();
+                        }
                     }
                 }
 
@@ -159,7 +158,19 @@ public class TransferProgressUpdater {
     }
 
     public PublisherListener<S3MetaRequestProgress> crtProgressListener() {
+        return crtProgressListener(this::transferFailed);
+    }
 
+    /**
+     * Returns a CRT progress listener for a download whose stream is returned before CRT finishes the request, such as a direct
+     * buffer pool download. A failure completes the end of the stream exceptionally, so {@link #registerCompletion} reports at
+     * most one terminal event.
+     */
+    public PublisherListener<S3MetaRequestProgress> crtStreamProgressListener() {
+        return crtProgressListener(endOfStreamFuture::completeExceptionally);
+    }
+
+    private PublisherListener<S3MetaRequestProgress> crtProgressListener(Consumer<Throwable> onError) {
         return new PublisherListener<S3MetaRequestProgress>() {
             @Override
             public void publisherSubscribe(Subscriber<? super S3MetaRequestProgress> subscriber) {
@@ -173,7 +184,7 @@ public class TransferProgressUpdater {
                 // is in flight. Seed it here so that ratioTransferred() is available during the download; the exact value
                 // from the response Content-Length replaces this once the transfer completes.
                 long contentLength = s3MetaRequestProgress.getContentLength();
-                if (contentLength > 0 && !progress.snapshot().totalBytes().isPresent()) {
+                if (contentLength > 0 && !progress.hasTotalBytes()) {
                     updateTotalBytes(contentLength, null);
                 }
                 incrementBytesTransferred(s3MetaRequestProgress.getBytesTransferred());
@@ -181,7 +192,7 @@ public class TransferProgressUpdater {
 
             @Override
             public void subscriberOnError(Throwable t) {
-                transferFailed(t);
+                onError.accept(t);
             }
 
             @Override
@@ -276,7 +287,7 @@ public class TransferProgressUpdater {
                     public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
                         long previousPartBytes = partBytesTransferred.getAndSet(0);
                         if (previousPartBytes > 0) {
-                            progress.updateAndGet(b -> b.transferredBytes(b.getTransferredBytes() - previousPartBytes));
+                            progress.addTransferredBytes(-previousPartBytes);
                         }
                     }
 
@@ -342,6 +353,14 @@ public class TransferProgressUpdater {
     }
 
     /**
+     * Records the total size of a transfer whose size is learned after it started, such as a copy, whose size comes from the
+     * HeadObject call the S3 client makes. The total is never set below the bytes already transferred.
+     */
+    public void updateTotalBytes(long totalBytes) {
+        updateTotalBytes(totalBytes, null);
+    }
+
+    /**
      * Records the total size of a transfer, and the response it came from, without breaking the
      * {@link DefaultTransferProgressSnapshot} invariant that the transferred byte count must not exceed the total.
      * <p>
@@ -361,14 +380,33 @@ public class TransferProgressUpdater {
     }
 
     private void resetBytesTransferred() {
-        progress.updateAndGet(b -> b.transferredBytes(0L));
+        progress.resetTransferredBytes();
     }
 
-    public void incrementBytesTransferred(long numBytes) {
-        TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
-            b.transferredBytes(b.getTransferredBytes() + numBytes);
-        });
-        listenerInvoker.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
+    /**
+     * Records the response of a download whose transformer is not wrapped for progress, so the completion event can report
+     * it.
+     */
+    public void downloadResponseReceived(GetObjectResponse response) {
+        Long contentLength = response.contentLength();
+        if (contentLength != null) {
+            updateTotalBytes(contentLength, response);
+        } else {
+            progress.updateAndGet(b -> b.sdkResponse(response));
+        }
+    }
+
+    /**
+     * Adds {@code numBytes} to the transferred byte count, notifies listeners if there are any, and returns the new count. The
+     * returned count is not capped at the total.
+     */
+    public long incrementBytesTransferred(long numBytes) {
+        long transferredBytes = progress.addTransferredBytes(numBytes);
+        if (listenerInvoker.hasListeners()) {
+            TransferProgressSnapshot snapshot = progress.snapshot(transferredBytes);
+            listenerInvoker.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
+        }
+        return transferredBytes;
     }
 
     public void registerCompletion(CompletableFuture<? extends CompletedObjectTransfer> future) {
@@ -381,6 +419,21 @@ public class TransferProgressUpdater {
                         transferFailed(t2);
                     }
                 });
+            } else {
+                transferFailed(t);
+            }
+        });
+    }
+
+    /**
+     * Invokes {@code transferComplete} when the future succeeds and {@code transferFailed} when it fails, without waiting for
+     * an end-of-stream signal. Use this for a transfer that has no byte stream, such as a copy, where every byte is reported
+     * before the future completes.
+     */
+    public void registerCompletionWithoutEndOfStream(CompletableFuture<? extends CompletedObjectTransfer> future) {
+        future.whenComplete((r, t) -> {
+            if (t == null) {
+                transferComplete(r);
             } else {
                 transferFailed(t);
             }

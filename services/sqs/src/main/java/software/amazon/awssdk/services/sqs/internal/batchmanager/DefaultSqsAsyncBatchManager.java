@@ -58,7 +58,7 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
 
     private final ReceiveMessageBatchManager receiveMessageBatchManager;
 
-    private final List<RequestBatchManager<?, ?, ?>> requestBatchManagers;
+    private final List<RequestBatchManager<?, ?, ?, ?>> requestBatchManagers;
 
     private final AtomicBoolean closed = new AtomicBoolean(false);
 

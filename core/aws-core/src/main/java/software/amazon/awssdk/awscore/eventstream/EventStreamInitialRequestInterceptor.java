@@ -33,9 +33,9 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.async.AsyncStreamPrepender;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.eventstream.HeaderValue;
+import software.amazon.awssdk.eventstream.Message;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.eventstream.HeaderValue;
-import software.amazon.eventstream.Message;
 
 /**
  * An interceptor for event stream requests sent over RPC. This interceptor will prepend the initial request (i.e. the
