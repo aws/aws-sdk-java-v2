@@ -29,9 +29,12 @@ import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter;
 import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class CrtRequestExecutor {
+
+    private static final Logger log = Logger.loggerFor(CrtRequestExecutor.class);
 
     public CompletableFuture<SdkHttpFullResponse> execute(CrtRequestContext executionContext) {
         CompletableFuture<SdkHttpFullResponse> requestFuture = new CompletableFuture<>();
@@ -74,22 +77,31 @@ public final class CrtRequestExecutor {
         // are available during pool exhaustion timeouts.
         requestFuture.whenComplete((r, t) -> {
             if (t != null) {
-                if (shouldPublishMetrics && metricsReported.compareAndSet(false, true)) {
-                    reportMetrics(streamManager, metricCollector, finalAcquireStartTime);
+                try {
+                    if (shouldPublishMetrics && metricsReported.compareAndSet(false, true)) {
+                        reportMetrics(streamManager, metricCollector, finalAcquireStartTime);
+                    }
+                } catch (RuntimeException e) {
+                    log.debug(() -> "Failed to report HTTP client metrics.", e);
+                } finally {
+                    crtResponseHandler.closeConnection();
                 }
-                crtResponseHandler.closeConnection();
             }
         });
 
         streamFuture.whenComplete((streamBase, throwable) -> {
             crtResponseHandler.onAcquireStream(streamBase);
-            if (shouldPublishMetrics && metricsReported.compareAndSet(false, true)) {
-                reportMetrics(streamManager, metricCollector, finalAcquireStartTime);
-            }
-
-            if (throwable != null) {
-                Throwable toThrow = wrapCrtException(throwable);
-                requestFuture.completeExceptionally(toThrow);
+            try {
+                if (shouldPublishMetrics && metricsReported.compareAndSet(false, true)) {
+                    reportMetrics(streamManager, metricCollector, finalAcquireStartTime);
+                }
+            } catch (RuntimeException e) {
+                log.debug(() -> "Failed to report HTTP client metrics.", e);
+            } finally {
+                if (throwable != null) {
+                    Throwable toThrow = wrapCrtException(throwable);
+                    requestFuture.completeExceptionally(toThrow);
+                }
             }
         });
     }

@@ -42,8 +42,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -51,7 +49,6 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
-import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
 import software.amazon.awssdk.services.json.JsonAsyncClient;
@@ -76,28 +73,12 @@ class AdaptiveRetryRateLimitingTest {
 
     private static final RollingThrottle throttler = new RollingThrottle(throttleTps);
 
-    private static String newRetriesPropertySave;
 
     @RegisterExtension
     static WireMockExtension wm = WireMockExtension.newInstance()
                                                    .options(options().dynamicPort()
                                                                      .extensions(new ThrottlingTransformer()))
                                                    .build();
-
-    @BeforeAll
-    static void setup() {
-        newRetriesPropertySave = System.getProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property());
-        System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), "true");
-    }
-
-    @AfterAll
-    static void teardown() {
-        if (newRetriesPropertySave != null) {
-            System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), newRetriesPropertySave);
-        } else {
-            System.clearProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property());
-        }
-    }
 
     @Test
     void staticServerThrottling_sync() throws Exception {

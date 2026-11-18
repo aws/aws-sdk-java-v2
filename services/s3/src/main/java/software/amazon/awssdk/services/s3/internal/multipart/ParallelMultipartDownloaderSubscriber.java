@@ -99,7 +99,10 @@ public class ParallelMultipartDownloaderSubscriber
     private CompletableFuture<Integer> totalPartsFuture = new CompletableFuture<>();
 
     /**
-     * The etag of the object being downloaded.
+     * The ETag of the object being downloaded, sent as If-Match on the part requests that follow, so that all parts come
+     * from the same object. For a new download it is taken from the first part's response. When resuming, it is seeded in the
+     * constructor from the response saved in the {@link MultipartDownloadResumeContext}, so the remaining parts are pinned to
+     * the object downloaded before the pause.
      */
     private volatile String eTag;
 
@@ -172,6 +175,9 @@ public class ParallelMultipartDownloaderSubscriber
             getObjectResponse = MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
                                                       .map(MultipartDownloadResumeContext::response)
                                                       .orElse(null);
+            if (getObjectResponse != null) {
+                eTag = getObjectResponse.eTag();
+            }
         }
     }
 

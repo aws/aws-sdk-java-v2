@@ -15,14 +15,13 @@
 
 package software.amazon.awssdk.messagemanager.sns.internal;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -34,6 +33,8 @@ import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultSnsMessageManager implements SnsMessageManager {
+    private static final String SIGNING_CERT_URL = "SigningCertURL";
+
     private static final AttributeMap HTTP_CLIENT_DEFAULTS =
         AttributeMap.builder()
                     .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofSeconds(10))
@@ -43,6 +44,7 @@ public final class DefaultSnsMessageManager implements SnsMessageManager {
     private final SnsMessageUnmarshaller unmarshaller;
     private final CertificateRetriever certRetriever;
     private final SignatureValidator signatureValidator;
+    private final SnsEndpointUrlValidator endpointUrlValidator;
 
     private DefaultSnsMessageManager(BuilderImpl builder) {
         this.unmarshaller = new SnsMessageUnmarshaller();
@@ -57,24 +59,39 @@ public final class DefaultSnsMessageManager implements SnsMessageManager {
                         : new CertificateRetriever(httpClient, signingCertEndpoint.getHost(), signingCertCommonName);
 
         signatureValidator = new SignatureValidator();
+        endpointUrlValidator = new SnsEndpointUrlValidator(signingCertEndpoint.getHost());
     }
 
     @Override
     public SnsMessage parseMessage(InputStream message) {
         Validate.notNull(message, "message cannot be null");
-
-        SnsMessage snsMessage = unmarshaller.unmarshall(message);
-        PublicKey certificate = certRetriever.retrieveCertificate(snsMessage.signingCertUrl());
-
-        signatureValidator.validateSignature(snsMessage, certificate);
-
-        return snsMessage;
+        return validate(unmarshaller.unmarshall(message));
     }
 
     @Override
     public SnsMessage parseMessage(String message) {
         Validate.notNull(message, "message cannot be null");
-        return parseMessage(new ByteArrayInputStream(message.getBytes(StandardCharsets.UTF_8)));
+        return validate(unmarshaller.unmarshall(message));
+    }
+
+    private SnsMessage validate(SnsMessage snsMessage) {
+        URI certificateUrl = snsMessage.signingCertUrl();
+        endpointUrlValidator.validate(certificateUrl, SIGNING_CERT_URL);
+
+        PreparedSignature prepared = signatureValidator.prepare(snsMessage);
+
+        // Try the cached certificates first; the URL is only fetched if none of them verifies the signature.
+        for (PublicKey cached : certRetriever.cachedCertificates(certificateUrl)) {
+            if (prepared.verifies(cached)) {
+                return snsMessage;
+            }
+        }
+
+        if (!prepared.verifies(certRetriever.retrieveCertificate(certificateUrl))) {
+            throw SdkClientException.create("The computed signature did not match the expected signature");
+        }
+
+        return snsMessage;
     }
 
     @Override

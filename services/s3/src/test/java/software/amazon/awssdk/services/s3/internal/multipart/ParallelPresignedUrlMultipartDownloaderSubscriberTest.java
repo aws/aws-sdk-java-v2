@@ -38,6 +38,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -412,6 +414,35 @@ class ParallelPresignedUrlMultipartDownloaderSubscriberTest {
             .getObject(request, AsyncResponseTransformer.toFile(tempFile))
             .join())
             .isInstanceOf(CompletionException.class);
+    }
+
+    @Test
+    void contentRangeTotalOverflowsLong_shouldFailInsteadOfHanging() {
+        stubFirstPartWithContentRange("bytes 0-15/99999999999999999999");
+
+        tempFile = createTempFileUnchecked();
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                        .presignedUrl(presignedUrl)
+                                                                        .build();
+
+        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
+            .getObject(request, AsyncResponseTransformer.toFile(tempFile))
+            .get(10, TimeUnit.SECONDS))
+            .isInstanceOf(ExecutionException.class)
+            .hasRootCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid Content-Range header");
+        verify(1, getRequestedFor(urlEqualTo(PRESIGNED_URL_PATH)));
+    }
+
+    private static void stubFirstPartWithContentRange(String contentRange) {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=0-15"))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Length", "16")
+                                    .withHeader("Content-Range", contentRange)
+                                    .withHeader("ETag", "\"huge-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16))));
     }
 
     private static Path createTempFile() throws IOException {

@@ -272,10 +272,12 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_AUTH_SCHEME_PREFERENCE("aws.authSchemePreference", null),
 
     /**
-     * Configure whether v2.1 retry behavior is enabled. When {@code true}, the SDK uses updated retry
-     * defaults including STANDARD as the default retry mode, reduced base backoff delays, differentiated token bucket
-     * costs, and other v2.1 retry specification changes. When {@code false} (the default), the SDK uses v2.0 retry behavior.
+     * This setting is ignored. The {@code standard} and {@code adaptive} retry modes use retry behavior 2.1. To use the
+     * previous default retry behavior, set the retry mode to {@code legacy}, for example with {@link #AWS_RETRY_MODE}.
+     *
+     * @deprecated The {@code standard} and {@code adaptive} retry modes use retry behavior 2.1. This setting has no effect.
      */
+    @Deprecated
     AWS_NEW_RETRIES_2026("aws.newRetries2026", null),
 
     /**

@@ -19,6 +19,7 @@ import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildSocketOptions;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildTlsConnectionOptions;
+import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.overrideTrustStoreFromSystemProperties;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveCipherPreference;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveMinTlsVersion;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveMonitoringOptions;
@@ -112,14 +113,19 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
             clientBootstrap = new ClientBootstrap(eventLoopGroup, null);
             clientSocketOptions = buildSocketOptions(builder.getTcpKeepAliveConfiguration(),
                                                      config.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT));
+            boolean trustAllCertificates = config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES);
             clientTlsContextOptions =
                 TlsContextOptions.createDefaultClient()
                                  .withCipherPreference(resolveCipherPreference(builder.getPostQuantumTlsEnabled()))
                                  .withMinimumTlsVersion(resolveMinTlsVersion(builder.getMinTlsVersion()))
-                                 .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
+                                 .withVerifyPeer(!trustAllCertificates);
             this.protocol = config.get(PROTOCOL);
             if (protocol == Protocol.HTTP2) {
                 clientTlsContextOptions = clientTlsContextOptions.withAlpnList("h2");
+            }
+
+            if (Boolean.TRUE.equals(builder.getUseTrustStoreSystemProperties()) && !trustAllCertificates) {
+                overrideTrustStoreFromSystemProperties(clientTlsContextOptions);
             }
 
             this.tlsContextOptions = registerOwnedResource(clientTlsContextOptions);
@@ -236,21 +242,6 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
         return HttpStreamManager.create(options);
     }
 
-    /*
-     * Callers of this function MUST account for the addRef() on the pool before returning.
-     * Every execution path consuming the return value must guarantee an associated close().
-     * Currently, this function is only used by execute(), which guarantees a matching close
-     * via the try-with-resources block.
-     *
-     * This guarantees that a returned pool will not get closed (by closing the http client) during
-     * the time it takes to submit a request to the pool.  Acquisition requests submitted to the pool will
-     * be properly failed if the http client is closed before the acquisition completes.
-     *
-     * This additional complexity means we only have to keep a lock for the scope of this function, as opposed to
-     * the scope of calling execute().  This function will almost always just be a hash lookup and the return of an
-     * existing pool.  If we add all of execute() to the scope, we include, at minimum a JNI call to the native
-     * pool implementation.
-     */
     HttpStreamManager getOrCreateConnectionPool(URI uri) {
         synchronized (this) {
             if (isClosed) {

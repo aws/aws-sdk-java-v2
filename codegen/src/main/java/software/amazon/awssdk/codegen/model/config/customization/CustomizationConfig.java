@@ -226,8 +226,11 @@ public class CustomizationConfig {
     private RetryMode defaultRetryMode;
 
     /**
-     * Whether the client will use retry 2.1 behavior by default.
+     * This setting is ignored. The standard and adaptive retry modes use retry behavior 2.1.
+     *
+     * @deprecated The standard and adaptive retry modes use retry behavior 2.1. This setting has no effect.
      */
+    @Deprecated
     private Boolean defaultNewRetries2026;
 
     /**
@@ -729,10 +732,18 @@ public class CustomizationConfig {
         this.defaultRetryMode = defaultRetryMode;
     }
 
+    /**
+     * @deprecated The standard and adaptive retry modes use retry behavior 2.1. This setting has no effect.
+     */
+    @Deprecated
     public Boolean getDefaultNewRetries2026() {
         return defaultNewRetries2026;
     }
 
+    /**
+     * @deprecated The standard and adaptive retry modes use retry behavior 2.1. This setting has no effect.
+     */
+    @Deprecated
     public void setDefaultNewRetries2026(Boolean defaultNewRetries2026) {
         this.defaultNewRetries2026 = defaultNewRetries2026;
     }

@@ -235,7 +235,6 @@ public final class SdkTypeUtils {
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.internetmonitor");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.ec2.util");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.ec2");
-        V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.tnb");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.securitytoken");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.translate");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.inspector");
@@ -421,7 +420,6 @@ public final class SdkTypeUtils {
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.resourcegroups");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.pipes");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.artifact");
-        V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.finspace");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.opensearchserverless");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.athena");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.ecr");
@@ -438,7 +436,6 @@ public final class SdkTypeUtils {
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.dataexchange");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.fsx");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.snowdevicemanagement");
-        V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.finspacedata");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.inspectorscan");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.recyclebin");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.detective");

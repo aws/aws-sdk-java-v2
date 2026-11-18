@@ -107,6 +107,7 @@ import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.S3EndpointResolverUtils;
 import software.amazon.awssdk.services.s3.internal.endpoints.UseGlobalEndpointResolver;
 import software.amazon.awssdk.services.s3.internal.s3express.S3ExpressAuthSchemeProvider;
+import software.amazon.awssdk.services.s3.internal.s3express.UncachedS3ExpressAuthScheme;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
@@ -514,7 +515,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         schemes.put(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
         AwsV4aAuthScheme awsV4aAuthScheme = AwsV4aAuthScheme.create();
         schemes.put(awsV4aAuthScheme.schemeId(), awsV4aAuthScheme);
-        S3ExpressAuthScheme s3ExpressAuthScheme = S3ExpressAuthScheme.create();
+        S3ExpressAuthScheme s3ExpressAuthScheme = UncachedS3ExpressAuthScheme.create();
         schemes.put(s3ExpressAuthScheme.schemeId(), s3ExpressAuthScheme);
         return Collections.unmodifiableMap(schemes);
     }

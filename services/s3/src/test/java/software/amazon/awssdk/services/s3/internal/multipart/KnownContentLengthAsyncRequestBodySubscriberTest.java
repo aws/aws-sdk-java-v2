@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -26,11 +27,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -39,6 +43,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.stubbing.Answer;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
@@ -50,6 +55,7 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.Pair;
@@ -108,8 +114,11 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
 
     @Test
     void validatePart_withPartSizeExceedingLimit_shouldFailRequest() {
-        subscriber.onNext(createMockAsyncRequestBody(PART_SIZE + 1));
+        CloseableAsyncRequestBody oversizedPart = createMockAsyncRequestBody(PART_SIZE + 1);
+        subscriber.onNext(oversizedPart);
         verifyFailRequestsElegantly("Content length must not be greater than part size");
+        verify(oversizedPart).subscribe(any(CancelledSubscriber.class));
+        verify(oversizedPart).close();
     }
 
     @Test
@@ -176,14 +185,14 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     }
 
     @Test
-    void pause_withOngoingCompleteMpuFuture_shouldReturnTokenAndCancelFuture() {
+    void pause_withOngoingCompleteMpuFuture_shouldReturnNullTokenAndNotCancelFuture() {
         CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture = new CompletableFuture<>();
         int numExistingParts = 2;
 
         S3ResumeToken resumeToken = testPauseScenario(numExistingParts, completeMpuFuture);
 
-        verifyResumeToken(resumeToken, numExistingParts);
-        assertThat(completeMpuFuture).isCancelled();
+        assertThat(resumeToken).isNull();
+        assertThat(completeMpuFuture).isNotDone();
     }
 
     @Test
@@ -198,27 +207,264 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     }
 
     @Test
-    void pause_withUninitiatedCompleteMpuFuture_shouldReturnToken() {
+    void pause_afterCompletionClaimedButBeforeCompleteMpuFutureReturned_shouldReturnNullToken() {
+        AtomicReference<KnownContentLengthAsyncRequestBodySubscriber> subscriberRef = new AtomicReference<>();
+        AtomicReference<Optional<S3ResumeToken>> tokenFromPauseDuringCompletion = new AtomicReference<>();
+        CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture = new CompletableFuture<>();
+        when(multipartUploadHelper.completeMultipartUpload(any(), any(), any(), any(), anyLong()))
+            .thenAnswer(invocation -> {
+                tokenFromPauseDuringCompletion.set(Optional.ofNullable(subscriberRef.get().pause()));
+                return completeMpuFuture;
+            });
+
+        KnownContentLengthAsyncRequestBodySubscriber sub = createSubscriber(createDefaultMpuRequestContext());
+        subscriberRef.set(sub);
+        sub.onSubscribe(subscription);
+        deliverAllPartsWithCorrectSizes(sub);
+        sub.onComplete();
+
+        assertThat(tokenFromPauseDuringCompletion.get()).isEmpty();
+        assertThat(completeMpuFuture).isNotDone();
+        verify(multipartUploadHelper, never()).failRequestsElegantly(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void pause_whileLastPartInFlight_shouldCancelItAndNeverCompleteUpload() {
+        ManagedUploadPart parts = new ManagedUploadPart();
+        List<CompletableFuture<CompletedPart>> sentParts = new ArrayList<>();
+        when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
+            .thenAnswer(registeringPartFutures(parts, sentParts));
+        KnownContentLengthAsyncRequestBodySubscriber sub = createSubscriberWithOwnReturnFuture(createDefaultMpuRequestContext());
+        sub.onSubscribe(subscription);
+        deliverAllPartsWithCorrectSizes(sub);
+        parts.completePart(1);
+        parts.completePart(2);
+        parts.completePart(3);
+        sub.onComplete();
+
+        S3ResumeToken resumeToken = sub.pause();
+
+        verifyResumeToken(resumeToken, 3);
+        assertThat(sentParts.get(3)).isCancelled();
+        assertThat(returnFuture).isCancelled();
+        verify(multipartUploadHelper, never()).completeMultipartUpload(any(), any(), any(), any(), anyLong());
+        verify(multipartUploadHelper, never()).failRequestsElegantly(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void pause_afterPartPassesAdmissionCheckButBeforeItIsSent_shouldNeverCompleteUpload() {
+        ManagedUploadPart parts = new ManagedUploadPart();
+        AtomicReference<KnownContentLengthAsyncRequestBodySubscriber> subscriberRef = new AtomicReference<>();
+        AtomicReference<S3ResumeToken> tokenRef = new AtomicReference<>();
+        List<CompletableFuture<CompletedPart>> sentParts = new ArrayList<>();
+        Answer<CompletableFuture<CompletedPart>> sendPart = registeringPartFutures(parts, sentParts);
+        when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
+            .thenAnswer(invocation -> {
+                Pair<UploadPartRequest, AsyncRequestBody> request = invocation.getArgument(3);
+                if (request.left().partNumber() == TOTAL_NUM_PARTS) {
+                    tokenRef.set(subscriberRef.get().pause());
+                }
+                return sendPart.answer(invocation);
+            });
+        KnownContentLengthAsyncRequestBodySubscriber sub = createSubscriberWithOwnReturnFuture(createDefaultMpuRequestContext());
+        subscriberRef.set(sub);
+        sub.onSubscribe(subscription);
+
+        for (int i = 0; i < TOTAL_NUM_PARTS - 1; i++) {
+            sub.onNext(createMockAsyncRequestBody(PART_SIZE));
+        }
+        parts.completePart(1);
+        parts.completePart(2);
+        parts.completePart(3);
+        CloseableAsyncRequestBody lastPart = createMockAsyncRequestBody(MPU_CONTENT_SIZE % PART_SIZE);
+        sub.onNext(lastPart);
+        sub.onComplete();
+
+        // Part 4 is sent after the pause counted the parts, so the token does not include it.
+        verifyResumeToken(tokenRef.get(), 3);
+        assertThat(sentParts.get(3)).isCancelled();
+        verify(lastPart).close();
+        verify(multipartUploadHelper, never()).completeMultipartUpload(any(), any(), any(), any(), anyLong());
+        verify(multipartUploadHelper, never()).failRequestsElegantly(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void pause_withExistingPartsFromResumedUpload_shouldCountThemInToken() {
         int numExistingParts = 2;
+        KnownContentLengthAsyncRequestBodySubscriber sub =
+            createSubscriber(createMpuRequestContextWithExistingParts(numExistingParts));
+        sub.onSubscribe(subscription);
 
-        S3ResumeToken resumeToken = testPauseScenario(numExistingParts, null);
+        verifyResumeToken(sub.pause(), numExistingParts);
+    }
 
-        verifyResumeToken(resumeToken, numExistingParts);
+    @Test
+    void pause_afterPartFailure_shouldReturnTokenWithoutCancellingReturnFuture() {
+        CompletableFuture<CompletedPart> partFuture = new CompletableFuture<>();
+        when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
+            .thenReturn(partFuture);
+        subscriber.onNext(createMockAsyncRequestBody(PART_SIZE));
+        partFuture.completeExceptionally(new RuntimeException("part failed"));
+
+        verifyResumeToken(subscriber.pause(), 0);
+        assertThat(returnFuture).isNotCancelled();
+        verify(multipartUploadHelper, times(1)).failRequestsElegantly(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void pause_afterPartFailure_shouldCountOnlySuccessfulParts() {
+        ManagedUploadPart parts = new ManagedUploadPart();
+        List<CompletableFuture<CompletedPart>> sentParts = new ArrayList<>();
+        when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
+            .thenAnswer(registeringPartFutures(parts, sentParts));
+        subscriber.onNext(createMockAsyncRequestBody(PART_SIZE));
+        subscriber.onNext(createMockAsyncRequestBody(PART_SIZE));
+        parts.completePart(1);
+        sentParts.get(1).completeExceptionally(new RuntimeException("part 2 failed"));
+
+        verifyResumeToken(subscriber.pause(), 1);
+    }
+
+
+
+    @Test
+    void validationFailure_afterPauseWinsDuringOnNext_shouldNotFailOrAbortUpload() {
+        AtomicReference<S3ResumeToken> tokenRef = new AtomicReference<>();
+        CloseableAsyncRequestBody oversizedPart = mock(CloseableAsyncRequestBody.class);
+        when(oversizedPart.contentLength()).thenAnswer(invocation -> {
+            if (tokenRef.get() == null) {
+                tokenRef.set(subscriber.pause());
+            }
+            return Optional.of(PART_SIZE + 1);
+        });
+
+        subscriber.onNext(oversizedPart);
+
+        verifyResumeToken(tokenRef.get(), 0);
+        verify(multipartUploadHelper, never()).failRequestsElegantly(any(), any(), any(), any(), any());
+        verify(oversizedPart).subscribe(any(CancelledSubscriber.class));
+        verify(oversizedPart).close();
+    }
+
+    @Test
+    void partCountMismatchAtCompletion_shouldFailAndAbortOnlyOnce() {
+        doAnswer(invocation -> {
+            CompletableFuture<PutObjectResponse> future = invocation.getArgument(3);
+            future.completeExceptionally(invocation.getArgument(1));
+            return null;
+        }).when(multipartUploadHelper).failRequestsElegantly(any(), any(), any(), any(), any());
+        for (int i = 0; i < TOTAL_NUM_PARTS - 1; i++) {
+            subscriber.onNext(createMockAsyncRequestBody(PART_SIZE));
+        }
+
+        subscriber.onComplete();
+
+        verify(multipartUploadHelper, times(1)).failRequestsElegantly(any(), any(), any(), any(), any());
+        verify(multipartUploadHelper, never()).completeMultipartUpload(any(), any(), any(), any(), anyLong());
+    }
+
+    @Test
+    void pause_afterOnError_shouldReturnTokenWithoutCancellingReturnFuture() {
+        subscriber.onError(new RuntimeException("body publisher failed"));
+
+        verifyResumeToken(subscriber.pause(), 0);
+        assertThat(returnFuture).isNotCancelled();
+        verify(multipartUploadHelper, times(1)).failRequestsElegantly(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void onNext_afterPause_shouldDiscardBodyWithoutSendingIt() {
+        assertThat(subscriber.pause()).isNotNull();
+        CloseableAsyncRequestBody body = createMockAsyncRequestBody(PART_SIZE);
+
+        subscriber.onNext(body);
+
+        verify(body).subscribe(any(CancelledSubscriber.class));
+        verify(body).close();
+        verify(multipartUploadHelper, never()).sendIndividualUploadPartRequest(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void onNext_afterPartFailure_shouldDiscardBodyWithoutSendingIt() {
+        CompletableFuture<CompletedPart> partFuture = new CompletableFuture<>();
+        when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
+            .thenReturn(partFuture);
+        subscriber.onNext(createMockAsyncRequestBody(PART_SIZE));
+        partFuture.completeExceptionally(new RuntimeException("part failed"));
+        CloseableAsyncRequestBody lateBody = createMockAsyncRequestBody(PART_SIZE);
+
+        subscriber.onNext(lateBody);
+
+        verify(lateBody).subscribe(any(CancelledSubscriber.class));
+        verify(lateBody).close();
+        verify(multipartUploadHelper, times(1)).sendIndividualUploadPartRequest(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void onSubscribe_whenAlreadySubscribed_shouldCancelIncomingSubscription() {
+        Subscription secondSubscription = mock(Subscription.class);
+
+        subscriber.onSubscribe(secondSubscription);
+
+        verify(secondSubscription).cancel();
+        verify(subscription, never()).cancel();
+    }
+
+    @Test
+    void onError_afterPause_shouldNotFailOrAbortUpload() {
+        when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
+            .thenReturn(new CompletableFuture<>());
+        subscriber.onNext(createMockAsyncRequestBody(PART_SIZE));
+
+        S3ResumeToken resumeToken = subscriber.pause();
+        subscriber.onError(new RuntimeException("body publisher failed after pause"));
+
+        verifyResumeToken(resumeToken, 0);
+        verify(multipartUploadHelper, never()).failRequestsElegantly(any(), any(), any(), any(), any());
+    }
+
+
+    @Test
+    void returnFutureCancelled_whileCompleteMpuInFlight_shouldAbortUploadAndPauseShouldReturnNullToken() {
+        when(multipartUploadHelper.completeMultipartUpload(any(), any(), any(), any(), anyLong()))
+            .thenReturn(new CompletableFuture<>());
+        CompletableFuture<PutObjectResponse> ownReturnFuture = new CompletableFuture<>();
+        KnownContentLengthAsyncRequestBodySubscriber sub =
+            new KnownContentLengthAsyncRequestBodySubscriber(createDefaultMpuRequestContext(), ownReturnFuture,
+                                                             multipartUploadHelper, 50);
+        sub.onSubscribe(subscription);
+        deliverAllPartsWithCorrectSizes(sub);
+        sub.onComplete();
+
+        ownReturnFuture.cancel(true);
+
+        verify(multipartUploadHelper).failRequestsElegantly(any(), any(), eq(UPLOAD_ID), eq(ownReturnFuture),
+                                                            eq(putObjectRequest));
+        assertThat(sub.pause()).isNull();
     }
 
     private S3ResumeToken testPauseScenario(int numExistingParts,
             CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture) {
+        ManagedUploadPart parts = new ManagedUploadPart();
+        when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
+            .thenAnswer(registeringPartFutures(parts, new ArrayList<>()));
+        when(multipartUploadHelper.completeMultipartUpload(any(), any(), any(), any(), anyLong()))
+            .thenReturn(completeMpuFuture);
         KnownContentLengthAsyncRequestBodySubscriber subscriber = createSubscriber(
                 createMpuRequestContextWithExistingParts(numExistingParts));
+        subscriber.onSubscribe(subscription);
 
-        when(multipartUploadHelper.completeMultipartUpload(any(CompletableFuture.class), any(String.class),
-                any(CompletedPart[].class), any(PutObjectRequest.class),
-                any(Long.class)))
-                .thenReturn(completeMpuFuture);
-
-        simulateOnNextForAllParts(subscriber);
+        deliverAllPartsWithCorrectSizes(subscriber);
+        for (int partNum = numExistingParts + 1; partNum <= TOTAL_NUM_PARTS; partNum++) {
+            parts.completePart(partNum);
+        }
         subscriber.onComplete();
-        assertThat(returnFuture).isNotCompletedExceptionally();
+
+        ArgumentCaptor<CompletedPart[]> partsCaptor = ArgumentCaptor.forClass(CompletedPart[].class);
+        verify(multipartUploadHelper).completeMultipartUpload(eq(returnFuture), eq(UPLOAD_ID), partsCaptor.capture(),
+                                                              eq(putObjectRequest), eq(MPU_CONTENT_SIZE));
+        assertThat(partsCaptor.getValue()).hasSize(TOTAL_NUM_PARTS).doesNotContainNull();
+        verify(multipartUploadHelper, never()).failRequestsElegantly(any(), any(), any(), any(), any());
         return subscriber.pause();
     }
 
@@ -346,6 +592,12 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
                 .build();
     }
 
+    private KnownContentLengthAsyncRequestBodySubscriber createSubscriberWithOwnReturnFuture(MpuRequestContext mpuRequestContext) {
+        // A successful pause cancels the return future, which would also trigger the subscriber created in beforeEach.
+        returnFuture = new CompletableFuture<>();
+        return createSubscriber(mpuRequestContext);
+    }
+
     private KnownContentLengthAsyncRequestBodySubscriber createSubscriber(MpuRequestContext mpuRequestContext) {
         return new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture, multipartUploadHelper,
                 50);
@@ -381,7 +633,7 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     }
 
     private Map<Integer, CompletedPart> createExistingParts(int numExistingParts) {
-        Map<Integer, CompletedPart> existingParts = IntStream.range(0, numExistingParts)
+        Map<Integer, CompletedPart> existingParts = IntStream.rangeClosed(1, numExistingParts)
                 .boxed().collect(Collectors.toMap(Function.identity(),
                         i -> CompletedPart.builder().partNumber(i).build(), (a, b) -> b));
         return existingParts;
@@ -395,12 +647,24 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         assertThat(s3ResumeToken.numPartsCompleted()).isEqualTo(numExistingParts);
     }
 
-    private void simulateOnNextForAllParts(KnownContentLengthAsyncRequestBodySubscriber subscriber) {
-        subscriber.onSubscribe(subscription);
-
-        for (int i = 0; i < TOTAL_NUM_PARTS; i++) {
-            subscriber.onNext(createMockAsyncRequestBody(PART_SIZE));
-        }
+    /**
+     * Registers each part's future in the subscriber's tracked futures, so that a pause can see and cancel it.
+     */
+    private static Answer<CompletableFuture<CompletedPart>> registeringPartFutures(
+            ManagedUploadPart parts, List<CompletableFuture<CompletedPart>> sentParts) {
+        return invocation -> {
+            CompletableFuture<CompletedPart> future = parts.answer(invocation);
+            Collection<CompletableFuture<CompletedPart>> trackedFutures = invocation.getArgument(2);
+            trackedFutures.add(future);
+            sentParts.add(future);
+            return future;
+        };
     }
 
+    private void deliverAllPartsWithCorrectSizes(KnownContentLengthAsyncRequestBodySubscriber subscriber) {
+        for (int i = 0; i < TOTAL_NUM_PARTS - 1; i++) {
+            subscriber.onNext(createMockAsyncRequestBody(PART_SIZE));
+        }
+        subscriber.onNext(createMockAsyncRequestBody(MPU_CONTENT_SIZE % PART_SIZE));
+    }
 }

@@ -32,6 +32,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -50,6 +51,7 @@ import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
+import software.amazon.awssdk.retries.internal.DefaultAwareRetryStrategy;
 import software.amazon.awssdk.utils.Either;
 
 /**
@@ -65,6 +67,7 @@ public final class RetryableStageHelper {
 
     private final SdkHttpFullRequest request;
     private final boolean isLongPollingOperation;
+    private final String operationName;
     private final RequestExecutionContext context;
     private RetryPolicyAdapter retryPolicyAdapter;
     private final RetryStrategy retryStrategy;
@@ -81,6 +84,7 @@ public final class RetryableStageHelper {
         this.request = request;
         this.context = context;
         this.isLongPollingOperation = isLongPollingOperation(this.context);
+        this.operationName = context.executionAttributes().getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         RetryPolicy retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
         RetryStrategy retryStrategy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_STRATEGY);
         if (retryPolicy != null) {
@@ -92,6 +96,21 @@ public final class RetryableStageHelper {
         }
         this.retryStrategy = retryStrategy;
         this.dependencies = dependencies;
+    }
+
+    /**
+     * Returns true if the retry strategy in use for this request takes its suggested delay from the legacy headers: the sync
+     * stage reads the 'Retry-After' header, in seconds, and the async stage passes no suggested delay. Only a strategy that
+     * follows retry behavior 2.1 (see {@link DefaultAwareRetryStrategy#usesRetryBehavior21()}) takes its suggested delay from
+     * the 'x-amz-retry-after' header, in milliseconds. A {@link RetryPolicy}, a {@code LegacyRetryStrategy}, a strategy built
+     * without retry behavior 2.1, and a strategy that is not a {@link DefaultAwareRetryStrategy} use the legacy headers.
+     */
+    public boolean usesLegacyRetryAfterHeaders() {
+        if (retryPolicyAdapter != null) {
+            return true;
+        }
+        return !(retryStrategy instanceof DefaultAwareRetryStrategy)
+               || !((DefaultAwareRetryStrategy) retryStrategy).usesRetryBehavior21();
     }
 
     /**
@@ -187,6 +206,7 @@ public final class RetryableStageHelper {
                                                                           .failure(this.lastException)
                                                                           .token(retryToken)
                                                                           .isLongPolling(isLongPollingOperation)
+                                                                          .operationName(operationName)
                                                                           .suggestedDelay(suggestedDelay)
                                                                           .build();
 
@@ -202,6 +222,7 @@ public final class RetryableStageHelper {
                                                                           .failure(this.lastException)
                                                                           .token(retryToken)
                                                                           .isLongPolling(isLongPollingOperation)
+                                                                          .operationName(operationName)
                                                                           .suggestedDelay(suggestedDelay)
                                                                           .build();
 

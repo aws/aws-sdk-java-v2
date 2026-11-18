@@ -43,4 +43,31 @@ public class LoginAccessTokenTest {
         Assertions.assertThat(token.toString()).doesNotContain("SECRET");
     }
 
+    @Test
+    public void signInRegion_copiedByToBuilderAndUsedInEquals() {
+        LoginAccessToken token = LoginAccessToken
+            .builder()
+            .accessToken(AwsSessionCredentials
+                             .builder()
+                             .accessKeyId("accessKeyId")
+                             .secretAccessKey("secret")
+                             .sessionToken("session")
+                             .expirationTime(Instant.now())
+                             .build())
+            .clientId("clientId")
+            .refreshToken("refresh")
+            .dpopKey("dpop")
+            .signInRegion("eu-central-1")
+            .build();
+
+        LoginAccessToken copy = token.toBuilder().build();
+        Assertions.assertThat(copy.getSignInRegion()).isEqualTo("eu-central-1");
+        Assertions.assertThat(copy).isEqualTo(token);
+        Assertions.assertThat(copy.hashCode()).isEqualTo(token.hashCode());
+
+        LoginAccessToken other = token.toBuilder().signInRegion("us-west-2").build();
+        Assertions.assertThat(other).isNotEqualTo(token);
+        Assertions.assertThat(token.toBuilder().signInRegion(null).build()).isNotEqualTo(token);
+    }
+
 }

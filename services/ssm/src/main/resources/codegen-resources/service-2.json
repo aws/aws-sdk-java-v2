@@ -394,7 +394,7 @@
         {"shape":"InternalServerError"},
         {"shape":"ParameterNotFound"}
       ],
-      "documentation":"<p>Delete a parameter from the system. After deleting a parameter, wait for at least 30 seconds to create a parameter with the same name.</p>"
+      "documentation":"<p>Delete a parameter from the system. After deleting a parameter, wait for at least 30 seconds to create a parameter with the same name.</p> <note> <p>This operation is authorized against the <code>ssm:DeleteParameter</code> action. Denying that action alone doesn't restrict <a>DeleteParameters</a>, which is authorized against its own action. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-restrict-parameter-access.html\">Restricting access to specific parameters and paths</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> </note>"
     },
     "DeleteParameters":{
       "name":"DeleteParameters",
@@ -407,7 +407,7 @@
       "errors":[
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Delete a list of parameters. After deleting a parameter, wait for at least 30 seconds to create a parameter with the same name.</p>"
+      "documentation":"<p>Delete a list of parameters. After deleting a parameter, wait for at least 30 seconds to create a parameter with the same name.</p> <important> <p>This operation is authorized against the <code>ssm:DeleteParameters</code> action, not against <code>ssm:DeleteParameter</code>. Denying <code>ssm:DeleteParameter</code> for a parameter doesn't prevent a principal from deleting that parameter with this operation. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-restrict-parameter-access.html\">Restricting access to specific parameters and paths</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> </important>"
     },
     "DeletePatchBaseline":{
       "name":"DeletePatchBaseline",
@@ -455,6 +455,20 @@
         {"shape":"ResourcePolicyNotFoundException"}
       ],
       "documentation":"<p>Deletes a Systems Manager resource policy. A resource policy helps you to define the IAM entity (for example, an Amazon Web Services account) that can manage your Systems Manager resources. The following resources support Systems Manager resource policies.</p> <ul> <li> <p> <code>OpsItemGroup</code> - The resource policy for <code>OpsItemGroup</code> enables Amazon Web Services accounts to view and interact with OpsCenter operational work items (OpsItems).</p> </li> <li> <p> <code>Parameter</code> - The resource policy is used to share a parameter with other accounts using Resource Access Manager (RAM). For more information about cross-account sharing of parameters, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-shared-parameters.html\">Working with shared parameters</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> </li> <li> <p> <code>Document</code> – Shares the document using Resource Access Manager (RAM). For more information about sharing documents, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/documents-ssm-sharing.html\">Sharing Systems Manager documents</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> </li> </ul>"
+    },
+    "DeregisterDefaultHostManagementConfiguration":{
+      "name":"DeregisterDefaultHostManagementConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeregisterDefaultHostManagementConfigurationRequest"},
+      "output":{"shape":"DeregisterDefaultHostManagementConfigurationResult"},
+      "errors":[
+        {"shape":"InternalServerError"}
+      ],
+      "documentation":"<p>Removes the Default Host Management Configuration (DHMC) for an Amazon Web Services account and Amazon Web Services Region. After you deregister DHMC, Amazon EC2 instances are no longer automatically managed as managed nodes by Amazon Web Services Systems Manager.</p> <p>To use this operation, you must have the following permissions:</p> <ul> <li> <p>You need the <code>ssm:GetServiceSetting</code> and <code>ssm:ResetServiceSetting</code> permissions for the <code>/ssm/managed-instance/default-ec2-instance-management-role</code> service setting.</p> </li> </ul> <p>If the registered role is service-managed, you also need the <code>iam:DeleteRole</code> permission so that Amazon Web Services Systems Manager can remove the role it created.</p>",
+      "idempotent":true
     },
     "DeregisterManagedInstance":{
       "name":"DeregisterManagedInstance",
@@ -1335,7 +1349,7 @@
         {"shape":"ParameterNotFound"},
         {"shape":"ParameterVersionNotFound"}
       ],
-      "documentation":"<p>Get information about a single parameter by specifying the parameter name.</p> <p>Parameter names can't contain spaces. The service removes any spaces specified for the beginning or end of a parameter name. If the specified name for a parameter contains spaces between characters, the request fails with a <code>ValidationException</code> error.</p> <note> <p>To get information about more than one parameter at a time, use the <a>GetParameters</a> operation.</p> </note> <note> <p>Parameter Store throughput defines the number of API transactions per second (TPS) that Systems Manager can process. This applies to <code>GetParameter</code>, <code>GetParameters</code>, and <code>PutParameter</code> API calls for your Amazon Web Services account and Amazon Web Services Region. By default, Parameter Store is configured with a standard throughput quota suitable for low- to moderate-volume workloads. Applications that retrieve configuration data infrequently or operate at smaller scale can use this default setting without additional cost.</p> <p>For higher-volume workloads, you can enable higher throughput. This increases the maximum number of supported transactions per second for your account and Region. Increased throughput supports applications and workloads that need concurrent access to multiple parameters. If you experience <code>ThrottlingException: Rate exceeded</code> errors, enable higher throughput. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-throughput.html\">Changing Parameter Store throughput</a>.</p> </note>"
+      "documentation":"<p>Get information about a single parameter by specifying the parameter name.</p> <p>Parameter names can't contain spaces. The service removes any spaces specified for the beginning or end of a parameter name. If the specified name for a parameter contains spaces between characters, the request fails with a <code>ValidationException</code> error.</p> <note> <p>To get information about more than one parameter at a time, use the <a>GetParameters</a> operation.</p> </note> <note> <p>This operation is authorized against the <code>ssm:GetParameter</code> action. Denying that action alone doesn't restrict <a>GetParameters</a>, <a>GetParameterHistory</a>, or <a>GetParametersByPath</a>, each of which is authorized against its own action. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-retrieval-authorization.html\">How Parameter Store authorizes parameter retrieval</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> </note> <note> <p>Parameter Store throughput defines the number of API transactions per second (TPS) that Systems Manager can process. This applies to <code>GetParameter</code>, <code>GetParameters</code>, and <code>PutParameter</code> API calls for your Amazon Web Services account and Amazon Web Services Region. By default, Parameter Store is configured with a standard throughput quota suitable for low- to moderate-volume workloads. Applications that retrieve configuration data infrequently or operate at smaller scale can use this default setting without additional cost.</p> <p>For higher-volume workloads, you can enable higher throughput. This increases the maximum number of supported transactions per second for your account and Region. Increased throughput supports applications and workloads that need concurrent access to multiple parameters. If you experience <code>ThrottlingException: Rate exceeded</code> errors, enable higher throughput. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-throughput.html\">Changing Parameter Store throughput</a>.</p> </note>"
     },
     "GetParameterHistory":{
       "name":"GetParameterHistory",
@@ -1351,7 +1365,7 @@
         {"shape":"InvalidNextToken"},
         {"shape":"InvalidKeyId"}
       ],
-      "documentation":"<p>Retrieves the history of all changes to a parameter.</p> <p>Parameter names can't contain spaces. The service removes any spaces specified for the beginning or end of a parameter name. If the specified name for a parameter contains spaces between characters, the request fails with a <code>ValidationException</code> error.</p> <important> <p>If you change the KMS key alias for the KMS key used to encrypt a parameter, then you must also update the key alias the parameter uses to reference KMS. Otherwise, <code>GetParameterHistory</code> retrieves whatever the original key alias was referencing.</p> </important>"
+      "documentation":"<p>Retrieves the history of all changes to a parameter.</p> <p>Parameter names can't contain spaces. The service removes any spaces specified for the beginning or end of a parameter name. If the specified name for a parameter contains spaces between characters, the request fails with a <code>ValidationException</code> error.</p> <important> <p>If you change the KMS key alias for the KMS key used to encrypt a parameter, then you must also update the key alias the parameter uses to reference KMS. Otherwise, <code>GetParameterHistory</code> retrieves whatever the original key alias was referencing.</p> </important> <important> <p>This operation is authorized against the <code>ssm:GetParameterHistory</code> action, not against <code>ssm:GetParameter</code>. Because parameter history includes every version of a parameter, including the current one, a principal who is denied <code>ssm:GetParameter</code>, <code>ssm:GetParameters</code>, and <code>ssm:GetParametersByPath</code> but allowed <code>ssm:GetParameterHistory</code> can still read the current value. To restrict access to a parameter value, deny every action that can return it. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-retrieval-authorization.html\">How Parameter Store authorizes parameter retrieval</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> </important>"
     },
     "GetParameters":{
       "name":"GetParameters",
@@ -1365,7 +1379,7 @@
         {"shape":"InvalidKeyId"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Get information about one or more parameters by specifying multiple parameter names.</p> <note> <p>To get information about a single parameter, you can use the <a>GetParameter</a> operation instead.</p> </note> <p>Parameter names can't contain spaces. The service removes any spaces specified for the beginning or end of a parameter name. If the specified name for a parameter contains spaces between characters, the request fails with a <code>ValidationException</code> error.</p> <note> <p>Parameter Store throughput defines the number of API transactions per second (TPS) that Systems Manager can process. This applies to <code>GetParameter</code>, <code>GetParameters</code>, and <code>PutParameter</code> API calls for your Amazon Web Services account and Amazon Web Services Region. By default, Parameter Store is configured with a standard throughput quota suitable for low- to moderate-volume workloads. Applications that retrieve configuration data infrequently or operate at smaller scale can use this default setting without additional cost.</p> <p>For higher-volume workloads, you can enable higher throughput. This increases the maximum number of supported transactions per second for your account and Region. Increased throughput supports applications and workloads that need concurrent access to multiple parameters. If you experience <code>ThrottlingException: Rate exceeded</code> errors, enable higher throughput. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-throughput.html\">Changing Parameter Store throughput</a>.</p> </note>"
+      "documentation":"<p>Get information about one or more parameters by specifying multiple parameter names.</p> <note> <p>To get information about a single parameter, you can use the <a>GetParameter</a> operation instead.</p> </note> <important> <p>This operation is authorized against the <code>ssm:GetParameters</code> action, not against <code>ssm:GetParameter</code>. Denying <code>ssm:GetParameter</code> for a parameter doesn't prevent a principal from retrieving that parameter with this operation. To restrict access to a parameter value, deny every action that can return it. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-retrieval-authorization.html\">How Parameter Store authorizes parameter retrieval</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> </important> <p>Parameter names can't contain spaces. The service removes any spaces specified for the beginning or end of a parameter name. If the specified name for a parameter contains spaces between characters, the request fails with a <code>ValidationException</code> error.</p> <note> <p>Parameter Store throughput defines the number of API transactions per second (TPS) that Systems Manager can process. This applies to <code>GetParameter</code>, <code>GetParameters</code>, and <code>PutParameter</code> API calls for your Amazon Web Services account and Amazon Web Services Region. By default, Parameter Store is configured with a standard throughput quota suitable for low- to moderate-volume workloads. Applications that retrieve configuration data infrequently or operate at smaller scale can use this default setting without additional cost.</p> <p>For higher-volume workloads, you can enable higher throughput. This increases the maximum number of supported transactions per second for your account and Region. Increased throughput supports applications and workloads that need concurrent access to multiple parameters. If you experience <code>ThrottlingException: Rate exceeded</code> errors, enable higher throughput. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-throughput.html\">Changing Parameter Store throughput</a>.</p> </note>"
     },
     "GetParametersByPath":{
       "name":"GetParametersByPath",
@@ -1383,7 +1397,7 @@
         {"shape":"InvalidKeyId"},
         {"shape":"InvalidNextToken"}
       ],
-      "documentation":"<p>Retrieve information about one or more parameters under a specified level in a hierarchy. </p> <p>Request results are returned on a best-effort basis. If you specify <code>MaxResults</code> in the request, the response includes information up to the limit specified. The number of items returned, however, can be between zero and the value of <code>MaxResults</code>. If the service reaches an internal limit while processing the results, it stops the operation and returns the matching values up to that point and a <code>NextToken</code>. You can specify the <code>NextToken</code> in a subsequent call to get the next set of results.</p> <p>Parameter names can't contain spaces. The service removes any spaces specified for the beginning or end of a parameter name. If the specified name for a parameter contains spaces between characters, the request fails with a <code>ValidationException</code> error.</p>"
+      "documentation":"<p>Retrieve information about one or more parameters under a specified level in a hierarchy. </p> <important> <p>This operation is authorized against the <code>ssm:GetParametersByPath</code> action for the path that you specify in the request. It isn't authorized against the individual parameters that it returns, and it isn't authorized against <code>ssm:GetParameter</code>. A principal who is allowed to call this operation for the path <code>/a</code> with <code>Recursive</code> set to <code>true</code> receives every parameter under that path, including <code>/a/b</code>, even if a policy explicitly denies access to <code>/a/b</code>.</p> <p>To prevent a parameter from being returned by this operation, deny the <code>ssm:GetParametersByPath</code> action on every ancestor path that could include the parameter in its results. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-restrict-parameter-access.html\">Restricting access to specific parameters and paths</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> </important> <p>Request results are returned on a best-effort basis. If you specify <code>MaxResults</code> in the request, the response includes information up to the limit specified. The number of items returned, however, can be between zero and the value of <code>MaxResults</code>. If the service reaches an internal limit while processing the results, it stops the operation and returns the matching values up to that point and a <code>NextToken</code>. You can specify the <code>NextToken</code> in a subsequent call to get the next set of results.</p> <p>Parameter names can't contain spaces. The service removes any spaces specified for the beginning or end of a parameter name. If the specified name for a parameter contains spaces between characters, the request fails with a <code>ValidationException</code> error.</p>"
     },
     "GetPatchBaseline":{
       "name":"GetPatchBaseline",
@@ -1861,6 +1875,20 @@
       ],
       "documentation":"<p>Creates or updates a Systems Manager resource policy. A resource policy helps you to define the IAM entity (for example, an Amazon Web Services account) that can manage your Systems Manager resources. The following resources support Systems Manager resource policies.</p> <ul> <li> <p> <code>OpsItemGroup</code> - The resource policy for <code>OpsItemGroup</code> enables Amazon Web Services accounts to view and interact with OpsCenter operational work items (OpsItems).</p> </li> <li> <p> <code>Parameter</code> - The resource policy is used to share a parameter with other accounts using Resource Access Manager (RAM). </p> <p>To share a parameter, it must be in the advanced parameter tier. For information about parameter tiers, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-advanced-parameters.html\">Managing parameter tiers</a>. For information about changing an existing standard parameter to an advanced parameter, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-advanced-parameters.html#parameter-store-advanced-parameters-enabling\">Changing a standard parameter to an advanced parameter</a>.</p> <p>To share a <code>SecureString</code> parameter, it must be encrypted with a customer managed key, and you must share the key separately through Key Management Service. Amazon Web Services managed keys cannot be shared. Parameters encrypted with the default Amazon Web Services managed key can be updated to use a customer managed key instead. For KMS key definitions, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html\">KMS concepts</a> in the <i>Key Management Service Developer Guide</i>.</p> <important> <p>While you can share a parameter using the Systems Manager <code>PutResourcePolicy</code> operation, we recommend using Resource Access Manager (RAM) instead. This is because using <code>PutResourcePolicy</code> requires the extra step of promoting the parameter to a standard RAM Resource Share using the RAM <a href=\"https://docs.aws.amazon.com/ram/latest/APIReference/API_PromoteResourceShareCreatedFromPolicy.html\">PromoteResourceShareCreatedFromPolicy</a> API operation. Otherwise, the parameter won't be returned by the Systems Manager <a href=\"https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_DescribeParameters.html\">DescribeParameters</a> API operation using the <code>--shared</code> option.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-shared-parameters.html#share\">Sharing a parameter</a> in the <i>Amazon Web Services Systems Manager User Guide</i> </p> </important> </li> <li> <p> <code>Document</code> – Shares the document using Resource Access Manager (RAM). For more information about sharing documents, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/documents-ssm-sharing.html\">Sharing Systems Manager documents</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> </li> </ul> <important> <p>While you can share a document using the Systems Manager <code>PutResourcePolicy</code> operation, we recommend using Resource Access Manager (RAM) instead. Using <code>PutResourcePolicy</code> requires an extra step. You must promote the document to a standard RAM Resource Share using the RAM <a href=\"https://docs.aws.amazon.com/ram/latest/APIReference/API_PromoteResourceShareCreatedFromPolicy.html\">PromoteResourceShareCreatedFromPolicy</a> API operation. Otherwise, the Systems Manager <a href=\"https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_ListDocuments.html\">ListDocuments</a> API operation won't return the document when filtering for shared documents. The Amazon Web Services Config <a href=\"https://docs.aws.amazon.com/config/latest/APIReference/API_PutRemediationConfigurations.html\">PutRemediationConfigurations</a> API operation also can't use the document.</p> </important>"
     },
+    "RegisterDefaultHostManagementConfiguration":{
+      "name":"RegisterDefaultHostManagementConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RegisterDefaultHostManagementConfigurationRequest"},
+      "output":{"shape":"RegisterDefaultHostManagementConfigurationResult"},
+      "errors":[
+        {"shape":"InternalServerError"}
+      ],
+      "documentation":"<p>Enables Default Host Management Configuration (DHMC) for the current Amazon Web Services account and Amazon Web Services Region. With DHMC enabled, you don't need to configure additional resources, such as an instance profile, to use your Amazon EC2 instances as managed nodes in Amazon Web Services Systems Manager.</p> <p>To use this operation, you must have the following permissions:</p> <ul> <li> <p>You need the <code>ssm:GetServiceSetting</code> and <code>ssm:UpdateServiceSetting</code> permissions for the <code>/ssm/managed-instance/default-ec2-instance-management-role</code> service setting.</p> </li> <li> <p>You need the <code>iam:GetRole</code> and <code>iam:PassRole</code> permissions for the role used for Default Host Management Configuration.</p> </li> </ul> <p>If <code>PermissionModel</code> is <code>SERVICE_MANAGED</code>, you also need the <code>iam:CreateRole</code> and <code>iam:AttachRolePolicy</code> permissions so that Amazon Web Services Systems Manager can create and configure the role on your behalf.</p>",
+      "idempotent":true
+    },
     "RegisterDefaultPatchBaseline":{
       "name":"RegisterDefaultPatchBaseline",
       "http":{
@@ -2208,6 +2236,7 @@
       "errors":[
         {"shape":"InternalServerError"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ServiceQuotaExceededException"},
         {"shape":"ConflictException"}
       ],
       "documentation":"<p>Updates an existing cloud connector with new configuration details.</p>"
@@ -3502,7 +3531,7 @@
     },
     "AutomationActionName":{
       "type":"string",
-      "pattern":"^aws:[a-zA-Z]{3,25}$"
+      "pattern":"^aws:[a-zA-Z]{3,40}$"
     },
     "AutomationDefinitionNotApprovedException":{
       "type":"structure",
@@ -3675,6 +3704,10 @@
         "Variables":{
           "shape":"AutomationParameterMap",
           "documentation":"<p>Variables defined for the automation.</p>"
+        },
+        "TargetsSummary":{
+          "shape":"TargetsSummary",
+          "documentation":"<p>A summary of the child executions that a rate control execution started for its targets. This field is returned only for rate control executions.</p>"
         }
       },
       "documentation":"<p>Detailed information about the current state of an individual Automation execution.</p>"
@@ -4270,6 +4303,10 @@
         "AzureConfiguration":{
           "shape":"AzureConfiguration",
           "documentation":"<p>The access details and targets for connecting to a Microsoft Azure environment.</p>"
+        },
+        "GcpConfiguration":{
+          "shape":"GcpConfiguration",
+          "documentation":"<p>The access details and targets for connecting to a Google Cloud Platform (GCP) environment.</p>"
         }
       },
       "documentation":"<p>The configuration that provides access details and targets for connecting to a third-party cloud environment.</p>",
@@ -4290,7 +4327,7 @@
         },
         "FilterValues":{
           "shape":"CloudConnectorFilterValues",
-          "documentation":"<p>The filter values. Valid values for each filter key are as follows:</p> <dl> <dt>SubscriptionId</dt> <dd> <p>The Azure subscription ID to filter by. To return only tenant-level connectors, specify <code>NONE</code>.</p> </dd> <dt>TenantId</dt> <dd> <p>The Azure tenant ID to filter by. Filters the results to connectors that target the specified tenant.</p> </dd> </dl>"
+          "documentation":"<p>The filter values. Valid values for each filter key are as follows:</p> <dl> <dt>SubscriptionId</dt> <dd> <p>The Azure subscription ID to filter by. To return only tenant-level connectors, specify <code>NONE</code>.</p> </dd> <dt>TenantId</dt> <dd> <p>The Azure tenant ID to filter by. Filters the results to connectors that target the specified tenant.</p> </dd> <dt>ProjectId</dt> <dd> <p>The Google Cloud Platform (GCP) project ID to filter by. Filters the results to connectors that target the specified project.</p> </dd> <dt>OrganizationId</dt> <dd> <p>The GCP organization ID to filter by. Filters the results to connectors that target the entire specified organization.</p> </dd> </dl> <p>You can't combine Azure filter keys (<code>SubscriptionId</code> and <code>TenantId</code>) with GCP filter keys (<code>ProjectId</code> and <code>OrganizationId</code>) in the same request.</p>"
         }
       },
       "documentation":"<p>A filter for listing cloud connectors.</p>"
@@ -4299,7 +4336,9 @@
       "type":"string",
       "enum":[
         "SubscriptionId",
-        "TenantId"
+        "TenantId",
+        "ProjectId",
+        "OrganizationId"
       ]
     },
     "CloudConnectorFilterList":{
@@ -4362,6 +4401,14 @@
         "UpdatedAt":{
           "shape":"DateTime",
           "documentation":"<p>The date and time the cloud connector was last updated.</p>"
+        },
+        "Provider":{
+          "shape":"Provider",
+          "documentation":"<p>The third-party cloud provider that the cloud connector connects to. Valid values: <code>Azure</code> | <code>GCP</code>.</p>"
+        },
+        "ConfigConnectorArn":{
+          "shape":"ConfigConnectorArn",
+          "documentation":"<p>The ARN of the Amazon Web Services Config connector associated with this cloud connector. This value is returned only if the cloud connector was created with an Amazon Web Services Config connector.</p>"
         }
       },
       "documentation":"<p>Summary information about a cloud connector.</p>"
@@ -5313,8 +5360,7 @@
       "required":[
         "DisplayName",
         "RoleArn",
-        "Configuration",
-        "ConfigConnectorArn"
+        "Configuration"
       ],
       "members":{
         "DisplayName":{
@@ -5335,7 +5381,7 @@
         },
         "ConfigConnectorArn":{
           "shape":"ConfigConnectorArn",
-          "documentation":"<p>The ARN of the Amazon Web Services Config connector associated with this cloud connector.</p>"
+          "documentation":"<p>The ARN of the Amazon Web Services Config connector to associate with this cloud connector. If you omit it, the cloud connector is created without Amazon Web Services Config integration.</p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -5731,6 +5777,19 @@
       "documentation":"<p>You have exceeded the limit for custom schemas. Delete one or more custom schemas and try again.</p>",
       "exception":true
     },
+    "DHMCPermissionModel":{
+      "type":"string",
+      "enum":[
+        "SERVICE_MANAGED",
+        "SELF_MANAGED"
+      ]
+    },
+    "DHMCRoleArn":{
+      "type":"string",
+      "max":2048,
+      "min":20,
+      "pattern":"^arn:aws[a-z0-9-]*:iam::\\d{12}:role/[\\w+=,.@/-]+$"
+    },
     "DateTime":{"type":"timestamp"},
     "DefaultBaseline":{"type":"boolean"},
     "DefaultInstanceName":{
@@ -6018,6 +6077,14 @@
       ]
     },
     "DeliveryTimedOutCount":{"type":"integer"},
+    "DeregisterDefaultHostManagementConfigurationRequest":{
+      "type":"structure",
+      "members":{}
+    },
+    "DeregisterDefaultHostManagementConfigurationResult":{
+      "type":"structure",
+      "members":{}
+    },
     "DeregisterManagedInstanceRequest":{
       "type":"structure",
       "required":["InstanceId"],
@@ -8200,6 +8267,94 @@
       "documentation":"<p>You attempted to register a <code>LAMBDA</code> or <code>STEP_FUNCTIONS</code> task in a region where the corresponding service isn't available. </p>",
       "exception":true
     },
+    "GcpConfiguration":{
+      "type":"structure",
+      "required":[
+        "WorkloadIdentityPoolProvider",
+        "ServiceAccountEmail"
+      ],
+      "members":{
+        "OrganizationId":{
+          "shape":"GcpOrganizationId",
+          "documentation":"<p>The ID of the GCP organization.</p>"
+        },
+        "WorkloadIdentityPoolProvider":{
+          "shape":"GcpWorkloadIdentityPoolProvider",
+          "documentation":"<p>The full resource name of the GCP workload identity pool provider used for authentication.</p>"
+        },
+        "ServiceAccountEmail":{
+          "shape":"GcpServiceAccountEmail",
+          "documentation":"<p>The email address of the GCP service account used for authentication.</p>"
+        },
+        "Targets":{
+          "shape":"GcpConfigurationTargets",
+          "documentation":"<p>The target GCP projects for the cloud connector.</p>"
+        }
+      },
+      "documentation":"<p>The access details and targets for connecting to a Google Cloud Platform (GCP) environment, including the workload identity pool provider and service account used for authentication and the projects to target.</p>"
+    },
+    "GcpConfigurationTargets":{
+      "type":"structure",
+      "members":{
+        "Projects":{
+          "shape":"GcpProjectList",
+          "documentation":"<p>A list of GCP projects to target.</p>"
+        }
+      },
+      "documentation":"<p>The target resources in the GCP environment.</p>",
+      "union":true
+    },
+    "GcpOrganizationId":{
+      "type":"string",
+      "max":19,
+      "min":1,
+      "pattern":"^[1-9][0-9]{0,18}$"
+    },
+    "GcpProject":{
+      "type":"structure",
+      "required":["ProjectId"],
+      "members":{
+        "ProjectId":{
+          "shape":"GcpProjectId",
+          "documentation":"<p>The ID of the GCP project.</p>"
+        },
+        "ProjectDisplayName":{
+          "shape":"GcpProjectDisplayName",
+          "documentation":"<p>The display name of the GCP project.</p>"
+        }
+      },
+      "documentation":"<p>Information about a GCP project targeted by the cloud connector.</p>"
+    },
+    "GcpProjectDisplayName":{
+      "type":"string",
+      "max":128,
+      "min":0,
+      "pattern":"^([\\p{L}\\p{Z}\\p{N}\\p{P}\\p{M}]*)$"
+    },
+    "GcpProjectId":{
+      "type":"string",
+      "max":30,
+      "min":6,
+      "pattern":"^[a-z][a-z0-9-]{4,28}[a-z0-9]$"
+    },
+    "GcpProjectList":{
+      "type":"list",
+      "member":{"shape":"GcpProject"},
+      "max":75,
+      "min":1
+    },
+    "GcpServiceAccountEmail":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"^[a-z][a-z0-9\\-]*[a-z0-9]@[a-z][a-z0-9\\-]*[a-z0-9]\\.iam\\.gserviceaccount\\.com$"
+    },
+    "GcpWorkloadIdentityPoolProvider":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"^projects/[1-9][0-9]{0,18}/locations/global/workloadIdentityPools\\/[a-z0-9-]{4,32}/providers/[a-z0-9-]{4,32}$"
+    },
     "GetAccessTokenRequest":{
       "type":"structure",
       "required":["AccessRequestId"],
@@ -8308,7 +8463,7 @@
         },
         "ConfigConnectorArn":{
           "shape":"ConfigConnectorArn",
-          "documentation":"<p>The ARN of the Amazon Web Services Config connector associated with this cloud connector.</p>"
+          "documentation":"<p>The ARN of the Amazon Web Services Config connector associated with this cloud connector. This value is returned only if the cloud connector was created with an Amazon Web Services Config connector.</p>"
         },
         "CreatedAt":{
           "shape":"DateTime",
@@ -9242,7 +9397,7 @@
         },
         "Recursive":{
           "shape":"Boolean",
-          "documentation":"<p>Retrieve all parameters within a hierarchy.</p> <important> <p>If a user has access to a path, then the user can access all levels of that path. For example, if a user has permission to access path <code>/a</code>, then the user can also access <code>/a/b</code>. Even if a user has explicitly been denied access in IAM for parameter <code>/a/b</code>, they can still call the GetParametersByPath API operation recursively for <code>/a</code> and view <code>/a/b</code>.</p> </important>",
+          "documentation":"<p>Retrieve all parameters within a hierarchy.</p>",
           "box":true
         },
         "ParameterFilters":{
@@ -9748,7 +9903,7 @@
         },
         "SourceType":{
           "shape":"SourceType",
-          "documentation":"<p>The type of the source resource. For IoT Greengrass devices, <code>SourceType</code> is <code>AWS::IoT::Thing</code>.</p>"
+          "documentation":"<p>The type of the source resource. For IoT Greengrass devices, <code>SourceType</code> is <code>AWS::IoT::Thing</code>. For Azure Virtual Machines, <code>SourceType</code> is <code>Microsoft.Compute/virtualMachines</code>. For Google Cloud Platform (GCP) Compute Engine Virtual Machines, <code>SourceType</code> is <code>compute.googleapis.com/Instance</code>.</p>"
         },
         "SourceId":{
           "shape":"SourceId",
@@ -9857,7 +10012,7 @@
         },
         "SourceType":{
           "shape":"SourceType",
-          "documentation":"<p>The type of the source resource. For IoT Greengrass devices, <code>SourceType</code> is <code>AWS::IoT::Thing</code>. For Azure Virtual Machines, <code>SourceType</code> is <code>Microsoft.Compute/virtualMachines</code>.</p>"
+          "documentation":"<p>The type of the source resource. For IoT Greengrass devices, <code>SourceType</code> is <code>AWS::IoT::Thing</code>. For Azure Virtual Machines, <code>SourceType</code> is <code>Microsoft.Compute/virtualMachines</code>. For Google Cloud Platform (GCP) Compute Engine Virtual Machines, <code>SourceType</code> is <code>compute.googleapis.com/Instance</code>.</p>"
         },
         "SourceLocation":{
           "shape":"SourceLocation",
@@ -9925,7 +10080,7 @@
       "members":{
         "Key":{
           "shape":"InstanceInformationStringFilterKey",
-          "documentation":"<p>The filter key name to describe your managed nodes.</p> <p>Valid filter key values: ActivationIds | AgentVersion | AssociationStatus | IamRole | InstanceIds | PingStatus | PlatformTypes | ResourceType | SourceIds | SourceTypes | \"tag-key\" | \"tag:<code>{keyname}</code> </p> <ul> <li> <p>Valid values for the <code>AssociationStatus</code> filter key: Success | Pending | Failed</p> </li> <li> <p>Valid values for the <code>PingStatus</code> filter key: Online | ConnectionLost | Inactive (deprecated)</p> </li> <li> <p>Valid values for the <code>PlatformTypes</code> filter key: Windows | Linux | MacOS</p> </li> <li> <p>Valid values for the <code>ResourceType</code> filter key: EC2Instance | ManagedInstance</p> </li> <li> <p>Valid values for the <code>SourceType</code> filter key: AWS::EC2::Instance | AWS::SSM::ManagedInstance | AWS::IoT::Thing | Microsoft.Compute/virtualMachines</p> </li> <li> <p>Valid tag examples: <code>Key=tag-key,Values=Purpose</code> | <code>Key=tag:Purpose,Values=Test</code>.</p> </li> </ul>"
+          "documentation":"<p>The filter key name to describe your managed nodes.</p> <p>Valid filter key values: ActivationIds | AgentVersion | AssociationStatus | IamRole | InstanceIds | PingStatus | PlatformTypes | ResourceType | SourceIds | SourceTypes | \"tag-key\" | \"tag:<code>{keyname}</code> </p> <ul> <li> <p>Valid values for the <code>AssociationStatus</code> filter key: Success | Pending | Failed</p> </li> <li> <p>Valid values for the <code>PingStatus</code> filter key: Online | ConnectionLost | Inactive (deprecated)</p> </li> <li> <p>Valid values for the <code>PlatformTypes</code> filter key: Windows | Linux | MacOS</p> </li> <li> <p>Valid values for the <code>ResourceType</code> filter key: EC2Instance | ManagedInstance</p> </li> <li> <p>Valid values for the <code>SourceType</code> filter key: AWS::EC2::Instance | AWS::SSM::ManagedInstance | AWS::IoT::Thing | Microsoft.Compute/virtualMachines | compute.googleapis.com/Instance</p> </li> <li> <p>Valid tag examples: <code>Key=tag-key,Values=Purpose</code> | <code>Key=tag:Purpose,Values=Test</code>.</p> </li> </ul>"
         },
         "Values":{
           "shape":"InstanceInformationFilterValueSet",
@@ -10226,7 +10381,7 @@
         },
         "SourceType":{
           "shape":"SourceType",
-          "documentation":"<p>The type of the source resource. Valid values: <code>AWS::EC2::Instance</code> | <code>AWS::SSM::ManagedInstance</code> | <code>AWS::IoT::Thing</code> | <code>Microsoft.Compute/virtualMachines</code>.</p>"
+          "documentation":"<p>The type of the source resource. Valid values: <code>AWS::EC2::Instance</code> | <code>AWS::SSM::ManagedInstance</code> | <code>AWS::IoT::Thing</code> | <code>Microsoft.Compute/virtualMachines</code> | <code>compute.googleapis.com/Instance</code>.</p>"
         },
         "SourceLocation":{
           "shape":"SourceLocation",
@@ -14167,7 +14322,7 @@
         },
         "DataType":{
           "shape":"ParameterDataType",
-          "documentation":"<p>The data type of the parameter, such as <code>text</code> or <code>aws:ec2:image</code>. The default is <code>text</code>.</p>"
+          "documentation":"<p>The data type of the parameter, such as <code>text</code>, <code>aws:ec2:image</code>, or <code>json</code>. The default is <code>text</code>. For the list of data types, see the <code>DataType</code> parameter of <code>PutParameter</code>.</p>"
         }
       },
       "documentation":"<p>An Amazon Web Services Systems Manager parameter in Parameter Store.</p>"
@@ -14243,7 +14398,7 @@
         },
         "DataType":{
           "shape":"ParameterDataType",
-          "documentation":"<p>The data type of the parameter, such as <code>text</code> or <code>aws:ec2:image</code>. The default is <code>text</code>.</p>"
+          "documentation":"<p>The data type of the parameter, such as <code>text</code>, <code>aws:ec2:image</code>, or <code>json</code>. The default is <code>text</code>. For the list of data types, see the <code>DataType</code> parameter of <code>PutParameter</code>.</p>"
         }
       },
       "documentation":"<p>Information about parameter usage.</p>"
@@ -14356,7 +14511,7 @@
         },
         "DataType":{
           "shape":"ParameterDataType",
-          "documentation":"<p>The data type of the parameter, such as <code>text</code> or <code>aws:ec2:image</code>. The default is <code>text</code>.</p>"
+          "documentation":"<p>The data type of the parameter, such as <code>text</code>, <code>aws:ec2:image</code>, or <code>json</code>. The default is <code>text</code>. For the list of data types, see the <code>DataType</code> parameter of <code>PutParameter</code>.</p>"
         }
       },
       "documentation":"<p>Metadata includes information like the Amazon Resource Name (ARN) of the last user to update the parameter and the date and time the parameter was last used.</p>"
@@ -15203,6 +15358,13 @@
       },
       "documentation":"<p>An aggregate of step execution statuses displayed in the Amazon Web Services Systems Manager console for a multi-Region and multi-account Automation execution.</p>"
     },
+    "Provider":{
+      "type":"string",
+      "enum":[
+        "Azure",
+        "GCP"
+      ]
+    },
     "PutComplianceItemsRequest":{
       "type":"structure",
       "required":[
@@ -15317,7 +15479,7 @@
         },
         "Tier":{
           "shape":"ParameterTier",
-          "documentation":"<p>The parameter tier to assign to a parameter.</p> <p>Parameter Store offers a standard tier and an advanced tier for parameters. Standard parameters have a content size limit of 4 KB and can't be configured to use parameter policies. You can create a maximum of 10,000 standard parameters for each Region in an Amazon Web Services account. Standard parameters are offered at no additional cost. </p> <p>Advanced parameters have a content size limit of 8 KB and can be configured to use parameter policies. You can create a maximum of 100,000 advanced parameters for each Region in an Amazon Web Services account. Advanced parameters incur a charge. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-advanced-parameters.html\">Managing parameter tiers</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> <p>You can change a standard parameter to an advanced parameter any time. But you can't revert an advanced parameter to a standard parameter. Reverting an advanced parameter to a standard parameter would result in data loss because the system would truncate the size of the parameter from 8 KB to 4 KB. Reverting would also remove any policies attached to the parameter. Lastly, advanced parameters use a different form of encryption than standard parameters. </p> <p>If you no longer need an advanced parameter, or if you no longer want to incur charges for an advanced parameter, you must delete it and recreate it as a new standard parameter. </p> <p> <b>Using the Default Tier Configuration</b> </p> <p>In <code>PutParameter</code> requests, you can specify the tier to create the parameter in. Whenever you specify a tier in the request, Parameter Store creates or updates the parameter according to that request. However, if you don't specify a tier in a request, Parameter Store assigns the tier based on the current Parameter Store default tier configuration.</p> <p>The default tier when you begin using Parameter Store is the standard-parameter tier. If you use the advanced-parameter tier, you can specify one of the following as the default:</p> <ul> <li> <p> <b>Advanced</b>: With this option, Parameter Store evaluates all requests as advanced parameters. </p> </li> <li> <p> <b>Intelligent-Tiering</b>: With this option, Parameter Store evaluates each request to determine if the parameter is standard or advanced. </p> <p>If the request doesn't include any options that require an advanced parameter, the parameter is created in the standard-parameter tier. If one or more options requiring an advanced parameter are included in the request, Parameter Store create a parameter in the advanced-parameter tier.</p> <p>This approach helps control your parameter-related costs by always creating standard parameters unless an advanced parameter is necessary. </p> </li> </ul> <p>Options that require an advanced parameter include the following:</p> <ul> <li> <p>The content size of the parameter is more than 4 KB.</p> </li> <li> <p>The parameter uses a parameter policy.</p> </li> <li> <p>More than 10,000 parameters already exist in your Amazon Web Services account in the current Amazon Web Services Region.</p> </li> </ul> <p>For more information about configuring the default tier option, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-advanced-parameters.html#ps-default-tier\">Specifying a default parameter tier</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>"
+          "documentation":"<p>The parameter tier to assign to a parameter.</p> <p>Parameter Store offers a standard tier and an advanced tier for parameters. Standard parameters have a content size limit of 4 KB and can't be configured to use parameter policies. You can create a maximum of 10,000 standard parameters for each Region in an Amazon Web Services account. Standard parameters are offered at no additional cost. </p> <p>Advanced parameters have a content size limit of 8 KB and can be configured to use parameter policies. You can create a maximum of 100,000 advanced parameters for each Region in an Amazon Web Services account. Advanced parameters incur a charge. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-advanced-parameters.html\">Managing parameter tiers</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> <p>You can change a standard parameter to an advanced parameter any time. But you can't revert an advanced parameter to a standard parameter. Reverting an advanced parameter to a standard parameter would result in data loss because the system would truncate the size of the parameter from 8 KB to 4 KB. Reverting would also remove any policies attached to the parameter. Lastly, advanced parameters use a different form of encryption than standard parameters. </p> <p>If you no longer need an advanced parameter, or if you no longer want to incur charges for an advanced parameter, you must delete it and recreate it as a new standard parameter. </p> <p> <b>Using the Default Tier Configuration</b> </p> <p>In <code>PutParameter</code> requests, you can specify the tier to create the parameter in. Whenever you specify a tier in the request, Parameter Store creates or updates the parameter according to that request. However, if you don't specify a tier in a request, Parameter Store assigns the tier based on the current Parameter Store default tier configuration.</p> <p>The default tier when you begin using Parameter Store is the standard-parameter tier. If you use the advanced-parameter tier, you can specify one of the following as the default:</p> <ul> <li> <p> <b>Advanced</b>: With this option, Parameter Store evaluates all requests as advanced parameters. </p> </li> <li> <p> <b>Intelligent-Tiering</b>: With this option, Parameter Store evaluates each request to determine if the parameter is standard or advanced. </p> <p>If the request doesn't include any options that require an advanced parameter, the parameter is created in the standard-parameter tier. If one or more options requiring an advanced parameter are included in the request, Parameter Store create a parameter in the advanced-parameter tier.</p> <p>This approach helps control your parameter-related costs by always creating standard parameters unless an advanced parameter is necessary. </p> </li> </ul> <p>Options that require an advanced parameter include the following:</p> <ul> <li> <p>The content size of the parameter is more than 4 KB.</p> </li> <li> <p>The parameter uses a parameter policy.</p> </li> <li> <p>The parameter uses the <code>url</code>, <code>json</code>, or <code>jsonc</code> data type.</p> </li> <li> <p>More than 10,000 parameters already exist in your Amazon Web Services account in the current Amazon Web Services Region.</p> </li> </ul> <p>For more information about configuring the default tier option, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-advanced-parameters.html#ps-default-tier\">Specifying a default parameter tier</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>"
         },
         "Policies":{
           "shape":"ParameterPolicies",
@@ -15325,7 +15487,7 @@
         },
         "DataType":{
           "shape":"ParameterDataType",
-          "documentation":"<p>The data type for a <code>String</code> parameter. Supported data types include plain text and Amazon Machine Image (AMI) IDs.</p> <p> <b>The following data type values are supported.</b> </p> <ul> <li> <p> <code>text</code> </p> </li> <li> <p> <code>aws:ec2:image</code> </p> </li> <li> <p> <code>aws:ssm:integration</code> </p> </li> </ul> <p>When you create a <code>String</code> parameter and specify <code>aws:ec2:image</code>, Amazon Web Services Systems Manager validates the parameter value is in the required format, such as <code>ami-12345abcdeEXAMPLE</code>, and that the specified AMI is available in your Amazon Web Services account.</p> <note> <p>If the action is successful, the service sends back an HTTP 200 response which indicates a successful <code>PutParameter</code> call for all cases except for data type <code>aws:ec2:image</code>. If you call <code>PutParameter</code> with <code>aws:ec2:image</code> data type, a successful HTTP 200 response does not guarantee that your parameter was successfully created or updated. The <code>aws:ec2:image</code> value is validated asynchronously, and the <code>PutParameter</code> call returns before the validation is complete. If you submit an invalid AMI value, the PutParameter operation will return success, but the asynchronous validation will fail and the parameter will not be created or updated. To monitor whether your <code>aws:ec2:image</code> parameters are created successfully, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-cwe.html\">Setting up notifications or trigger actions based on Parameter Store events</a>. For more information about AMI format validation , see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-ec2-aliases.html\">Native parameter support for Amazon Machine Image IDs</a>. </p> </note>"
+          "documentation":"<p>The data type of the parameter value. Parameter Store validates the value against the data type when you create or update the parameter. The default is <code>text</code>, which performs no validation.</p> <p> <b>The following data type values are supported.</b> </p> <ul> <li> <p> <code>text</code> </p> </li> <li> <p> <code>aws:ec2:image</code> </p> </li> <li> <p> <code>aws:ssm:integration</code> </p> </li> <li> <p> <code>aws:region</code> </p> </li> <li> <p> <code>aws:account:id</code> </p> </li> <li> <p> <code>boolean</code> </p> </li> <li> <p> <code>integer</code> </p> </li> <li> <p> <code>float</code> </p> </li> <li> <p> <code>binary</code> </p> </li> <li> <p> <code>hostname</code> </p> </li> <li> <p> <code>email</code> </p> </li> <li> <p> <code>ipv4-address</code> </p> </li> <li> <p> <code>ipv6-address</code> </p> </li> <li> <p> <code>url</code> </p> </li> <li> <p> <code>json</code> </p> </li> <li> <p> <code>jsonc</code> </p> </li> </ul> <p>For more information about the supported data types, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-data-types.html\">Working with parameter data types in Parameter Store</a>.</p> <note> <p>Regardless of a parameter's data type, the Parameter Store API operations that retrieve parameters, such as <code>GetParameter</code>, <code>GetParameters</code>, and <code>GetParametersByPath</code>, return the parameter value as a string. For example, if a parameter has the data type <code>integer</code> and the value <code>443</code>, <code>GetParameter</code> returns the value as the string <code>\"443\"</code>. Convert the value to the type your application needs after you retrieve it.</p> </note> <p>When you create a <code>String</code> parameter and specify <code>aws:ec2:image</code>, Amazon Web Services Systems Manager validates the parameter value is in the required format, such as <code>ami-12345abcdeEXAMPLE</code>, and that the specified AMI is available in your Amazon Web Services account.</p> <note> <p>If the action is successful, the service sends back an HTTP 200 response which indicates a successful <code>PutParameter</code> call for all cases except for data type <code>aws:ec2:image</code>. If you call <code>PutParameter</code> with <code>aws:ec2:image</code> data type, a successful HTTP 200 response does not guarantee that your parameter was successfully created or updated. The <code>aws:ec2:image</code> value is validated asynchronously, and the <code>PutParameter</code> call returns before the validation is complete. If you submit an invalid AMI value, the PutParameter operation will return success, but the asynchronous validation will fail and the parameter will not be created or updated. To monitor whether your <code>aws:ec2:image</code> parameters are created successfully, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-cwe.html\">Setting up notifications or trigger actions based on Parameter Store events</a>. For more information about AMI format validation , see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-ec2-aliases.html\">Native parameter support for Amazon Machine Image IDs</a>. </p> </note>"
         }
       }
     },
@@ -15399,6 +15561,33 @@
       "member":{"shape":"Region"},
       "max":50,
       "min":1
+    },
+    "RegisterDefaultHostManagementConfigurationRequest":{
+      "type":"structure",
+      "required":["PermissionModel"],
+      "members":{
+        "PermissionModel":{
+          "shape":"DHMCPermissionModel",
+          "documentation":"<p>The permission model that determines how the IAM role for Default Host Management Configuration is provided.</p> <p>The permission model can be one of the following values:</p> <dl> <dt>SERVICE_MANAGED</dt> <dd> <p>Amazon Web Services Systems Manager creates and manages the role on your behalf.</p> </dd> <dt>SELF_MANAGED</dt> <dd> <p>You provide the role to register in <code>RoleArn</code>.</p> </dd> </dl>"
+        },
+        "RoleArn":{
+          "shape":"DHMCRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the self-managed IAM role that you register for Default Host Management Configuration. The requirement for this value depends on the permission model:</p> <ul> <li> <p>If <code>PermissionModel</code> is <code>SELF_MANAGED</code>, this value is required.</p> </li> <li> <p>If <code>PermissionModel</code> is <code>SERVICE_MANAGED</code>, this value must not be set.</p> </li> </ul>"
+        },
+        "Overwrite":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to override the role that is currently registered for Default Host Management Configuration. The default is <code>false</code>, which acts as a guardrail against accidentally replacing an existing configuration. Set this to <code>true</code> to replace the currently registered role.</p>"
+        }
+      }
+    },
+    "RegisterDefaultHostManagementConfigurationResult":{
+      "type":"structure",
+      "members":{
+        "RoleArn":{
+          "shape":"DHMCRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role registered for Default Host Management Configuration. The value depends on the permission model:</p> <dl> <dt>SERVICE_MANAGED</dt> <dd> <p>The ARN of the role that Amazon Web Services Systems Manager created in the IAM reserved path.</p> </dd> <dt>SELF_MANAGED</dt> <dd> <p>The <code>RoleArn</code> that you provided.</p> </dd> </dl>"
+        }
+      }
     },
     "RegisterDefaultPatchBaselineRequest":{
       "type":"structure",
@@ -16819,7 +17008,8 @@
         "AWS::EC2::Instance",
         "AWS::IoT::Thing",
         "AWS::SSM::ManagedInstance",
-        "Microsoft.Compute/virtualMachines"
+        "Microsoft.Compute/virtualMachines",
+        "compute.googleapis.com/Instance"
       ]
     },
     "StandardErrorContent":{
@@ -17363,7 +17553,7 @@
           "documentation":"<p>User-defined criteria that maps to <code>Key</code>. For example, if you specified <code>tag:ServerRole</code>, you could specify <code>value:WebServer</code> to run a command on instances that include EC2 tags of <code>ServerRole,WebServer</code>. </p> <p>Depending on the type of target, the maximum number of values for a key might be lower than the global maximum of 50.</p>"
         }
       },
-      "documentation":"<p>An array of search criteria that targets managed nodes using a key-value pair that you specify.</p> <note> <p> One or more targets must be specified for maintenance window Run Command-type tasks. Depending on the task, targets are optional for other maintenance window task types (Automation, Lambda, and Step Functions). For more information about running tasks that don't specify targets, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/maintenance-windows-targetless-tasks.html\">Registering maintenance window tasks without targets</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> </note> <p>Supported formats include the following.</p> <p> <b>For all Systems Manager tools:</b> </p> <ul> <li> <p> <code>Key=tag-key,Values=tag-value-1,tag-value-2</code> </p> </li> </ul> <p> <b>For Automation and Change Manager:</b> </p> <ul> <li> <p> <code>Key=tag:tag-key,Values=tag-value</code> </p> </li> <li> <p> <code>Key=ResourceGroup,Values=resource-group-name</code> </p> </li> <li> <p> <code>Key=ParameterValues,Values=value-1,value-2,value-3</code> </p> </li> <li> <p>To target all instances in the Amazon Web Services Region:</p> <ul> <li> <p> <code>Key=AWS::EC2::Instance,Values=*</code> </p> </li> <li> <p> <code>Key=InstanceIds,Values=*</code> </p> </li> </ul> </li> </ul> <p> <b>For Run Command and Maintenance Windows:</b> </p> <ul> <li> <p> <code>Key=InstanceIds,Values=instance-id-1,instance-id-2,instance-id-3</code> </p> </li> <li> <p> <code>Key=tag:tag-key,Values=tag-value-1,tag-value-2</code> </p> </li> <li> <p> <code>Key=resource-groups:Name,Values=resource-group-name</code> </p> </li> <li> <p>Additionally, Maintenance Windows support targeting resource types:</p> <ul> <li> <p> <code>Key=resource-groups:ResourceTypeFilters,Values=resource-type-1,resource-type-2</code> </p> </li> </ul> </li> </ul> <p> <b>For State Manager:</b> </p> <ul> <li> <p> <code>Key=InstanceIds,Values=instance-id-1,instance-id-2,instance-id-3</code> </p> </li> <li> <p> <code>Key=tag:tag-key,Values=tag-value-1,tag-value-2</code> </p> </li> <li> <p>To target all instances in the Amazon Web Services Region:</p> <ul> <li> <p> <code>Key=InstanceIds,Values=*</code> </p> </li> </ul> </li> </ul> <p>For more information about how to send commands that target managed nodes using <code>Key,Value</code> parameters, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/send-commands-multiple.html#send-commands-targeting\">Targeting multiple managed nodes</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>"
+      "documentation":"<p>An array of search criteria that targets managed nodes using a key-value pair that you specify.</p> <note> <p> One or more targets must be specified for maintenance window Run Command-type tasks. Depending on the task, targets are optional for other maintenance window task types (Automation, Lambda, and Step Functions). For more information about running tasks that don't specify targets, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/maintenance-windows-targetless-tasks.html\">Registering maintenance window tasks without targets</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> </note> <p>Supported formats include the following.</p> <p> <b>For all Systems Manager tools:</b> </p> <ul> <li> <p> <code>Key=tag-key,Values=tag-value-1,tag-value-2</code> </p> </li> </ul> <p> <b>For Automation and Change Manager:</b> </p> <ul> <li> <p> <code>Key=tag:tag-key,Values=tag-value</code> </p> </li> <li> <p> <code>Key=ResourceGroup,Values=resource-group-name</code> </p> </li> <li> <p> <code>Key=ParameterValues,Values=value-1,value-2,value-3</code> </p> </li> <li> <p>To target all instances in the Amazon Web Services Region:</p> <ul> <li> <p> <code>Key=AWS::EC2::Instance,Values=*</code> </p> </li> <li> <p> <code>Key=InstanceIds,Values=*</code> </p> </li> </ul> </li> <li> <p>Automation only, to target Microsoft Azure or Google Cloud Platform (GCP) resources:</p> <ul> <li> <p> <code>Key=CloudConnector,Values=cloud-connector-id</code> </p> </li> <li> <p> <code>Key=CloudConnector,Values={\"CloudConnectorId\":\"cloud-connector-id\",\"SsmManagedNodeFilter\":\"MANAGED\",\"CloudProviderRegions\":[\"eastus\"]}</code> </p> </li> </ul> <p>Supported JSON keys: <code>CloudConnectorId</code> (required), <code>SsmManagedNodeFilter</code>, <code>CloudProviderRegions</code>, and, for GCP, <code>IncludesLabels</code>, <code>ExcludesLabels</code>, <code>OsPolicyComplianceFilter</code>, and <code>OsPolicyOrchestratorId</code>.</p> </li> </ul> <p> <b>For Run Command and Maintenance Windows:</b> </p> <ul> <li> <p> <code>Key=InstanceIds,Values=instance-id-1,instance-id-2,instance-id-3</code> </p> </li> <li> <p> <code>Key=tag:tag-key,Values=tag-value-1,tag-value-2</code> </p> </li> <li> <p> <code>Key=resource-groups:Name,Values=resource-group-name</code> </p> </li> <li> <p>Additionally, Maintenance Windows support targeting resource types:</p> <ul> <li> <p> <code>Key=resource-groups:ResourceTypeFilters,Values=resource-type-1,resource-type-2</code> </p> </li> </ul> </li> </ul> <p> <b>For State Manager:</b> </p> <ul> <li> <p> <code>Key=InstanceIds,Values=instance-id-1,instance-id-2,instance-id-3</code> </p> </li> <li> <p> <code>Key=tag:tag-key,Values=tag-value-1,tag-value-2</code> </p> </li> <li> <p>To target all instances in the Amazon Web Services Region:</p> <ul> <li> <p> <code>Key=InstanceIds,Values=*</code> </p> </li> </ul> </li> <li> <p>For associations that run an Automation runbook, to target Microsoft Azure or Google Cloud Platform (GCP) resources:</p> <ul> <li> <p> <code>Key=CloudConnector,Values=cloud-connector-id</code> </p> </li> <li> <p> <code>Key=CloudConnector,Values={\"CloudConnectorId\":\"cloud-connector-id\",\"SsmManagedNodeFilter\":\"UNMANAGED\"}</code> </p> </li> </ul> <p>Supported JSON keys: <code>CloudConnectorId</code> (required), <code>SsmManagedNodeFilter</code>, and <code>CloudProviderRegions</code>.</p> </li> </ul> <p>For more information about how to send commands that target managed nodes using <code>Key,Value</code> parameters, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/send-commands-multiple.html#send-commands-targeting\">Targeting multiple managed nodes</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>"
     },
     "TargetCount":{"type":"integer"},
     "TargetInUseException":{
@@ -17521,6 +17711,32 @@
       "member":{"shape":"Target"},
       "max":5,
       "min":0
+    },
+    "TargetsSummary":{
+      "type":"structure",
+      "members":{
+        "TotalCount":{
+          "shape":"Integer",
+          "documentation":"<p>The total number of targets in the rate control execution.</p>"
+        },
+        "StartedCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of child executions that started.</p>"
+        },
+        "CompletedCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of child executions that finished, whether they succeeded or failed.</p>"
+        },
+        "SuccessfulCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of child executions that succeeded.</p>"
+        },
+        "FailedCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of child executions that failed, timed out, or were canceled.</p>"
+        }
+      },
+      "documentation":"<p>The number of targets in a rate control execution, and the status of the child executions that it started for those targets.</p>"
     },
     "TerminateSessionRequest":{
       "type":"structure",
@@ -18677,6 +18893,8 @@
       "enum":[
         "TargetInaccessible",
         "TargetUnusable",
+        "TargetMissingPermissions",
+        "TargetApiDisabled",
         "TargetStateWarning",
         "AwsRoleAssumptionFailed",
         "WebIdentityTokenFailed",
@@ -18708,7 +18926,9 @@
       "type":"string",
       "enum":[
         "azure:tenant",
-        "azure:subscription"
+        "azure:subscription",
+        "gcp:organization",
+        "gcp:project"
       ]
     },
     "ValidationFindingType":{

@@ -51,6 +51,24 @@
       ],
       "documentation":"<p>Associates an Amazon Web Services Identity and Access Management (IAM) service role with a specified resource to enable Amazon Web Services service integration.</p>"
     },
+    "AssociateVirtualMachinesToCloudVmCluster":{
+      "name":"AssociateVirtualMachinesToCloudVmCluster",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"AssociateVirtualMachinesToCloudVmClusterInput"},
+      "output":{"shape":"AssociateVirtualMachinesToCloudVmClusterOutput"},
+      "errors":[
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Adds virtual machines to the specified VM cluster.</p>"
+    },
     "AssociateVirtualMachinesToExadbVmCluster":{
       "name":"AssociateVirtualMachinesToExadbVmCluster",
       "http":{
@@ -221,9 +239,10 @@
         {"shape":"ValidationException"},
         {"shape":"ConflictException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"InternalServerException"}
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Creates an Exascale storage vault.</p>",
+      "documentation":"<p>Creates an Exascale storage vault.</p> <p>To create the Exascale storage vault on dedicated Exadata infrastructure, specify <code>cloudExadataInfrastructureId</code>.</p>",
       "idempotent":true
     },
     "CreateOdbNetwork":{
@@ -448,6 +467,24 @@
         {"shape":"ResourceNotFoundException"}
       ],
       "documentation":"<p>Disassociates an Amazon Web Services Identity and Access Management (IAM) service role from a specified resource to disable Amazon Web Services service integration.</p>"
+    },
+    "DisassociateVirtualMachinesFromCloudVmCluster":{
+      "name":"DisassociateVirtualMachinesFromCloudVmCluster",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DisassociateVirtualMachinesFromCloudVmClusterInput"},
+      "output":{"shape":"DisassociateVirtualMachinesFromCloudVmClusterOutput"},
+      "errors":[
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Removes virtual machines from the specified VM cluster.</p>"
     },
     "DisassociateVirtualMachinesFromExadbVmCluster":{
       "name":"DisassociateVirtualMachinesFromExadbVmCluster",
@@ -1012,7 +1049,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"InternalServerException"}
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"}
       ],
       "documentation":"<p>Returns information about the Exascale storage vaults owned by your Amazon Web Services account.</p>",
       "readonly":true
@@ -1359,6 +1397,25 @@
       ],
       "documentation":"<p>Updates the properties of an Autonomous Database backup.</p>"
     },
+    "UpdateCloudAutonomousVmCluster":{
+      "name":"UpdateCloudAutonomousVmCluster",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateCloudAutonomousVmClusterInput"},
+      "output":{"shape":"UpdateCloudAutonomousVmClusterOutput"},
+      "errors":[
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Updates the properties of the specified Autonomous VM cluster.</p>",
+      "idempotent":true
+    },
     "UpdateCloudExadataInfrastructure":{
       "name":"UpdateCloudExadataInfrastructure",
       "http":{
@@ -1377,6 +1434,42 @@
       ],
       "documentation":"<p>Updates the properties of an Exadata infrastructure resource.</p>"
     },
+    "UpdateCloudExadataInfrastructureStorageCapacity":{
+      "name":"UpdateCloudExadataInfrastructureStorageCapacity",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateCloudExadataInfrastructureStorageCapacityInput"},
+      "output":{"shape":"UpdateCloudExadataInfrastructureStorageCapacityOutput"},
+      "errors":[
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Adds storage capacity to the specified Exadata infrastructure.</p>"
+    },
+    "UpdateCloudVmCluster":{
+      "name":"UpdateCloudVmCluster",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateCloudVmClusterInput"},
+      "output":{"shape":"UpdateCloudVmClusterOutput"},
+      "errors":[
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Updates the properties of the specified VM cluster.</p>"
+    },
     "UpdateExadbVmCluster":{
       "name":"UpdateExadbVmCluster",
       "http":{
@@ -1394,6 +1487,24 @@
         {"shape":"ResourceNotFoundException"}
       ],
       "documentation":"<p>Updates the specified Exascale VM cluster.</p>"
+    },
+    "UpdateExascaleCloudExadataInfrastructure":{
+      "name":"UpdateExascaleCloudExadataInfrastructure",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateExascaleCloudExadataInfrastructureInput"},
+      "output":{"shape":"UpdateExascaleCloudExadataInfrastructureOutput"},
+      "errors":[
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Configures or updates the Exascale storage on an Exadata infrastructure. After you configure Exascale storage, you can create Exascale storage vaults on the infrastructure and VM clusters that use Exascale storage.</p>"
     },
     "UpdateExascaleDbStorageVault":{
       "name":"UpdateExascaleDbStorageVault",
@@ -1561,6 +1672,45 @@
     "AssociateIamRoleToResourceOutput":{
       "type":"structure",
       "members":{}
+    },
+    "AssociateVirtualMachinesToCloudVmClusterInput":{
+      "type":"structure",
+      "required":[
+        "cloudVmClusterId",
+        "dbServers"
+      ],
+      "members":{
+        "cloudVmClusterId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The unique identifier of the VM cluster to add virtual machines to.</p>"
+        },
+        "dbServers":{
+          "shape":"StringList",
+          "documentation":"<p>The list of database server IDs for the virtual machines to add to the VM cluster.</p>"
+        }
+      }
+    },
+    "AssociateVirtualMachinesToCloudVmClusterOutput":{
+      "type":"structure",
+      "required":["cloudVmClusterId"],
+      "members":{
+        "displayName":{
+          "shape":"String",
+          "documentation":"<p>The user-friendly name for the VM cluster.</p>"
+        },
+        "status":{
+          "shape":"ResourceStatus",
+          "documentation":"<p>The current status of the VM cluster.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Additional information about the current status of the VM cluster, if applicable.</p>"
+        },
+        "cloudVmClusterId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the VM cluster.</p>"
+        }
+      }
     },
     "AssociateVirtualMachinesToExadbVmClusterInput":{
       "type":"structure",
@@ -3135,6 +3285,10 @@
           "shape":"Integer",
           "documentation":"<p>The number of Autonomous CDBs that can't be provisioned because of resource constraints.</p>"
         },
+        "ocpusLowestScaledValue":{
+          "shape":"Integer",
+          "documentation":"<p>The minimum value to which you can scale down the number of CPU cores.</p>"
+        },
         "provisionableAutonomousContainerDatabases":{
           "shape":"Integer",
           "documentation":"<p>The number of Autonomous CDBs that can be provisioned in the Autonomous VM cluster.</p>"
@@ -3372,6 +3526,10 @@
           "shape":"Integer",
           "documentation":"<p>The number of Autonomous CDBs that can't be provisioned because of resource constraints.</p>"
         },
+        "ocpusLowestScaledValue":{
+          "shape":"Integer",
+          "documentation":"<p>The minimum value to which you can scale down the number of CPU cores.</p>"
+        },
         "provisionableAutonomousContainerDatabases":{
           "shape":"Integer",
           "documentation":"<p>The number of Autonomous CDBs that you can provision in the Autonomous VM cluster.</p>"
@@ -3569,7 +3727,7 @@
         },
         "totalStorageSizeInGBs":{
           "shape":"Integer",
-          "documentation":"<p>The total amount of storage, in gigabytes (GB), on the the Exadata infrastructure.</p>"
+          "documentation":"<p>The total amount of storage, in gigabytes (GB), on the Exadata infrastructure.</p>"
         },
         "percentProgress":{
           "shape":"Float",
@@ -3586,6 +3744,10 @@
         "computeModel":{
           "shape":"ComputeModel",
           "documentation":"<p>The OCI model compute model used when you create or clone an instance: ECPU or OCPU. An ECPU is an abstracted measure of compute resources. ECPUs are based on the number of cores elastically allocated from a pool of compute and storage servers. An OCPU is a legacy physical measure of compute resources. OCPUs are based on the physical core of a processor with hyper-threading enabled. </p>"
+        },
+        "exascaleConfiguration":{
+          "shape":"ExascaleConfiguration",
+          "documentation":"<p>The Exascale storage configuration of the Exadata infrastructure. This value is present only when Exascale storage is configured on the infrastructure.</p>"
         }
       },
       "documentation":"<p>Information about an Exadata infrastructure.</p>"
@@ -3732,7 +3894,7 @@
         },
         "totalStorageSizeInGBs":{
           "shape":"Integer",
-          "documentation":"<p>The total amount of storage, in gigabytes (GB), on the the Exadata infrastructure.</p>"
+          "documentation":"<p>The total amount of storage, in gigabytes (GB), on the Exadata infrastructure.</p>"
         },
         "percentProgress":{
           "shape":"Float",
@@ -3749,6 +3911,10 @@
         "computeModel":{
           "shape":"ComputeModel",
           "documentation":"<p>The OCI model compute model used when you create or clone an instance: ECPU or OCPU. An ECPU is an abstracted measure of compute resources. ECPUs are based on the number of cores elastically allocated from a pool of compute and storage servers. An OCPU is a legacy physical measure of compute resources. OCPUs are based on the physical core of a processor with hyper-threading enabled. </p>"
+        },
+        "exascaleConfiguration":{
+          "shape":"ExascaleConfiguration",
+          "documentation":"<p>The Exascale storage configuration of the Exadata infrastructure. This value is present only when Exascale storage is configured on the infrastructure.</p>"
         }
       },
       "documentation":"<p>Information about an Exadata infrastructure.</p>"
@@ -3818,6 +3984,30 @@
         "cloudExadataInfrastructureArn":{
           "shape":"ResourceArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the Exadata infrastructure that this VM cluster belongs to.</p>"
+        },
+        "exascaleDbStorageVaultId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The unique identifier of the Exascale storage vault that the VM cluster uses. This value is present only for VM clusters that use an Exascale storage vault.</p>"
+        },
+        "exascaleDbStorageVaultArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Exascale storage vault that the VM cluster uses. This value is present only for VM clusters that use an Exascale storage vault.</p>"
+        },
+        "storageManagementType":{
+          "shape":"StorageManagementType",
+          "documentation":"<p>The type of storage management for the VM cluster. A value of <code>ASM</code> indicates Oracle Automatic Storage Management, and <code>EXASCALE</code> indicates Exascale storage.</p>"
+        },
+        "vmFileSystemStorageType":{
+          "shape":"VmStorageType",
+          "documentation":"<p>The type of storage that the VM cluster uses for its VM file systems.</p>"
+        },
+        "vmBackupStorageType":{
+          "shape":"VmStorageType",
+          "documentation":"<p>The type of storage that the VM cluster uses for VM backups.</p>"
+        },
+        "fileSystemConfigurationDetails":{
+          "shape":"FileSystemConfigurationDetailsList",
+          "documentation":"<p>The list of file system configurations for the VM cluster.</p>"
         },
         "clusterName":{
           "shape":"String",
@@ -4001,6 +4191,30 @@
         "cloudExadataInfrastructureArn":{
           "shape":"ResourceArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the Exadata infrastructure that this VM cluster belongs to.</p>"
+        },
+        "exascaleDbStorageVaultId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The unique identifier of the Exascale storage vault that the VM cluster uses. This value is present only for VM clusters that use an Exascale storage vault.</p>"
+        },
+        "exascaleDbStorageVaultArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Exascale storage vault that the VM cluster uses. This value is present only for VM clusters that use an Exascale storage vault.</p>"
+        },
+        "storageManagementType":{
+          "shape":"StorageManagementType",
+          "documentation":"<p>The type of storage management for the VM cluster. A value of <code>ASM</code> indicates Oracle Automatic Storage Management, and <code>EXASCALE</code> indicates Exascale storage.</p>"
+        },
+        "vmFileSystemStorageType":{
+          "shape":"VmStorageType",
+          "documentation":"<p>The type of storage that the VM cluster uses for its VM file systems.</p>"
+        },
+        "vmBackupStorageType":{
+          "shape":"VmStorageType",
+          "documentation":"<p>The type of storage that the VM cluster uses for VM backups.</p>"
+        },
+        "fileSystemConfigurationDetails":{
+          "shape":"FileSystemConfigurationDetailsList",
+          "documentation":"<p>The list of file system configurations for the VM cluster.</p>"
         },
         "clusterName":{
           "shape":"String",
@@ -4828,6 +5042,22 @@
           "shape":"ResourceIdOrArn",
           "documentation":"<p>The unique identifier of the Exadata infrastructure for this VM cluster.</p>"
         },
+        "exascaleDbStorageVaultId":{
+          "shape":"ResourceIdOrArn",
+          "documentation":"<p>The unique identifier or Amazon Resource Name (ARN) of the Exascale storage vault to use for the VM cluster. Specify this value to create a VM cluster that uses Exascale storage on dedicated Exadata infrastructure.</p>"
+        },
+        "vmFileSystemStorageType":{
+          "shape":"VmStorageType",
+          "documentation":"<p>The type of storage to use for the VM file systems. Specify <code>EXASCALE</code> to store the VM file systems in Exascale storage on the storage servers, or <code>LOCAL</code> to store them on the database servers.</p>"
+        },
+        "vmBackupStorageType":{
+          "shape":"VmStorageType",
+          "documentation":"<p>The type of storage to use for VM backups. Specify <code>EXASCALE</code> to store VM backups in Exascale storage on the storage servers, or <code>LOCAL</code> to store them on the database servers.</p>"
+        },
+        "fileSystemConfigurationDetails":{
+          "shape":"FileSystemConfigurationDetailsList",
+          "documentation":"<p>The list of file system configurations for the VM cluster. Each entry specifies the mount point of a file system and its size, in gigabytes (GB).</p>"
+        },
         "cpuCoreCount":{
           "shape":"CreateCloudVmClusterInputCpuCoreCountInteger",
           "documentation":"<p>The number of CPU cores to enable on the VM cluster.</p>"
@@ -5044,7 +5274,7 @@
         },
         "scanListenerPortTcpSsl":{
           "shape":"CreateExadbVmClusterInputScanListenerPortTcpSslInteger",
-          "documentation":"<p>The port number for TCP connections with SSL to the Single Client Access Name (SCAN) listener.</p>"
+          "documentation":"<p>Reserved for future use.</p>"
         },
         "shapeAttribute":{
           "shape":"ShapeAttribute",
@@ -5171,6 +5401,10 @@
         "autoscaleLimitInGBs":{
           "shape":"CreateExascaleDbStorageVaultInputAutoscaleLimitInGBsInteger",
           "documentation":"<p>The autoscale limit in gigabytes (GB) for the Exascale storage vault.</p>"
+        },
+        "cloudExadataInfrastructureId":{
+          "shape":"ResourceIdOrArn",
+          "documentation":"<p>The unique identifier or Amazon Resource Name (ARN) of the Exadata infrastructure on which to create the Exascale storage vault. Specify this value to create the Exascale storage vault on dedicated Exadata infrastructure that has Exascale storage configured. If you specify <code>availabilityZone</code> or <code>availabilityZoneId</code>, the value must match the Availability Zone of the Exadata infrastructure. If you specify neither, the service uses the Availability Zone of the Exadata infrastructure.</p>"
         },
         "availabilityZoneId":{
           "shape":"CreateExascaleDbStorageVaultInputAvailabilityZoneIdString",
@@ -6566,6 +6800,45 @@
       "type":"structure",
       "members":{}
     },
+    "DisassociateVirtualMachinesFromCloudVmClusterInput":{
+      "type":"structure",
+      "required":[
+        "cloudVmClusterId",
+        "dbServers"
+      ],
+      "members":{
+        "cloudVmClusterId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The unique identifier of the VM cluster to remove virtual machines from.</p>"
+        },
+        "dbServers":{
+          "shape":"StringList",
+          "documentation":"<p>The list of database server IDs for the virtual machines to remove from the VM cluster.</p>"
+        }
+      }
+    },
+    "DisassociateVirtualMachinesFromCloudVmClusterOutput":{
+      "type":"structure",
+      "required":["cloudVmClusterId"],
+      "members":{
+        "displayName":{
+          "shape":"String",
+          "documentation":"<p>The user-friendly name for the VM cluster.</p>"
+        },
+        "status":{
+          "shape":"ResourceStatus",
+          "documentation":"<p>The current status of the VM cluster.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Additional information about the current status of the VM cluster, if applicable.</p>"
+        },
+        "cloudVmClusterId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the VM cluster.</p>"
+        }
+      }
+    },
     "DisassociateVirtualMachinesFromExadbVmClusterInput":{
       "type":"structure",
       "required":[
@@ -6857,7 +7130,7 @@
         },
         "scanListenerPortTcpSsl":{
           "shape":"Integer",
-          "documentation":"<p>The port number for TCP connections with SSL to the Single Client Access Name (SCAN) listener for the Exascale VM cluster.</p>"
+          "documentation":"<p>Reserved for future use.</p>"
         },
         "shape":{
           "shape":"String",
@@ -7054,7 +7327,7 @@
         },
         "scanListenerPortTcpSsl":{
           "shape":"Integer",
-          "documentation":"<p>The port number for TCP connections with SSL to the Single Client Access Name (SCAN) listener for the Exascale VM cluster.</p>"
+          "documentation":"<p>Reserved for future use.</p>"
         },
         "shape":{
           "shape":"String",
@@ -7107,6 +7380,28 @@
       },
       "documentation":"<p>Summary information about an Exascale VM cluster.</p>"
     },
+    "ExascaleConfiguration":{
+      "type":"structure",
+      "members":{
+        "totalStorageSizeInGBs":{
+          "shape":"Integer",
+          "documentation":"<p>The total amount of Exascale storage, in gigabytes (GB), configured on the Exadata infrastructure.</p>"
+        },
+        "availableStorageSizeInGBs":{
+          "shape":"Integer",
+          "documentation":"<p>The amount of Exascale storage, in gigabytes (GB), that's available on the Exadata infrastructure.</p>"
+        },
+        "totalVmStorageSizeInGBs":{
+          "shape":"Integer",
+          "documentation":"<p>The total amount of Exascale VM storage, in gigabytes (GB), on the Exadata infrastructure. VM clusters use Exascale VM storage for their VM file systems and VM backups.</p>"
+        },
+        "availableVmStorageSizeInGBs":{
+          "shape":"Integer",
+          "documentation":"<p>The amount of Exascale VM storage, in gigabytes (GB), that's available on the Exadata infrastructure.</p>"
+        }
+      },
+      "documentation":"<p>The Exascale storage configuration of an Exadata infrastructure.</p>"
+    },
     "ExascaleDbStorageDetails":{
       "type":"structure",
       "members":{
@@ -7149,6 +7444,14 @@
           "shape":"String",
           "documentation":"<p>The Availability Zone ID for the Exascale storage vault.</p>"
         },
+        "cloudExadataInfrastructureArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Exadata infrastructure that hosts the Exascale storage vault. This value is present only for vaults on dedicated Exadata infrastructure.</p>"
+        },
+        "cloudExadataInfrastructureId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The unique identifier of the Exadata infrastructure that hosts the Exascale storage vault. This value is present only for vaults on dedicated Exadata infrastructure.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The date and time when the Exascale storage vault was created.</p>"
@@ -7212,6 +7515,10 @@
         "timeZone":{
           "shape":"String",
           "documentation":"<p>The time zone of the Exascale storage vault.</p>"
+        },
+        "vaultType":{
+          "shape":"ExascaleDbStorageVaultType",
+          "documentation":"<p>The type of infrastructure that hosts the Exascale storage vault.</p>"
         }
       },
       "documentation":"<p>Information about an Exascale storage vault.</p>"
@@ -7248,6 +7555,14 @@
           "shape":"String",
           "documentation":"<p>The Availability Zone ID for the Exascale storage vault.</p>"
         },
+        "cloudExadataInfrastructureArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Exadata infrastructure that hosts the Exascale storage vault. This value is present only for vaults on dedicated Exadata infrastructure.</p>"
+        },
+        "cloudExadataInfrastructureId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The unique identifier of the Exadata infrastructure that hosts the Exascale storage vault. This value is present only for vaults on dedicated Exadata infrastructure.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The date and time when the Exascale storage vault was created.</p>"
@@ -7311,9 +7626,20 @@
         "timeZone":{
           "shape":"String",
           "documentation":"<p>The time zone of the Exascale storage vault.</p>"
+        },
+        "vaultType":{
+          "shape":"ExascaleDbStorageVaultType",
+          "documentation":"<p>The type of infrastructure that hosts the Exascale storage vault.</p>"
         }
       },
       "documentation":"<p>Summary information about an Exascale storage vault.</p>"
+    },
+    "ExascaleDbStorageVaultType":{
+      "type":"string",
+      "enum":[
+        "EXASCALE_INFRASTRUCTURE",
+        "DEDICATED_INFRASTRUCTURE"
+      ]
     },
     "ExternalIdType":{
       "type":"string",
@@ -7358,6 +7684,24 @@
           "documentation":"<p>Additional information about the status of the Autonomous Database after the failover operation.</p>"
         }
       }
+    },
+    "FileSystemConfigurationDetails":{
+      "type":"structure",
+      "members":{
+        "mountPoint":{
+          "shape":"String",
+          "documentation":"<p>The mount point of the file system.</p>"
+        },
+        "fileSystemSizeInGBs":{
+          "shape":"Integer",
+          "documentation":"<p>The size of the file system, in gigabytes (GB).</p>"
+        }
+      },
+      "documentation":"<p>The configuration of a file system on a VM cluster.</p>"
+    },
+    "FileSystemConfigurationDetailsList":{
+      "type":"list",
+      "member":{"shape":"FileSystemConfigurationDetails"}
     },
     "FlexComponentList":{
       "type":"list",
@@ -8529,6 +8873,14 @@
         "nextToken":{
           "shape":"ListExascaleDbStorageVaultsInputNextTokenString",
           "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+        },
+        "cloudExadataInfrastructureId":{
+          "shape":"ResourceIdOrArn",
+          "documentation":"<p>The unique identifier or Amazon Resource Name (ARN) of an Exadata infrastructure. If you specify this value, the operation returns only the Exascale storage vaults on that infrastructure that you own or that are shared with you. The infrastructure can be one that's shared with you through Amazon Web Services Resource Access Manager (Amazon Web Services RAM). You can't combine this filter with a <code>vaultType</code> of <code>EXASCALE_INFRASTRUCTURE</code>.</p>"
+        },
+        "vaultType":{
+          "shape":"ExascaleDbStorageVaultType",
+          "documentation":"<p>The type of Exascale storage vaults to return. Specify <code>DEDICATED_INFRASTRUCTURE</code> to return Exascale storage vaults on dedicated Exadata infrastructure, or <code>EXASCALE_INFRASTRUCTURE</code> to return Exascale storage vaults for Exascale VM clusters. If you don't specify a value, the operation returns both types. You can't combine <code>EXASCALE_INFRASTRUCTURE</code> with the <code>cloudExadataInfrastructureId</code> filter.</p>"
         }
       }
     },
@@ -9684,7 +10036,7 @@
       "type":"string",
       "max":18,
       "min":1,
-      "pattern":"(?:(?:\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d|\\d)\\/(?:[1-2][0-9]|3[0-2]|[1-9])"
+      "pattern":"(?:(?:\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d|\\d)\\/(?:[1-2][0-9]|3[0-2]|[0-9])"
     },
     "PeeredCidrList":{
       "type":"list",
@@ -10348,6 +10700,13 @@
         }
       }
     },
+    "StorageManagementType":{
+      "type":"string",
+      "enum":[
+        "ASM",
+        "EXASCALE"
+      ]
+    },
     "String":{"type":"string"},
     "StringList":{
       "type":"list",
@@ -10866,6 +11225,86 @@
         }
       }
     },
+    "UpdateCloudAutonomousVmClusterInput":{
+      "type":"structure",
+      "required":["cloudAutonomousVmClusterId"],
+      "members":{
+        "cloudAutonomousVmClusterId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The unique identifier of the Autonomous VM cluster to update.</p>"
+        },
+        "autonomousDataStorageSizeInTBs":{
+          "shape":"UpdateCloudAutonomousVmClusterInputAutonomousDataStorageSizeInTBsDouble",
+          "documentation":"<p>The data storage size to allocate for Autonomous Databases in the Autonomous VM cluster, in terabytes (TB).</p>"
+        },
+        "cpuCoreCountPerNode":{
+          "shape":"UpdateCloudAutonomousVmClusterInputCpuCoreCountPerNodeInteger",
+          "documentation":"<p>The number of CPU cores to enable per node in the Autonomous VM cluster. If you don't specify a value, the existing number of CPU cores per node is retained.</p>"
+        },
+        "description":{
+          "shape":"UpdateCloudAutonomousVmClusterInputDescriptionString",
+          "documentation":"<p>A user-provided description of the Autonomous VM cluster.</p>"
+        },
+        "displayName":{
+          "shape":"ResourceDisplayName",
+          "documentation":"<p>A new user-friendly name for the Autonomous VM cluster.</p>"
+        },
+        "licenseModel":{
+          "shape":"LicenseModel",
+          "documentation":"<p>The Oracle license model to apply to the Autonomous VM cluster.</p>"
+        },
+        "maintenanceWindow":{
+          "shape":"MaintenanceWindow",
+          "documentation":"<p>The scheduling details for the maintenance window. Patching and system updates take place during the maintenance window.</p>"
+        },
+        "totalContainerDatabases":{
+          "shape":"UpdateCloudAutonomousVmClusterInputTotalContainerDatabasesInteger",
+          "documentation":"<p>The total number of Autonomous Container Databases that can be created in the Autonomous VM cluster.</p>"
+        }
+      }
+    },
+    "UpdateCloudAutonomousVmClusterInputAutonomousDataStorageSizeInTBsDouble":{
+      "type":"double",
+      "box":true,
+      "min":0
+    },
+    "UpdateCloudAutonomousVmClusterInputCpuCoreCountPerNodeInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "UpdateCloudAutonomousVmClusterInputDescriptionString":{
+      "type":"string",
+      "max":400,
+      "min":1
+    },
+    "UpdateCloudAutonomousVmClusterInputTotalContainerDatabasesInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "UpdateCloudAutonomousVmClusterOutput":{
+      "type":"structure",
+      "required":["cloudAutonomousVmClusterId"],
+      "members":{
+        "displayName":{
+          "shape":"String",
+          "documentation":"<p>The user-friendly name of the updated Autonomous VM cluster.</p>"
+        },
+        "status":{
+          "shape":"ResourceStatus",
+          "documentation":"<p>The current status of the Autonomous VM cluster.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Additional information about the current status of the Autonomous VM cluster, if applicable.</p>"
+        },
+        "cloudAutonomousVmClusterId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the updated Autonomous VM cluster.</p>"
+        }
+      }
+    },
     "UpdateCloudExadataInfrastructureInput":{
       "type":"structure",
       "required":["cloudExadataInfrastructureId"],
@@ -10874,7 +11313,22 @@
           "shape":"ResourceIdOrArn",
           "documentation":"<p>The unique identifier of the Exadata infrastructure to update.</p>"
         },
-        "maintenanceWindow":{"shape":"MaintenanceWindow"}
+        "displayName":{
+          "shape":"ResourceDisplayName",
+          "documentation":"<p>A new user-friendly name for the Exadata infrastructure.</p>"
+        },
+        "computeCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of database servers for the Exadata infrastructure.</p>"
+        },
+        "maintenanceWindow":{
+          "shape":"MaintenanceWindow",
+          "documentation":"<p>The maintenance window configuration for the Exadata Cloud infrastructure.</p> <p>This allows you to define when maintenance operations such as patching and updates can be performed on the infrastructure.</p>"
+        },
+        "storageCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of storage servers to activate for the Exadata infrastructure.</p>"
+        }
       }
     },
     "UpdateCloudExadataInfrastructureOutput":{
@@ -10896,6 +11350,131 @@
         "cloudExadataInfrastructureId":{
           "shape":"String",
           "documentation":"<p>The unique identifier of the updated Exadata infrastructure.</p>"
+        }
+      }
+    },
+    "UpdateCloudExadataInfrastructureStorageCapacityInput":{
+      "type":"structure",
+      "required":["cloudExadataInfrastructureId"],
+      "members":{
+        "cloudExadataInfrastructureId":{
+          "shape":"ResourceIdOrArn",
+          "documentation":"<p>The unique identifier or Amazon Resource Name (ARN) of the Exadata infrastructure to update.</p>"
+        }
+      }
+    },
+    "UpdateCloudExadataInfrastructureStorageCapacityOutput":{
+      "type":"structure",
+      "required":["cloudExadataInfrastructureId"],
+      "members":{
+        "displayName":{
+          "shape":"String",
+          "documentation":"<p>The user-friendly name of the updated Exadata infrastructure.</p>"
+        },
+        "status":{
+          "shape":"ResourceStatus",
+          "documentation":"<p>The current status of the Exadata infrastructure.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Additional information about the current status of the Exadata infrastructure, if applicable.</p>"
+        },
+        "cloudExadataInfrastructureId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the updated Exadata infrastructure.</p>"
+        }
+      }
+    },
+    "UpdateCloudVmClusterInput":{
+      "type":"structure",
+      "required":["cloudVmClusterId"],
+      "members":{
+        "cloudVmClusterId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The unique identifier of the VM cluster to update.</p>"
+        },
+        "cpuCoreCount":{
+          "shape":"UpdateCloudVmClusterInputCpuCoreCountInteger",
+          "documentation":"<p>The number of CPU cores to enable on the VM cluster. If you don't specify a value, the existing number of CPU cores is retained.</p>"
+        },
+        "dataCollectionOptions":{
+          "shape":"DataCollectionOptions",
+          "documentation":"<p>The set of preferences for the diagnostic collection options for the VM cluster.</p>"
+        },
+        "dataStorageSizeInTBs":{
+          "shape":"UpdateCloudVmClusterInputDataStorageSizeInTBsDouble",
+          "documentation":"<p>The size of the data disk group, in terabytes (TB), to allocate for the VM cluster.</p>"
+        },
+        "dbNodeStorageSizeInGBs":{
+          "shape":"UpdateCloudVmClusterInputDbNodeStorageSizeInGBsInteger",
+          "documentation":"<p>The amount of local node storage, in gigabytes (GB), to allocate for the VM cluster.</p>"
+        },
+        "displayName":{
+          "shape":"ResourceDisplayName",
+          "documentation":"<p>A new user-friendly name for the VM cluster.</p>"
+        },
+        "sshPublicKeys":{
+          "shape":"StringList",
+          "documentation":"<p>The public key portion of one or more key pairs used for SSH access to the VM cluster.</p>"
+        },
+        "licenseModel":{
+          "shape":"LicenseModel",
+          "documentation":"<p>The Oracle license model to apply to the VM cluster.</p>"
+        },
+        "memorySizeInGBs":{
+          "shape":"UpdateCloudVmClusterInputMemorySizeInGBsInteger",
+          "documentation":"<p>The amount of memory, in gigabytes (GB), to allocate for the VM cluster.</p>"
+        },
+        "storageSizeInGBs":{
+          "shape":"UpdateCloudVmClusterInputStorageSizeInGBsInteger",
+          "documentation":"<p>The amount of local node storage, in gigabytes (GB), to allocate to the VM cluster.</p>"
+        }
+      }
+    },
+    "UpdateCloudVmClusterInputCpuCoreCountInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "UpdateCloudVmClusterInputDataStorageSizeInTBsDouble":{
+      "type":"double",
+      "box":true,
+      "min":0
+    },
+    "UpdateCloudVmClusterInputDbNodeStorageSizeInGBsInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "UpdateCloudVmClusterInputMemorySizeInGBsInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "UpdateCloudVmClusterInputStorageSizeInGBsInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "UpdateCloudVmClusterOutput":{
+      "type":"structure",
+      "required":["cloudVmClusterId"],
+      "members":{
+        "displayName":{
+          "shape":"String",
+          "documentation":"<p>The user-friendly name of the updated VM cluster.</p>"
+        },
+        "status":{
+          "shape":"ResourceStatus",
+          "documentation":"<p>The current status of the VM cluster.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Additional information about the current status of the VM cluster, if applicable.</p>"
+        },
+        "cloudVmClusterId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the updated VM cluster.</p>"
         }
       }
     },
@@ -10993,6 +11572,49 @@
         "exadbVmClusterId":{
           "shape":"String",
           "documentation":"<p>The unique identifier of the Exascale VM cluster.</p>"
+        }
+      }
+    },
+    "UpdateExascaleCloudExadataInfrastructureInput":{
+      "type":"structure",
+      "required":[
+        "cloudExadataInfrastructureId",
+        "totalStorageSizeInGBs"
+      ],
+      "members":{
+        "cloudExadataInfrastructureId":{
+          "shape":"ResourceIdOrArn",
+          "documentation":"<p>The unique identifier or Amazon Resource Name (ARN) of the Exadata infrastructure to update.</p>"
+        },
+        "totalStorageSizeInGBs":{
+          "shape":"Integer",
+          "documentation":"<p>The total amount of Exascale storage, in gigabytes (GB), to configure on the Exadata infrastructure.</p>"
+        },
+        "totalVmStorageSizeInGBs":{
+          "shape":"Integer",
+          "documentation":"<p>The total amount of Exascale storage, in gigabytes (GB), to allocate for VM storage on the Exadata infrastructure. VM clusters that store their VM file systems or VM backups in Exascale storage use this capacity.</p>"
+        }
+      }
+    },
+    "UpdateExascaleCloudExadataInfrastructureOutput":{
+      "type":"structure",
+      "required":["cloudExadataInfrastructureId"],
+      "members":{
+        "displayName":{
+          "shape":"String",
+          "documentation":"<p>The user-friendly name of the updated Exadata infrastructure.</p>"
+        },
+        "status":{
+          "shape":"ResourceStatus",
+          "documentation":"<p>The current status of the Exadata infrastructure after the update operation.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Additional information about the status of the Exadata infrastructure after the update operation.</p>"
+        },
+        "cloudExadataInfrastructureId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the updated Exadata infrastructure.</p>"
         }
       }
     },
@@ -11245,6 +11867,13 @@
         "cannotParse",
         "fieldValidationFailed",
         "other"
+      ]
+    },
+    "VmStorageType":{
+      "type":"string",
+      "enum":[
+        "LOCAL",
+        "EXASCALE"
       ]
     },
     "VpcEndpointType":{

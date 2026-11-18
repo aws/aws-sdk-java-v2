@@ -82,16 +82,6 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         asyncRequest.metricCollector()
                     .ifPresent(metricCollector -> metricCollector.reportMetric(HTTP_CLIENT_NAME, clientName()));
 
-        /*
-         * See the note on getOrCreateConnectionPool()
-         *
-         * In particular, this returns a ref-counted object and calling getOrCreateConnectionPool
-         * increments the ref count by one.  We add a try-with-resources to release our ref
-         * once we have successfully submitted a request.  In this way, we avoid a race condition
-         * when close/shutdown is called from another thread while this function is executing (ie.
-         * we have a pool and no one can destroy it underneath us until we've finished submitting the
-         * request)
-         */
         HttpStreamManager streamManager = getOrCreateConnectionPool(poolKey(asyncRequest.request()));
         CrtAsyncRequestContext context = CrtAsyncRequestContext.builder()
                                                                .streamManager(streamManager)
@@ -305,6 +295,31 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
          * @return this builder for method chaining
          */
         AwsCrtAsyncHttpClient.Builder minTlsVersion(TlsVersion minTlsVersion);
+
+        /**
+         * Configure whether the client trusts the certificate authorities in the trust store specified by the JSSE system
+         * properties {@code javax.net.ssl.trustStore}, {@code javax.net.ssl.trustStorePassword},
+         * {@code javax.net.ssl.trustStoreType} and {@code javax.net.ssl.trustStoreProvider}, instead of the OS trust store.
+         *
+         * <p>
+         * It's disabled by default, and the client trusts the OS trust store even when these properties are set. When enabled,
+         * the properties are read once, when the client is built. If {@code javax.net.ssl.trustStore} is not set, the client
+         * trusts the OS trust store. The trust store also applies to the TLS connection to an HTTPS proxy. The trust store is not
+         * read when {@link SdkHttpConfigurationOption#TRUST_ALL_CERTIFICATES} is enabled.
+         *
+         * <p>
+         * Unlike the Apache, Netty, and URL connection HTTP clients, which use the JDK's TLS implementation, building the client
+         * fails with an {@link IllegalStateException} if the trust store cannot be loaded (for example, the file does not exist,
+         * the password is wrong, or the store contains no certificates or more than 1024 certificates) or if
+         * {@code javax.net.ssl.trustStore} is {@code NONE}, instead of falling back to a default trust store. Certificates are
+         * validated by the native TLS implementation, so JDK validation settings such as
+         * {@code jdk.certpath.disabledAlgorithms} do not apply.
+         *
+         * @param useTrustStoreSystemProperties whether to use the trust store specified by the JSSE system properties;
+         *                                      {@code null} reverts to the default ({@code false})
+         * @return The builder of the method chaining.
+         */
+        AwsCrtAsyncHttpClient.Builder useTrustStoreSystemProperties(Boolean useTrustStoreSystemProperties);
     }
 
     /**

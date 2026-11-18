@@ -1,0 +1,108 @@
+{
+    "version": "2.57.11",
+    "date": "2026-11-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "AWS Systems Manager now provides two new APIs - RegisterDefaultHostManagementConfiguration and DeregisterDefaultHostManagementConfiguration - along with a new DefaultHostManagementConfiguration CloudFormation resource type."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "Amazon EC2 Auto Scaling now lets you exclude managed resources from describe API responses using the new optional IncludeManagedResources parameter. Set this parameter to false to exclude managed resources from the response. By default, managed resources are included."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Improve the validation of private key files loaded for CloudFront signing."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Adds support for updating OAuth 2.0 connection settings with UpdateConnection."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Rules in Amazon Connect now support ending email contacts associated to a case based on case events."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "Smart subtitling uses AWS Elemental Inference to generate captions from your content's audio, in embedded, burn-in, DVB-Sub, IMSC, SMI, SRT, teletext, TTML, or WebVTT outputs. Also fixes HEVC passthrough writing an incomplete codecs string to DASH and HLS manifests."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "",
+            "description": "Fixed an issue where a request on `AwsCrtHttpClient` or `AwsCrtAsyncHttpClient` could hang instead of failing when metrics were enabled and the client was closed while the request was acquiring a connection."
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Fixed FileUpload.pause() with a Java-based multipart-enabled S3AsyncClient. completionFuture() no longer stays pending after a pause, and a pause after CompleteMultipartUpload has started no longer aborts the upload or returns resume information for it."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Access Manager",
+            "contributor": "",
+            "description": "Adds support for using managed permission template parameters, discovering shared customer-managed permissions, and managing customer-managed permission deprecation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CRT-based S3 Client",
+            "contributor": "",
+            "description": "Added support for publishing SDK metrics from the AWS CRT-based S3 async client through client-level and request-level `MetricPublisher` configurations. This feature requires AWS CRT Java 0.48.5 or later."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Adds support for user-defined functions governed by AWS Lake Formation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EKS Auth",
+            "contributor": "",
+            "description": "Added workloadIdentityProviderArn to the AssumeRoleForPodIdentity API response."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "Add support for configuring searchability for metadata fields via UpdateKnowledgeBase request for Managed Knowledge Base. Once a field is marked as searchable it can be queried via query text and is factored into Managed Knowledge Base's ranking algorithm."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "contributor": "",
+            "description": "Marking fields as sensitive in GetInstanceAccessDetails, CreateKeyPair, DownloadDefaultKeyPair, CreateBucketAccessKey, CreateContainerServiceRegistryLogin, and GetRelationalDatabase responses."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "Added support for Athena System Tables which writes Athena usage data to AWS S3 managed tables in Apache Iceberg format. Adds CreateSystemTableConfiguration, UpdateSystemTableConfiguration, DeleteSystemTableConfiguration, GetSystemTableConfiguration, and ListSystemTableStatuses."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Cases",
+            "contributor": "",
+            "description": "Amazon Connect Cases adds two Bulk Case Actions operations. BatchCreateRelatedItem adds a Comment-type related item to up to 100 cases per request, BatchUpdateCase updates fields (title, status, customer ID, custom) on up to 100 cases. Same domain, per-case success and failure results returned."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

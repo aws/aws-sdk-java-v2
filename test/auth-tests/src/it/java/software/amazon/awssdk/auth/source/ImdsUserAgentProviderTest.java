@@ -22,6 +22,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.RETRY_MODE_STANDARD;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.time.Duration;
@@ -148,11 +149,11 @@ class ImdsUserAgentProviderTest {
 
     private static Stream<Arguments> imdsCredentialProviders() {
         return Stream.of(
-            Arguments.of(InstanceProfileCredentialsProvider.create(), Arrays.asList("D", "0")),
+            Arguments.of(InstanceProfileCredentialsProvider.create(), Arrays.asList(RETRY_MODE_STANDARD.value(), "0")),
 
             Arguments.of(InstanceProfileCredentialsProvider.builder()
                             .endpoint("http://localhost:" + wireMockServer.getPort())
-                            .build(), Arrays.asList("D", "0"))
+                            .build(), Arrays.asList(RETRY_MODE_STANDARD.value(), "0"))
         );
     }
 
@@ -175,7 +176,7 @@ class ImdsUserAgentProviderTest {
 
     private static Stream<Arguments> imdsCredentialProvidersWithSessionToken() {
         return Stream.of(
-            Arguments.of(InstanceProfileCredentialsProvider.create(), Arrays.asList("D", "0"))
+            Arguments.of(InstanceProfileCredentialsProvider.create(), Arrays.asList(RETRY_MODE_STANDARD.value(), "0"))
         );
     }
 

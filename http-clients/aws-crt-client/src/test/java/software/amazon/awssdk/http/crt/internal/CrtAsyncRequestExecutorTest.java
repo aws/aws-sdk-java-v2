@@ -48,6 +48,7 @@ import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -208,7 +209,61 @@ public class CrtAsyncRequestExecutorTest {
         assertThatThrownBy(executeFuture::join).hasCause(exception);
     }
 
+    @Test
+    public void execute_acquireStreamFailsAndStreamManagerClosed_withMetrics_failsRequest() {
+        IllegalStateException exception = new IllegalStateException("Http2StreamManager has been closed");
+        Mockito.when(streamManager.acquireStream(Mockito.any(HttpRequestBase.class),
+                                                 Mockito.any(HttpStreamBaseResponseHandler.class)))
+               .thenReturn(CompletableFutureUtils.failedFuture(exception));
+        Mockito.when(streamManager.getManagerMetrics())
+               .thenThrow(new IllegalStateException("HttpClientConnectionManager has been closed, can't fetch metrics"));
+
+        CompletableFuture<Void> executeFuture =
+            requestExecutor.execute(crtAsyncRequestContext(MetricCollector.create("test")));
+
+        Mockito.verify(responseHandler).onError(Mockito.any(IOException.class));
+        assertThat(executeFuture).hasFailedWithThrowableThat().hasCause(exception).isInstanceOf(IOException.class);
+    }
+
+    @Test
+    public void execute_acquireStreamFailsAndMetricCollectorThrows_failsRequestWithAcquireFailure() {
+        IllegalStateException exception = new IllegalStateException("connection closed");
+        Mockito.when(streamManager.acquireStream(Mockito.any(HttpRequestBase.class),
+                                                 Mockito.any(HttpStreamBaseResponseHandler.class)))
+               .thenReturn(CompletableFutureUtils.failedFuture(exception));
+
+        CompletableFuture<Void> executeFuture = requestExecutor.execute(crtAsyncRequestContext(throwingMetricCollector()));
+
+        assertThat(executeFuture).hasFailedWithThrowableThat().hasCause(exception).isInstanceOf(IOException.class);
+    }
+
+    @Test
+    public void execute_requestFailsBeforeStreamAcquiredAndMetricCollectorThrows_closesStreamOnAcquire() {
+        CompletableFuture<HttpStreamBase> streamFuture = new CompletableFuture<>();
+        Mockito.when(streamManager.acquireStream(Mockito.any(HttpRequestBase.class),
+                                                 Mockito.any(HttpStreamBaseResponseHandler.class)))
+               .thenReturn(streamFuture);
+
+        CompletableFuture<Void> executeFuture = requestExecutor.execute(crtAsyncRequestContext(throwingMetricCollector()));
+        executeFuture.completeExceptionally(new RuntimeException("timeout"));
+        streamFuture.complete(httpStream);
+
+        Mockito.verify(httpStream).cancel();
+        Mockito.verify(httpStream).close();
+    }
+
+    private static MetricCollector throwingMetricCollector() {
+        MetricCollector metricCollector = Mockito.mock(MetricCollector.class);
+        Mockito.doThrow(new RuntimeException("metrics failure"))
+               .when(metricCollector).reportMetric(Mockito.any(), Mockito.any());
+        return metricCollector;
+    }
+
     private CrtAsyncRequestContext crtAsyncRequestContext() {
+        return crtAsyncRequestContext(null);
+    }
+
+    private CrtAsyncRequestContext crtAsyncRequestContext(MetricCollector metricCollector) {
         SdkHttpFullRequest request = createRequest(URI.create("http://localhost"));
         return CrtAsyncRequestContext.builder()
                                      .readBufferSize(2000)
@@ -217,6 +272,7 @@ public class CrtAsyncRequestExecutorTest {
                                                             .request(request)
                                                             .requestContentPublisher(createProvider(""))
                                                             .responseHandler(responseHandler)
+                                                            .metricCollector(metricCollector)
                                                             .build())
                                      .build();
     }

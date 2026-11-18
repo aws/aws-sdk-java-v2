@@ -15,42 +15,38 @@
 
 package software.amazon.awssdk.core.retry;
 
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.SdkSystemSetting;
 
 /**
- * Resolver for the {@link SdkSystemSetting#AWS_NEW_RETRIES_2026} that supports setting a fallback value if not defined in the
- * environment or system properties.
+ * Resolver for whether retry behavior 2.1 is used.
+ *
+ * @deprecated The {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} retry modes use retry behavior 2.1. This
+ * class is no longer used by the SDK.
  */
 @SdkProtectedApi
+@Deprecated
 public final class NewRetries2026Resolver {
-    private Boolean defaultNewRetries2026;
 
     /**
-     * The default value for {@code AWS_NEW_RETRIES_2026} if not configured via {@link SdkSystemSetting#AWS_NEW_RETRIES_2026}.
+     * This setting is ignored.
      *
      * @return This resolver for method chaining.
      */
     public NewRetries2026Resolver defaultNewRetries2026(Boolean defaultNewRetries2026) {
-        this.defaultNewRetries2026 = defaultNewRetries2026;
         return this;
     }
 
     /**
-     * Resolve whether retries v2.1 is used.
+     * Always returns {@code false}.
+     *
+     * <p>Service modules released before retry behavior 2.1 became the default call this to decide whether to apply their
+     * own retry behavior 2.1 settings. This resolver can't see the retry mode, profile file or profile name configured on
+     * their client, so it returns {@code false} to keep those modules on the retry behavior they used by default. This keeps
+     * the {@link RetryMode#LEGACY} retry mode unchanged for them.
+     *
+     * @return {@code false}
      */
     public boolean resolve() {
-        Optional<Boolean> envConfig = SdkSystemSetting.AWS_NEW_RETRIES_2026.getBooleanValue();
-
-        if (envConfig.isPresent()) {
-            return envConfig.get();
-        }
-
-        if (defaultNewRetries2026 != null) {
-            return defaultNewRetries2026;
-        }
-
         return false;
     }
 }

@@ -57,6 +57,7 @@ public final class ProfileFileReader {
 
         BufferedReader profileReader = new BufferedReader(new InputStreamReader(profileStream, StandardCharsets.UTF_8));
         profileReader.lines().forEach(line -> parseLine(state, line));
+        flushPendingContinuation(state);
 
         return state.profiles;
     }
@@ -70,6 +71,12 @@ public final class ProfileFileReader {
         if (isEmptyLine(line) || isCommentLine(line)) {
             return; // Skip line
         }
+
+        // Any line that is not a continuation ends the property continuation in progress, if there is one.
+        if (!isPropertyContinuationLine(line)) {
+            flushPendingContinuation(state);
+        }
+
         Optional<String> sectionDefined = sectionDefinitionLine(line);
         if (sectionDefined.isPresent()) {
             state.sectionReadInProgress = sectionDefined.get();
@@ -165,9 +172,6 @@ public final class ProfileFileReader {
         Map<String, String> profileProperties = state.profiles.get(state.sectionReadInProgress)
                                                               .get(state.currentProfileBeingRead);
 
-        String currentPropertyValue = profileProperties.get(state.currentPropertyBeingRead);
-        String newPropertyValue = currentPropertyValue + "\n" + line;
-
         // If this is a sub-property, make sure it can be parsed correctly by the CLI.
         if (state.validatingContinuationsAsSubProperties) {
             parsePropertyDefinition(state, line).ifPresent(p -> {
@@ -176,7 +180,31 @@ public final class ProfileFileReader {
             });
         }
 
-        profileProperties.put(state.currentPropertyBeingRead, newPropertyValue);
+        // Accumulate the value in a builder, so each continuation line costs only its own length. The value is written back
+        // to the profile map when the continuation ends (see flushPendingContinuation).
+        if (state.currentPropertyValueBuilder == null) {
+            state.currentPropertyValueBuilder = new StringBuilder(profileProperties.get(state.currentPropertyBeingRead));
+        }
+
+        state.currentPropertyValueBuilder.append('\n').append(line);
+    }
+
+    /**
+     * Write the value of the property continuation in progress, if there is one, to the current property of the current
+     * profile.
+     *
+     * This must be called before a line can change the current section, profile or property. Only non-continuation lines can
+     * change them, and parseLine calls this before it reads such a line.
+     */
+    private static void flushPendingContinuation(ParserState state) {
+        if (state.currentPropertyValueBuilder == null) {
+            return;
+        }
+
+        state.profiles.get(state.sectionReadInProgress)
+                      .get(state.currentProfileBeingRead)
+                      .put(state.currentPropertyBeingRead, state.currentPropertyValueBuilder.toString());
+        state.currentPropertyValueBuilder = null;
     }
 
     /**
@@ -425,6 +453,14 @@ public final class ProfileFileReader {
          * that when the same file is used with the CLI, it won't cause failures.
          */
         private boolean validatingContinuationsAsSubProperties = false;
+
+        /**
+         * The value of the property whose continuation lines are being read, or null when no continuation is in progress.
+         *
+         * While this is set, the value stored in the profile map for {@link #currentPropertyBeingRead} is stale. It is
+         * updated when the continuation ends.
+         */
+        private StringBuilder currentPropertyValueBuilder = null;
 
         /**
          * Whether within the current file, we've seen the [profile default] profile definition. This is only used for

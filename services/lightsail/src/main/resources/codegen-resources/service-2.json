@@ -132,6 +132,23 @@
       ],
       "documentation":"<p>Attaches a static IP address to a specific Amazon Lightsail instance.</p>"
     },
+    "CheckSubdomainAvailability":{
+      "name":"CheckSubdomainAvailability",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CheckSubdomainAvailabilityRequest"},
+      "output":{"shape":"CheckSubdomainAvailabilityResult"},
+      "errors":[
+        {"shape":"ServiceException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationFailureException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"UnauthenticatedException"}
+      ],
+      "documentation":"<p>Checks whether a Lightsail subdomain is available to create. Optionally, reserves the subdomain for your account for 15 minutes.</p> <p>If you don't reserve the subdomain, another account can create it before you do.</p>"
+    },
     "CloseInstancePublicPorts":{
       "name":"CloseInstancePublicPorts",
       "http":{
@@ -634,6 +651,24 @@
       ],
       "documentation":"<p>Creates a snapshot of your database in Amazon Lightsail. You can use snapshots for backups, to make copies of a database, and to save data before deleting a database.</p> <p>The <code>create relational database snapshot</code> operation supports tag-based access control via request tags. For more information, see the <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-controlling-access-using-tags\">Amazon Lightsail Developer Guide</a>.</p>"
     },
+    "CreateSubdomain":{
+      "name":"CreateSubdomain",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateSubdomainRequest"},
+      "output":{"shape":"CreateSubdomainResult"},
+      "errors":[
+        {"shape":"ServiceException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"NotFoundException"},
+        {"shape":"OperationFailureException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"UnauthenticatedException"}
+      ],
+      "documentation":"<p>Creates a Lightsail subdomain, such as <code>mysite</code>, with the web address <code>mysite.amazonlightsail.com</code>. After the subdomain is created, use the <code>UpdateSubdomainAssociation</code> action to associate it with a Lightsail resource.</p> <p>When you create a nested subdomain, such as <code>blog.mysite</code>, and you don't already have the top-level subdomain (<code>mysite</code>), Lightsail adds the top-level subdomain to your account in the <code>IMPLICIT</code> state.</p> <p>You can have up to 30 subdomains in your account. Nested subdomains, subdomains in the <code>CREATE_FAILED</code> state, and deleted subdomains that other accounts can't create yet count toward this quota. Subdomains in the <code>IMPLICIT</code> state don't count toward this quota.</p>"
+    },
     "DeleteAlarm":{
       "name":"DeleteAlarm",
       "http":{
@@ -1038,6 +1073,24 @@
         {"shape":"UnauthenticatedException"}
       ],
       "documentation":"<p>Deletes a database snapshot in Amazon Lightsail.</p> <p>The <code>delete relational database snapshot</code> operation supports tag-based access control via resource tags applied to the resource identified by relationalDatabaseName. For more information, see the <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-controlling-access-using-tags\">Amazon Lightsail Developer Guide</a>.</p>"
+    },
+    "DeleteSubdomain":{
+      "name":"DeleteSubdomain",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteSubdomainRequest"},
+      "output":{"shape":"DeleteSubdomainResult"},
+      "errors":[
+        {"shape":"ServiceException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"NotFoundException"},
+        {"shape":"OperationFailureException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"UnauthenticatedException"}
+      ],
+      "documentation":"<p>Deletes a Lightsail subdomain.</p> <p>The subdomain must be in the <code>UNATTACHED</code> or <code>CREATE_FAILED</code> state. To delete a subdomain that's associated with a resource, first disassociate it by using the <code>UpdateSubdomainAssociation</code> action.</p> <p>When you delete a top-level subdomain that has nested subdomains, the nested subdomains continue to work, and the top-level subdomain changes to the <code>IMPLICIT</code> state.</p> <note> <p>After you delete a subdomain that was associated with a resource, the subdomain isn't available to other accounts for at least 30 days.</p> </note>"
     },
     "DetachCertificateFromDistribution":{
       "name":"DetachCertificateFromDistribution",
@@ -1713,7 +1766,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"UnauthenticatedException"}
       ],
-      "documentation":"<p>Returns information about one or more of your Amazon Lightsail content delivery network (CDN) distributions.</p>"
+      "documentation":"<p>Returns information about one or more of your Amazon Lightsail content delivery network (CDN) distributions.</p> <note> <p>The <code>defaultRootObject</code> and <code>customErrorResponses</code> values are returned only when you specify <code>distributionName</code> to retrieve a single distribution. When you call <code>GetDistributions</code> without a distribution name to list all distributions, these two fields aren't included in the response.</p> </note>"
     },
     "GetDomain":{
       "name":"GetDomain",
@@ -2468,6 +2521,23 @@
       ],
       "documentation":"<p>Returns information about all static IPs in the user's account.</p>"
     },
+    "GetSubdomains":{
+      "name":"GetSubdomains",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetSubdomainsRequest"},
+      "output":{"shape":"GetSubdomainsResult"},
+      "errors":[
+        {"shape":"ServiceException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"NotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"UnauthenticatedException"}
+      ],
+      "documentation":"<p>Returns information about one or more of your Lightsail subdomains.</p> <p>When you don't specify a subdomain, the response lists your top-level subdomains, and each top-level subdomain includes its nested subdomains.</p> <p>The results are paginated. To get the next page of results, use the <code>pageToken</code> parameter.</p>"
+    },
     "ImportKeyPair":{
       "name":"ImportKeyPair",
       "http":{
@@ -3142,6 +3212,24 @@
         {"shape":"UnauthenticatedException"}
       ],
       "documentation":"<p>Allows the update of one or more parameters of a database in Amazon Lightsail.</p> <p>Parameter updates don't cause outages; therefore, their application is not subject to the preferred maintenance window. However, there are two ways in which parameter updates are applied: <code>dynamic</code> or <code>pending-reboot</code>. Parameters marked with a <code>dynamic</code> apply type are applied immediately. Parameters marked with a <code>pending-reboot</code> apply type are applied only after the database is rebooted using the <code>reboot relational database</code> operation.</p> <p>The <code>update relational database parameters</code> operation supports tag-based access control via resource tags applied to the resource identified by relationalDatabaseName. For more information, see the <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-controlling-access-using-tags\">Amazon Lightsail Developer Guide</a>.</p>"
+    },
+    "UpdateSubdomainAssociation":{
+      "name":"UpdateSubdomainAssociation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateSubdomainAssociationRequest"},
+      "output":{"shape":"UpdateSubdomainAssociationResult"},
+      "errors":[
+        {"shape":"ServiceException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"NotFoundException"},
+        {"shape":"OperationFailureException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"UnauthenticatedException"}
+      ],
+      "documentation":"<p>Associates a Lightsail subdomain with a resource, disassociates it from a resource, or moves it from one resource to another resource.</p> <p>Currently, you can associate a subdomain only with a Lightsail content delivery network (CDN) distribution. A resource can be associated with only one subdomain at a time.</p> <p>When you associate a subdomain with a distribution, Lightsail attaches the subdomain's certificate to the distribution. You can't associate a subdomain with a distribution that uses a custom domain, which is a distribution that has a Lightsail certificate attached.</p> <p>You can transfer each subdomain to another resource only once in a 24-hour period.</p> <p>The update is asynchronous. The response returns the subdomain in the <code>ATTACHING</code>, <code>DETACHING</code>, or <code>TRANSFERRING</code> state, and an operation. To check when the update is complete, use the <code>GetSubdomains</code> action.</p>"
     }
   },
   "shapes":{
@@ -3171,7 +3259,7 @@
           "documentation":"<p>The ID of the access key.</p>"
         },
         "secretAccessKey":{
-          "shape":"NonEmptyString",
+          "shape":"SensitiveNonEmptyString",
           "documentation":"<p>The secret access key used to sign requests.</p> <p>You should store the secret access key in a safe location. We recommend that you delete the access key if the secret access key is compromised.</p>"
         },
         "status":{
@@ -4309,6 +4397,37 @@
       "type":"list",
       "member":{"shape":"CertificateSummary"}
     },
+    "CheckSubdomainAvailabilityRequest":{
+      "type":"structure",
+      "required":["subdomainName"],
+      "members":{
+        "subdomainName":{
+          "shape":"string",
+          "documentation":"<p>The subdomain to check (for example, <code>mysite</code> or <code>blog.mysite</code>).</p> <p>A subdomain can contain one or two labels separated by a period (<code>.</code>). Each label must start and end with a lowercase letter or a number, and can contain only lowercase letters, numbers, and hyphens (<code>-</code>). The name can be up to 39 characters long, including periods. Labels that start with <code>xn--</code> aren't supported, and some names are reserved.</p> <p>Specify only the subdomain. A web address, such as <code>mysite.amazonlightsail.com</code>, isn't accepted.</p>"
+        },
+        "reserve":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether to reserve the subdomain for your account if it's available. A reservation holds the subdomain for 15 minutes so that other accounts can't create it. Checking the subdomain again doesn't extend the reservation.</p> <p>For a nested subdomain, such as <code>blog.mysite</code>, the top-level subdomain (<code>mysite</code>) is reserved.</p> <p>You can have up to 5 active reservations at a time.</p>"
+        }
+      }
+    },
+    "CheckSubdomainAvailabilityResult":{
+      "type":"structure",
+      "members":{
+        "available":{
+          "shape":"boolean",
+          "documentation":"<p>A Boolean value that indicates whether the subdomain is available to create.</p>"
+        },
+        "reservationExpiresAt":{
+          "shape":"IsoDate",
+          "documentation":"<p>The timestamp when the reservation of the subdomain expires.</p> <p>The expiry is returned only when your account holds an active reservation for the subdomain.</p>"
+        },
+        "subdomainName":{
+          "shape":"string",
+          "documentation":"<p>The subdomain that was checked.</p>"
+        }
+      }
+    },
     "CloseInstancePublicPortsRequest":{
       "type":"structure",
       "required":[
@@ -4868,7 +4987,7 @@
           "documentation":"<p>The container service registry username to use to push container images to the container image registry of a Lightsail account.</p>"
         },
         "password":{
-          "shape":"string",
+          "shape":"SensitiveString",
           "documentation":"<p>The container service registry password to use to push container images to the container image registry of a Lightsail account</p>"
         },
         "expiresAt":{
@@ -5430,6 +5549,18 @@
         "customErrorResponses":{
           "shape":"DistributionCustomErrorResponseList",
           "documentation":"<p>An array of objects that describe the custom error responses for the distribution. With a custom error response, you can specify the page to return when the origin responds with a given HTTP error code. You can also specify the HTTP status code to send to the viewer.</p>"
+        },
+        "enableWaf":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether to enable Web Application Firewall (WAF) for the distribution. WAF inspects viewer requests and blocks requests that match the WAF rule groups that you enable.</p> <p>When you enable WAF without specifying the <code>wafRules</code> parameter, the distribution has no WAF rule groups enabled and doesn't block any requests.</p> <note> <p>WAF is available only for distributions that use the <code>medium_1_0</code> or <code>large_1_0</code> bundle.</p> </note>"
+        },
+        "wafRules":{
+          "shape":"WafRuleList",
+          "documentation":"<p>An array of objects that describe the WAF rule groups to enable for the distribution.</p> <p>The WAF rule groups that you can specify depend on the bundle of the distribution:</p> <ul> <li> <p> <code>medium_1_0</code> – Supports the <code>AWSManagedRulesCommonRuleSet</code>, <code>AWSManagedRulesKnownBadInputsRuleSet</code>, and <code>AWSManagedRulesAnonymousIpList</code> rule groups.</p> </li> <li> <p> <code>large_1_0</code> – Supports the rule groups for <code>medium_1_0</code>, plus <code>AWSManagedRulesAdminProtectionRuleSet</code>, <code>AWSManagedRulesSQLiRuleSet</code>, <code>AWSManagedRulesLinuxRuleSet</code>, <code>AWSManagedRulesUnixRuleSet</code>, <code>AWSManagedRulesWindowsRuleSet</code>, <code>AWSManagedRulesPHPRuleSet</code>, <code>AWSManagedRulesWordPressRuleSet</code>, <code>AWSManagedRulesAmazonIpReputationList</code>, <code>AWSManagedRulesATPRuleSet</code>, <code>AWSManagedRulesACFPRuleSet</code>, and <code>AWSManagedRulesBotControlRuleSet</code> rule groups.</p> </li> </ul>"
+        },
+        "subdomainName":{
+          "shape":"string",
+          "documentation":"<p>The Lightsail subdomain to create and associate with the distribution (for example, <code>mysite</code>, for the web address <code>mysite.amazonlightsail.com</code>).</p> <p>After the distribution is deployed, Lightsail creates the subdomain and associates it with the distribution. If Lightsail can't create or associate the subdomain, it still creates the distribution, but the <code>CreateDistribution</code> operation fails and the <code>state</code> of the distribution's <code>subdomain</code> is <code>Error</code>. To check the status, use the <code>subdomain</code> parameter of the distribution.</p>"
         }
       }
     },
@@ -5718,7 +5849,7 @@
           "documentation":"<p>A base64-encoded public key of the <code>ssh-rsa</code> type.</p>"
         },
         "privateKeyBase64":{
-          "shape":"Base64",
+          "shape":"SensitiveBase64",
           "documentation":"<p>A base64-encoded RSA private key.</p>"
         },
         "operation":{
@@ -5963,6 +6094,33 @@
         "operations":{
           "shape":"OperationList",
           "documentation":"<p>An array of objects that describe the result of the action, such as the status of the request, the timestamp of the request, and the resources affected by the request.</p>"
+        }
+      }
+    },
+    "CreateSubdomainRequest":{
+      "type":"structure",
+      "required":["subdomainName"],
+      "members":{
+        "subdomainName":{
+          "shape":"string",
+          "documentation":"<p>The subdomain to create (for example, <code>mysite</code> or <code>blog.mysite</code>).</p> <p>A subdomain can contain one or two labels separated by a period (<code>.</code>). Each label must start and end with a lowercase letter or a number, and can contain only lowercase letters, numbers, and hyphens (<code>-</code>). The name can be up to 39 characters long, including periods. Labels that start with <code>xn--</code> aren't supported, and some names are reserved.</p> <p>Specify only the subdomain. A web address, such as <code>mysite.amazonlightsail.com</code>, isn't accepted.</p> <p>To create a nested subdomain, you must own the top-level subdomain or be able to create it.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tag keys and optional values to add to the subdomain during create.</p> <p>Use the <code>TagResource</code> action to tag a resource after it's created.</p>"
+        }
+      }
+    },
+    "CreateSubdomainResult":{
+      "type":"structure",
+      "members":{
+        "subdomain":{
+          "shape":"Subdomain",
+          "documentation":"<p>An object that describes the subdomain that was created.</p>"
+        },
+        "operation":{
+          "shape":"Operation",
+          "documentation":"<p>An object that describes the result of the action, such as the status of the request, the timestamp of the request, and the resources affected by the request.</p>"
         }
       }
     },
@@ -6421,6 +6579,29 @@
         }
       }
     },
+    "DeleteSubdomainRequest":{
+      "type":"structure",
+      "required":["subdomainName"],
+      "members":{
+        "subdomainName":{
+          "shape":"string",
+          "documentation":"<p>The subdomain to delete (for example, <code>mysite</code> or <code>blog.mysite</code>), not its web address.</p>"
+        }
+      }
+    },
+    "DeleteSubdomainResult":{
+      "type":"structure",
+      "members":{
+        "subdomain":{
+          "shape":"Subdomain",
+          "documentation":"<p>An object that describes the top-level subdomain in the <code>IMPLICIT</code> state.</p> <p>This parameter is returned only when you delete a top-level subdomain that has nested subdomains.</p>"
+        },
+        "operation":{
+          "shape":"Operation",
+          "documentation":"<p>An object that describes the result of the action, such as the status of the request, the timestamp of the request, and the resources affected by the request.</p>"
+        }
+      }
+    },
     "DestinationInfo":{
       "type":"structure",
       "members":{
@@ -6839,7 +7020,9 @@
         "BytesUploaded",
         "TotalErrorRate",
         "Http4xxErrorRate",
-        "Http5xxErrorRate"
+        "Http5xxErrorRate",
+        "WafAllowedRequests",
+        "WafBlockedRequests"
       ]
     },
     "DnsRecordCreationState":{
@@ -6995,7 +7178,7 @@
           "documentation":"<p>A base64-encoded public key of the <code>ssh-rsa</code> type.</p>"
         },
         "privateKeyBase64":{
-          "shape":"Base64",
+          "shape":"SensitiveBase64",
           "documentation":"<p>A base64-encoded RSA private key.</p>"
         },
         "createdAt":{
@@ -7887,7 +8070,7 @@
         },
         "metricName":{
           "shape":"DistributionMetricName",
-          "documentation":"<p>The metric for which you want to return information.</p> <p>Valid distribution metric names are listed below, along with the most useful <code>statistics</code> to include in your request, and the published <code>unit</code> value.</p> <ul> <li> <p> <b> <code>Requests</code> </b> - The total number of viewer requests received by your Lightsail distribution, for all HTTP methods, and for both HTTP and HTTPS requests.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>BytesDownloaded</code> </b> - The number of bytes downloaded by viewers for GET, HEAD, and OPTIONS requests.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>BytesUploaded </code> </b> - The number of bytes uploaded to your origin by your Lightsail distribution, using POST and PUT requests.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>TotalErrorRate</code> </b> - The percentage of all viewer requests for which the response's HTTP status code was 4xx or 5xx.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>4xxErrorRate</code> </b> - The percentage of all viewer requests for which the response's HTTP status cod was 4xx. In these cases, the client or client viewer may have made an error. For example, a status code of 404 (Not Found) means that the client requested an object that could not be found.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>5xxErrorRate</code> </b> - The percentage of all viewer requests for which the response's HTTP status code was 5xx. In these cases, the origin server did not satisfy the requests. For example, a status code of 503 (Service Unavailable) means that the origin server is currently unavailable.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> </ul>"
+          "documentation":"<p>The metric for which you want to return information.</p> <p>Valid distribution metric names are listed below, along with the most useful <code>statistics</code> to include in your request, and the published <code>unit</code> value.</p> <ul> <li> <p> <b> <code>Requests</code> </b> - The total number of viewer requests received by your Lightsail distribution, for all HTTP methods, and for both HTTP and HTTPS requests.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>BytesDownloaded</code> </b> - The number of bytes downloaded by viewers for GET, HEAD, and OPTIONS requests.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>BytesUploaded </code> </b> - The number of bytes uploaded to your origin by your Lightsail distribution, using POST and PUT requests.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>TotalErrorRate</code> </b> - The percentage of all viewer requests for which the response's HTTP status code was 4xx or 5xx.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>4xxErrorRate</code> </b> - The percentage of all viewer requests for which the response's HTTP status cod was 4xx. In these cases, the client or client viewer may have made an error. For example, a status code of 404 (Not Found) means that the client requested an object that could not be found.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>5xxErrorRate</code> </b> - The percentage of all viewer requests for which the response's HTTP status code was 5xx. In these cases, the origin server did not satisfy the requests. For example, a status code of 503 (Service Unavailable) means that the origin server is currently unavailable.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>WafAllowedRequests</code> </b> - The number of viewer requests that Web Application Firewall (WAF) allowed. This metric is available only when WAF is enabled for the distribution.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> <li> <p> <b> <code>WafBlockedRequests</code> </b> - The number of viewer requests that WAF blocked. This metric is available only when WAF is enabled for the distribution.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>None</code>.</p> </li> </ul>"
         },
         "startTime":{
           "shape":"timestamp",
@@ -8054,7 +8237,7 @@
         },
         "metricName":{
           "shape":"InstanceMetricName",
-          "documentation":"<p>The metric for which you want to return information.</p> <p>Valid instance metric names are listed below, along with the most useful <code>statistics</code> to include in your request, and the published <code>unit</code> value.</p> <ul> <li> <p> <b> <code>BurstCapacityPercentage</code> </b> - The percentage of CPU performance available for your instance to burst above its baseline. Your instance continuously accrues and consumes burst capacity. Burst capacity stops accruing when your instance's <code>BurstCapacityPercentage</code> reaches 100%. For more information, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-viewing-instance-burst-capacity\">Viewing instance burst capacity in Amazon Lightsail</a>.</p> <p> <code>Statistics</code>: The most useful statistics are <code>Maximum</code> and <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>BurstCapacityTime</code> </b> - The available amount of time for your instance to burst at 100% CPU utilization. Your instance continuously accrues and consumes burst capacity. Burst capacity time stops accruing when your instance's <code>BurstCapacityPercentage</code> metric reaches 100%.</p> <p>Burst capacity time is consumed at the full rate only when your instance operates at 100% CPU utilization. For example, if your instance operates at 50% CPU utilization in the burstable zone for a 5-minute period, then it consumes CPU burst capacity minutes at a 50% rate in that period. Your instance consumed 2 minutes and 30 seconds of CPU burst capacity minutes in the 5-minute period. For more information, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-viewing-instance-burst-capacity\">Viewing instance burst capacity in Amazon Lightsail</a>.</p> <p> <code>Statistics</code>: The most useful statistics are <code>Maximum</code> and <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Seconds</code>.</p> </li> <li> <p> <b> <code>CPUUtilization</code> </b> - The percentage of allocated compute units that are currently in use on the instance. This metric identifies the processing power to run the applications on the instance. Tools in your operating system can show a lower percentage than Lightsail when the instance is not allocated a full processor core.</p> <p> <code>Statistics</code>: The most useful statistics are <code>Maximum</code> and <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>NetworkIn</code> </b> - The number of bytes received on all network interfaces by the instance. This metric identifies the volume of incoming network traffic to the instance. The number reported is the number of bytes received during the period. Because this metric is reported in 5-minute intervals, divide the reported number by 300 to find Bytes/second.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Bytes</code>.</p> </li> <li> <p> <b> <code>NetworkOut</code> </b> - The number of bytes sent out on all network interfaces by the instance. This metric identifies the volume of outgoing network traffic from the instance. The number reported is the number of bytes sent during the period. Because this metric is reported in 5-minute intervals, divide the reported number by 300 to find Bytes/second.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Bytes</code>.</p> </li> <li> <p> <b> <code>StatusCheckFailed</code> </b> - Reports whether the instance passed or failed both the instance status check and the system status check. This metric can be either 0 (passed) or 1 (failed). This metric data is available in 1-minute (60 seconds) granularity.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>StatusCheckFailed_Instance</code> </b> - Reports whether the instance passed or failed the instance status check. This metric can be either 0 (passed) or 1 (failed). This metric data is available in 1-minute (60 seconds) granularity.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>StatusCheckFailed_System</code> </b> - Reports whether the instance passed or failed the system status check. This metric can be either 0 (passed) or 1 (failed). This metric data is available in 1-minute (60 seconds) granularity.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>MetadataNoToken</code> </b> - Reports the number of times that the instance metadata service was successfully accessed without a token. This metric determines if there are any processes accessing instance metadata by using Instance Metadata Service Version 1, which doesn't use a token. If all requests use token-backed sessions, such as Instance Metadata Service Version 2, then the value is 0.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> </ul>"
+          "documentation":"<p>The metric for which you want to return information.</p> <p>Valid instance metric names are listed below, along with the most useful <code>statistics</code> to include in your request, and the published <code>unit</code> value.</p> <ul> <li> <p> <b> <code>BurstCapacityPercentage</code> </b> - The percentage of CPU performance available for your instance to burst above its baseline. Your instance continuously accrues and consumes burst capacity. Burst capacity stops accruing when your instance's <code>BurstCapacityPercentage</code> reaches 100%. For more information, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-viewing-instance-burst-capacity\">Viewing instance burst capacity in Amazon Lightsail</a>.</p> <p> <code>Statistics</code>: The most useful statistics are <code>Maximum</code> and <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>BurstCapacityTime</code> </b> - The available amount of time for your instance to burst at 100% CPU utilization. Your instance continuously accrues and consumes burst capacity. Burst capacity time stops accruing when your instance's <code>BurstCapacityPercentage</code> metric reaches 100%.</p> <p>Burst capacity time is consumed at the full rate only when your instance operates at 100% CPU utilization. For example, if your instance operates at 50% CPU utilization in the burstable zone for a 5-minute period, then it consumes CPU burst capacity minutes at a 50% rate in that period. Your instance consumed 2 minutes and 30 seconds of CPU burst capacity minutes in the 5-minute period. For more information, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-viewing-instance-burst-capacity\">Viewing instance burst capacity in Amazon Lightsail</a>.</p> <p> <code>Statistics</code>: The most useful statistics are <code>Maximum</code> and <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Seconds</code>.</p> </li> <li> <p> <b> <code>CPUUtilization</code> </b> - The percentage of allocated compute units that are currently in use on the instance. This metric identifies the processing power to run the applications on the instance. Tools in your operating system can show a lower percentage than Lightsail when the instance is not allocated a full processor core.</p> <p> <code>Statistics</code>: The most useful statistics are <code>Maximum</code> and <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Percent</code>.</p> </li> <li> <p> <b> <code>NetworkIn</code> </b> - The number of bytes received on all network interfaces by the instance. This metric identifies the volume of incoming network traffic to the instance. The number reported is the number of bytes received during the period. Because this metric is reported in 5-minute intervals, divide the reported number by 300 to find Bytes/second.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Bytes</code>.</p> </li> <li> <p> <b> <code>NetworkOut</code> </b> - The number of bytes sent out on all network interfaces by the instance. This metric identifies the volume of outgoing network traffic from the instance. The number reported is the number of bytes sent during the period. Because this metric is reported in 5-minute intervals, divide the reported number by 300 to find Bytes/second.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Bytes</code>.</p> </li> <li> <p> <b> <code>StatusCheckFailed</code> </b> - Reports whether the instance passed or failed both the instance status check and the system status check. This metric can be either 0 (passed) or 1 (failed). This metric data is available in 1-minute (60 seconds) granularity.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>StatusCheckFailed_Instance</code> </b> - Reports whether the instance passed or failed the instance status check. This metric can be either 0 (passed) or 1 (failed). This metric data is available in 1-minute (60 seconds) granularity.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>StatusCheckFailed_System</code> </b> - Reports whether the instance passed or failed the system status check. This metric can be either 0 (passed) or 1 (failed). This metric data is available in 1-minute (60 seconds) granularity.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>MetadataNoToken</code> </b> - Reports the number of times that the instance metadata service was successfully accessed without a token. This metric determines if there are any processes accessing instance metadata by using Instance Metadata Service Version 1, which doesn't use a token. If all requests use token-backed sessions, such as Instance Metadata Service Version 2, then the value is 0.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>DiskReadOps</code> </b> - The number of read operations completed on the system disk of the instance during the period. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>DiskWriteOps</code> </b> - The number of write operations completed on the system disk of the instance during the period. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> <li> <p> <b> <code>DiskReadBytes</code> </b> - The number of bytes read from the system disk of the instance during the period. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Bytes</code>.</p> </li> <li> <p> <b> <code>DiskWriteBytes</code> </b> - The number of bytes written to the system disk of the instance during the period. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Sum</code>.</p> <p> <code>Unit</code>: The published unit is <code>Bytes</code>.</p> </li> <li> <p> <b> <code>DiskTotalReadTime</code> </b> - The total number of seconds spent by all read operations that completed on the system disk of the instance during the period. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Seconds</code>.</p> </li> <li> <p> <b> <code>DiskTotalWriteTime</code> </b> - The total number of seconds spent by all write operations that completed on the system disk of the instance during the period. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Seconds</code>.</p> </li> <li> <p> <b> <code>DiskQueueLength</code> </b> - The number of read and write requests that are waiting to access the system disk of the instance. This metric doesn't include activity on additional disks that you attach to the instance.</p> <p> <code>Statistics</code>: The most useful statistic is <code>Average</code>.</p> <p> <code>Unit</code>: The published unit is <code>Count</code>.</p> </li> </ul> <p>For more information about system disk performance metrics, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-viewing-instance-disk-performance-metrics\">View system disk performance metrics for your Lightsail instance</a>.</p>"
         },
         "period":{
           "shape":"MetricPeriod",
@@ -8117,6 +8300,10 @@
         "instanceName":{
           "shape":"ResourceName",
           "documentation":"<p>The name of the instance.</p>"
+        },
+        "includeHealthStatus":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether to include the instance health status checks in the response of your request.</p> <p>When set to <code>true</code>, the response includes the <code>instanceStatus</code> and <code>systemStatus</code> of the instance. When omitted or set to <code>false</code>, the response doesn't include them.</p>"
         }
       }
     },
@@ -8195,6 +8382,10 @@
         "pageToken":{
           "shape":"string",
           "documentation":"<p>The token to advance to the next page of results from your request.</p> <p>To get a page token, perform an initial <code>GetInstances</code> request. If your results are paginated, the response will return a next page token that you can specify as the page token in a subsequent request.</p>"
+        },
+        "includeHealthStatus":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether to include the instance health status checks of each instance in the response of your request.</p> <p>When set to <code>true</code>, the response includes the <code>instanceStatus</code> and <code>systemStatus</code> of each instance. When omitted or set to <code>false</code>, the response doesn't include them.</p>"
         }
       }
     },
@@ -8913,6 +9104,32 @@
         }
       }
     },
+    "GetSubdomainsRequest":{
+      "type":"structure",
+      "members":{
+        "subdomainName":{
+          "shape":"string",
+          "documentation":"<p>The subdomain for which to return information (for example, <code>mysite</code> or <code>blog.mysite</code>), not its web address.</p> <p>When omitted, the response includes all of your subdomains.</p> <p>You can't specify this parameter together with the <code>pageToken</code> parameter.</p>"
+        },
+        "pageToken":{
+          "shape":"string",
+          "documentation":"<p>The token to advance to the next page of results from your request.</p> <p>To get a page token, perform an initial <code>GetSubdomains</code> request. If your results are paginated, the response will return a next page token that you can specify as the page token in a subsequent request.</p>"
+        }
+      }
+    },
+    "GetSubdomainsResult":{
+      "type":"structure",
+      "members":{
+        "subdomains":{
+          "shape":"SubdomainList",
+          "documentation":"<p>An array of objects that describe your subdomains.</p>"
+        },
+        "nextPageToken":{
+          "shape":"string",
+          "documentation":"<p>The token to advance to the next page of results from your request.</p> <p>A next page token is not returned if there are no more results to display.</p> <p>To get the next page of results, perform another <code>GetSubdomains</code> request and specify the next page token using the <code>pageToken</code> parameter.</p>"
+        }
+      }
+    },
     "HeaderEnum":{
       "type":"string",
       "enum":[
@@ -9161,6 +9378,14 @@
         "metadataOptions":{
           "shape":"InstanceMetadataOptions",
           "documentation":"<p>The metadata options for the Amazon Lightsail instance.</p>"
+        },
+        "instanceStatus":{
+          "shape":"InstanceHealthStatus",
+          "documentation":"<p>Reports impaired functionality that stems from issues internal to the instance, such as impaired reachability.</p> <p>This value is returned only when you set <code>includeHealthStatus</code> to <code>true</code> in your request.</p>"
+        },
+        "systemStatus":{
+          "shape":"InstanceHealthStatus",
+          "documentation":"<p>Reports impaired functionality that stems from issues related to the systems that support an instance, such as hardware failures and network connectivity problems.</p> <p>This value is returned only when you set <code>includeHealthStatus</code> to <code>true</code> in your request.</p>"
         }
       },
       "documentation":"<p>Describes an instance (a virtual private server).</p>"
@@ -9185,7 +9410,7 @@
           "documentation":"<p>The IPv6 address of the Amazon Lightsail instance.</p>"
         },
         "password":{
-          "shape":"string",
+          "shape":"SensitiveString",
           "documentation":"<p>For RDP access, the password for your Amazon Lightsail instance. Password will be an empty string if the password for your new instance is not ready yet. When you create an instance, it can take up to 15 minutes for the instance to be ready.</p> <note> <p>If you create an instance using any key pair other than the default (<code>LightsailDefaultKeyPair</code>), <code>password</code> will always be an empty string.</p> <p>If you change the Administrator password on the instance, Lightsail will continue to return the original password value. When accessing the instance using RDP, you need to manually enter the Administrator password after changing it from the default.</p> </note>"
         },
         "passwordData":{
@@ -9193,7 +9418,7 @@
           "documentation":"<p>For a Windows Server-based instance, an object with the data you can use to retrieve your password. This is only needed if <code>password</code> is empty and the instance is not new (and therefore the password is not ready yet). When you create an instance, it can take up to 15 minutes for the instance to be ready.</p>"
         },
         "privateKey":{
-          "shape":"string",
+          "shape":"SensitiveString",
           "documentation":"<p>For SSH access, the temporary private key. For OpenSSH clients (command line SSH), you should save this value to <code>tempkey</code>).</p>"
         },
         "protocol":{
@@ -9221,6 +9446,16 @@
         "ssh",
         "rdp"
       ]
+    },
+    "InstanceAttributeUpdates":{
+      "type":"structure",
+      "members":{
+        "bundleId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ID of the bundle to update the instance to.</p> <p>Specify one of the following values for the bundle ID:</p> <ul> <li> <p> <b> <code>auto</code> </b> – Updates an instance that runs on a previous-generation bundle to the newer-generation equivalent of that bundle. For example, specify <code>auto</code> to update an instance that runs on <code>small_2_0</code> to <code>small_3_0</code>.</p> </li> <li> <p> <b>Newer-generation bundle ID</b> – Updates an instance that runs on a previous-generation bundle to the specified bundle. For example, specify <code>small_3_0</code> to update an instance that runs on <code>small_2_0</code> to <code>small_3_0</code>.</p> </li> <li> <p> <b>Original bundle ID</b> – Updates an instance to the previous-generation bundle that it ran on before an earlier update. For example, specify <code>small_2_0</code> to return an instance that runs on <code>small_3_0</code> to <code>small_2_0</code>.</p> </li> </ul> <note> <p>The instance must be in the <code>stopped</code> state to update its bundle.</p> <p>There is no additional cost to update an instance to a newer-generation bundle.</p> </note>"
+        }
+      },
+      "documentation":"<p>Describes the attributes to update on a Lightsail instance when it starts.</p>"
     },
     "InstanceEntry":{
       "type":"structure",
@@ -9303,6 +9538,65 @@
         "unavailable"
       ]
     },
+    "InstanceHealthStatus":{
+      "type":"structure",
+      "members":{
+        "status":{
+          "shape":"InstanceHealthStatusValue",
+          "documentation":"<p>The status.</p> <p>The following values are possible:</p> <ul> <li> <p> <code>ok</code> - All checks are passing. The instance is reachable.</p> </li> <li> <p> <code>impaired</code> - One or more checks have failed.</p> </li> <li> <p> <code>initializing</code> - The instance was recently started, and the checks are in progress.</p> </li> <li> <p> <code>insufficient-data</code> - There isn't enough data yet to determine the result.</p> </li> <li> <p> <code>not-applicable</code> - The check doesn't apply because the instance isn't running.</p> </li> </ul>"
+        },
+        "details":{
+          "shape":"InstanceHealthStatusDetailList",
+          "documentation":"<p>The system instance health or instance health.</p>"
+        }
+      },
+      "documentation":"<p>Describes the status of an Amazon Lightsail instance.</p>"
+    },
+    "InstanceHealthStatusDetail":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"InstanceHealthStatusDetailName",
+          "documentation":"<p>The type of instance status. The only possible value is <code>reachability</code>.</p>"
+        },
+        "status":{
+          "shape":"InstanceHealthStatusDetailValue",
+          "documentation":"<p>The status.</p> <p>The following values are possible:</p> <ul> <li> <p> <code>passed</code> - The check passed.</p> </li> <li> <p> <code>failed</code> - The check failed.</p> </li> <li> <p> <code>initializing</code> - The check is in progress.</p> </li> <li> <p> <code>insufficient-data</code> - There isn't enough data yet to determine the result.</p> </li> </ul>"
+        },
+        "impairedSince":{
+          "shape":"IsoDate",
+          "documentation":"<p>The time when a status check failed. For an instance that was launched and impaired, this is the time when the instance was launched.</p>"
+        }
+      },
+      "documentation":"<p>Describes the instance status.</p>"
+    },
+    "InstanceHealthStatusDetailList":{
+      "type":"list",
+      "member":{"shape":"InstanceHealthStatusDetail"}
+    },
+    "InstanceHealthStatusDetailName":{
+      "type":"string",
+      "enum":["reachability"]
+    },
+    "InstanceHealthStatusDetailValue":{
+      "type":"string",
+      "enum":[
+        "passed",
+        "failed",
+        "insufficient-data",
+        "initializing"
+      ]
+    },
+    "InstanceHealthStatusValue":{
+      "type":"string",
+      "enum":[
+        "ok",
+        "impaired",
+        "initializing",
+        "insufficient-data",
+        "not-applicable"
+      ]
+    },
     "InstanceHealthSummary":{
       "type":"structure",
       "members":{
@@ -9373,7 +9667,14 @@
         "StatusCheckFailed_System",
         "BurstCapacityTime",
         "BurstCapacityPercentage",
-        "MetadataNoToken"
+        "MetadataNoToken",
+        "DiskReadOps",
+        "DiskWriteOps",
+        "DiskReadBytes",
+        "DiskWriteBytes",
+        "DiskTotalReadTime",
+        "DiskTotalWriteTime",
+        "DiskQueueLength"
       ]
     },
     "InstanceNetworking":{
@@ -9781,14 +10082,57 @@
         },
         "defaultRootObject":{
           "shape":"string",
-          "documentation":"<p>The object (for example, <code>index.html</code>) that the distribution returns when a viewer requests the root URL of the distribution (<code>/</code>) instead of a specific object.</p>"
+          "documentation":"<p>The object (for example, <code>index.html</code>) that the distribution returns when a viewer requests the root URL of the distribution (<code>/</code>) instead of a specific object.</p> <p>This value is returned only when you specify <code>distributionName</code> in your <code>GetDistributions</code> request. It isn't included in the response when you list all of your distributions.</p>"
         },
         "customErrorResponses":{
           "shape":"DistributionCustomErrorResponseList",
-          "documentation":"<p>An array of objects that describe the custom error responses configured for the distribution.</p>"
+          "documentation":"<p>An array of objects that describe the custom error responses configured for the distribution.</p> <p>This value is returned only when you specify <code>distributionName</code> in your <code>GetDistributions</code> request. It isn't included in the response when you list all of your distributions.</p>"
+        },
+        "waf":{
+          "shape":"WafConfig",
+          "documentation":"<p>An object that describes the Web Application Firewall (WAF) configuration of the distribution.</p>"
+        },
+        "subdomain":{
+          "shape":"LightsailDistributionSubdomain",
+          "documentation":"<p>An object that describes the Lightsail subdomain that's associated with the distribution, or is being associated with it.</p>"
         }
       },
       "documentation":"<p>Describes an Amazon Lightsail content delivery network (CDN) distribution.</p>"
+    },
+    "LightsailDistributionSubdomain":{
+      "type":"structure",
+      "required":[
+        "name",
+        "state"
+      ],
+      "members":{
+        "name":{
+          "shape":"string",
+          "documentation":"<p>The subdomain (for example, <code>mysite</code>), not its web address.</p>"
+        },
+        "state":{
+          "shape":"LightsailDistributionSubdomainStateEnum",
+          "documentation":"<p>The state of the subdomain for the distribution.</p> <p>The following states are possible:</p> <ul> <li> <p> <code>Creating</code> – The subdomain is being created.</p> </li> <li> <p> <code>Attaching</code> – The subdomain is being associated with the distribution.</p> </li> <li> <p> <code>Attached</code> – The subdomain is associated with the distribution.</p> </li> <li> <p> <code>Error</code> – The subdomain couldn't be created or associated with the distribution. For more information, see the <code>errorCode</code> and <code>errorDetails</code> parameters.</p> </li> </ul>"
+        },
+        "errorCode":{
+          "shape":"string",
+          "documentation":"<p>The error code that describes why the subdomain is in the <code>Error</code> state.</p>"
+        },
+        "errorDetails":{
+          "shape":"string",
+          "documentation":"<p>The details of the error that caused the subdomain to be in the <code>Error</code> state.</p>"
+        }
+      },
+      "documentation":"<p>Describes the Lightsail subdomain of a distribution. The distribution is reachable at the subdomain's web address, which is the subdomain followed by <code>amazonlightsail.com</code>.</p>"
+    },
+    "LightsailDistributionSubdomainStateEnum":{
+      "type":"string",
+      "enum":[
+        "Creating",
+        "Attaching",
+        "Attached",
+        "Error"
+      ]
     },
     "LoadBalancer":{
       "type":"structure",
@@ -10311,7 +10655,14 @@
         "FreeableMemory",
         "SwapUsage",
         "BurstCapacityTime",
-        "BurstCapacityPercentage"
+        "BurstCapacityPercentage",
+        "DiskReadOps",
+        "DiskWriteOps",
+        "DiskReadBytes",
+        "DiskWriteBytes",
+        "DiskTotalReadTime",
+        "DiskTotalWriteTime",
+        "DiskQueueLength"
       ]
     },
     "MetricPeriod":{
@@ -10636,7 +10987,10 @@
         "StartGUISession",
         "StopGUISession",
         "SetupInstanceHttps",
-        "GetProfile"
+        "GetProfile",
+        "CreateSubdomain",
+        "UpdateSubdomainAssociation",
+        "DeleteSubdomain"
       ]
     },
     "Origin":{
@@ -10726,7 +11080,7 @@
       "type":"structure",
       "members":{
         "ciphertext":{
-          "shape":"string",
+          "shape":"SensitiveString",
           "documentation":"<p>The encrypted password. Ciphertext will be an empty string if access to your new instance is not ready yet. When you create an instance, it can take up to 15 minutes for the instance to be ready.</p> <note> <p>If you use the default key pair (<code>LightsailDefaultKeyPair</code>), the decrypted password will be available in the password field.</p> <p>If you are using a custom key pair, you need to use your own means of decryption.</p> <p>If you change the Administrator password on the instance, Lightsail will continue to return the original ciphertext value. When accessing the instance using RDP, you need to manually enter the Administrator password after changing it from the default.</p> </note>"
         },
         "keyPairName":{
@@ -10775,7 +11129,7 @@
       "type":"structure",
       "members":{
         "masterUserPassword":{
-          "shape":"string",
+          "shape":"SensitiveString",
           "documentation":"<p>The password for the master user of the database.</p>"
         },
         "engineVersion":{
@@ -10914,7 +11268,7 @@
         },
         "metricName":{
           "shape":"MetricName",
-          "documentation":"<p>The name of the metric to associate with the alarm.</p> <p>You can configure up to two alarms per metric.</p> <p>The following metrics are available for each resource type:</p> <ul> <li> <p> <b>Instances</b>: <code>BurstCapacityPercentage</code>, <code>BurstCapacityTime</code>, <code>CPUUtilization</code>, <code>NetworkIn</code>, <code>NetworkOut</code>, <code>StatusCheckFailed</code>, <code>StatusCheckFailed_Instance</code>, and <code>StatusCheckFailed_System</code>.</p> </li> <li> <p> <b>Load balancers</b>: <code>ClientTLSNegotiationErrorCount</code>, <code>HealthyHostCount</code>, <code>UnhealthyHostCount</code>, <code>HTTPCode_LB_4XX_Count</code>, <code>HTTPCode_LB_5XX_Count</code>, <code>HTTPCode_Instance_2XX_Count</code>, <code>HTTPCode_Instance_3XX_Count</code>, <code>HTTPCode_Instance_4XX_Count</code>, <code>HTTPCode_Instance_5XX_Count</code>, <code>InstanceResponseTime</code>, <code>RejectedConnectionCount</code>, and <code>RequestCount</code>.</p> </li> <li> <p> <b>Relational databases</b>: <code>CPUUtilization</code>, <code>DatabaseConnections</code>, <code>DiskQueueDepth</code>, <code>FreeStorageSpace</code>, <code>NetworkReceiveThroughput</code>, and <code>NetworkTransmitThroughput</code>.</p> </li> </ul> <p>For more information about these metrics, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-resource-health-metrics#available-metrics\">Metrics available in Lightsail</a>.</p>"
+          "documentation":"<p>The name of the metric to associate with the alarm.</p> <p>You can configure up to two alarms per metric.</p> <p>The following metrics are available for each resource type:</p> <ul> <li> <p> <b>Instances</b>: <code>BurstCapacityPercentage</code>, <code>BurstCapacityTime</code>, <code>CPUUtilization</code>, <code>NetworkIn</code>, <code>NetworkOut</code>, <code>StatusCheckFailed</code>, <code>StatusCheckFailed_Instance</code>, <code>StatusCheckFailed_System</code>, <code>DiskReadOps</code>, <code>DiskWriteOps</code>, <code>DiskReadBytes</code>, <code>DiskWriteBytes</code>, <code>DiskTotalReadTime</code>, <code>DiskTotalWriteTime</code>, and <code>DiskQueueLength</code>.</p> </li> <li> <p> <b>Load balancers</b>: <code>ClientTLSNegotiationErrorCount</code>, <code>HealthyHostCount</code>, <code>UnhealthyHostCount</code>, <code>HTTPCode_LB_4XX_Count</code>, <code>HTTPCode_LB_5XX_Count</code>, <code>HTTPCode_Instance_2XX_Count</code>, <code>HTTPCode_Instance_3XX_Count</code>, <code>HTTPCode_Instance_4XX_Count</code>, <code>HTTPCode_Instance_5XX_Count</code>, <code>InstanceResponseTime</code>, <code>RejectedConnectionCount</code>, and <code>RequestCount</code>.</p> </li> <li> <p> <b>Relational databases</b>: <code>CPUUtilization</code>, <code>DatabaseConnections</code>, <code>DiskQueueDepth</code>, <code>FreeStorageSpace</code>, <code>NetworkReceiveThroughput</code>, and <code>NetworkTransmitThroughput</code>.</p> </li> </ul> <p>For more information about these metrics, see <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-resource-health-metrics#available-metrics\">Metrics available in Lightsail</a>.</p>"
         },
         "monitoredResourceName":{
           "shape":"ResourceName",
@@ -11777,7 +12131,8 @@
         "ContactMethod",
         "Distribution",
         "Certificate",
-        "Bucket"
+        "Bucket",
+        "Subdomain"
       ]
     },
     "ResourcesBudgetEstimate":{
@@ -11803,6 +12158,10 @@
           "documentation":"<p>An array of objects that describe the result of the action, such as the status of the request, the timestamp of the request, and the resources affected by the request.</p>"
         }
       }
+    },
+    "SensitiveBase64":{
+      "type":"string",
+      "sensitive":true
     },
     "SensitiveNonEmptyString":{
       "type":"string",
@@ -12107,6 +12466,10 @@
         "instanceName":{
           "shape":"ResourceName",
           "documentation":"<p>The name of the instance (a virtual private server) to start.</p>"
+        },
+        "attributeUpdates":{
+          "shape":"InstanceAttributeUpdates",
+          "documentation":"<p>An object that describes the attributes to update on the instance before it starts.</p>"
         }
       }
     },
@@ -12293,6 +12656,103 @@
       "type":"string",
       "max":256,
       "min":1
+    },
+    "Subdomain":{
+      "type":"structure",
+      "members":{
+        "subdomainName":{
+          "shape":"string",
+          "documentation":"<p>The subdomain (for example, <code>mysite</code> or <code>blog.mysite</code>). To get the web address, use the <code>fqdn</code> parameter.</p>"
+        },
+        "arn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the subdomain.</p> <p>If you create a subdomain with a depth of 2, such as <code>blog.mysite</code>, without first creating the subdomain with a depth of 1 (<code>mysite</code>), Lightsail holds <code>mysite</code> for your account in the <code>IMPLICIT</code> state. It doesn't have an ARN until you create a subdomain with that name.</p>"
+        },
+        "fqdn":{
+          "shape":"string",
+          "documentation":"<p>The web address of the subdomain, which is the subdomain followed by <code>amazonlightsail.com</code> (for example, <code>blog.mysite.amazonlightsail.com</code>).</p>"
+        },
+        "depth":{
+          "shape":"integer",
+          "documentation":"<p>The number of labels in the subdomain. A top-level subdomain, such as <code>mysite</code>, has a depth of <code>1</code>. A nested subdomain, such as <code>blog.mysite</code>, has a depth of <code>2</code>.</p>"
+        },
+        "state":{
+          "shape":"SubdomainState",
+          "documentation":"<p>The state of the subdomain.</p> <p>The following states are possible:</p> <ul> <li> <p> <code>CREATING</code> – The subdomain is being created.</p> </li> <li> <p> <code>CREATE_FAILED</code> – The subdomain couldn't be created. Delete the subdomain, and then create it again if the name is still available.</p> </li> <li> <p> <code>UNATTACHED</code> – The subdomain is ready, and isn't associated with a resource.</p> </li> <li> <p> <code>ATTACHING</code> – The subdomain is being associated with a resource.</p> </li> <li> <p> <code>ATTACHED</code> – The subdomain is associated with a resource, and routes traffic to it.</p> </li> <li> <p> <code>DETACHING</code> – The subdomain is being disassociated from a resource.</p> </li> <li> <p> <code>TRANSFERRING</code> – The subdomain is being moved from one resource to another resource.</p> </li> <li> <p> <code>IMPLICIT</code> – The subdomain is the parent of one or more nested subdomains that you created, but you didn't create the parent subdomain itself. You can't associate or delete a subdomain in this state. To use it, create it with the <code>CreateSubdomain</code> action.</p> </li> </ul>"
+        },
+        "attachedResource":{
+          "shape":"SubdomainAttachableResource",
+          "documentation":"<p>An object that describes the resource that the subdomain is associated with.</p> <p>When the subdomain is in the <code>TRANSFERRING</code> state, this is the resource that the subdomain is being moved from.</p>"
+        },
+        "attachingResource":{
+          "shape":"SubdomainAttachableResource",
+          "documentation":"<p>An object that describes the resource that the subdomain is being associated with.</p> <p>This parameter is returned only when the subdomain is in the <code>ATTACHING</code> or <code>TRANSFERRING</code> state.</p>"
+        },
+        "location":{
+          "shape":"ResourceLocation",
+          "documentation":"<p>An object that describes the location of the subdomain, such as the AWS Region.</p>"
+        },
+        "createdAt":{
+          "shape":"IsoDate",
+          "documentation":"<p>The timestamp when the subdomain was created.</p>"
+        },
+        "parentFqdn":{
+          "shape":"string",
+          "documentation":"<p>The web address of the parent subdomain (for example, <code>mysite.amazonlightsail.com</code> for <code>blog.mysite</code>).</p> <p>This parameter isn't returned for a subdomain with a depth of 1.</p>"
+        },
+        "children":{
+          "shape":"SubdomainList",
+          "documentation":"<p>An array of objects that describe the nested subdomains of the subdomain.</p> <p>This parameter is returned only by the <code>GetSubdomains</code> action when you don't specify a subdomain.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tag keys and optional values for the subdomain. For more information about tags in Lightsail, see the <a href=\"https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-tags\">Lightsail Developer Guide</a>.</p> <p>This parameter is returned only by the <code>GetSubdomains</code> action when you specify a subdomain.</p>"
+        }
+      },
+      "documentation":"<p>Describes a Lightsail subdomain. A subdomain is the name that you choose, such as <code>mysite</code> or <code>blog.mysite</code>. Its web address is the subdomain followed by <code>amazonlightsail.com</code>, such as <code>blog.mysite.amazonlightsail.com</code>. You can associate a subdomain with a Lightsail resource to make the resource reachable at the web address.</p>"
+    },
+    "SubdomainAssociationAction":{
+      "type":"string",
+      "enum":[
+        "ASSOCIATE",
+        "DISASSOCIATE",
+        "TRANSFER"
+      ]
+    },
+    "SubdomainAttachableResource":{
+      "type":"structure",
+      "members":{
+        "arn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the resource.</p>"
+        },
+        "name":{
+          "shape":"ResourceName",
+          "documentation":"<p>The name of the resource.</p>"
+        },
+        "attachedAt":{
+          "shape":"IsoDate",
+          "documentation":"<p>The timestamp when the subdomain was associated with the resource.</p>"
+        }
+      },
+      "documentation":"<p>Describes a Lightsail resource that a subdomain is associated with, or is being associated with.</p>"
+    },
+    "SubdomainList":{
+      "type":"list",
+      "member":{"shape":"Subdomain"}
+    },
+    "SubdomainState":{
+      "type":"string",
+      "enum":[
+        "CREATING",
+        "CREATE_FAILED",
+        "UNATTACHED",
+        "ATTACHING",
+        "ATTACHED",
+        "DETACHING",
+        "TRANSFERRING",
+        "IMPLICIT"
+      ]
     },
     "SubjectAlternativeNameList":{
       "type":"list",
@@ -12649,6 +13109,14 @@
         "customErrorResponses":{
           "shape":"DistributionCustomErrorResponseList",
           "documentation":"<p>An array of objects that describe the custom error responses for the distribution. With a custom error response, you can specify the page to return when the origin responds with a given HTTP error code. You can also specify the HTTP status code to send to the viewer.</p>"
+        },
+        "enableWaf":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether to enable Web Application Firewall (WAF) for the distribution. WAF inspects viewer requests and blocks requests that match the WAF rule groups that you enable.</p> <p>When you enable WAF without specifying the <code>wafRules</code> parameter, the distribution has no WAF rule groups enabled and doesn't block any requests.</p> <note> <p>WAF is available only for distributions that use the <code>medium_1_0</code> or <code>large_1_0</code> bundle.</p> <p>Setting this parameter to <code>false</code> disables WAF for the distribution and removes its WAF rule groups. You must enable the WAF rule groups again if you enable WAF again.</p> </note>"
+        },
+        "wafRules":{
+          "shape":"WafRuleList",
+          "documentation":"<p>An array of objects that describe the WAF rule groups to enable for the distribution.</p> <p>The array that you specify replaces the existing WAF rule groups of the distribution. To keep a WAF rule group enabled, include it in the array. To disable all WAF rule groups, specify an empty array.</p> <p>You can specify this parameter only when WAF is enabled for the distribution.</p> <p>The WAF rule groups that you can specify depend on the bundle of the distribution:</p> <ul> <li> <p> <code>medium_1_0</code> – Supports the <code>AWSManagedRulesCommonRuleSet</code>, <code>AWSManagedRulesKnownBadInputsRuleSet</code>, and <code>AWSManagedRulesAnonymousIpList</code> rule groups.</p> </li> <li> <p> <code>large_1_0</code> – Supports the rule groups for <code>medium_1_0</code>, plus <code>AWSManagedRulesAdminProtectionRuleSet</code>, <code>AWSManagedRulesSQLiRuleSet</code>, <code>AWSManagedRulesLinuxRuleSet</code>, <code>AWSManagedRulesUnixRuleSet</code>, <code>AWSManagedRulesWindowsRuleSet</code>, <code>AWSManagedRulesPHPRuleSet</code>, <code>AWSManagedRulesWordPressRuleSet</code>, <code>AWSManagedRulesAmazonIpReputationList</code>, <code>AWSManagedRulesATPRuleSet</code>, <code>AWSManagedRulesACFPRuleSet</code>, and <code>AWSManagedRulesBotControlRuleSet</code> rule groups.</p> </li> </ul>"
         }
       }
     },
@@ -12838,6 +13306,40 @@
         }
       }
     },
+    "UpdateSubdomainAssociationRequest":{
+      "type":"structure",
+      "required":[
+        "subdomainName",
+        "action"
+      ],
+      "members":{
+        "subdomainName":{
+          "shape":"string",
+          "documentation":"<p>The subdomain to update (for example, <code>mysite</code> or <code>blog.mysite</code>), not its web address.</p>"
+        },
+        "action":{
+          "shape":"SubdomainAssociationAction",
+          "documentation":"<p>The association change to make.</p> <p>The following actions are possible:</p> <ul> <li> <p> <code>ASSOCIATE</code> – Associates the subdomain with the resource that you specify in the <code>targetResourceArn</code> parameter. The subdomain must be in the <code>UNATTACHED</code> state.</p> </li> <li> <p> <code>DISASSOCIATE</code> – Disassociates the subdomain from its current resource. The subdomain must be in the <code>ATTACHED</code> state.</p> </li> <li> <p> <code>TRANSFER</code> – Moves the subdomain from its current resource to the resource that you specify in the <code>targetResourceArn</code> parameter. The subdomain must be in the <code>ATTACHED</code> state. You can transfer each subdomain only once in a 24-hour period.</p> </li> </ul>"
+        },
+        "targetResourceArn":{
+          "shape":"string",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the resource to associate the subdomain with. The resource must be in your account.</p> <p>This parameter is required when the <code>action</code> is <code>ASSOCIATE</code> or <code>TRANSFER</code>. It's ignored when the <code>action</code> is <code>DISASSOCIATE</code>.</p>"
+        }
+      }
+    },
+    "UpdateSubdomainAssociationResult":{
+      "type":"structure",
+      "members":{
+        "subdomain":{
+          "shape":"Subdomain",
+          "documentation":"<p>An object that describes the subdomain that was updated.</p>"
+        },
+        "operation":{
+          "shape":"Operation",
+          "documentation":"<p>An object that describes the result of the action, such as the status of the request, the timestamp of the request, and the resources affected by the request.</p>"
+        }
+      }
+    },
     "ViewerMinimumTlsProtocolVersionEnum":{
       "type":"string",
       "enum":[
@@ -12846,6 +13348,137 @@
         "TLSv1.2_2019",
         "TLSv1.2_2021"
       ]
+    },
+    "WafAcfpConfig":{
+      "type":"structure",
+      "members":{
+        "payloadType":{
+          "shape":"WafPayloadTypeEnum",
+          "documentation":"<p>The content type of the request body of account creation requests.</p> <p>The following content types are possible:</p> <ul> <li> <p> <code>JSON</code> – The request body is in JSON format.</p> </li> <li> <p> <code>FORM_ENCODED</code> – The request body is form encoded.</p> </li> </ul>"
+        },
+        "creationPath":{
+          "shape":"string",
+          "documentation":"<p>The path of the endpoint that accepts completed account creation forms (for example, <code>/signup/submit</code>). This endpoint must accept <code>POST</code> requests.</p> <p>Constraints:</p> <ul> <li> <p>Must start with a forward slash (<code>/</code>).</p> </li> <li> <p>Must contain from 1 to 256 characters.</p> </li> </ul>"
+        },
+        "registrationPagePath":{
+          "shape":"string",
+          "documentation":"<p>The path of the page that displays the account creation form (for example, <code>/signup</code>).</p> <p>Constraints:</p> <ul> <li> <p>Must start with a forward slash (<code>/</code>).</p> </li> <li> <p>Must contain from 1 to 256 characters.</p> </li> </ul>"
+        },
+        "responseInspection":{
+          "shape":"WafResponseInspection",
+          "documentation":"<p>An object that describes the HTTP status codes that your application returns for successful and failed account creation attempts.</p>"
+        }
+      },
+      "documentation":"<p>Describes the configuration of the account creation fraud prevention Web Application Firewall (WAF) rule group. The rule group inspects account creation requests to your application.</p>"
+    },
+    "WafAtpConfig":{
+      "type":"structure",
+      "members":{
+        "loginPath":{
+          "shape":"string",
+          "documentation":"<p>The path of the login endpoint of your application (for example, <code>/login</code>). Login paths that start with the path that you specify are a match.</p> <p>Constraints:</p> <ul> <li> <p>Must start with a forward slash (<code>/</code>).</p> </li> <li> <p>Must contain from 1 to 256 characters.</p> </li> </ul>"
+        },
+        "payloadType":{
+          "shape":"WafPayloadTypeEnum",
+          "documentation":"<p>The content type of the request body of login requests.</p> <p>The following content types are possible:</p> <ul> <li> <p> <code>JSON</code> – The request body is in JSON format.</p> </li> <li> <p> <code>FORM_ENCODED</code> – The request body is form encoded.</p> </li> </ul>"
+        },
+        "usernameField":{
+          "shape":"string",
+          "documentation":"<p>The name of the field in the request body that contains the username (for example, <code>/username</code> for <code>JSON</code> or <code>username</code> for <code>FORM_ENCODED</code>).</p> <p>Constraints:</p> <ul> <li> <p>For a <code>JSON</code> payload, must be a JSON pointer that starts with a forward slash (<code>/</code>).</p> </li> <li> <p>Must contain from 1 to 512 characters.</p> </li> </ul>"
+        },
+        "passwordField":{
+          "shape":"string",
+          "documentation":"<p>The name of the field in the request body that contains the password (for example, <code>/password</code> for <code>JSON</code> or <code>password</code> for <code>FORM_ENCODED</code>).</p> <p>Constraints:</p> <ul> <li> <p>For a <code>JSON</code> payload, must be a JSON pointer that starts with a forward slash (<code>/</code>).</p> </li> <li> <p>Must contain from 1 to 512 characters.</p> </li> </ul>"
+        },
+        "responseInspection":{
+          "shape":"WafResponseInspection",
+          "documentation":"<p>An object that describes the HTTP status codes that your application returns for successful and failed login attempts.</p>"
+        }
+      },
+      "documentation":"<p>Describes the configuration of the account takeover prevention Web Application Firewall (WAF) rule group. The rule group inspects login requests to the login path of your application.</p>"
+    },
+    "WafBotControlConfig":{
+      "type":"structure",
+      "members":{
+        "inspectionLevel":{
+          "shape":"WafInspectionLevelEnum",
+          "documentation":"<p>The inspection level of the bot control rule group.</p> <p>The following inspection levels are possible:</p> <ul> <li> <p> <code>COMMON</code> – Detects a variety of bots that identify themselves, such as web scraping frameworks, search engines, and automated browsers.</p> </li> <li> <p> <code>TARGETED</code> – Includes the <code>COMMON</code> protections, and adds detection for sophisticated bots that don't identify themselves. This level uses rate limiting, CAPTCHA, and background browser challenges.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Describes the configuration of the bot control Web Application Firewall (WAF) rule group.</p>"
+    },
+    "WafConfig":{
+      "type":"structure",
+      "members":{
+        "isWafEnabled":{
+          "shape":"boolean",
+          "documentation":"<p>Specifies whether WAF is enabled for the distribution.</p>"
+        },
+        "wafRules":{
+          "shape":"WafRuleList",
+          "documentation":"<p>An array of objects that describe the WAF rule groups enabled for the distribution.</p>"
+        }
+      },
+      "documentation":"<p>Describes the Web Application Firewall (WAF) configuration of a Lightsail distribution.</p>"
+    },
+    "WafInspectionLevelEnum":{
+      "type":"string",
+      "enum":[
+        "COMMON",
+        "TARGETED"
+      ]
+    },
+    "WafPayloadTypeEnum":{
+      "type":"string",
+      "enum":[
+        "JSON",
+        "FORM_ENCODED"
+      ]
+    },
+    "WafResponseInspection":{
+      "type":"structure",
+      "members":{
+        "successCodes":{
+          "shape":"WafStatusCodeList",
+          "documentation":"<p>The HTTP status codes that indicate a successful attempt (for example, <code>200</code>).</p> <p>Constraints:</p> <ul> <li> <p>Must contain from 1 to 10 status codes.</p> </li> <li> <p>Each status code must be from <code>0</code> to <code>999</code>.</p> </li> <li> <p>Can't contain a status code that is also in <code>failureCodes</code>.</p> </li> </ul>"
+        },
+        "failureCodes":{
+          "shape":"WafStatusCodeList",
+          "documentation":"<p>The HTTP status codes that indicate a failed attempt (for example, <code>401</code>).</p> <p>Constraints:</p> <ul> <li> <p>Must contain from 1 to 10 status codes.</p> </li> <li> <p>Each status code must be from <code>0</code> to <code>999</code>.</p> </li> <li> <p>Can't contain a status code that is also in <code>successCodes</code>.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Describes the HTTP status codes that your application returns to indicate successful and failed attempts. The Web Application Firewall (WAF) rule group uses these status codes to track successful and failed attempts.</p>"
+    },
+    "WafRule":{
+      "type":"structure",
+      "required":["name"],
+      "members":{
+        "name":{
+          "shape":"string",
+          "documentation":"<p>The name of the WAF rule group (for example, <code>AWSManagedRulesCommonRuleSet</code>).</p> <p>For the WAF rule groups that you can specify for each bundle, see the <code>wafRules</code> parameter of the <code>CreateDistribution</code> action.</p>"
+        },
+        "atpConfig":{
+          "shape":"WafAtpConfig",
+          "documentation":"<p>An object that describes the configuration of the account takeover prevention rule group.</p> <p>Constraints:</p> <ul> <li> <p>Define this parameter only when the <code>name</code> is <code>AWSManagedRulesATPRuleSet</code>.</p> </li> <li> <p>This parameter is required when the <code>name</code> is <code>AWSManagedRulesATPRuleSet</code>.</p> </li> </ul>"
+        },
+        "acfpConfig":{
+          "shape":"WafAcfpConfig",
+          "documentation":"<p>An object that describes the configuration of the account creation fraud prevention rule group.</p> <p>Constraints:</p> <ul> <li> <p>Define this parameter only when the <code>name</code> is <code>AWSManagedRulesACFPRuleSet</code>.</p> </li> <li> <p>This parameter is required when the <code>name</code> is <code>AWSManagedRulesACFPRuleSet</code>.</p> </li> </ul>"
+        },
+        "botControlConfig":{
+          "shape":"WafBotControlConfig",
+          "documentation":"<p>An object that describes the configuration of the bot control rule group.</p> <p>Constraints:</p> <ul> <li> <p>Define this parameter only when the <code>name</code> is <code>AWSManagedRulesBotControlRuleSet</code>.</p> </li> <li> <p>This parameter is required when the <code>name</code> is <code>AWSManagedRulesBotControlRuleSet</code>.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Describes a Web Application Firewall (WAF) rule group for a Lightsail distribution. A WAF rule group is a set of rules managed by AWS. The rules inspect viewer requests and block requests that match them.</p>"
+    },
+    "WafRuleList":{
+      "type":"list",
+      "member":{"shape":"WafRule"}
+    },
+    "WafStatusCodeList":{
+      "type":"list",
+      "member":{"shape":"integer"}
     },
     "boolean":{"type":"boolean"},
     "double":{"type":"double"},
