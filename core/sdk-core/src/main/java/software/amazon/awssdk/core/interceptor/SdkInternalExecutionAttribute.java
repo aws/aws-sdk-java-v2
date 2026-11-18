@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkClient;
@@ -303,6 +304,20 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      * Indicates whether this is a long polling operation.
      */
     public static final ExecutionAttribute<Boolean> IS_LONG_POLLING = new ExecutionAttribute<>("IsLongPolling");
+
+    /**
+     * Whether the operation's response body may be aws-chunked encoded, as declared by the {@code awsChunked} trait on its
+     * output blob. When true and the response {@code Content-Encoding} ends with {@code aws-chunked}, the SDK decodes the body.
+     */
+    public static final ExecutionAttribute<Boolean> AWS_CHUNKED_RESPONSE_DECODING =
+        new ExecutionAttribute<>("AwsChunkedResponseDecoding");
+
+    /**
+     * Returns the trailers of a decoded aws-chunked response body, keyed by lower-case name. Throws
+     * {@link IllegalStateException} until the body has been fully and successfully read.
+     */
+    public static final ExecutionAttribute<Supplier<Map<String, String>>> AWS_CHUNKED_RESPONSE_TRAILERS =
+        new ExecutionAttribute<>("AwsChunkedResponseTrailers");
 
     /**
      * Indicates whether retries v2.1 is enabled.
