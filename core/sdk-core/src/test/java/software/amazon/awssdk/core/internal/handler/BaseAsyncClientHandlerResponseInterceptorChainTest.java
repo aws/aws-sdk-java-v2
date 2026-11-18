@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.reactivex.Flowable;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -34,6 +35,8 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.async.AwsChunkedResponseDecodingPublisher;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -71,6 +74,33 @@ class BaseAsyncClientHandlerResponseInterceptorChainTest {
 
         assertThat(delegate.headers.firstMatchingHeader("x-test")).hasValue("original");
         assertThat(delegate.stream).isSameAs(ORIGINAL_BODY);
+    }
+
+    @Test
+    void responseChain_whenAwsChunkedDecodingEnabled_afterTransmissionSeesRawAndModifyingInterceptorsSeeDecoded() {
+        RecordingInterceptor interceptor = new RecordingInterceptor(false);
+        CapturingHandler delegate = new CapturingHandler();
+        ExecutionAttributes attributes = new ExecutionAttributes();
+        attributes.putAttribute(SdkInternalExecutionAttribute.AWS_CHUNKED_RESPONSE_DECODING, true);
+        SdkHttpFullResponse response = SdkHttpFullResponse.builder()
+                                                          .statusCode(200)
+                                                          .putHeader("Content-Encoding", "aws-chunked")
+                                                          .putHeader("x-amz-decoded-content-length", "11")
+                                                          .putHeader("x-amz-trailer", "x-amz-checksum-crc32")
+                                                          .build();
+        String encoded = "5\r\nhello\r\n6\r\n world\r\n0\r\nx-amz-checksum-crc32:abc==\r\n\r\n";
+
+        TransformingAsyncResponseHandler<Void> chain =
+            BaseAsyncClientHandler.interceptorCallingResponseHandler(delegate, context(interceptor, attributes));
+        chain.onHeaders(response);
+        chain.onStream(Flowable.just(utf8(encoded)));
+
+        assertThat(interceptor.afterTransmissionResponse.firstMatchingHeader("Content-Encoding")).hasValue("aws-chunked");
+        assertThat(interceptor.beforeUnmarshallingResponse.firstMatchingHeader("Content-Encoding")).isEmpty();
+        assertThat(interceptor.beforeUnmarshallingResponse.firstMatchingHeader("Content-Length")).hasValue("11");
+        assertThat(interceptor.modifyAsyncHttpResponsePublisher).isInstanceOf(AwsChunkedResponseDecodingPublisher.class);
+        assertThat(delegate.headers.firstMatchingHeader("Content-Encoding")).isEmpty();
+        assertThat(readAll(delegate.stream)).isEqualTo("hello world");
     }
 
     @Test
@@ -113,15 +143,29 @@ class BaseAsyncClientHandlerResponseInterceptorChainTest {
     }
 
     private static ExecutionContext contextFor(ExecutionInterceptor interceptor) {
-        return ExecutionContext.builder()
-                               .interceptorChain(new ExecutionInterceptorChain(Collections.singletonList(interceptor)))
-                               .interceptorContext(InterceptorContext.builder().request(ValidSdkObjects.sdkRequest()).build())
-                               .executionAttributes(new ExecutionAttributes())
-                               .build();
+        return context(interceptor, new ExecutionAttributes());
     }
 
     private static SdkHttpFullResponse httpResponse() {
         return SdkHttpFullResponse.builder().statusCode(200).putHeader("x-test", "original").build();
+    }
+
+    private static ExecutionContext context(ExecutionInterceptor interceptor, ExecutionAttributes attributes) {
+        return ExecutionContext.builder()
+                               .interceptorChain(new ExecutionInterceptorChain(Collections.singletonList(interceptor)))
+                               .interceptorContext(InterceptorContext.builder().request(ValidSdkObjects.sdkRequest()).build())
+                               .executionAttributes(attributes)
+                               .build();
+    }
+
+    private static String readAll(Publisher<ByteBuffer> publisher) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        for (ByteBuffer buffer : Flowable.fromPublisher(publisher).blockingIterable()) {
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+            out.write(bytes, 0, bytes.length);
+        }
+        return new String(out.toByteArray(), StandardCharsets.UTF_8);
     }
 
     private static ByteBuffer utf8(String s) {
