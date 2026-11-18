@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Security Agent",
+    "contributor": "",
+    "description": "This release adds support for resuming a paused penetration test job from its last saved checkpoint."
+}
