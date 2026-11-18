@@ -107,6 +107,8 @@ class CredentialDaemonClientCallTest {
         env.remove("AWS_SESSION_TOKEN");
         env.remove("AWS_WEB_IDENTITY_TOKEN_FILE");
         env.remove("AWS_ROLE_ARN");
+        env.remove("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI");
+        env.remove("AWS_CONTAINER_CREDENTIALS_FULL_URI");
         env.set("AWS_EC2_METADATA_DISABLED", "true");
         env.set("AWS_CONFIG_FILE", configFile.toString());
         env.set("AWS_SHARED_CREDENTIALS_FILE", directory.resolve("credentials-absent").toString());
