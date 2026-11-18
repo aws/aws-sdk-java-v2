@@ -27,6 +27,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 public final class KinesisHttpConfigurationOptions {
     private static final AttributeMap OPTIONS = AttributeMap
         .builder()
+        .put(SdkHttpConfigurationOption.READ_TIMEOUT, Duration.ofSeconds(10))
         .put(SdkHttpConfigurationOption.WRITE_TIMEOUT, Duration.ofSeconds(10))
         .build();
 

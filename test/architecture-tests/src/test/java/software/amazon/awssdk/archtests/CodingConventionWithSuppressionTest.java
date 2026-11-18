@@ -56,6 +56,10 @@ public class CodingConventionWithSuppressionTest {
                       ArchUtils.classNameToPattern(MakeHttpRequestStage.class),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.services.s3.internal.crt.S3CrtResponseHandlerAdapter"),
                       ArchUtils.classNameToPattern(
+                          "software.amazon.awssdk.services.s3.internal.crt.S3CrtBorrowedBufferResponseHandlerAdapter"),
+                      ArchUtils.classNameToPattern(
+                          "software.amazon.awssdk.services.s3.internal.crt.S3CrtBorrowedBufferInputStream"),
+                      ArchUtils.classNameToPattern(
                           "software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer"),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.AwsCrtHttpClientBase"),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils"),
@@ -69,7 +73,10 @@ public class CodingConventionWithSuppressionTest {
                           "software.amazon.awssdk.transfer.s3.internal.model.CrtFileDownload"),
                       ArchUtils.classNameToPattern(CopyObjectHelper.class),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.WarmUpDiscovery"),
-                      ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.TargetedWarmUpInvoker")));
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.TargetedWarmUpInvoker"),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.retry.MaxAttemptsResolver"),
+                      Pattern.compile(".*/software/amazon/awssdk/core/retry/RetryMode\\$Resolver\\.class"),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.retries.internal.BaseRetryStrategy")));
 
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
         Arrays.asList(

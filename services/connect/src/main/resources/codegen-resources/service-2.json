@@ -1422,6 +1422,24 @@
       ],
       "documentation":"<p>Deactivates an evaluation form in the specified Connect Customer instance. After a form is deactivated, it is no longer available for users to start new evaluations based on the form. </p>"
     },
+    "DeleteAllEntitySessions":{
+      "name":"DeleteAllEntitySessions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/auth/sessions/delete-all-entity-sessions"
+      },
+      "input":{"shape":"DeleteAllEntitySessionsRequest"},
+      "output":{"shape":"DeleteAllEntitySessionsResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Deletes all active sessions for the specified entity in the specified Connect Customer instance. The operation supports only the <code>USER</code> entity type, so you can use it to sign out all of a user's active sessions. Use it when you need to end a user's access right away, for example when they leave your organization or you suspect that their credentials are compromised.</p>"
+    },
     "DeleteAttachedFile":{
       "name":"DeleteAttachedFile",
       "http":{
@@ -4742,7 +4760,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Allows pausing an ongoing task contact.</p>"
+      "documentation":"<p>Pauses an ongoing task or email contact.</p>"
     },
     "PutUserStatus":{
       "name":"PutUserStatus",
@@ -4817,7 +4835,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Allows resuming a task contact in a paused state.</p>"
+      "documentation":"<p>Resumes a task or email contact in a paused state.</p>"
     },
     "ResumeContactRecording":{
       "name":"ResumeContactRecording",
@@ -7313,7 +7331,7 @@
       "members":{
         "AfterContactWorkTimeLimit":{
           "shape":"AfterContactWorkTimeLimit",
-          "documentation":"<p>The ACW timeout duration in seconds. Minimum: 1 second. Maximum: 2,000,000 seconds (24 days). Enter 0 for indefinite ACW time.</p>"
+          "documentation":"<p>The after contact work (ACW) timeout duration in seconds. Minimum: 1 second. Maximum: 2,000,000 seconds (24 days). For the CHAT channel, the maximum for a specific duration is 5,400 seconds (90 minutes); higher values end ACW after 90 minutes. For all channels, including chat, you can enter 0 for an indefinite amount of time, meaning agents must manually choose to end ACW.</p>"
         }
       },
       "documentation":"<p>Configuration settings for after contact work (ACW) timeout.</p>"
@@ -10867,6 +10885,10 @@
         "GlobalResiliencyMetadata":{
           "shape":"GlobalResiliencyMetadata",
           "documentation":"<p>Information about the global resiliency configuration for the contact, including traffic distribution details.</p>"
+        },
+        "ContactLens":{
+          "shape":"ContactLens",
+          "documentation":"<p>Information about the conversational analytics configuration applied to the contact. This field is present only for contacts where conversational analytics is enabled in the contact flow.</p>"
         }
       },
       "documentation":"<p>Contains information about a contact.</p>"
@@ -10910,6 +10932,20 @@
         }
       },
       "documentation":"<p>Information about a reference when the <code>referenceType</code> is <code>CONTACT_ANALYSIS</code>. Otherwise, null.</p>"
+    },
+    "ContactAnalysisReferenceState":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"String",
+          "documentation":"<p>The status of conversational analytics processing for the contact. Valid values:</p> <ul> <li> <p> <code>REQUESTED</code> – Analysis has been requested for the contact and has not finished.</p> </li> <li> <p> <code>COMPLETED</code> – Analysis finished successfully.</p> </li> <li> <p> <code>FAILED</code> – Analysis did not finish successfully. See <code>StatusReason</code> for the cause.</p> </li> </ul>"
+        },
+        "StatusReason":{
+          "shape":"String",
+          "documentation":"<p>The reason for the current analysis status. This value is populated only when the status is <code>FAILED</code>.</p>"
+        }
+      },
+      "documentation":"<p>The current processing state of conversational analytics for a contact, including the analysis status and, when applicable, the reason for that status.</p>"
     },
     "ContactConfiguration":{
       "type":"structure",
@@ -11771,6 +11807,80 @@
         "CUSTOMER"
       ]
     },
+    "ContactLens":{
+      "type":"structure",
+      "members":{
+        "ConversationalAnalytics":{
+          "shape":"ConversationalAnalytics",
+          "documentation":"<p>The conversational analytics configuration applied to the contact.</p>"
+        }
+      },
+      "documentation":"<p>Information about the conversational analytics configuration applied to the contact. This field is present only for contacts where conversational analytics is enabled in the contact flow.</p>"
+    },
+    "ContactLensAnalyticsModeList":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
+    "ContactLensChannelConfiguration":{
+      "type":"structure",
+      "members":{
+        "AnalyticsModes":{
+          "shape":"ContactLensAnalyticsModeList",
+          "documentation":"<p>The conversational analytics modes enabled for the channel. Valid values:</p> <ul> <li> <p> <code>RealTime</code> – Real-time analysis is enabled during the contact. Voice channel only.</p> </li> <li> <p> <code>PostContact</code> – Post-contact analysis is enabled after the contact ends. Voice channel only.</p> </li> <li> <p> <code>ContactLens</code> – Conversational analytics is enabled for the contact. Chat channel only.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The per-channel conversational analytics configuration for a contact.</p>"
+    },
+    "ContactLensRedactionConfiguration":{
+      "type":"structure",
+      "members":{
+        "Behavior":{
+          "shape":"String",
+          "documentation":"<p>Specifies whether redaction is enabled for sensitive data, such as personal information, in the conversational analytics output. Valid values:</p> <ul> <li> <p> <code>Enable</code> – Redaction is applied according to the other values in this object.</p> </li> <li> <p> <code>Disable</code> – Redaction is not applied, and all other values in this object are ignored.</p> </li> </ul>"
+        },
+        "Policy":{
+          "shape":"String",
+          "documentation":"<p>The redaction policy that determines which versions of the transcript are stored. Valid values:</p> <ul> <li> <p> <code>None</code> – No redaction is applied.</p> </li> <li> <p> <code>RedactedOnly</code> – Only the redacted transcript is stored.</p> </li> <li> <p> <code>RedactedAndOriginal</code> – Both the redacted and the original transcript are stored.</p> </li> </ul>"
+        },
+        "Entities":{
+          "shape":"ContactLensRedactionEntitiesList",
+          "documentation":"<p>The entity types to redact from the transcript (for example, <code>NAME</code>, <code>EMAIL</code>, <code>ADDRESS</code>).</p>"
+        },
+        "MaskMode":{
+          "shape":"String",
+          "documentation":"<p>How sensitive information is masked in the transcript. Valid values:</p> <ul> <li> <p> <code>PII</code> – All redacted entities are replaced with the <code>[PII]</code> string.</p> </li> <li> <p> <code>EntityType</code> – All redacted entities are replaced with the label of the entity. For example, when the <code>EMAIL</code> entity is configured for redaction, emails in the transcript are replaced with the <code>[EMAIL]</code> string.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The redaction configuration for conversational analytics transcripts.</p>"
+    },
+    "ContactLensRedactionEntitiesList":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
+    "ContactLensSentimentConfiguration":{
+      "type":"structure",
+      "members":{
+        "Behavior":{
+          "shape":"String",
+          "documentation":"<p>Specifies whether sentiment analysis is enabled for the contact. The default value is <code>Disable</code>. Valid values:</p> <ul> <li> <p> <code>Enable</code> – Sentiment analysis is performed on the contact.</p> </li> <li> <p> <code>Disable</code> – Sentiment analysis is not performed on the contact.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The conversational analytics sentiment analysis configuration for a contact.</p>"
+    },
+    "ContactLensSummaryConfiguration":{
+      "type":"structure",
+      "members":{
+        "SummaryModes":{
+          "shape":"ContactLensSummaryModeList",
+          "documentation":"<p>The conversational analytics summary modes enabled for the contact. Valid values: <code>PostContact</code> | <code>AutomatedInteraction</code> | <code>ContactChain</code>.</p>"
+        }
+      },
+      "documentation":"<p>The conversational analytics summary configuration for a contact.</p>"
+    },
+    "ContactLensSummaryModeList":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
     "ContactMediaProcessingFailureMode":{
       "type":"string",
       "enum":[
@@ -12140,6 +12250,55 @@
         "HierarchyGroupCondition":{"shape":"HierarchyGroupCondition"}
       },
       "documentation":"<p>An object that can be used to specify Tag conditions or Hierarchy Group conditions inside the <code>SearchFilter</code>.</p> <p>This accepts an <code>OR</code> of <code>AND</code> (List of List) input where:</p> <ul> <li> <p>The top level list specifies conditions that need to be applied with <code>OR</code> operator</p> </li> <li> <p>The inner list specifies conditions that need to be applied with <code>AND</code> operator.</p> </li> </ul> <note> <p>Only one field can be populated. Maximum number of allowed Tag conditions is 25. Maximum number of allowed Hierarchy Group conditions is 20.</p> </note>"
+    },
+    "ConversationalAnalytics":{
+      "type":"structure",
+      "members":{
+        "Configuration":{
+          "shape":"ConversationalAnalyticsConfiguration",
+          "documentation":"<p>The conversational analytics settings that apply to the contact.</p>"
+        },
+        "ContactAnalysisReferenceState":{
+          "shape":"ContactAnalysisReferenceState",
+          "documentation":"<p>The current state of conversational analytics processing for the contact.</p>"
+        }
+      },
+      "documentation":"<p>Contains the conversational analytics configuration and state for a contact.</p>"
+    },
+    "ConversationalAnalyticsConfiguration":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether conversational analytics is enabled for the contact.</p>",
+          "box":true
+        },
+        "LanguageLocale":{
+          "shape":"String",
+          "documentation":"<p>The language locale that conversational analytics uses to analyze the contact (for example, <code>en-US</code>).</p>"
+        },
+        "LanguageLocales":{
+          "shape":"LanguageLocales",
+          "documentation":"<p>The language locales that conversational analytics uses to analyze the contact (for example, <code>en-US</code> and <code>es-ES</code>).</p>"
+        },
+        "ChannelConfiguration":{
+          "shape":"ContactLensChannelConfiguration",
+          "documentation":"<p>The per-channel conversational analytics settings for the contact.</p>"
+        },
+        "RedactionConfiguration":{
+          "shape":"ContactLensRedactionConfiguration",
+          "documentation":"<p>The redaction configuration for the contact transcript.</p>"
+        },
+        "SummaryConfiguration":{
+          "shape":"ContactLensSummaryConfiguration",
+          "documentation":"<p>The summary configuration for the contact.</p>"
+        },
+        "SentimentConfiguration":{
+          "shape":"ContactLensSentimentConfiguration",
+          "documentation":"<p>The sentiment analysis configuration for the contact.</p>"
+        }
+      },
+      "documentation":"<p>The conversational analytics configuration settings for a contact.</p>"
     },
     "Count":{"type":"integer"},
     "CreateAgentStatusRequest":{
@@ -15411,6 +15570,32 @@
       "type":"integer",
       "max":9999,
       "min":0
+    },
+    "DeleteAllEntitySessionsRequest":{
+      "type":"structure",
+      "required":[
+        "InstanceId",
+        "EntityId",
+        "EntityType"
+      ],
+      "members":{
+        "InstanceId":{
+          "shape":"InstanceId",
+          "documentation":"<p>The identifier of the Connect Customer instance. You can <a href=\"https://docs.aws.amazon.com/connect/latest/adminguide/find-instance-arn.html\">find the instance ID</a> in the Amazon Resource Name (ARN) of the instance.</p>"
+        },
+        "EntityId":{
+          "shape":"EntityId",
+          "documentation":"<p>The identifier of the entity whose sessions you want to delete. For <code>USER</code>, use the user ID or the user ARN.</p>"
+        },
+        "EntityType":{
+          "shape":"SessionEntityType",
+          "documentation":"<p>The type of entity whose sessions you want to delete.</p> <note> <p>The only valid value is <code>USER</code>, which signs out a user in your Connect Customer instance.</p> </note>"
+        }
+      }
+    },
+    "DeleteAllEntitySessionsResponse":{
+      "type":"structure",
+      "members":{}
     },
     "DeleteAttachedFileRequest":{
       "type":"structure",
@@ -18965,6 +19150,18 @@
         "Tags":{
           "shape":"TagMap",
           "documentation":"<p>The tags used to organize, track, or control access for this resource. For example, { \"Tags\": {\"key1\":\"value1\", \"key2\":\"value2\"} }.</p>"
+        },
+        "ItemEnablementStatus":{
+          "shape":"EvaluationEnablementStatusMap",
+          "documentation":"<p>A map of item (section or question) identifiers to their enablement status, computed by the service from each item's conditional enablement configuration. Disabled items are excluded from scoring. Valid values: <code>ENABLED</code> | <code>DISABLED</code>.</p>"
+        },
+        "SourceResolutionStatus":{
+          "shape":"EvaluationItemResolutionStatus",
+          "documentation":"<p>The aggregate status of resolving the external source data (such as Contact Lens analysis and AI metrics) that is used by conditional enablement in the evaluation. Source data is resolved asynchronously after the evaluation is started. While a source is pending or after it fails to resolve, conditions that depend on it evaluate to the item's <code>DefaultAction</code>. Valid values:</p> <ul> <li> <p> <code>PENDING</code> - One or more sources have not been resolved yet. Call <code>DescribeContactEvaluation</code> again to get updated <code>ItemEnablementStatus</code> values.</p> </li> <li> <p> <code>RESOLVED</code> - All sources have been resolved.</p> </li> <li> <p> <code>FAILED</code> - One or more sources could not be resolved. Dependent conditions use the item's <code>DefaultAction</code>.</p> </li> </ul>"
+        },
+        "SourceValues":{
+          "shape":"EvaluationResolvedSourceList",
+          "documentation":"<p>The resolved values of the external sources (such as contact data, evaluation metadata, form metadata, and AI metrics) that are used by the conditions in the evaluation form. You can use these values to evaluate the conditions against the current answers without calling <code>DescribeContactEvaluation</code> again.</p>"
         }
       },
       "documentation":"<p>Information about a contact evaluation.</p>"
@@ -19142,6 +19339,19 @@
       },
       "documentation":"<p>Information about a contact participant in the evaluation.</p>"
     },
+    "EvaluationEnablementStatus":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "EvaluationEnablementStatusMap":{
+      "type":"map",
+      "key":{"shape":"ReferenceId"},
+      "value":{"shape":"EvaluationEnablementStatus"},
+      "max":100
+    },
     "EvaluationForm":{
       "type":"structure",
       "required":[
@@ -19303,6 +19513,21 @@
       "type":"list",
       "member":{"shape":"EvaluationFormAIVersionSummary"}
     },
+    "EvaluationFormAiMetricsField":{
+      "type":"string",
+      "enum":[
+        "AI_SESSION_IS_HANDED_OFF",
+        "AI_SESSION_SELF_SERVICE_DURATION",
+        "AI_SESSION_GOAL_SUCCESS_RATE",
+        "AI_SESSION_COMPLETENESS_SCORE",
+        "AI_SESSION_FAITHFULNESS_SCORE",
+        "AI_AGENT_MAX_PROMPT_LATENCY",
+        "AI_TOOL_MAX_LATENCY",
+        "AI_TOOL_SELECTION_ACCURACY",
+        "AI_TOOL_PARAMETER_ACCURACY",
+        "AI_TOOL_UTILIZATION_ACCURACY"
+      ]
+    },
     "EvaluationFormAutoEvaluationConfiguration":{
       "type":"structure",
       "required":["Enabled"],
@@ -19313,6 +19538,37 @@
         }
       },
       "documentation":"<p>The automatic evaluation configuration of an evaluation form.</p>"
+    },
+    "EvaluationFormContactAttributeKey":{
+      "type":"string",
+      "max":32767,
+      "min":1
+    },
+    "EvaluationFormContactField":{
+      "type":"string",
+      "enum":[
+        "CATEGORIES",
+        "AGENT_ARN",
+        "QUEUE_ARN",
+        "ROUTING_PROFILE_ARN",
+        "CHANNEL",
+        "INITIATION_METHOD",
+        "IS_QUEUED",
+        "OVERALL_CUSTOMER_SENTIMENT_SCORE",
+        "OVERALL_AGENT_SENTIMENT_SCORE",
+        "CUSTOMER_SENTIMENT_SCORE_WITHOUT_AGENT",
+        "CUSTOMER_SENTIMENT_SCORE_WITH_AGENT",
+        "NON_TALK_TIME",
+        "NON_TALK_TIME_PERCENTAGE",
+        "NUMBER_OF_INTERRUPTIONS",
+        "CONTACT_DURATION",
+        "AGENT_INTERACTION_DURATION",
+        "CUSTOMER_HOLD_TIME",
+        "LONGEST_HOLD_DURATION",
+        "NUMBER_OF_HOLDS",
+        "AGENT_INTERACTION_AND_HOLD_DURATION",
+        "RECORDING_MEDIA_STREAM_TYPES"
+      ]
     },
     "EvaluationFormContent":{
       "type":"structure",
@@ -19376,6 +19632,17 @@
       "documentation":"<p>Information about an evaluation form used in a contact evaluation.</p>"
     },
     "EvaluationFormDescription":{"type":"string"},
+    "EvaluationFormEnablementBooleanValue":{"type":"boolean"},
+    "EvaluationFormEnablementNumericValue":{"type":"double"},
+    "EvaluationFormEnablementStringValue":{
+      "type":"string",
+      "max":512,
+      "min":0
+    },
+    "EvaluationFormEvaluationMetadataField":{
+      "type":"string",
+      "enum":["EVALUATION_TYPE"]
+    },
     "EvaluationFormId":{
       "type":"string",
       "max":256,
@@ -19413,7 +19680,7 @@
         },
         "Operator":{
           "shape":"EvaluationFormItemEnablementOperator",
-          "documentation":"<p>The operator to be used to be applied to operands if more than one provided. </p>"
+          "documentation":"<p>The operator to apply to the operands when more than one operand is provided.</p>"
         }
       },
       "documentation":"<p>A condition for item enablement.</p>"
@@ -19450,11 +19717,11 @@
         },
         "Action":{
           "shape":"EvaluationFormItemEnablementAction",
-          "documentation":"<p>An enablement action that if condition is satisfied. </p>"
+          "documentation":"<p>The enablement action to apply if the condition is satisfied.</p>"
         },
         "DefaultAction":{
           "shape":"EvaluationFormItemEnablementAction",
-          "documentation":"<p>An enablement action that if condition is not satisfied. </p>"
+          "documentation":"<p>The enablement action to apply if the condition is not satisfied. This action is also applied when the condition depends on an external source that is still pending or could not be resolved.</p>"
         }
       },
       "documentation":"<p>An item enablement configuration.</p>"
@@ -19477,7 +19744,7 @@
         },
         "Comparator":{
           "shape":"EvaluationFormItemSourceValuesComparator",
-          "documentation":"<p>A comparator to be used against list of values. </p>"
+          "documentation":"<p>A comparator to be used against a list of values. <code>IN</code>, <code>NOT_IN</code>, <code>ALL_IN</code>, and <code>EXACT</code> compare sets of values. <code>GREATER_THAN</code>, <code>LESS_THAN</code>, <code>GREATER_THAN_OR_EQUAL_TO</code>, and <code>LESS_THAN_OR_EQUAL_TO</code> compare a single numeric or date and time value. <code>EQUAL_TO</code> and <code>NOT_EQUAL_TO</code> compare a single value.</p>"
         }
       },
       "documentation":"<p>An expression that defines a basic building block of conditional enablement.</p>"
@@ -19495,18 +19762,44 @@
       "members":{
         "Type":{
           "shape":"EvaluationFormItemEnablementSourceType",
-          "documentation":"<p>A type of source item. </p>"
+          "documentation":"<p>A type of source item. Valid values:</p> <ul> <li> <p> <code>QUESTION_REF_ID</code> - The answer to another question in the evaluation form.</p> </li> <li> <p> <code>CONTACT</code> - Data from the evaluated contact.</p> </li> <li> <p> <code>EVALUATION_METADATA</code> - Metadata of the evaluation, such as the evaluation type.</p> </li> <li> <p> <code>AI_METRICS</code> - Metrics about AI agents, AI sessions, and AI tools on the contact.</p> </li> </ul>"
         },
         "RefId":{
           "shape":"ReferenceId",
-          "documentation":"<p>A referenceId of the source item.</p>"
+          "documentation":"<p>A referenceId of the source item. Use when <code>Type</code> is <code>QUESTION_REF_ID</code>.</p>"
+        },
+        "ContactField":{
+          "shape":"EvaluationFormContactField",
+          "documentation":"<p>The contact field to use as the source, such as <code>CHANNEL</code>, <code>QUEUE_ARN</code>, <code>OVERALL_CUSTOMER_SENTIMENT_SCORE</code>, or <code>RECORDING_MEDIA_STREAM_TYPES</code>. Use when <code>Type</code> is <code>CONTACT</code>.</p>"
+        },
+        "ContactAttributeKey":{
+          "shape":"EvaluationFormContactAttributeKey",
+          "documentation":"<p>The key of the contact attribute to use as the source. Use when <code>Type</code> is <code>CONTACT</code>.</p>"
+        },
+        "SegmentAttributeKey":{
+          "shape":"EvaluationFormSegmentAttributeKey",
+          "documentation":"<p>The key of the contact segment attribute to use as the source. Use when <code>Type</code> is <code>CONTACT</code>.</p>"
+        },
+        "EvaluationMetadataField":{
+          "shape":"EvaluationFormEvaluationMetadataField",
+          "documentation":"<p>The evaluation metadata field to use as the source. Use when <code>Type</code> is <code>EVALUATION_METADATA</code>.</p>"
+        },
+        "AiMetricsField":{
+          "shape":"EvaluationFormAiMetricsField",
+          "documentation":"<p>The AI metrics field to use as the source. Use when <code>Type</code> is <code>AI_METRICS</code>.</p>"
         }
       },
       "documentation":"<p>An enablement expression source item.</p>"
     },
     "EvaluationFormItemEnablementSourceType":{
       "type":"string",
-      "enum":["QUESTION_REF_ID"]
+      "enum":[
+        "QUESTION_REF_ID",
+        "CONTACT",
+        "EVALUATION_METADATA",
+        "FORM_METADATA",
+        "AI_METRICS"
+      ]
     },
     "EvaluationFormItemEnablementSourceValue":{
       "type":"structure",
@@ -19514,14 +19807,32 @@
       "members":{
         "Type":{
           "shape":"EvaluationFormItemEnablementSourceValueType",
-          "documentation":"<p>A type of source item value. </p>"
+          "documentation":"<p>A type of source item value. Valid values: <code>OPTION_REF_ID</code> | <code>STRING_VALUE</code> | <code>NUMERIC_VALUE</code> | <code>BOOLEAN_VALUE</code> | <code>DATETIME_VALUE</code>.</p>"
         },
         "RefId":{
           "shape":"ReferenceId",
-          "documentation":"<p>A referenceId of the source value.</p>"
+          "documentation":"<p>A referenceId of the source value. Use when <code>Type</code> is <code>OPTION_REF_ID</code>.</p>"
+        },
+        "StringValue":{
+          "shape":"EvaluationFormEnablementStringValue",
+          "documentation":"<p>A string value to compare against the source. Use when <code>Type</code> is <code>STRING_VALUE</code>.</p>"
+        },
+        "NumericValue":{
+          "shape":"EvaluationFormEnablementNumericValue",
+          "documentation":"<p>A numeric value to compare against the source. Use when <code>Type</code> is <code>NUMERIC_VALUE</code>.</p>",
+          "box":true
+        },
+        "BooleanValue":{
+          "shape":"EvaluationFormEnablementBooleanValue",
+          "documentation":"<p>A Boolean value to compare against the source. Use when <code>Type</code> is <code>BOOLEAN_VALUE</code>.</p>",
+          "box":true
+        },
+        "DateTimeValue":{
+          "shape":"Timestamp",
+          "documentation":"<p>A date and time value to compare against the source. Use when <code>Type</code> is <code>DATETIME_VALUE</code>.</p>"
         }
       },
-      "documentation":"<p>An enablement expression source value.</p>"
+      "documentation":"<p>An enablement expression source value. Provide only the value member that matches the specified <code>Type</code>.</p>"
     },
     "EvaluationFormItemEnablementSourceValueList":{
       "type":"list",
@@ -19529,7 +19840,13 @@
     },
     "EvaluationFormItemEnablementSourceValueType":{
       "type":"string",
-      "enum":["OPTION_REF_ID"]
+      "enum":[
+        "OPTION_REF_ID",
+        "STRING_VALUE",
+        "NUMERIC_VALUE",
+        "BOOLEAN_VALUE",
+        "DATETIME_VALUE"
+      ]
     },
     "EvaluationFormItemSourceValuesComparator":{
       "type":"string",
@@ -19537,7 +19854,13 @@
         "IN",
         "NOT_IN",
         "ALL_IN",
-        "EXACT"
+        "EXACT",
+        "GREATER_THAN",
+        "LESS_THAN",
+        "GREATER_THAN_OR_EQUAL_TO",
+        "LESS_THAN_OR_EQUAL_TO",
+        "EQUAL_TO",
+        "NOT_EQUAL_TO"
       ]
     },
     "EvaluationFormItemWeight":{"type":"double"},
@@ -19557,7 +19880,103 @@
         "ja-JP",
         "ko-KR",
         "zh-CN",
-        "ms-MY"
+        "ms-MY",
+        "af-ZA",
+        "sq-AL",
+        "am-ET",
+        "ar-AE",
+        "ar-SA",
+        "hy-AM",
+        "eu-ES",
+        "be-BY",
+        "bs-BA",
+        "bg-BG",
+        "ca-ES",
+        "ckb-IR",
+        "ckb-IQ",
+        "zh-TW",
+        "hr-HR",
+        "cs-CZ",
+        "da-DK",
+        "nl-BE",
+        "nl-NL",
+        "en-AU",
+        "en-IN",
+        "en-IE",
+        "en-NZ",
+        "en-AB",
+        "en-SG",
+        "en-ZA",
+        "en-GB",
+        "en-WL",
+        "fa-IR",
+        "fa-AF",
+        "fi-FI",
+        "fr-BE",
+        "fr-CA",
+        "ga-IE",
+        "gl-ES",
+        "ka-GE",
+        "de-AT",
+        "de-CH",
+        "el-GR",
+        "gu-IN",
+        "ht-HT",
+        "he-IL",
+        "hi-IN",
+        "hu-HU",
+        "is-IS",
+        "id-ID",
+        "jv-ID",
+        "km-KH",
+        "kn-IN",
+        "kk-KZ",
+        "lo-LA",
+        "lv-LV",
+        "lt-LT",
+        "mk-MK",
+        "ml-IN",
+        "mr-IN",
+        "ne-NP",
+        "no-NO",
+        "or-IN",
+        "ps-AF",
+        "pl-PL",
+        "pt-PT",
+        "pa-IN",
+        "ro-RO",
+        "ru-RU",
+        "sr-RS",
+        "si-LK",
+        "sk-SK",
+        "sl-SI",
+        "es-MX",
+        "es-US",
+        "su-ID",
+        "sw-BI",
+        "sw-KE",
+        "sw-RW",
+        "sw-TZ",
+        "sw-UG",
+        "sv-SE",
+        "tl-PH",
+        "ta-IN",
+        "te-IN",
+        "th-TH",
+        "tr-TR",
+        "uk-UA",
+        "uz-UZ",
+        "vi-VN",
+        "zu-ZA",
+        "my-MM",
+        "so-SO",
+        "yue-HK",
+        "et-EE",
+        "hmn",
+        "lg-UG",
+        "cy-GB",
+        "xh-ZA",
+        "bn-BD"
       ]
     },
     "EvaluationFormLanguageConfiguration":{
@@ -19609,7 +20028,10 @@
           "shape":"ReferenceIdList",
           "documentation":"<p>Reference IDs of default options.</p>"
         },
-        "AnswerSource":{"shape":"EvaluationFormQuestionAutomationAnswerSource"}
+        "AnswerSource":{
+          "shape":"EvaluationFormQuestionAutomationAnswerSource",
+          "documentation":"<p>Automation answer source.</p>"
+        }
       },
       "documentation":"<p>Automation configuration for multi-select questions.</p>"
     },
@@ -19831,7 +20253,7 @@
       "members":{
         "SourceType":{
           "shape":"EvaluationFormQuestionAutomationAnswerSourceType",
-          "documentation":"<p>The automation answer source type.</p>"
+          "documentation":"<p>The automation answer source type. Valid values:</p> <ul> <li> <p> <code>CONTACT_LENS_DATA</code> - The answer is based on Contact Lens data, such as rule categories and metrics.</p> </li> <li> <p> <code>GEN_AI</code> - The answer is generated by generative AI.</p> </li> <li> <p> <code>CONDITION</code> - The answer is determined by evaluating the conditions defined in the automation rules of the question.</p> </li> </ul>"
         }
       },
       "documentation":"<p>A question automation answer.</p>"
@@ -19840,7 +20262,8 @@
       "type":"string",
       "enum":[
         "CONTACT_LENS_DATA",
-        "GEN_AI"
+        "GEN_AI",
+        "CONDITION"
       ]
     },
     "EvaluationFormQuestionInstructions":{"type":"string"},
@@ -20121,11 +20544,20 @@
         "ScoreThresholds":{
           "shape":"EvaluationFormScoreThresholdList",
           "documentation":"<p>The score thresholds for performance categories.</p>"
+        },
+        "Enablement":{
+          "shape":"EvaluationFormItemEnablementConfiguration",
+          "documentation":"<p>The conditional enablement configuration of the section. Sections use the same enablement model as questions.</p>"
         }
       },
       "documentation":"<p>Information about a section from an evaluation form. A section can contain sections and/or questions. Evaluation forms can only contain sections and subsections (two level nesting).</p>"
     },
     "EvaluationFormSectionTitle":{"type":"string"},
+    "EvaluationFormSegmentAttributeKey":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
     "EvaluationFormSingleSelectQuestionAutomation":{
       "type":"structure",
       "members":{
@@ -20150,6 +20582,10 @@
         "RuleCategory":{
           "shape":"SingleSelectQuestionRuleCategoryAutomation",
           "documentation":"<p>The automation option based on a rule category for the single select question.</p>"
+        },
+        "AutomationRule":{
+          "shape":"SingleSelectQuestionAutomationRule",
+          "documentation":"<p>The automation option based on a condition for the single select question. Use with the <code>CONDITION</code> answer source type.</p>"
         }
       },
       "documentation":"<p>Information about the automation option of a single select question.</p>",
@@ -20474,6 +20910,14 @@
       "documentation":"<p>An analysis for a generative AI answer to the question.</p>"
     },
     "EvaluationId":{"type":"string"},
+    "EvaluationItemResolutionStatus":{
+      "type":"string",
+      "enum":[
+        "PENDING",
+        "RESOLVED",
+        "FAILED"
+      ]
+    },
     "EvaluationMetadata":{
       "type":"structure",
       "required":[
@@ -20564,7 +21008,8 @@
       "type":"string",
       "enum":[
         "CONTACT_LENS_DATA",
-        "GEN_AI"
+        "GEN_AI",
+        "CONDITION"
       ]
     },
     "EvaluationQuestionInputDetails":{
@@ -20576,6 +21021,38 @@
         }
       },
       "documentation":"<p>Details of the input data used for automated question processing.</p>"
+    },
+    "EvaluationResolvedSource":{
+      "type":"structure",
+      "required":[
+        "Source",
+        "Status"
+      ],
+      "members":{
+        "Source":{
+          "shape":"EvaluationFormItemEnablementSource",
+          "documentation":"<p>The external source, such as contact data, evaluation metadata, form metadata, or AI metrics.</p>"
+        },
+        "Status":{
+          "shape":"EvaluationItemResolutionStatus",
+          "documentation":"<p>The status of resolving the source. Valid values:</p> <ul> <li> <p> <code>PENDING</code> - The source has not been resolved yet.</p> </li> <li> <p> <code>RESOLVED</code> - The source has been resolved.</p> </li> <li> <p> <code>FAILED</code> - The source could not be resolved.</p> </li> </ul>"
+        },
+        "Values":{
+          "shape":"EvaluationResolvedSourceValueList",
+          "documentation":"<p>The resolved values of the source. Present when <code>Status</code> is <code>RESOLVED</code>. Contains one value for a single-valued source, any number of values for a multi-valued source, and no values when the source is not present on the contact.</p>"
+        }
+      },
+      "documentation":"<p>The resolved value of an external source that is used by the conditions in an evaluation form.</p>"
+    },
+    "EvaluationResolvedSourceList":{
+      "type":"list",
+      "member":{"shape":"EvaluationResolvedSource"},
+      "max":100
+    },
+    "EvaluationResolvedSourceValueList":{
+      "type":"list",
+      "member":{"shape":"EvaluationFormItemEnablementSourceValue"},
+      "max":100
     },
     "EvaluationReviewConfiguration":{
       "type":"structure",
@@ -20959,7 +21436,7 @@
         },
         "AnalysisType":{
           "shape":"EvaluationQuestionAnswerAnalysisType",
-          "documentation":"<p>Type of analysis used to provide suggested answer.</p>"
+          "documentation":"<p>Type of analysis used to provide suggested answer. Valid values: <code>CONTACT_LENS_DATA</code> | <code>GEN_AI</code> | <code>CONDITION</code>.</p>"
         },
         "AnalysisDetails":{
           "shape":"EvaluationQuestionAnswerAnalysisDetails",
@@ -23838,6 +24315,14 @@
         "SourceType":{
           "shape":"SourceType",
           "documentation":"<p>The name of the source.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when the integration association was last modified.</p>"
+        },
+        "LastModifiedRegion":{
+          "shape":"RegionName",
+          "documentation":"<p>The Amazon Web Services Region where the integration association was last modified.</p>"
         }
       },
       "documentation":"<p>Contains summary information about the associated AppIntegrations.</p>"
@@ -24085,6 +24570,12 @@
       "documentation":"<p>The language configuration for conversational analytics.</p>"
     },
     "LanguageLocale":{"type":"string"},
+    "LanguageLocales":{
+      "type":"list",
+      "member":{"shape":"LanguageLocale"},
+      "max":5,
+      "min":0
+    },
     "LargeNextToken":{
       "type":"string",
       "max":100000,
@@ -28836,7 +29327,7 @@
           "documentation":"<p>The additional CC email address recipients. You can specify up to 50 addresses. Provide an empty list to clear the existing CC recipients.</p>"
         }
       },
-      "documentation":"Additional recipients for UpdateContact, allowing an empty list to clear CC recipients."
+      "documentation":"<p>The additional recipients of an outbound email that you can update. An empty list of <code>CcEmailAddresses</code> clears the existing CC recipients.</p>"
     },
     "NullableBoolean":{"type":"boolean"},
     "NullableDouble":{"type":"double"},
@@ -28915,7 +29406,16 @@
         "CUSTOMER_HOLD_TIME",
         "LONGEST_HOLD_DURATION",
         "NUMBER_OF_HOLDS",
-        "AGENT_INTERACTION_AND_HOLD_DURATION"
+        "AGENT_INTERACTION_AND_HOLD_DURATION",
+        "AI_SESSION_SELF_SERVICE_DURATION",
+        "AI_SESSION_GOAL_SUCCESS_RATE",
+        "AI_SESSION_COMPLETENESS_SCORE",
+        "AI_SESSION_FAITHFULNESS_SCORE",
+        "AI_AGENT_MAX_PROMPT_LATENCY",
+        "AI_TOOL_MAX_LATENCY",
+        "AI_TOOL_SELECTION_ACCURACY",
+        "AI_TOOL_PARAMETER_ACCURACY",
+        "AI_TOOL_UTILIZATION_ACCURACY"
       ]
     },
     "NumericQuestionPropertyValueAutomation":{
@@ -28927,7 +29427,7 @@
           "documentation":"<p>The property label of the automation.</p>"
         }
       },
-      "documentation":"<p>Information about the property value used in automation of a numeric questions. Label values are associated with minimum and maximum values for the numeric question.</p> <ul> <li> <p>Sentiment scores have a minimum value of -5 and maximum value of 5.</p> </li> <li> <p> Duration labels, such as <code>NON_TALK_TIME</code>, <code>CONTACT_DURATION</code>, <code>AGENT_INTERACTION_DURATION</code>, <code>CUSTOMER_HOLD_TIME</code> have a minimum value of 0 and maximum value of 63072000.</p> </li> <li> <p>Percentages have a minimum value of 0 and maximum value of 100. </p> </li> <li> <p> <code>NUMBER_OF_INTERRUPTIONS</code> has a minimum value of 0 and maximum value of 1000.</p> </li> </ul>"
+      "documentation":"<p>Information about the property value used in automation of a numeric question. Label values are associated with minimum and maximum values for the numeric question.</p> <ul> <li> <p>Sentiment scores have a minimum value of -5 and maximum value of 5.</p> </li> <li> <p> Duration labels, such as <code>NON_TALK_TIME</code>, <code>CONTACT_DURATION</code>, <code>AGENT_INTERACTION_DURATION</code>, <code>CUSTOMER_HOLD_TIME</code> have a minimum value of 0 and maximum value of 63072000.</p> </li> <li> <p>Percentages have a minimum value of 0 and maximum value of 100. </p> </li> <li> <p> <code>NUMBER_OF_INTERRUPTIONS</code> has a minimum value of 0 and maximum value of 1000.</p> </li> </ul>"
     },
     "ObservationSummary":{
       "type":"structure",
@@ -35361,6 +35861,11 @@
       "documentation":"<p>The reason for the exception.</p>",
       "union":true
     },
+    "SessionEntityType":{
+      "type":"string",
+      "documentation":"<p>Specifies the type of entity whose sessions you delete when you call <code>DeleteAllEntitySessions</code>. The only valid value is <code>USER</code>, which targets a user in your Connect Customer instance.</p>",
+      "enum":["USER"]
+    },
     "SessionId":{
       "type":"string",
       "max":36
@@ -35406,6 +35911,24 @@
     "SingleSelectOptions":{
       "type":"list",
       "member":{"shape":"TaskTemplateSingleSelectOption"}
+    },
+    "SingleSelectQuestionAutomationRule":{
+      "type":"structure",
+      "required":[
+        "Condition",
+        "OptionRefId"
+      ],
+      "members":{
+        "Condition":{
+          "shape":"EvaluationFormItemEnablementCondition",
+          "documentation":"<p>The condition that must be satisfied for the answer option to be selected. The condition uses the same sources, comparators, and operators as item enablement conditions.</p>"
+        },
+        "OptionRefId":{
+          "shape":"ReferenceId",
+          "documentation":"<p>The identifier of the answer option to select when the condition is satisfied.</p>"
+        }
+      },
+      "documentation":"<p>Information about a condition-based automation rule for a single select question. When the condition is satisfied, the specified answer option is selected.</p>"
     },
     "SingleSelectQuestionRuleCategoryAutomation":{
       "type":"structure",
@@ -40301,7 +40824,7 @@
         },
         "AfterContactWorkConfigs":{
           "shape":"AfterContactWorkConfigs",
-          "documentation":"<p>The list of after contact work (ACW) timeout configuration settings for each channel. ACW timeout specifies how many seconds agents have for after contact work, such as entering notes about the contact. The minimum setting is 1 second, and the maximum is 2,000,000 seconds (24 days). Enter 0 for an indefinite amount of time, meaning agents must manually choose to end ACW.</p>"
+          "documentation":"<p>The list of after contact work (ACW) timeout configuration settings for each channel. ACW timeout specifies how many seconds agents have for after contact work, such as entering notes about the contact. The minimum setting is 1 second, and the maximum is 2,000,000 seconds (24 days). For the CHAT channel, the maximum for a specific duration is 5,400 seconds (90 minutes); higher values end ACW after 90 minutes. For all channels, including chat, you can enter 0 for an indefinite amount of time, meaning agents must manually choose to end ACW.</p>"
         },
         "PhoneNumberConfigs":{
           "shape":"PhoneNumberConfigs",
@@ -41190,7 +41713,7 @@
         },
         "AfterContactWorkTimeLimit":{
           "shape":"AfterContactWorkTimeLimit",
-          "documentation":"<p>The After Call Work (ACW) timeout setting, in seconds. This parameter has a minimum value of 0 and a maximum value of 2,000,000 seconds (24 days). Enter 0 if you don't want to allocate a specific amount of ACW time. It essentially means an indefinite amount of time. When the conversation ends, ACW starts; the agent must choose Close contact to end ACW. </p> <note> <p>When returned by a <code>SearchUsers</code> call, <code>AfterContactWorkTimeLimit</code> is returned in milliseconds. </p> </note>"
+          "documentation":"<p>The After Call Work (ACW) timeout setting, in seconds. This parameter has a minimum value of 0 and a maximum value of 2,000,000 seconds (24 days). For the CHAT channel, the maximum for a specific duration is 5,400 seconds (90 minutes); higher values end ACW after 90 minutes. For all channels, including chat, you can enter 0 if you don't want to allocate a specific amount of ACW time. It essentially means an indefinite amount of time. When the conversation ends, ACW starts; the agent must choose Close contact to end ACW. </p> <note> <p>When returned by a <code>SearchUsers</code> call, <code>AfterContactWorkTimeLimit</code> is returned in milliseconds. </p> </note>"
         },
         "DeskPhoneNumber":{
           "shape":"SensitivePhoneNumber",

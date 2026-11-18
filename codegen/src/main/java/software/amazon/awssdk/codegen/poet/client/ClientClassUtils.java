@@ -341,14 +341,23 @@ public final class ClientClassUtils {
                              ClientOverrideConfiguration.Builder.class);
         builder.addStatement("$T retryMode = builder.retryMode()", RetryMode.class);
         builder.beginControlFlow("if (retryMode != null)")
-               .addStatement("configuration.option($T.RETRY_STRATEGY, $T.forRetryMode(retryMode))", SdkClientOption.class,
-                             AwsRetryStrategy.class);
+               .addStatement("configuration.option($T.RETRY_STRATEGY, $T.forRetryMode(retryMode, "
+                             + "configuration.option($T.PROFILE_FILE_SUPPLIER), configuration.option($T.PROFILE_NAME)))",
+                             SdkClientOption.class, AwsRetryStrategy.class, SdkClientOption.class, SdkClientOption.class);
         builder.nextControlFlow("else");
         builder.addStatement("$T<$T<?, ?>> configurator = builder.retryStrategyConfigurator()", Consumer.class,
                              RetryStrategy.Builder.class);
         builder.beginControlFlow("if (configurator != null)")
-               .addStatement("$T<?, ?>  defaultBuilder = $T.defaultRetryStrategy().toBuilder()", RetryStrategy.Builder.class,
-                             AwsRetryStrategy.class)
+               .addStatement("$T defaultRetryMode = $T.resolver()"
+                             + ".profileFile(configuration.option($T.PROFILE_FILE_SUPPLIER))"
+                             + ".profileName(configuration.option($T.PROFILE_NAME))"
+                             + ".defaultRetryMode(configuration.option($T.DEFAULT_RETRY_MODE))"
+                             + ".resolve()", RetryMode.class, RetryMode.class, SdkClientOption.class, SdkClientOption.class,
+                             SdkClientOption.class)
+               .addStatement("$T<?, ?>  defaultBuilder = $T.forRetryMode(defaultRetryMode, "
+                             + "configuration.option($T.PROFILE_FILE_SUPPLIER), configuration.option($T.PROFILE_NAME))"
+                             + ".toBuilder()", RetryStrategy.Builder.class, AwsRetryStrategy.class,
+                             SdkClientOption.class, SdkClientOption.class)
                .addStatement("configurator.accept(defaultBuilder)")
                .addStatement("configuration.option($T.RETRY_STRATEGY, defaultBuilder.build())", SdkClientOption.class);
         builder.nextControlFlow("else");

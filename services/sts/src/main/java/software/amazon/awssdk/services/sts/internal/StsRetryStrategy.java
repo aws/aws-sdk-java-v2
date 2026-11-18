@@ -19,7 +19,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.retry.NewRetries2026Resolver;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.sts.model.IdpCommunicationErrorException;
@@ -39,17 +38,24 @@ public final class StsRetryStrategy {
             return configuredRetryStrategy;
         }
 
-        // Just return null and let the normal retry strategy resolution occur
-        if (!isNewRetries2026Enabled(config)) {
+        // A configured retry policy takes precedence over a retry strategy, so don't build one
+        if (config.option(SdkClientOption.RETRY_POLICY) != null) {
             return null;
         }
 
         RetryMode retryMode = resolveRetryMode(config);
 
-        return AwsRetryStrategy.forRetryMode(retryMode, true)
-                               .toBuilder()
-                               .retryOnException(IdpCommunicationErrorException.class)
-                               .build();
+        // Just return null and let the normal retry strategy resolution occur
+        if (retryMode == RetryMode.LEGACY || retryMode == RetryMode.ADAPTIVE) {
+            return null;
+        }
+
+        RetryStrategy defaultStrategy = AwsRetryStrategy.forRetryMode(retryMode,
+                                                                      config.option(SdkClientOption.PROFILE_FILE_SUPPLIER),
+                                                                      config.option(SdkClientOption.PROFILE_NAME));
+        return defaultStrategy.toBuilder()
+                              .retryOnException(IdpCommunicationErrorException.class)
+                              .build();
     }
 
     private static RetryMode resolveRetryMode(SdkClientConfiguration config) {
@@ -57,12 +63,6 @@ public final class StsRetryStrategy {
                         .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
                         .profileName(config.option(SdkClientOption.PROFILE_NAME))
                         .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
-                        .defaultNewRetries2026(config.option(SdkClientOption.DEFAULT_NEW_RETRIES_2026))
                         .resolve();
-    }
-
-    private static boolean isNewRetries2026Enabled(SdkClientConfiguration config) {
-        Boolean defaultNewRetries2026 = config.option(SdkClientOption.DEFAULT_NEW_RETRIES_2026);
-        return new NewRetries2026Resolver().defaultNewRetries2026(defaultNewRetries2026).resolve();
     }
 }

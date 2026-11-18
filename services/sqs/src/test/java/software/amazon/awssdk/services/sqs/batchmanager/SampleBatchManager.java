@@ -26,7 +26,7 @@ import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchCon
 import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchManager;
 import software.amazon.awssdk.utils.Either;
 
-public class SampleBatchManager extends RequestBatchManager<String, String, BatchResponse> {
+public class SampleBatchManager extends RequestBatchManager<String, String, BatchResponse, String> {
     private final CustomClient client;
 
 

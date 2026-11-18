@@ -102,7 +102,7 @@ public class ServiceClientConfigurationUsingPluginsTest {
         assertThat(overrideConfiguration.apiCallAttemptTimeout()).isNotPresent();
         assertThat(overrideConfiguration.apiCallTimeout()).isNotPresent();
         assertThat(overrideConfiguration.retryPolicy()).isNotPresent();
-        assertThat(overrideConfiguration.retryStrategy().get().maxAttempts()).isEqualTo(4);
+        assertThat(overrideConfiguration.retryStrategy().get().maxAttempts()).isEqualTo(3);
         assertThat(overrideConfiguration.defaultProfileFile()).hasValue(ProfileFile.defaultProfileFile());
         assertThat(overrideConfiguration.metricPublishers()).isEmpty();
     }
@@ -196,7 +196,7 @@ public class ServiceClientConfigurationUsingPluginsTest {
         assertThat(result.apiCallAttemptTimeout()).isNotPresent();
         assertThat(result.apiCallTimeout()).isNotPresent();
         assertThat(result.retryPolicy()).isNotPresent();
-        assertThat(result.retryStrategy().get().maxAttempts()).isEqualTo(4);
+        assertThat(result.retryStrategy().get().maxAttempts()).isEqualTo(3);
         assertThat(result.defaultProfileFile()).hasValue(ProfileFile.defaultProfileFile());
         assertThat(result.metricPublishers()).isEmpty();
     }

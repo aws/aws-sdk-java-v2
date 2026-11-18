@@ -4,13 +4,17 @@
     "apiVersion":"2015-04-08",
     "endpointPrefix":"workspaces",
     "jsonVersion":"1.1",
-    "protocol":"json",
-    "protocols":["json"],
+    "protocol":"smithy-rpc-v2-cbor",
+    "protocols":[
+      "smithy-rpc-v2-cbor",
+      "json"
+    ],
     "serviceFullName":"Amazon WorkSpaces",
     "serviceId":"WorkSpaces",
     "signatureVersion":"v4",
     "targetPrefix":"WorkspacesService",
     "uid":"workspaces-2015-04-08",
+    "xmlNamespace":"http://workspaces.amazonaws.com/api/v1",
     "auth":["aws.auth#sigv4"]
   },
   "operations":{
@@ -5530,6 +5534,10 @@
           "shape":"UserIdentityType",
           "documentation":"<p>The type of identity management the user is using.</p>"
         },
+        "WorkspaceOsUserMode":{
+          "shape":"WorkspaceOSUserMode",
+          "documentation":"<p>Indicates how users are set up on the WorkSpace operating system. To use local users with an AWS IAM Identity Center directory, specify <code>LOCAL_USER</code>.</p>"
+        },
         "IdcInstanceArn":{
           "shape":"ARN",
           "documentation":"<p>The Amazon Resource Name (ARN) of the identity center instance.</p>"
@@ -5824,6 +5832,14 @@
         "RebuildWorkspace":{
           "shape":"ReconnectEnum",
           "documentation":"<p>Specifies whether users can rebuild the operating system of a WorkSpace to its original state.</p>"
+        },
+        "NestedVirtualization":{
+          "shape":"ReconnectEnum",
+          "documentation":"<p>Specifies whether users can enable or disable nested virtualization on their WorkSpace. The default value is <code>DISABLED</code>. For more information, see <a href=\"https://docs.aws.amazon.com/workspaces/latest/adminguide/nested-virtualization.html\">Nested virtualization for Amazon WorkSpaces</a>.</p>"
+        },
+        "EnableEndUserAdvisor":{
+          "shape":"ReconnectEnum",
+          "documentation":"<p>Specifies whether users can use End User Advisor in the WorkSpaces client for Windows to see their session health and get recommended actions for common issues. The default value is <code>ENABLED</code>. For more information, see Proactive troubleshooting for your WorkSpaces users.</p>"
         }
       },
       "documentation":"<p>Describes the self-service permissions for a directory. For more information, see <a href=\"https://docs.aws.amazon.com/workspaces/latest/adminguide/enable-user-self-service-workspace-management.html\">Enable Self-Service WorkSpace Management Capabilities for Your Users</a>.</p>"
@@ -6977,6 +6993,10 @@
           "shape":"StreamingProperties",
           "documentation":"<p>The streaming properties to configure.</p>"
         },
+        "WorkspaceOsUserMode":{
+          "shape":"WorkspaceOSUserMode",
+          "documentation":"<p>Indicates how users are set up on the WorkSpace operating system.</p>"
+        },
         "ErrorMessage":{
           "shape":"Description",
           "documentation":"<p>The error message returned.</p>"
@@ -7197,6 +7217,15 @@
     "WorkspaceName":{
       "type":"string",
       "pattern":"^[a-zA-Z0-9_()][a-zA-Z0-9_.()-]{1,63}$"
+    },
+    "WorkspaceOSUserMode":{
+      "type":"string",
+      "enum":[
+        "LOCAL_USER",
+        "DOMAIN_JOIN",
+        "ENTRA_JOIN",
+        "SELF_MANAGED"
+      ]
     },
     "WorkspaceProperties":{
       "type":"structure",

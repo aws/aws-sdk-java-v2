@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon SQS",
-    "contributor": "",
-    "description": "Update DEBUG logging in Amazon SQS MD5 checksum validation."
-}

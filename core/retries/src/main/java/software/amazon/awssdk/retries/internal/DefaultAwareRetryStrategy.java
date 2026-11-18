@@ -35,6 +35,14 @@ public interface DefaultAwareRetryStrategy extends RetryStrategy {
      */
     DefaultAwareRetryStrategy addDefaults(RetryStrategyDefaults retryStrategyDefaults);
 
+    /**
+     * Whether this retry strategy follows retry behavior 2.1, which includes taking its suggested delay from the
+     * {@code x-amz-retry-after} response header.
+     */
+    default boolean usesRetryBehavior21() {
+        return false;
+    }
+
     interface Builder {
 
         /**
@@ -42,5 +50,12 @@ public interface DefaultAwareRetryStrategy extends RetryStrategy {
          * @param defaultPredicatesName the name the defaults to mark as added
          */
         void markDefaultAdded(String defaultPredicatesName);
+
+        /**
+         * Whether the retry strategy built by this builder follows retry behavior 2.1.
+         */
+        default boolean usesRetryBehavior21() {
+            return false;
+        }
     }
 }

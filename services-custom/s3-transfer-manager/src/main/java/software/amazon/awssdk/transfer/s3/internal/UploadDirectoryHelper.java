@@ -40,6 +40,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultDirectoryUpload;
+import software.amazon.awssdk.transfer.s3.internal.utils.LogSanitizer;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
@@ -174,7 +175,8 @@ public class UploadDirectoryHelper {
 
         Path confineToRoot = resolveConfineToRoot(uploadDirectoryRequest, uploadFileRequest, followSymbolicLinks, path);
 
-        log.debug(() -> String.format("Sending upload request (%s) for path (%s)", uploadFileRequest, path));
+        log.debug(() -> LogSanitizer.escapeControlCharacters(
+            String.format("Sending upload request (%s) for path (%s)", uploadFileRequest, path)));
         CompletableFuture<CompletedFileUpload> executionFuture =
             uploadFunction.apply(uploadFileRequest, confineToRoot).completionFuture();
         CompletableFuture<CompletedFileUpload> future = executionFuture.whenComplete((r, t) -> {
@@ -235,7 +237,7 @@ public class UploadDirectoryHelper {
             "Skipped uploading %s: %s is already being uploaded to key %s in this request. The delimiter \"%s\" appears in "
             + "a file or directory name, so two files map to the same key. Retrying this request would overwrite that object.",
             path, earlier, key, resolveDelimiter(uploadDirectoryRequest)));
-        log.debug(() -> e.getMessage());
+        log.debug(() -> LogSanitizer.escapeControlCharacters(e.getMessage()));
         failedFileUploads.add(FailedFileUpload.builder()
                                               .exception(e)
                                               .request(uploadFileRequest)

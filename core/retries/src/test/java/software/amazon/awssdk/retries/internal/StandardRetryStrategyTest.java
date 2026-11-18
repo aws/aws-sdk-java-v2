@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
-import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
@@ -35,6 +34,7 @@ import software.amazon.awssdk.retries.api.RecordSuccessRequest;
 import software.amazon.awssdk.retries.api.RecordSuccessResponse;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
@@ -56,20 +56,49 @@ public class StandardRetryStrategyTest {
         verifyScenario(scenario);
     }
 
+    @ParameterizedTest
+    @MethodSource("retriesV21Tests")
+    void refreshRetryToken_v2_1_afterToBuilder_behavesCorrectly(Scenario scenario) {
+        verifyScenario(scenario, StrategyKind.STANDARD, true);
+    }
+
+    @ParameterizedTest
+    @MethodSource("retriesV21Tests")
+    void refreshRetryToken_v2_1_adaptive_behavesCorrectly(Scenario scenario) {
+        verifyScenario(scenario, StrategyKind.ADAPTIVE, false);
+    }
+
+    @ParameterizedTest
+    @MethodSource("retriesV21Tests")
+    void refreshRetryToken_v2_1_adaptiveAfterToBuilder_behavesCorrectly(Scenario scenario) {
+        verifyScenario(scenario, StrategyKind.ADAPTIVE, true);
+    }
+
+    @ParameterizedTest
+    @MethodSource("retriesV20Tests")
+    void refreshRetryToken_v2_0_adaptive_behavesCorrectly(Scenario scenario) {
+        verifyScenario(scenario, StrategyKind.ADAPTIVE, false);
+    }
+
     void verifyScenario(Scenario scenario) {
-        DefaultStandardRetryStrategy.Builder builder =
-            (DefaultStandardRetryStrategy.Builder) DefaultRetryStrategy.standardStrategyBuilder(scenario.newRetries2026);
+        verifyScenario(scenario, StrategyKind.STANDARD, false);
+    }
+
+    void verifyScenario(Scenario scenario, StrategyKind kind, boolean rebuildWithToBuilder) {
+        BaseRetryStrategy.Builder builder = kind == StrategyKind.STANDARD
+            ? (DefaultStandardRetryStrategy.Builder) DefaultRetryStrategy.standardStrategyBuilder(scenario.newRetries2026)
+            : (DefaultAdaptiveRetryStrategy.Builder) DefaultRetryStrategy.adaptiveStrategyBuilder(scenario.newRetries2026);
 
         Given given = scenario.given;
 
         if (given.maxAttempts != null) {
-            builder.maxAttempts(given.maxAttempts);
+            builder.setMaxAttempts(given.maxAttempts);
         }
 
         if (given.initialRetryTokens != null) {
-            builder.tokenBucketStore(TokenBucketStore.builder()
-                                                     .tokenBucketMaxCapacity(given.initialRetryTokens)
-                                                     .build());
+            builder.setTokenBucketStore(TokenBucketStore.builder()
+                                                        .tokenBucketMaxCapacity(given.initialRetryTokens)
+                                                        .build());
         }
 
         Duration maxBackoff;
@@ -79,18 +108,19 @@ public class StandardRetryStrategyTest {
             maxBackoff = Duration.ofSeconds(20);
         }
 
-        builder.backoffStrategy(BackoffStrategy.exponentialDelayWithoutJitter(
+        builder.setBackoffStrategy(BackoffStrategy.exponentialDelayWithoutJitter(
             scenario.newRetries2026 ? BASE_DELAY_V21_NON_THROTTLING : BASE_DELAY_V20,
             maxBackoff));
 
-        builder.throttlingBackoffStrategy(BackoffStrategy.exponentialDelayWithoutJitter(
+        builder.setThrottlingBackoffStrategy(BackoffStrategy.exponentialDelayWithoutJitter(
             scenario.newRetries2026 ? BASE_DELAY_V21_THROTTLING : BASE_DELAY_V20,
             maxBackoff
         ));
 
-        StandardRetryStrategy strategy = builder.retryOnException(e -> true)
-                                                .treatAsThrottling(e -> ((ScenarioTestException) e).throttling)
-                                                .build();
+        builder.setRetryOnException(e -> true);
+        builder.setTreatAsThrottling(e -> ((ScenarioTestException) e).throttling);
+        RetryStrategy built = ((RetryStrategy.Builder<?, ?>) builder).build();
+        RetryStrategy strategy = rebuildWithToBuilder ? built.toBuilder().build() : built;
 
         AcquireInitialTokenResponse initialToken = strategy.acquireInitialToken(AcquireInitialTokenRequest.create("test"));
 
@@ -832,6 +862,11 @@ public class StandardRetryStrategyTest {
         RETRY_QUOTA_EXCEEDED,
         MAX_ATTEMPTS_EXCEEDED,
         SUCCESS
+    }
+
+    private enum StrategyKind {
+        STANDARD,
+        ADAPTIVE
     }
 
     private static class Scenario {

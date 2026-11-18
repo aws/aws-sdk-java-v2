@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.57.13-SNAPSHOT</version>
+        <version>2.59.4-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -457,6 +457,9 @@
         <module>sagemakertrainingsessionruntime</module>
         <module>continuum</module>
         <module>accountaccessruntime</module>
+        <module>connectscheduling</module>
+        <module>opensearchmemory</module>
+        <module>sagemakerinferencerouterruntime</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

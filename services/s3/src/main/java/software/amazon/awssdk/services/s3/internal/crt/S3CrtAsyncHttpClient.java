@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.crt;
 
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.CrtChecksumUtils.checksumConfig;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.BORROWED_BUFFER_RESPONSE_TRANSFORMER;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH;
@@ -56,7 +57,9 @@ import software.amazon.awssdk.crt.s3.FileIoOptions;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
+import software.amazon.awssdk.crt.s3.S3DirectBufferPoolOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
+import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -64,8 +67,10 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.NumericUtils;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -149,7 +154,27 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .ifPresent(options::withHttpMonitoringOptions);
         Optional.ofNullable(s3NativeClientConfiguration.memoryBufferDisabled())
             .ifPresent(memoryBufferDisabled -> options.withFileIoOptions(new FileIoOptions(memoryBufferDisabled, 0.0, false)));
+
+        S3CrtDirectBufferPoolConfiguration directBufferPoolConfiguration =
+            s3NativeClientConfiguration.directBufferPoolConfiguration();
+        if (directBufferPoolConfiguration != null) {
+            options.withDirectBufferPoolOptions(toCrtDirectBufferPoolOptions(directBufferPoolConfiguration));
+        }
+
         return options;
+    }
+
+    private static S3DirectBufferPoolOptions toCrtDirectBufferPoolOptions(
+        S3CrtDirectBufferPoolConfiguration directBufferPoolConfiguration) {
+        Optional<Long> minimumSizeInBytes = directBufferPoolConfiguration.minimumSizeInBytes();
+        Optional<Long> memoryLimitInBytes = directBufferPoolConfiguration.memoryLimitInBytes();
+        if (minimumSizeInBytes.isPresent()) {
+            Validate.validState(memoryLimitInBytes.isPresent(),
+                                "An elastic direct buffer pool must have memoryLimitInBytes");
+            return S3DirectBufferPoolOptions.elastic(minimumSizeInBytes.get(), memoryLimitInBytes.get());
+        }
+
+        return S3DirectBufferPoolOptions.auto();
     }
 
     @Override
@@ -184,17 +209,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         List<MetricPublisher> effectivePublishers = resolveEffectiveMetricPublishers(requestMetricPublishers,
                                                                                      metricPublishers);
 
-        S3CrtResponseHandlerAdapter responseHandler =
-            S3CrtResponseHandlerAdapter.builder()
-                                       .executeFuture(executeFuture)
-                                       .responseHandler(asyncRequest.responseHandler())
-                                       .httpExecutionAttributes(httpExecutionAttributes)
-                                       .metaRequestFuture(s3MetaRequestFuture)
-                                       .metricPublishers(effectivePublishers)
-                                       .metricPublisherDispatcher(metricPublisherDispatcher)
-                                       .maxConcurrency(effectivePublishers.isEmpty() ?
-                                                       null : crtS3Client.getMaxActiveConnections())
-                                       .build();
+        S3MetaRequestResponseHandler responseHandler =
+            responseHandler(asyncRequest, executeFuture, s3MetaRequestFuture, effectivePublishers);
 
         URI endpoint = getEndpoint(uri);
 
@@ -256,6 +272,37 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         return executeFuture;
+    }
+
+    private S3MetaRequestResponseHandler responseHandler(AsyncExecuteRequest asyncRequest,
+                                                         CompletableFuture<Void> executeFuture,
+                                                         CompletableFuture<S3MetaRequestWrapper> s3MetaRequestFuture,
+                                                         List<MetricPublisher> effectivePublishers) {
+        SdkHttpExecutionAttributes httpExecutionAttributes = asyncRequest.httpExecutionAttributes();
+        S3CrtBorrowedBufferBlockingResponseTransformer borrowedBufferResponseTransformer =
+            httpExecutionAttributes.getAttribute(BORROWED_BUFFER_RESPONSE_TRANSFORMER);
+        Integer maxConcurrency = effectivePublishers.isEmpty() ? null : crtS3Client.getMaxActiveConnections();
+        if (borrowedBufferResponseTransformer == null) {
+            return S3CrtResponseHandlerAdapter.builder()
+                                              .executeFuture(executeFuture)
+                                              .responseHandler(asyncRequest.responseHandler())
+                                              .httpExecutionAttributes(httpExecutionAttributes)
+                                              .metaRequestFuture(s3MetaRequestFuture)
+                                              .metricPublishers(effectivePublishers)
+                                              .metricPublisherDispatcher(metricPublisherDispatcher)
+                                              .maxConcurrency(maxConcurrency)
+                                              .build();
+        }
+        return S3CrtBorrowedBufferResponseHandlerAdapter.builder()
+                                                         .executeFuture(executeFuture)
+                                                         .responseHandler(asyncRequest.responseHandler())
+                                                         .httpExecutionAttributes(httpExecutionAttributes)
+                                                         .metaRequestFuture(s3MetaRequestFuture)
+                                                         .transformer(borrowedBufferResponseTransformer)
+                                                         .metricPublishers(effectivePublishers)
+                                                         .metricPublisherDispatcher(metricPublisherDispatcher)
+                                                         .maxConcurrency(maxConcurrency)
+                                                         .build();
     }
 
     /**
