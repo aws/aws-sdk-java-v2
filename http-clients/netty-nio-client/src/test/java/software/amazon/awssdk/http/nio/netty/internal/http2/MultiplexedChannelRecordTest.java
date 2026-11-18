@@ -44,6 +44,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
@@ -312,6 +313,21 @@ public class MultiplexedChannelRecordTest {
         channel.runPendingTasks();
 
         assertThat(closedConnections).containsExactly(channel);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(Retirement.class)
+    public void getMetrics_whenRetiredWithOpenStream_shouldReportNoAvailableStreams(Retirement retirement) throws Exception {
+        EmbeddedChannel channel = newHttp2Channel();
+        MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 2, null);
+        acquireStream(channel, record);
+        assertThat(record.getMetrics().get(5, TimeUnit.SECONDS).getAvailableStreams()).as("before retire").isEqualTo(1);
+
+        retirement.retire(record);
+        channel.runPendingTasks();
+
+        assertThat(channel.isOpen()).as("connection open while a stream remains").isTrue();
+        assertThat(record.getMetrics().get(5, TimeUnit.SECONDS).getAvailableStreams()).as("after retire").isZero();
     }
 
     private static Channel acquireStream(EmbeddedChannel channel, MultiplexedChannelRecord record) {

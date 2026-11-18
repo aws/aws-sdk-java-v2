@@ -335,8 +335,8 @@ public class MultiplexedChannelRecord {
     CompletableFuture<Metrics> getMetrics() {
         CompletableFuture<Metrics> result = new CompletableFuture<>();
         doInEventLoop(connection.eventLoop(), () -> {
-            int streamCount = childChannels.size();
-            result.complete(new Metrics().setAvailableStreams(maxConcurrencyPerConnection - streamCount));
+            long availableStreams = state == RecordState.OPEN ? maxConcurrencyPerConnection - childChannels.size() : 0;
+            result.complete(new Metrics().setAvailableStreams(availableStreams));
         });
         return result;
     }
