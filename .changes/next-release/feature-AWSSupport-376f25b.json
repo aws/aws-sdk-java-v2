@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Support",
+    "contributor": "",
+    "description": "Updated endpoint resolution for AWS Support, including FIPS and dual-stack endpoints."
+}
