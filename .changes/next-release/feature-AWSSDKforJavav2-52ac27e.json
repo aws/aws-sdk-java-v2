@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Split the `afterTransmission` and `modifyHttpResponse` interceptor hooks into separate steps. If `modifyHttpResponse` throws, `modifyException` and `onExecutionFailure` now receive the HTTP response."
+}
