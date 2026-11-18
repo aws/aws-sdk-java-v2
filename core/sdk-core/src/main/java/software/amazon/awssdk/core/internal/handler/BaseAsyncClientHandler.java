@@ -42,6 +42,7 @@ import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.internal.http.IdempotentAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.AsyncAfterTransmissionInterceptorCallingResponseHandler;
+import software.amazon.awssdk.core.internal.http.async.AsyncAwsChunkedResponseDecodingHandler;
 import software.amazon.awssdk.core.internal.http.async.AsyncModifyHttpResponseInterceptorCallingResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.AsyncStreamingResponseHandler;
@@ -260,13 +261,15 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
     }
 
     /**
-     * Wraps the response handler with the response interceptor steps, in order: read-only {@code afterTransmission} on
-     * the raw response, then the interceptors that can modify it.
+     * Wraps the response handler with the response interceptor and decoding steps, in order: read-only
+     * {@code afterTransmission} on the raw response, aws-chunked decoding, then the interceptors that can modify it.
      */
     static <T> TransformingAsyncResponseHandler<T> interceptorCallingResponseHandler(
         TransformingAsyncResponseHandler<T> responseHandler, ExecutionContext executionContext) {
         return new AsyncAfterTransmissionInterceptorCallingResponseHandler<>(
-            new AsyncModifyHttpResponseInterceptorCallingResponseHandler<>(responseHandler, executionContext),
+            new AsyncAwsChunkedResponseDecodingHandler<>(
+                new AsyncModifyHttpResponseInterceptorCallingResponseHandler<>(responseHandler, executionContext),
+                executionContext),
             executionContext);
     }
 
