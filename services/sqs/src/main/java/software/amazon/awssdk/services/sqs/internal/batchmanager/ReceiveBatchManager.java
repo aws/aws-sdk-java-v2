@@ -68,6 +68,13 @@ public class ReceiveBatchManager implements SdkAutoCloseable {
         });
     }
 
+    /**
+     * Loads the queue's attributes, or returns the cached result. Fails if the queue doesn't exist or can't be read.
+     */
+    CompletableFuture<Void> loadQueueAttributes() {
+        return queueAttributesManager.getVisibilityTimeout().thenApply(timeout -> null);
+    }
+
     @Override
     public void close() {
         receiveQueueBuffer.close();

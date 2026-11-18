@@ -44,6 +44,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
@@ -453,6 +454,38 @@ class ReceiveQueueBufferTest {
             });
         }
     }
+
+    @Test
+    void receiveMessage_whenBufferClosed_failsFuture() {
+        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(new CompletableFuture<>());
+        ReceiveQueueBuffer receiveQueueBuffer = receiveQueueBuffer(ResponseBatchConfiguration.builder().build());
+        receiveQueueBuffer.receiveMessage(new CompletableFuture<>(), 10);
+        receiveQueueBuffer.close();
+
+        CompletableFuture<ReceiveMessageResponse> future = new CompletableFuture<>();
+        receiveQueueBuffer.receiveMessage(future, 10);
+
+        assertThat(future).isCompletedExceptionally();
+    }
+
+    @Test
+    void close_whenReceiveInFlight_returnsItsMessagesWhenItCompletes() {
+        CompletableFuture<ReceiveMessageResponse> inFlight = new CompletableFuture<>();
+        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(inFlight);
+        when(sqsClient.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(ChangeMessageVisibilityBatchResponse.builder().build()));
+        ReceiveQueueBuffer receiveQueueBuffer = receiveQueueBuffer(ResponseBatchConfiguration.builder().build());
+        receiveQueueBuffer.receiveMessage(new CompletableFuture<>(), 1);
+        receiveQueueBuffer.close();
+
+        inFlight.complete(generateMessageResponse(3));
+
+        ArgumentCaptor<ChangeMessageVisibilityBatchRequest> captor =
+            ArgumentCaptor.forClass(ChangeMessageVisibilityBatchRequest.class);
+        verify(sqsClient, times(1)).changeMessageVisibilityBatch(captor.capture());
+        assertThat(captor.getValue().entries()).hasSize(3);
+    }
+
 
     private ReceiveMessageResponse generateMessageResponse(int count) {
         List<Message> messages = IntStream.range(0, count)

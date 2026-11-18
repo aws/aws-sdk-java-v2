@@ -37710,6 +37710,11 @@
           }
         }
       },
+      "verifiedpermissions" : {
+        "endpoints" : {
+          "us-iso-east-1" : { }
+        }
+      },
       "wafv2" : {
         "endpoints" : {
           "us-iso-east-1" : { }
@@ -39019,6 +39024,11 @@
           "eu-isoe-west-1" : { }
         }
       },
+      "guardduty" : {
+        "endpoints" : {
+          "eu-isoe-west-1" : { }
+        }
+      },
       "health" : {
         "endpoints" : {
           "eu-isoe-west-1" : {
@@ -40274,6 +40284,11 @@
         }
       },
       "application-autoscaling" : {
+        "endpoints" : {
+          "eusc-de-east-1" : { }
+        }
+      },
+      "aps" : {
         "endpoints" : {
           "eusc-de-east-1" : { }
         }

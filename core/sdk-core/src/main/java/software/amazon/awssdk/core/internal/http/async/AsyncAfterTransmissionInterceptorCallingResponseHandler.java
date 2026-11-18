@@ -16,18 +16,17 @@
 package software.amazon.awssdk.core.internal.http.async;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
 /**
- * Async response handler decorator to run interceptors after response is received.
+ * Async response handler decorator that calls the read-only {@code afterTransmission} interceptors with the response
+ * exactly as received.
  *
  * @param <T> the type of the result
  */
@@ -42,29 +41,18 @@ public final class AsyncAfterTransmissionInterceptorCallingResponseHandler<T> im
         this.context = context;
     }
 
-    private SdkHttpResponse beforeUnmarshalling(SdkHttpFullResponse response, ExecutionContext context) {
+    @Override
+    public void onHeaders(SdkHttpResponse response) {
         // Update interceptor context to include response
-        InterceptorContext interceptorContext =
-            context.interceptorContext().copy(b -> b.httpResponse(response));
+        InterceptorContext interceptorContext = context.interceptorContext().copy(b -> b.httpResponse(response));
 
         // interceptors.afterTransmission
         context.interceptorChain().afterTransmission(interceptorContext, context.executionAttributes());
 
-        // interceptors.modifyHttpResponse
-        interceptorContext = context.interceptorChain().modifyHttpResponse(interceptorContext, context.executionAttributes());
-
-        // interceptors.beforeUnmarshalling
-        context.interceptorChain().beforeUnmarshalling(interceptorContext, context.executionAttributes());
-
         // Store updated context
         context.interceptorContext(interceptorContext);
 
-        return interceptorContext.httpResponse();
-    }
-
-    @Override
-    public void onHeaders(SdkHttpResponse response) {
-        delegate.onHeaders(beforeUnmarshalling((SdkHttpFullResponse) response, context)); // TODO: Ew
+        delegate.onHeaders(response);
     }
 
     @Override
@@ -74,19 +62,7 @@ public final class AsyncAfterTransmissionInterceptorCallingResponseHandler<T> im
 
     @Override
     public void onStream(Publisher<ByteBuffer> publisher) {
-        Optional<Publisher<ByteBuffer>> newPublisher = context.interceptorChain()
-                                                              .modifyAsyncHttpResponse(context.interceptorContext()
-                                                                                              .toBuilder()
-                                                                                              .responsePublisher(publisher)
-                                                                                              .build(),
-                                                                                       context.executionAttributes())
-                                                              .responsePublisher();
-
-        if (newPublisher.isPresent()) {
-            delegate.onStream(newPublisher.get());
-        } else {
-            delegate.onStream(publisher);
-        }
+        delegate.onStream(publisher);
     }
 
     @Override

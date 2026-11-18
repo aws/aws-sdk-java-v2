@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultDirectoryDownload;
+import software.amazon.awssdk.transfer.s3.internal.utils.LogSanitizer;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
@@ -184,7 +185,7 @@ public class DownloadDirectoryHelper {
         DownloadFileRequest downloadFileRequest = downloadFileRequest(downloadDirectoryRequest, s3Object, destinationPath);
 
         try {
-            log.debug(() -> "Sending download request " + downloadFileRequest);
+            log.debug(() -> LogSanitizer.escapeControlCharacters("Sending download request " + downloadFileRequest));
             createParentDirectoriesIfNeeded(destinationPath);
 
             CompletableFuture<CompletedFileDownload> executionFuture =
@@ -222,8 +223,9 @@ public class DownloadDirectoryHelper {
                                      ? (SdkClientException) cause
                                      : SdkClientException.create("Cannot download key " + s3Object.key()
                                                                  + ", it is not a valid path on this file system", cause);
-        log.debug(() -> "Skipping download of key " + s3Object.key() + ", it is reported in failedTransfers(): "
-                        + failure.getMessage());
+        log.debug(() -> LogSanitizer.escapeControlCharacters("Skipping download of key " + s3Object.key()
+                                                             + ", it is reported in failedTransfers(): "
+                                                             + failure.getMessage()));
 
         // Both fields of FailedFileDownload are required, so the request needs some destination. It is never the refused
         // path, and never the destination directory itself. Instead it is a placeholder under the destination directory

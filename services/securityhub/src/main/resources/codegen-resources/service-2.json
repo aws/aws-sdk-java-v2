@@ -1506,7 +1506,7 @@
         {"shape":"OrganizationalUnitNotFoundException"},
         {"shape":"OrganizationNotFoundException"}
       ],
-      "documentation":"<p>Returns a list of resources that contain a specific software package. You identify the package with <code>PackageName</code> and <code>PackageType</code>. To narrow the results to one version of the package, include <code>PackageVersion</code>.</p> <p>You can use the <code>Scopes</code> parameter to define the data boundary for the query. Currently, <code>Scopes</code> supports <code>AwsOrganizations</code>, which lets you retrieve resources from your entire organization or from specific organizational units. Only the delegated administrator account can use <code>Scopes</code>.</p> <p>You can use the <code>Filters</code> parameter to further refine results based on resource attributes, such as <code>ResourceType</code> or <code>Region</code>.</p>"
+      "documentation":"<p>Returns a list of resources that contain a specific software package. You identify the package with <code>PackageName</code> and <code>PackageType</code>. To narrow the results to one version of the package, include <code>PackageVersion</code>.</p> <p>You can use the <code>Scopes</code> parameter to define the data boundary for the query. Currently, <code>Scopes</code> supports <code>AwsOrganizations</code>. With <code>AwsOrganizations</code>, you can retrieve resources from your entire organization or from specific organizational units. Only the delegated administrator account can use <code>Scopes</code>.</p> <p>You can use the <code>Filters</code> parameter to further refine results based on resource attributes, such as <code>ResourceType</code> or <code>Region</code>.</p> <p>This operation returns paginated results. To retrieve additional results, use the <code>NextToken</code> value from the previous response.</p>"
     },
     "GetSoftwareStatisticsV2":{
       "name":"GetSoftwareStatisticsV2",
@@ -1526,7 +1526,7 @@
         {"shape":"OrganizationalUnitNotFoundException"},
         {"shape":"OrganizationNotFoundException"}
       ],
-      "documentation":"<p>Retrieves aggregated counts of software packages installed on your resources, grouped by a field that you specify. For example, you can return the most common package types or the accounts with the most installed packages.</p> <p>Each count is the number of package-to-resource pairs that match the grouping value. A package installed on three resources contributes three to the count.</p> <p>You can use the <code>Scopes</code> parameter to define the data boundary for the query. Currently, <code>Scopes</code> supports <code>AwsOrganizations</code>, which lets you aggregate software from your entire organization or from specific organizational units. Only the delegated administrator account can use <code>Scopes</code>.</p> <p>This operation doesn't paginate. Use <code>MaxStatisticResults</code> to control how many grouping values are returned.</p>"
+      "documentation":"<p>Retrieves aggregated counts of software packages installed on your resources, grouped by a field that you specify. For example, you can return the most common package types or the accounts with the most installed packages.</p> <p>Each count is the number of package-to-resource pairs that match the grouping value. A package installed on three resources contributes three to the count.</p> <p>You can use the <code>Scopes</code> parameter to define the data boundary for the query. Currently, <code>Scopes</code> supports <code>AwsOrganizations</code>. With <code>AwsOrganizations</code>, you can aggregate software from your entire organization or from specific organizational units. Only the delegated administrator account can use <code>Scopes</code>.</p> <p>This operation doesn't paginate. Use <code>MaxStatisticResults</code> to control how many grouping values are returned.</p>"
     },
     "GetSoftwareV2":{
       "name":"GetSoftwareV2",
@@ -1546,7 +1546,7 @@
         {"shape":"OrganizationalUnitNotFoundException"},
         {"shape":"OrganizationNotFoundException"}
       ],
-      "documentation":"<p>Returns a list of software packages installed on your resources. Each result identifies a package by name, version, and type, and includes the number of resources that contain that package.</p> <p>You can use the <code>Scopes</code> parameter to define the data boundary for the query. Currently, <code>Scopes</code> supports <code>AwsOrganizations</code>, which lets you retrieve software from your entire organization or from specific organizational units. Only the delegated administrator account can use <code>Scopes</code>.</p> <p>You can use the <code>Filters</code> parameter to refine results based on package and resource attributes. You can use <code>Scopes</code> and <code>Filters</code> independently or together. When both are provided, <code>Scopes</code> narrows the data set first, and then <code>Filters</code> refines results within that scoped data set.</p> <p>To list the resources that contain a specific package, use <code>GetSoftwareResourcesV2</code>. To get counts of software grouped by a field, use <code>GetSoftwareStatisticsV2</code>.</p>"
+      "documentation":"<p>Returns a list of software packages installed on your resources. Each result identifies a package by name, version, and type, and includes the number of resources that contain that package.</p> <p>You can use the <code>Scopes</code> parameter to define the data boundary for the query. Currently, <code>Scopes</code> supports <code>AwsOrganizations</code>. With <code>AwsOrganizations</code>, you can retrieve software from your entire organization or from specific organizational units. Only the delegated administrator account can use <code>Scopes</code>.</p> <p>You can use the <code>Filters</code> parameter to refine results based on package and resource attributes. You can use <code>Scopes</code> and <code>Filters</code> independently or together. When both are provided, <code>Scopes</code> narrows the data set first, and then <code>Filters</code> refines results within that scoped data set.</p> <p>To list the resources that contain a specific package, use <code>GetSoftwareResourcesV2</code>. To get counts of software grouped by a field, use <code>GetSoftwareStatisticsV2</code>.</p> <p>This operation returns paginated results. To retrieve additional results, use the <code>NextToken</code> value from the previous response.</p>"
     },
     "InviteMembers":{
       "name":"InviteMembers",
@@ -2672,7 +2672,7 @@
         },
         "AssociationStatus":{
           "shape":"ConfigurationPolicyAssociationStatus",
-          "documentation":"<p> The current status of the association between a target and a configuration policy. </p>"
+          "documentation":"<p> The current status of the association between a target and a configuration policy. Possible values are <code>PENDING</code>, <code>SUCCESS</code>, <code>FAILED</code>, and <code>DISABLED</code>. The value is <code>DISABLED</code> when central configuration is disabled because the organization is managed by Security Hub CSPM policies in Organizations. </p>"
         }
       },
       "documentation":"<p> Options for filtering the <code>ListConfigurationPolicyAssociations</code> response. You can filter by the Amazon Resource Name (ARN) or universally unique identifier (UUID) of a configuration policy, <code>AssociationType</code>, or <code>AssociationStatus</code>. </p>"
@@ -17224,7 +17224,8 @@
       "type":"string",
       "enum":[
         "Azure",
-        "AWS"
+        "AWS",
+        "GCP"
       ]
     },
     "CloudWatchLogsLogGroupArnConfigDetails":{
@@ -17424,7 +17425,8 @@
       "enum":[
         "PENDING",
         "SUCCESS",
-        "FAILED"
+        "FAILED",
+        "DISABLED"
       ]
     },
     "ConfigurationPolicyAssociationSummary":{
@@ -17452,7 +17454,7 @@
         },
         "AssociationStatus":{
           "shape":"ConfigurationPolicyAssociationStatus",
-          "documentation":"<p> The current status of the association between the specified target and the configuration. </p>"
+          "documentation":"<p> The current status of the association between the specified target and the configuration. Possible values are: </p> <ul> <li> <p> <code>PENDING</code> - The association is in progress.</p> </li> <li> <p> <code>SUCCESS</code> - The association succeeded.</p> </li> <li> <p> <code>FAILED</code> - The association failed. For details, see <code>AssociationStatusMessage</code>.</p> </li> <li> <p> <code>DISABLED</code> - Central configuration is disabled because the organization is managed by Security Hub CSPM policies in Organizations.</p> </li> </ul>"
         },
         "AssociationStatusMessage":{
           "shape":"NonEmptyString",
@@ -17532,7 +17534,8 @@
       "enum":[
         "JIRA_CLOUD",
         "SERVICENOW",
-        "AZURE"
+        "AZURE",
+        "GCP"
       ]
     },
     "ConnectorStatus":{
@@ -18181,14 +18184,16 @@
     "CriticalitySourceList":{
       "type":"list",
       "member":{"shape":"CriticalitySource"},
-      "max":3
+      "max":5
     },
     "CriticalitySourceType":{
       "type":"string",
       "enum":[
         "AutomationRule",
         "ResourceName",
-        "TagInference"
+        "TagInference",
+        "CloudWatchTelemetryInference",
+        "InstalledSoftwareAndPackageInference"
       ]
     },
     "CrossAccountMaxResults":{
@@ -18199,7 +18204,10 @@
     "CspmConnectorProviderName":{
       "type":"string",
       "documentation":"<p>The name of the cloud provider for a CSPM connector.</p>",
-      "enum":["AZURE"]
+      "enum":[
+        "AZURE",
+        "GCP"
+      ]
     },
     "CspmConnectorStatus":{
       "type":"string",
@@ -18295,9 +18303,13 @@
         "Azure":{
           "shape":"AzureProviderConfiguration",
           "documentation":"<p>The Azure provider configuration.</p>"
+        },
+        "GCP":{
+          "shape":"GcpProviderConfiguration",
+          "documentation":"<p>The GCP provider configuration.</p>"
         }
       },
-      "documentation":"<p>The cloud provider configuration for creating a connector. This is a union type that currently supports Azure.</p>",
+      "documentation":"<p>The cloud provider configuration for creating a connector. This is a union type that currently supports Azure and GCP.</p>",
       "union":true
     },
     "CspmProviderDetail":{
@@ -18306,9 +18318,13 @@
         "Azure":{
           "shape":"AzureDetail",
           "documentation":"<p>The Azure provider detail.</p>"
+        },
+        "GCP":{
+          "shape":"GcpDetail",
+          "documentation":"<p>The GCP provider detail.</p>"
         }
       },
-      "documentation":"<p>The detailed cloud provider configuration for a connector. This is a union type that currently supports Azure.</p>",
+      "documentation":"<p>The detailed cloud provider configuration for a connector. This is a union type that currently supports Azure and GCP.</p>",
       "union":true
     },
     "CspmProviderSummary":{
@@ -18335,9 +18351,13 @@
         "Azure":{
           "shape":"AzureUpdateConfiguration",
           "documentation":"<p>The Azure update configuration.</p>"
+        },
+        "GCP":{
+          "shape":"GcpUpdateConfiguration",
+          "documentation":"<p>The GCP update configuration.</p>"
         }
       },
-      "documentation":"<p>The cloud provider configuration for updating a connector. This is a union type that currently supports Azure.</p>",
+      "documentation":"<p>The cloud provider configuration for updating a connector. This is a union type that currently supports Azure and GCP.</p>",
       "union":true
     },
     "CustomDataIdentifiersDetections":{
@@ -18914,7 +18934,7 @@
         },
         "Providers":{
           "shape":"StandardsProviders",
-          "documentation":"<p>A list of cloud providers to filter the standards by. For example, specify <code>Azure</code> to return only standards that evaluate Azure resources.</p>",
+          "documentation":"<p>A list of cloud providers to filter the standards by. For example, specify <code>Azure</code> to return only standards that evaluate Azure resources, or <code>GCP</code> to return only standards that evaluate GCP resources.</p>",
           "location":"querystring",
           "locationName":"Providers"
         }
@@ -20029,6 +20049,109 @@
         "SECURITY_HUB_V2_MULTI_CLOUD_AZURE"
       ]
     },
+    "GcpDetail":{
+      "type":"structure",
+      "required":[
+        "AWSConfigConnectorArn",
+        "ScopeConfiguration",
+        "GCPRegions"
+      ],
+      "members":{
+        "AWSConfigConnectorArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ARN of the multi-cloud configuration connector used to establish the connection to GCP.</p>"
+        },
+        "ScopeConfiguration":{
+          "shape":"GcpScopeConfiguration",
+          "documentation":"<p>The scope configuration that defines which GCP resources are monitored.</p>"
+        },
+        "GCPRegions":{
+          "shape":"GcpRegionList",
+          "documentation":"<p>The list of GCP regions being monitored.</p>"
+        }
+      },
+      "documentation":"<p>The detailed GCP configuration for a connector.</p>"
+    },
+    "GcpProviderConfiguration":{
+      "type":"structure",
+      "required":[
+        "AWSConfigConnectorArn",
+        "ScopeConfiguration",
+        "GCPRegions"
+      ],
+      "members":{
+        "AWSConfigConnectorArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ARN of the multi-cloud configuration connector used to establish the connection to GCP.</p>"
+        },
+        "ScopeConfiguration":{
+          "shape":"GcpScopeConfiguration",
+          "documentation":"<p>The scope configuration that defines which GCP resources are monitored.</p>"
+        },
+        "GCPRegions":{
+          "shape":"GcpRegionList",
+          "documentation":"<p>The list of GCP regions to monitor.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for connecting to a GCP environment.</p>"
+    },
+    "GcpRegionList":{
+      "type":"list",
+      "member":{
+        "shape":"NonEmptyString",
+        "documentation":"<p>A GCP region.</p>"
+      },
+      "documentation":"<p>A list of GCP regions.</p>",
+      "max":256,
+      "min":1
+    },
+    "GcpResourceDetails":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Details about a GCP resource that is related to a finding. This field is a JSON object that contains provider-specific resource details.</p>",
+      "document":true
+    },
+    "GcpScopeConfiguration":{
+      "type":"structure",
+      "required":["ScopeType"],
+      "members":{
+        "ScopeType":{
+          "shape":"GcpScopeType",
+          "documentation":"<p>The type of scope. Valid values are <code>ORGANIZATION</code> and <code>PROJECT</code>.</p>"
+        },
+        "ScopeValues":{
+          "shape":"ScopeValueList",
+          "documentation":"<p>The list of scope values. Use an organization ID when the scope type is <code>ORGANIZATION</code>, or project IDs when the scope type is <code>PROJECT</code>.</p>"
+        }
+      },
+      "documentation":"<p>The scope configuration for a GCP connector, defining the organization or project scope.</p>"
+    },
+    "GcpScopeType":{
+      "type":"string",
+      "documentation":"<p>The type of scope for a GCP connector. Valid values are <code>ORGANIZATION</code> (monitor all projects in the organization) and <code>PROJECT</code> (monitor specific projects).</p>",
+      "enum":[
+        "PROJECT",
+        "ORGANIZATION"
+      ]
+    },
+    "GcpUpdateConfiguration":{
+      "type":"structure",
+      "required":[
+        "ScopeConfiguration",
+        "GCPRegions"
+      ],
+      "members":{
+        "ScopeConfiguration":{
+          "shape":"GcpScopeConfiguration",
+          "documentation":"<p>The updated scope configuration.</p>"
+        },
+        "GCPRegions":{
+          "shape":"GcpRegionList",
+          "documentation":"<p>The updated list of GCP regions to monitor.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for updating a GCP connector's scope and regions.</p>"
+    },
     "GenerateRecommendedPolicyV2Request":{
       "type":"structure",
       "required":["MetadataUid"],
@@ -20212,7 +20335,7 @@
         },
         "AssociationStatus":{
           "shape":"ConfigurationPolicyAssociationStatus",
-          "documentation":"<p> The current status of the association between the specified target and the configuration. </p>"
+          "documentation":"<p> The current status of the association between the specified target and the configuration. Possible values are: </p> <ul> <li> <p> <code>PENDING</code> - The association is in progress.</p> </li> <li> <p> <code>SUCCESS</code> - The association succeeded.</p> </li> <li> <p> <code>FAILED</code> - The association failed. For details, see <code>AssociationStatusMessage</code>.</p> </li> <li> <p> <code>DISABLED</code> - Central configuration is disabled because the organization is managed by Security Hub CSPM policies in Organizations.</p> </li> </ul>"
         },
         "AssociationStatusMessage":{
           "shape":"NonEmptyString",
@@ -20416,7 +20539,7 @@
         },
         "Providers":{
           "shape":"StandardsProviders",
-          "documentation":"<p>A list of cloud providers to filter the enabled standards by. For example, specify <code>Azure</code> to return only enabled standards that evaluate Azure resources.</p>"
+          "documentation":"<p>A list of cloud providers to filter the enabled standards by. For example, specify <code>Azure</code> to return only enabled standards that evaluate Azure resources, or <code>GCP</code> to return only enabled standards that evaluate GCP resources.</p>"
         }
       }
     },
@@ -22392,7 +22515,7 @@
         },
         "Providers":{
           "shape":"SecurityControlsProviders",
-          "documentation":"<p>A list of cloud providers to filter the security control definitions by. For example, specify <code>Azure</code> to return only controls that evaluate Azure resources.</p>",
+          "documentation":"<p>A list of cloud providers to filter the security control definitions by. For example, specify <code>Azure</code> to return only controls that evaluate Azure resources, or <code>GCP</code> to return only controls that evaluate GCP resources.</p>",
           "location":"querystring",
           "locationName":"Providers"
         }
@@ -23259,7 +23382,7 @@
         },
         "Status":{
           "shape":"OrganizationConfigurationStatus",
-          "documentation":"<p> Describes whether central configuration could be enabled as the <code>ConfigurationType</code> for the organization. If your <code>ConfigurationType</code> is local configuration, then the value of <code>Status</code> is always <code>ENABLED</code>. </p>"
+          "documentation":"<p> Describes whether central configuration could be enabled as the <code>ConfigurationType</code> for the organization. If your <code>ConfigurationType</code> is local configuration, then the value of <code>Status</code> is always <code>ENABLED</code>. </p> <p> If the value of <code>Status</code> is <code>DISABLED</code>, central configuration is disabled because the organization is managed by Security Hub CSPM policies in Organizations. </p>"
         },
         "StatusMessage":{
           "shape":"NonEmptyString",
@@ -23280,7 +23403,8 @@
       "enum":[
         "PENDING",
         "ENABLED",
-        "FAILED"
+        "FAILED",
+        "DISABLED"
       ]
     },
     "OrganizationNotFoundException":{
@@ -23706,6 +23830,10 @@
         "Azure":{
           "shape":"AzureProviderConfiguration",
           "documentation":"<p>The configuration settings required to establish a CSPM integration with Microsoft Azure.</p>"
+        },
+        "GCP":{
+          "shape":"GcpProviderConfiguration",
+          "documentation":"<p>The configuration settings required to establish a CSPM integration with Google Cloud Platform (GCP).</p>"
         }
       },
       "documentation":"<p>The initial configuration settings required to establish an integration between Security Hub and third-party provider.</p>",
@@ -23725,6 +23853,10 @@
         "Azure":{
           "shape":"AzureDetail",
           "documentation":"<p>Details about a Microsoft Azure CSPM integration.</p>"
+        },
+        "GCP":{
+          "shape":"GcpDetail",
+          "documentation":"<p>Details about a Google Cloud Platform (GCP) CSPM integration.</p>"
         }
       },
       "documentation":"<p>The third-party provider detail for a service configuration.</p>",
@@ -23759,6 +23891,10 @@
         "Azure":{
           "shape":"AzureUpdateConfiguration",
           "documentation":"<p>The parameters required to update the configuration for a Microsoft Azure CSPM integration.</p>"
+        },
+        "GCP":{
+          "shape":"GcpUpdateConfiguration",
+          "documentation":"<p>The parameters required to update the configuration for a Google Cloud Platform (GCP) CSPM integration.</p>"
         }
       },
       "documentation":"<p>The parameters required to update the configuration of an integration provider.</p>",
@@ -24980,6 +25116,10 @@
         "AzureResource":{
           "shape":"AzureResourceDetails",
           "documentation":"<p>Details about an Azure resource that is related to a finding.</p>"
+        },
+        "GcpResource":{
+          "shape":"GcpResourceDetails",
+          "documentation":"<p>Details about a GCP resource that is related to a finding.</p>"
         }
       },
       "documentation":"<p>Additional details about a resource related to a finding.</p> <p>To provide the details, use the object that corresponds to the resource type. For example, if the resource type is <code>AwsEc2Instance</code>, then you use the <code>AwsEc2Instance</code> object to provide the details.</p> <p>If the type-specific object does not contain all of the fields you want to populate, then you use the <code>Other</code> object to populate those additional fields.</p> <p>You also use the <code>Other</code> object to populate the details when the selected type does not have a corresponding object.</p>"
@@ -26148,7 +26288,7 @@
         },
         "Provider":{
           "shape":"SecurityControlsProvider",
-          "documentation":"<p>The cloud provider whose resources the security control evaluates. For example, <code>AWS</code> or <code>Azure</code>.</p>"
+          "documentation":"<p>The cloud provider whose resources the security control evaluates. For example, <code>AWS</code>, <code>Azure</code>, or <code>GCP</code>.</p>"
         }
       },
       "documentation":"<p> A security control in Security Hub CSPM describes a security best practice related to a specific resource. </p>"
@@ -26216,7 +26356,7 @@
         },
         "Provider":{
           "shape":"SecurityControlsProvider",
-          "documentation":"<p>The cloud provider whose resources the security control evaluates. For example, <code>AWS</code> or <code>Azure</code>.</p>"
+          "documentation":"<p>The cloud provider whose resources the security control evaluates. For example, <code>AWS</code>, <code>Azure</code>, or <code>GCP</code>.</p>"
         }
       },
       "documentation":"<p> Provides metadata for a security control, including its unique standard-agnostic identifier, title, description, severity, availability in Amazon Web Services Regions, and a link to remediation steps. </p>"
@@ -26273,7 +26413,8 @@
       "type":"string",
       "enum":[
         "AWS",
-        "Azure"
+        "Azure",
+        "GCP"
       ]
     },
     "SecurityControlsProviders":{
@@ -26926,7 +27067,7 @@
         },
         "Provider":{
           "shape":"StandardsProvider",
-          "documentation":"<p>The cloud provider whose resources the standard evaluates. For example, <code>AWS</code> or <code>Azure</code>.</p>"
+          "documentation":"<p>The cloud provider whose resources the standard evaluates. For example, <code>AWS</code>, <code>Azure</code>, or <code>GCP</code>.</p>"
         },
         "StandardsManagedBy":{
           "shape":"StandardsManagedBy",
@@ -27184,7 +27325,8 @@
       "type":"string",
       "enum":[
         "AWS",
-        "Azure"
+        "Azure",
+        "GCP"
       ]
     },
     "StandardsProviders":{
@@ -27247,7 +27389,7 @@
         },
         "Provider":{
           "shape":"StandardsProvider",
-          "documentation":"<p>The cloud provider whose resources the standard evaluates. For example, <code>AWS</code> or <code>Azure</code>.</p>"
+          "documentation":"<p>The cloud provider whose resources the standard evaluates. For example, <code>AWS</code>, <code>Azure</code>, or <code>GCP</code>.</p>"
         }
       },
       "documentation":"<p>A resource that represents your subscription to a supported standard.</p>"
@@ -27325,7 +27467,7 @@
         },
         "AssociationStatus":{
           "shape":"ConfigurationPolicyAssociationStatus",
-          "documentation":"<p> The current status of the association between the specified target and the configuration. </p>"
+          "documentation":"<p> The current status of the association between the specified target and the configuration. Possible values are: </p> <ul> <li> <p> <code>PENDING</code> - The association is in progress.</p> </li> <li> <p> <code>SUCCESS</code> - The association succeeded.</p> </li> <li> <p> <code>FAILED</code> - The association failed. For details, see <code>AssociationStatusMessage</code>.</p> </li> <li> <p> <code>DISABLED</code> - Central configuration is disabled because the organization is managed by Security Hub CSPM policies in Organizations.</p> </li> </ul>"
         },
         "AssociationStatusMessage":{
           "shape":"NonEmptyString",
