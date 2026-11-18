@@ -34,6 +34,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -510,43 +511,15 @@ class EnhancedDocumentTest {
                                             .withMessage("Values of type List are not supported by this API, please use the getList API instead");
     }
 
-    @Test
-    void toMap_whenListHasNoTypeParameter_requiresTypeParameters() {
-        EnhancedDocument document = documentWithRawCollection("values", new ArrayList<>(), EnhancedType.of(List.class));
+    @ParameterizedTest
+    @MethodSource("rawCollectionCases")
+    void toMap_whenCollectionHasNoTypeParameters_throwsConverterNotFound(
+        EnhancedType<?> type, Object value, String messagePrefix) {
+        EnhancedDocument document = documentWithRawCollection("values", value, type);
 
         assertThatIllegalStateException()
             .isThrownBy(document::toMap)
-            .withMessage("AttributeConverter not found for class " + EnhancedType.of(List.class)
-                         + ". Type parameters are required for this type.");
-    }
-
-    @Test
-    void toMap_whenMapHasNoTypeParameters_requiresTypeParameters() {
-        EnhancedDocument document = documentWithRawCollection("values", new HashMap<>(), EnhancedType.of(Map.class));
-
-        assertThatIllegalStateException()
-            .isThrownBy(document::toMap)
-            .withMessage("AttributeConverter not found for class " + EnhancedType.of(Map.class)
-                         + ". Type parameters are required for this type.");
-    }
-
-    @Test
-    void toMap_whenSetHasNoTypeParameter_usesProviderMessage() {
-        EnhancedDocument document = documentWithRawCollection("values", new HashSet<>(), EnhancedType.of(Set.class));
-
-        assertThatIllegalStateException()
-            .isThrownBy(document::toMap)
-            .withMessage("Converter not found for " + EnhancedType.of(Set.class)
-                         + ". Type parameters are required for this type.");
-    }
-
-    @Test
-    void toMap_whenObjectEnhancedType_throwsConverterNotFound() {
-        EnhancedType<Object> type = EnhancedType.of(Object.class);
-
-        assertThatIllegalStateException()
-            .isThrownBy(() -> documentWithDefaultProvider().put("value", new Object(), type).build().toMap())
-            .withMessage("Converter not found for " + type);
+            .withMessage(messagePrefix + type + ". Type parameters are required for this type.");
     }
 
     @Test
@@ -563,77 +536,45 @@ class EnhancedDocumentTest {
         assertThat(map.get("value")).isEqualTo(AttributeValue.fromS("custom"));
     }
 
-    @Test
-    void toMap_whenListOfObject_throwsConverterNotFoundForMemberType() {
-        EnhancedType<List<Object>> type = EnhancedType.listOf(Object.class);
-        List<Object> input = new ArrayList<>();
-        input.add("a");
+    @ParameterizedTest
+    @MethodSource("unsupportedValues")
+    <T> void toMap_whenUnsupportedType_throwsConverterNotFound(EnhancedType<T> type, T input) {
+        assertThatIllegalStateException()
+            .isThrownBy(() -> documentWithDefaultProvider().put("value", input, type).build().toMap())
+            .withMessage("Converter not found for " + type);
+    }
+
+    @ParameterizedTest
+    @MethodSource("unsupportedValues")
+    <T> void toMap_whenListElementHasNoConverter_throwsConverterNotFound(EnhancedType<T> elementType, T element) {
+        EnhancedType<List<T>> type = EnhancedType.listOf(elementType);
+        List<T> input = Collections.singletonList(element);
 
         assertThatIllegalStateException()
             .isThrownBy(() -> documentWithDefaultProvider().put("value", input, type).build().toMap())
-            .withMessage("Converter not found for " + EnhancedType.of(Object.class));
+            .withMessage("Converter not found for " + elementType);
     }
 
-    @Test
-    void toMap_whenMapOfObject_throwsConverterNotFound() {
-        EnhancedType<Map<String, Object>> type = EnhancedType.mapOf(String.class, Object.class);
-        Map<String, Object> input = new HashMap<>();
-        input.put("key", "a");
+    @ParameterizedTest
+    @MethodSource("unsupportedValues")
+    <T> void toMap_whenMapValueHasNoConverter_throwsConverterNotFound(EnhancedType<T> valueType, T value) {
+        EnhancedType<Map<String, T>> type = EnhancedType.mapOf(EnhancedType.of(String.class), valueType);
+        Map<String, T> input = Collections.singletonMap("key", value);
 
         assertThatIllegalStateException()
             .isThrownBy(() -> documentWithDefaultProvider().put("value", input, type).build().toMap())
-            .withMessage("Converter not found for " + EnhancedType.of(Object.class));
+            .withMessage("Converter not found for " + valueType);
     }
 
-    @Test
-    void toMap_whenSetOfObject_throwsConverterNotFoundForElement() {
-        EnhancedType<Set<Object>> type = EnhancedType.setOf(Object.class);
-        Set<Object> input = new HashSet<>();
-        input.add("a");
+    @ParameterizedTest
+    @MethodSource("unsupportedValues")
+    <T> void toMap_whenSetElementHasNoConverter_throwsConverterNotFound(EnhancedType<T> elementType, T element) {
+        EnhancedType<Set<T>> type = EnhancedType.setOf(elementType);
+        Set<T> input = Collections.singleton(element);
 
         assertThatIllegalStateException()
             .isThrownBy(() -> documentWithDefaultProvider().put("value", input, type).build().toMap())
-            .withMessage(missingNestedConverterMessage(EnhancedType.of(Object.class), type, "element"));
-    }
-
-    @Test
-    void putThenGet_whenListOfUnsupportedTypeWithMemberProvider_storesLWithSMembersAndReadsArrayList() {
-        EnhancedType<List<UnsupportedType>> type = EnhancedType.listOf(UnsupportedType.class);
-        List<UnsupportedType> input = new ArrayList<>();
-        input.add(new UnsupportedType("a"));
-        input.add(new UnsupportedType("b"));
-
-        EnhancedDocument document = EnhancedDocument.builder()
-                                                    .attributeConverterProviders(new UnsupportedMemberProvider())
-                                                    .put("value", input, type)
-                                                    .build();
-        Map<String, AttributeValue> map = document.toMap();
-        List<UnsupportedType> read = document.get("value", type);
-
-        assertThat(map.get("value").hasL()).isTrue();
-        assertThat(map.get("value").l()).containsExactly(AttributeValue.fromS("a"), AttributeValue.fromS("b"));
-        assertThat(read).isInstanceOf(ArrayList.class).isEqualTo(input);
-    }
-
-    private static EnhancedDocument.Builder documentWithDefaultProvider() {
-        return EnhancedDocument.builder().attributeConverterProviders(defaultProvider());
-    }
-
-    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
-                                                        EnhancedType<?> collectionType,
-                                                        String role) {
-        return "Converter not found for " + nestedType
-               + " (" + role + " of " + collectionType + "). "
-               + "DefaultAttributeConverterProvider resolves collection " + role
-               + " types only from its own converters.";
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static EnhancedDocument documentWithRawCollection(String name, Object value, EnhancedType type) {
-        return EnhancedDocument.builder()
-                               .attributeConverterProviders(defaultProvider())
-                               .put(name, value, type)
-                               .build();
+            .withMessage(missingNestedConverterMessage(elementType, type, "element"));
     }
 
     @Test
@@ -845,15 +786,43 @@ class EnhancedDocumentTest {
         assertThat(actualOutput).isEqualTo(goldenOutput);
     }
 
+    private static Stream<Arguments> rawCollectionCases() {
+        return Stream.of(
+            Arguments.of(EnhancedType.of(List.class), new ArrayList<>(), "AttributeConverter not found for class "),
+            Arguments.of(EnhancedType.of(Map.class), new HashMap<>(), "AttributeConverter not found for class "),
+            Arguments.of(EnhancedType.of(Set.class), new HashSet<>(), "Converter not found for "));
+    }
+
+    private static Stream<Arguments> unsupportedValues() {
+        return Stream.of(Arguments.of(EnhancedType.of(Object.class), new Object()),
+                         Arguments.of(EnhancedType.of(UnsupportedType.class), new UnsupportedType("a")));
+    }
+
+    private static EnhancedDocument.Builder documentWithDefaultProvider() {
+        return EnhancedDocument.builder().attributeConverterProviders(defaultProvider());
+    }
+
+    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
+                                                        EnhancedType<?> collectionType,
+                                                        String role) {
+        return "Converter not found for " + nestedType
+               + " (" + role + " of " + collectionType + "). "
+               + "DefaultAttributeConverterProvider resolves collection " + role
+               + " types only from its own converters.";
+    }
+
+    private static EnhancedDocument documentWithRawCollection(String name, Object value, EnhancedType type) {
+        return EnhancedDocument.builder()
+                               .attributeConverterProviders(defaultProvider())
+                               .put(name, value, type)
+                               .build();
+    }
+
     private static final class UnsupportedType {
         private final String value;
 
         private UnsupportedType(String value) {
             this.value = value;
-        }
-
-        private String value() {
-            return value;
         }
 
         @Override
@@ -873,35 +842,12 @@ class EnhancedDocumentTest {
         }
     }
 
-    private static final class UnsupportedStringConverter implements AttributeConverter<UnsupportedType> {
-        @Override
-        public AttributeValue transformFrom(UnsupportedType input) {
-            return AttributeValue.fromS(input.value());
-        }
+    private static final class ObjectStringProvider implements AttributeConverterProvider {
+        private final ObjectStringConverter converter = new ObjectStringConverter();
 
         @Override
-        public UnsupportedType transformTo(AttributeValue input) {
-            return new UnsupportedType(input.s());
-        }
-
-        @Override
-        public EnhancedType<UnsupportedType> type() {
-            return EnhancedType.of(UnsupportedType.class);
-        }
-
-        @Override
-        public AttributeValueType attributeValueType() {
-            return AttributeValueType.S;
-        }
-    }
-
-    private static final class UnsupportedMemberProvider implements AttributeConverterProvider {
-        private final UnsupportedStringConverter converter = new UnsupportedStringConverter();
-
-        @Override
-        @SuppressWarnings("unchecked")
         public <T> AttributeConverter<T> converterFor(EnhancedType<T> enhancedType) {
-            if (EnhancedType.of(UnsupportedType.class).equals(enhancedType)) {
+            if (EnhancedType.of(Object.class).equals(enhancedType)) {
                 return (AttributeConverter<T>) converter;
             }
             return null;
@@ -927,19 +873,6 @@ class EnhancedDocumentTest {
         @Override
         public AttributeValueType attributeValueType() {
             return AttributeValueType.S;
-        }
-    }
-
-    private static final class ObjectStringProvider implements AttributeConverterProvider {
-        private final ObjectStringConverter converter = new ObjectStringConverter();
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T> AttributeConverter<T> converterFor(EnhancedType<T> enhancedType) {
-            if (EnhancedType.of(Object.class).equals(enhancedType)) {
-                return (AttributeConverter<T>) converter;
-            }
-            return null;
         }
     }
 }
