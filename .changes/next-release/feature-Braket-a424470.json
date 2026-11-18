@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Braket",
-    "contributor": "",
-    "description": "Supporting a new PAUSED device status and a DeviceStatusReason."
-}
