@@ -359,6 +359,9 @@ public class UpdateItemOperation<T>
     }
 
     private static void validateAttributeName(String attributeName) {
+        if (attributeName == null || attributeName.isEmpty()) {
+            throw new IllegalArgumentException("Attribute name must not be null or empty.");
+        }
         if (attributeName.contains(NESTED_OBJECT_UPDATE)) {
             throw new IllegalArgumentException(
                 String.format("Attribute name '%s' contains reserved marker '%s' and is not allowed.",

@@ -89,7 +89,10 @@ public final class UpdateExpressionUtils {
 
             if (key.contains(NESTED_OBJECT_UPDATE)) {
                 TableSchema currentSchema = tableSchema;
-                List<String> pathFieldNames = Arrays.asList(PATTERN.split(key));
+                // Keep trailing empty segments so keys ending with the marker are rejected instead of
+                // silently resolving the parent segment as the leaf attribute name.
+                List<String> pathFieldNames = Arrays.asList(PATTERN.split(key, -1));
+                validateNestedPathSegments(pathFieldNames, key);
                 String attributeName = pathFieldNames.get(pathFieldNames.size() - 1);
                 // For a path like childrenByName.entry.name, the map entry has no child schema.
                 // A name tag in the parent schema belongs to another field, so use WRITE_ALWAYS.
@@ -113,6 +116,19 @@ public final class UpdateExpressionUtils {
             }
         }
         return actions;
+    }
+
+    private static void validateNestedPathSegments(List<String> pathFieldNames, String key) {
+        if (pathFieldNames.size() < 2) {
+            throw new IllegalArgumentException(
+                String.format("Nested attribute key '%s' is malformed and is not allowed.", key));
+        }
+        for (String segment : pathFieldNames) {
+            if (segment == null || segment.isEmpty()) {
+                throw new IllegalArgumentException(
+                    String.format("Nested attribute key '%s' contains an empty path segment and is not allowed.", key));
+            }
+        }
     }
 
     /**

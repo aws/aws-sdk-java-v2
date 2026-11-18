@@ -55,12 +55,15 @@ public final class NestedRecordUtils {
      * If the list element type is not annotated with {@code @DynamoDbBean} or {@code @DynamoDbImmutable} (e.g. when a custom
      * converter handles serialization via {@code @DynamoDbConvertedBy}), this method returns {@code null} to indicate that no
      * schema introspection is possible or necessary for that element type.
+     * <p>
+     * This method also returns {@code null} when no converter is available for the attribute, when
+     * {@code converterForAttribute} is unsupported, or when the converter has no usable type parameters. Callers should treat
+     * {@code null} as "no nested schema available" rather than an error.
      *
      * @param rootSchema The root {@link TableSchema} representing the top-level entity.
      * @param key        The key representing the list attribute, either flat or nested (using a delimiter).
-     * @return The {@link TableSchema} representing the list element type, or {@code null} if the element type is not a
-     *         DynamoDB-annotated class.
-     * @throws IllegalArgumentException If no converter is found for the attribute or if the converter has no type parameters.
+     * @return The {@link TableSchema} representing the list element type, or {@code null} if no nested schema can be resolved
+     *         (including missing/unsupported converters, missing type parameters, or non-annotated element types).
      */
     public static TableSchema<?> getTableSchemaForListElement(TableSchema<?> rootSchema, String key) {
         return getTableSchemaForListElement(rootSchema, key, new HashMap<>());

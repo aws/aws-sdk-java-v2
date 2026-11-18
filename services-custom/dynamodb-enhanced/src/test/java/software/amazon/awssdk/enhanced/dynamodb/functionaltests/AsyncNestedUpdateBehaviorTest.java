@@ -65,6 +65,21 @@ public class AsyncNestedUpdateBehaviorTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
+    public void beanParent_immutableChild_scalarOnly_nestedWriteOnceIsPreserved() {
+        supported.putItem(new BeanWithImmutableChild().setId("parity")
+                                                      .setChild(child("old-always", "old-once"))).join();
+
+        supported.updateItem(r -> r.item(new BeanWithImmutableChild().setId("parity")
+                                                                     .setChild(child("new-always", "new-once")))
+                                   .ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY)).join();
+
+        NestedImmutableChild persisted = supported.getItem(r -> r.key(k -> k.partitionValue("parity"))).join()
+                                                  .getChild();
+        assertThat(persisted.getChildAlwaysUpdate()).isEqualTo("new-always");
+        assertThat(persisted.getChildWriteOnce()).isEqualTo("old-once");
+    }
+
+    @Test
     public void sharedClient_unsupportedSchemaDoesNotAffectNestedTaggedUpdate() {
         supported.putItem(new BeanWithImmutableChild().setId("supported")
                                                       .setChild(child("old-always", "old-once"))).join();

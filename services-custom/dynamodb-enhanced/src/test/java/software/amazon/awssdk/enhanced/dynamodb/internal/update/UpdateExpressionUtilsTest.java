@@ -99,6 +99,50 @@ public class UpdateExpressionUtilsTest {
     }
 
     @Test
+    public void setActionsFor_withPresentNestedSchemas_writeIfNotExists_usesIfNotExistsFunction() {
+        when(root.converterForAttribute("parent")).thenReturn(attributeConverter);
+        when(attributeConverter.type()).thenReturn(enhancedType);
+        when(enhancedType.tableSchema()).thenReturn(Optional.of(tableSchema));
+        when(tableSchema.tableMetadata()).thenReturn(tableMetadata);
+        when(tableMetadata.customMetadataObject(eq("UpdateBehavior:childWriteOnce"), eq(UpdateBehavior.class)))
+            .thenReturn(Optional.of(UpdateBehavior.WRITE_IF_NOT_EXISTS));
+
+        Map<String, AttributeValue> attributes = Collections.singletonMap(
+            "parent_NESTED_ATTR_UPDATE_childWriteOnce", AttributeValue.fromS("new-once"));
+
+        List<SetAction> actions = operationExpression(attributes, root, Collections.emptyList()).setActions();
+
+        assertThat(actions).hasSize(1);
+        SetAction action = actions.get(0);
+        assertThat(action.path()).isEqualTo("#AMZN_MAPPED_parent.#AMZN_MAPPED_childWriteOnce");
+        assertThat(action.value())
+            .isEqualTo("if_not_exists(#AMZN_MAPPED_parent.#AMZN_MAPPED_childWriteOnce, :AMZN_MAPPED_parent_childWriteOnce)");
+        assertThat(action.expressionValues())
+            .containsEntry(":AMZN_MAPPED_parent_childWriteOnce", AttributeValue.fromS("new-once"));
+        verify(root, never()).tableMetadata();
+    }
+
+    @Test
+    public void setActionsFor_withTrailingEmptyPathSegment_throwsIllegalArgumentException() {
+        Map<String, AttributeValue> attributes = Collections.singletonMap(
+            "parent_NESTED_ATTR_UPDATE_", AttributeValue.fromS("value"));
+
+        assertThatThrownBy(() -> operationExpression(attributes, root, Collections.emptyList()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("empty path segment");
+    }
+
+    @Test
+    public void setActionsFor_withMiddleEmptyPathSegment_throwsIllegalArgumentException() {
+        Map<String, AttributeValue> attributes = Collections.singletonMap(
+            "parent_NESTED_ATTR_UPDATE__NESTED_ATTR_UPDATE_child", AttributeValue.fromS("value"));
+
+        assertThatThrownBy(() -> operationExpression(attributes, root, Collections.emptyList()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("empty path segment");
+    }
+
+    @Test
     public void setActionsFor_withUnresolvedNestedSchema_doesNotUseRootFieldUpdateBehavior() {
         lenient().when(root.tableMetadata()).thenReturn(tableMetadata);
         lenient().when(tableMetadata.customMetadataObject("UpdateBehavior:name", UpdateBehavior.class))

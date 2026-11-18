@@ -45,8 +45,9 @@ import software.amazon.awssdk.enhanced.dynamodb.model.IgnoreNullsMode;
  * <p>Null top-level attributes are skipped with {@code SCALAR_ONLY} or {@code MAPS_ONLY} and removed with {@code DEFAULT}.
  * A null field inside an object written as one map can be stored as DynamoDB {@code NULL}. A stored {@code NULL} is considered
  * present by {@link UpdateBehavior#WRITE_IF_NOT_EXISTS}.
- * <p>With {@code SCALAR_ONLY}, top-level attribute names and keys in maps being flattened must not contain the reserved marker
- * {@code _NESTED_ATTR_UPDATE_}. Such names cause an {@link IllegalArgumentException} while preparing the update.
+ * <p>With {@code SCALAR_ONLY}, top-level attribute names and keys in maps being flattened must not be null or empty and must not
+ * contain the reserved marker {@code _NESTED_ATTR_UPDATE_}. Such names cause an {@link IllegalArgumentException} while
+ * preparing the update.
  */
 @SdkPublicApi
 @Target({ElementType.METHOD})
