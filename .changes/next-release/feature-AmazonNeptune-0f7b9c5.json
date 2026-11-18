@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Neptune",
-    "contributor": "",
-    "description": "Neptune Database Serverless support for graviton3 based r8g instances."
-}

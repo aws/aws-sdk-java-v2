@@ -1,4 +1,78 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.59.4__ __2026-11-18__
+## __AWS Abuse Signal API__
+  - ### Features
+    - This release introduces the AWS Abuse Signal API, enabling customers to programmatically submit and track AWS abuse reports.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Adds support for populating intermediate tables with results from PySpark analysis templates.
+
+## __AWS CloudFormation__
+  - ### Features
+    - AWS CloudFormation StackSets now provides stage-by-stage progress for deployments that span thousands of accounts and AWS Regions, which enables you to see where each deployment stands while it runs
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Adds resource tags functionality to the AWS Health service
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Adds MaxSignInSessionDuration to IAM Roles and Login Profiles, allowing customers to configure the maximum Console sign-in session duration per principal. Affects CreateRole, UpdateRole, GetRole and LoginProfile APIs.
+
+## __AWS Resilience Hub V2__
+  - ### Features
+    - This release includes support for adding new field for the effective policy used in test runs and documentation updates.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Split the `afterTransmission` and `modifyHttpResponse` interceptor hooks into separate steps. If `modifyHttpResponse` throws, `modifyException` and `onExecutionFailure` now receive the HTTP response.
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Agent__
+  - ### Features
+    - This release adds support for resuming a paused penetration test job from its last saved checkpoint.
+
+## __AWS Sign-In Service__
+  - ### Features
+    - These APIs enable customers and administrators to list, view, and revoke AWS Sign-In Sessions programmatically using the AWS CLI and SDKs, providing greater visibility and control over authenticated access.
+
+## __AWS Support__
+  - ### Features
+    - Updated endpoint resolution for AWS Support, including FIPS and dual-stack endpoints.
+
+## __AWS WAFV2__
+  - ### Features
+    - Adds the AnalyticsConfig parameter to CreateWebACL and UpdateWebACL to enable or disable cross-Region security analytics for a WebACL. When you enable security analytics, you authorize AWS to transfer and store full request logs outside the AWS Region where the WebACL is hosted.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds s3BucketMount to mount an Amazon S3 bucket as a file system in AgentCore Runtime, with an optional per-session key prefix and adds operatingSystemConfiguration with a Linux privilegeMode (STANDARD or PRIVILEGED) to the capacity provider configuration
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add support for restoring user pool's user data to point in time.
+
+## __Amazon Neptune__
+  - ### Features
+    - Neptune Database Serverless support for graviton3 based r8g instances.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release adds support for Spillover Routing in Amazon SES.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adds exclusions and Multi-Region key resolution to S3 Replication. Rule filters support a Not element to exclude prefixes and object tags. Destination EncryptionConfiguration supports UseSourceMultiRegionKey to encrypt replicas with the related replica KMS multi-Region key in the destination Region.
+
+## __Braket__
+  - ### Features
+    - Supporting a new PAUSED device status and a DeviceStatusReason.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for the keyExchange field in CloudTrail tlsDetails, enabling customers to distinguish classical from post-quantum hybrid key exchange for TLS connections on Application Load Balancers.
+
 # __2.59.3__ __2026-11-17__
 ## __AWS Billing__
   - ### Features
