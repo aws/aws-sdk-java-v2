@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.smithy.build;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,7 +32,7 @@ class AwsSdkJavaCodegenSettingsTest {
     void emptySettings_hasNoCustomizationConfig() {
         AwsSdkJavaCodegenSettings settings = AwsSdkJavaCodegenSettings.fromNode(Node.objectNode());
 
-        assertThat(settings.customizationConfig()).isNull();
+        assertThat(settings.clients().get(0).customizationConfig()).isNull();
     }
 
     @Test
@@ -39,7 +40,7 @@ class AwsSdkJavaCodegenSettingsTest {
         AwsSdkJavaCodegenSettings settings = AwsSdkJavaCodegenSettings.fromNode(settings(
             AwsSdkJavaCodegenSettings.CUSTOMIZATION_CONFIG, "config/customization.config"));
 
-        assertThat(settings.customizationConfig()).isEqualTo(Paths.get("config/customization.config"));
+        assertThat(settings.clients().get(0).customizationConfig()).isEqualTo(Paths.get("config/customization.config"));
     }
 
     @Test
@@ -49,7 +50,7 @@ class AwsSdkJavaCodegenSettingsTest {
             AwsSdkJavaCodegenSettings.BASE_DIR, baseDir.toString(),
             AwsSdkJavaCodegenSettings.CUSTOMIZATION_CONFIG, "config/customization.config"));
 
-        assertThat(settings.customizationConfig()).isEqualTo(baseDir.resolve("config/customization.config"));
+        assertThat(settings.clients().get(0).customizationConfig()).isEqualTo(baseDir.resolve("config/customization.config"));
     }
 
     @Test
@@ -69,6 +70,38 @@ class AwsSdkJavaCodegenSettingsTest {
         return Node.objectNodeBuilder()
                    .withMember(firstKey, firstValue)
                    .withMember(secondKey, secondValue)
+                   .build();
+    }
+
+    @Test
+    void clients_resolveEachCustomizationConfigAgainstBaseDir() {
+        Path baseDir = Paths.get("/service/module");
+        AwsSdkJavaCodegenSettings settings = AwsSdkJavaCodegenSettings.fromNode(Node.objectNodeBuilder()
+            .withMember(AwsSdkJavaCodegenSettings.BASE_DIR, baseDir.toString())
+            .withMember(AwsSdkJavaCodegenSettings.CLIENTS, Node.arrayNode(
+                client("demo#Service", "demo.config"), client("demostreams#Service", "streams.config")))
+            .build());
+
+        assertThat(settings.clients()).extracting(c -> c.service().toString(), c -> c.customizationConfig())
+                                      .containsExactly(tuple("demo#Service", baseDir.resolve("demo.config")),
+                                                       tuple("demostreams#Service", baseDir.resolve("streams.config")));
+    }
+
+    @Test
+    void clientsWithPluginCustomizationConfig_fails() {
+        assertThatThrownBy(() -> AwsSdkJavaCodegenSettings.fromNode(Node.objectNodeBuilder()
+            .withMember(AwsSdkJavaCodegenSettings.CUSTOMIZATION_CONFIG, "demo.config")
+            .withMember(AwsSdkJavaCodegenSettings.CLIENTS, Node.arrayNode(
+                client("demo#Service", "demo.config"), client("demostreams#Service", "streams.config")))
+            .build()))
+            .isInstanceOf(ExpectationNotMetException.class)
+            .hasMessageContaining("Set 'customizationConfig' on each entry of 'clients'");
+    }
+
+    private static ObjectNode client(String service, String customizationConfig) {
+        return Node.objectNodeBuilder()
+                   .withMember(AwsSdkJavaCodegenSettings.SERVICE, service)
+                   .withMember(AwsSdkJavaCodegenSettings.CUSTOMIZATION_CONFIG, customizationConfig)
                    .build();
     }
 }
