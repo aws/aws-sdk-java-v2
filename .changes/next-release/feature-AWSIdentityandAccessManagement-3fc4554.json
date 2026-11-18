@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Identity and Access Management",
+    "contributor": "",
+    "description": "Adds MaxSignInSessionDuration to IAM Roles and Login Profiles, allowing customers to configure the maximum Console sign-in session duration per principal. Affects CreateRole, UpdateRole, GetRole and LoginProfile APIs."
+}
