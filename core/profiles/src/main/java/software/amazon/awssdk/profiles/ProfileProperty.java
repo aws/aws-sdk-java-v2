@@ -155,6 +155,11 @@ public final class ProfileProperty {
      */
     public static final String SSO_START_URL = "sso_start_url";
 
+    /**
+     * The name of the {@code sso-session} section that holds the SSO settings for a profile.
+     */
+    public static final String SSO_SESSION = "sso_session";
+
     public static final String USE_DUALSTACK_ENDPOINT = "use_dualstack_endpoint";
 
     public static final String AUTH_SCHEME_PREFERENCE = "auth_scheme_preference";

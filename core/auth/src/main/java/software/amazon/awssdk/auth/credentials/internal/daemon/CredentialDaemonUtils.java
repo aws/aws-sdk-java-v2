@@ -26,7 +26,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.CredentialDaemonException;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileProperty;
-import software.amazon.awssdk.profiles.internal.ProfileSection;
 
 /**
  * Static helpers for the credential daemon provider.
@@ -87,7 +86,7 @@ public final class CredentialDaemonUtils {
      * Returns whether the profile properties configure SSO, with {@code sso_session} or {@code sso_start_url}.
      */
     public static boolean isSsoProfile(Map<String, String> properties) {
-        return properties.containsKey(ProfileSection.SSO_SESSION.getPropertyKeyName())
+        return properties.containsKey(ProfileProperty.SSO_SESSION)
                || properties.containsKey(ProfileProperty.SSO_START_URL);
     }
 
