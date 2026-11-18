@@ -53,6 +53,10 @@ public final class CrtUtils {
      * Corresponds to CRT error: AWS_ERROR_HTTP_STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED
      */
     public static final int CRT_STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED = 2096;
+    /**
+     * Corresponds to CRT error: AWS_ERROR_HTTP_STREAM_MANAGER_ACQUISITION_TIMEOUT
+     */
+    public static final int CRT_STREAM_MANAGER_ACQUISITION_TIMEOUT = 2097;
 
     /**
      * Message for a request rejected because the endpoint's pending acquisitions reached
@@ -71,6 +75,23 @@ public final class CrtUtils {
         + "used by the process. If you are already fully utilizing your network interface or cannot further increase "
         + "maxConcurrency, increasing maxPendingConnectionAcquires allows extra requests to be buffered by the client, "
         + "but can cause additional request latency and higher memory usage.\n"
+
+        + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
+        + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
+        + "AWS, or by increasing the number of hosts sending requests.";
+
+    private static final String STREAM_ACQUISITION_TIMEOUT_MESSAGE =
+        "Acquire operation took longer than the configured maximum time. This indicates that a request cannot get a "
+        + "connection or stream from the pool within connectionAcquisitionTimeout. This can be due to high request rate.\n"
+
+        + "Consider taking any of the following actions to mitigate the issue: increase maxConcurrency, "
+        + "increase connectionAcquisitionTimeout, or slow the request rate.\n"
+
+        + "Increasing maxConcurrency can increase client throughput (unless the network interface is already fully "
+        + "utilized), but can eventually start to hit operating system limitations on the number of file descriptors "
+        + "used by the process. If you are already fully utilizing your network interface or cannot further increase "
+        + "maxConcurrency, increasing connectionAcquisitionTimeout gives requests more time to acquire a connection or "
+        + "stream before timing out. If connections and streams don't free up, later requests will still time out.\n"
 
         + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
         + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
@@ -140,11 +161,11 @@ public final class CrtUtils {
             return wrapWithIoExceptionIfRetryable((HttpException) throwable);
         }
 
-        // The HTTP/2 stream manager reports its over-limit rejection as a CrtRuntimeException. Handle it like the HTTP/1.1
-        // rejection, instead of wrapping it in the retryable IOException below.
-        if (throwable instanceof CrtRuntimeException
-            && ((CrtRuntimeException) throwable).errorCode == CRT_STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED) {
-            return maxPendingAcquisitionsExceeded(throwable);
+        if (throwable instanceof CrtRuntimeException) {
+            IllegalStateException nonRetryable = nonRetryableStreamManagerError((CrtRuntimeException) throwable);
+            if (nonRetryable != null) {
+                return nonRetryable;
+            }
         }
 
         if (throwable instanceof IllegalStateException || throwable instanceof CrtRuntimeException) {
@@ -153,6 +174,25 @@ public final class CrtUtils {
         }
 
         return throwable;
+    }
+
+    /**
+     * Maps the HTTP/2 stream manager errors that the SDK does not retry. The CRT reports them as a
+     * {@link CrtRuntimeException}, which {@link #wrapCrtException} would otherwise wrap in a retryable {@link IOException}.
+     *
+     * @param crtException the CRT exception from the HTTP/2 stream manager
+     * @return the {@link IllegalStateException} to surface, with the CRT exception as its cause, or {@code null} if the error
+     * is not one of them
+     */
+    private static IllegalStateException nonRetryableStreamManagerError(CrtRuntimeException crtException) {
+        switch (crtException.errorCode) {
+            case CRT_STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED:
+                return maxPendingAcquisitionsExceeded(crtException);
+            case CRT_STREAM_MANAGER_ACQUISITION_TIMEOUT:
+                return new IllegalStateException(STREAM_ACQUISITION_TIMEOUT_MESSAGE, crtException);
+            default:
+                return null;
+        }
     }
 
     /**

@@ -111,9 +111,9 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
          * immediately instead of waiting.
          *
          * <p>
-         * By default (when this is not set), the number of waiting requests is not limited. This differs from
-         * {@code NettyNioAsyncHttpClient}, whose default is 10,000. To keep the Netty behavior when migrating, set this to
-         * 10,000 explicitly.
+         * By default (when this is not set), the number of waiting requests is not limited; how long each request may wait is
+         * controlled by {@link #connectionAcquisitionTimeout(Duration)}. This differs from {@code NettyNioAsyncHttpClient},
+         * whose default is 10,000. To keep the Netty behavior when migrating, set this to 10,000 explicitly.
          *
          * @param maxPendingConnectionAcquires the maximum number of waiting requests per endpoint; must be positive, or
          *                                     {@code null} to remove the limit (the default)
@@ -218,7 +218,10 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         AwsCrtAsyncHttpClient.Builder connectionTimeout(Duration connectionTimeout);
 
         /**
-         * The amount of time to wait when acquiring a connection from the pool before giving up and timing out.
+         * The amount of time to wait when acquiring a connection from the pool before giving up and timing out. For HTTP/2,
+         * this bounds both the wait for a new connection and the wait for a stream when all {@link #maxConcurrency(Integer)}
+         * streams are in use. The default is 10 seconds.
+         *
          * @param connectionAcquisitionTimeout the timeout duration
          * @return this builder for method chaining.
          */
