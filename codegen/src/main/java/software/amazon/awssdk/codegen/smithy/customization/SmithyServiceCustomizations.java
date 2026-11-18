@@ -22,7 +22,9 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.smithy.customization.apigateway.ApiGatewayCustomizations;
 import software.amazon.awssdk.codegen.smithy.customization.cloudwatch.CloudWatchCustomizations;
+import software.amazon.awssdk.codegen.smithy.customization.pagesize.PageSizeCustomizations;
 import software.amazon.awssdk.codegen.smithy.customization.s3.S3Customizations;
+import software.amazon.awssdk.codegen.smithy.customization.s3control.S3ControlCustomizations;
 import software.amazon.awssdk.codegen.smithy.customization.shapename.ShapeNameCustomizations;
 import software.amazon.smithy.aws.traits.ServiceTrait;
 import software.amazon.smithy.model.shapes.ServiceShape;
@@ -39,6 +41,8 @@ public final class SmithyServiceCustomizations {
 
     private static List<SmithyServiceCustomization> all() {
         List<SmithyServiceCustomization> all = new ArrayList<>(S3Customizations.all());
+        all.addAll(S3ControlCustomizations.all());
+        all.addAll(PageSizeCustomizations.all());
         all.addAll(CloudWatchCustomizations.all());
         all.addAll(ShapeNameCustomizations.all());
         all.addAll(ApiGatewayCustomizations.all());
