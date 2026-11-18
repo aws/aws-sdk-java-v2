@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Clean Rooms Service",
+    "contributor": "",
+    "description": "Adds support for populating intermediate tables with results from PySpark analysis templates."
+}
