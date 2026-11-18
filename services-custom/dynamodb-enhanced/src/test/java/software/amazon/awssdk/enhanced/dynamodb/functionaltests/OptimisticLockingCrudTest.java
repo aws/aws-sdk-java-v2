@@ -123,7 +123,8 @@ public class OptimisticLockingCrudTest extends LocalDynamoDbSyncTestBase {
                                              .tags(versionAttribute()))
                          .build();
 
-    private static final TableSchema<VersionedRecordWithDeleteOptimisticLocking> VERSIONED_RECORD_WITH_DELETE_LOCKING_TABLE_SCHEMA =
+    private static final TableSchema<VersionedRecordWithDeleteOptimisticLocking>
+        VERSIONED_RECORD_WITH_DELETE_LOCKING_TABLE_SCHEMA =
         StaticTableSchema.builder(VersionedRecordWithDeleteOptimisticLocking.class)
                          .newItemSupplier(VersionedRecordWithDeleteOptimisticLocking::new)
                          .addAttribute(String.class,
@@ -232,7 +233,7 @@ public class OptimisticLockingCrudTest extends LocalDynamoDbSyncTestBase {
     // 3. deleteItem(T item) on Versioned record with useVersionOnDelete=false (default), with stale version
     // -> Optimistic Locking is not applied -> unconditionally deletes the record
     @Test
-    public void deleteItem_onVersionedRecordWithoutDeleteLockingAndStaleVersion_skipsOptimisticLockingAndUnconditionallyDeletes() {
+    public void deleteItem_onVersionedRecordWithoutDeleteLockingAndStaleVersion_deletesItem() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -898,7 +899,7 @@ public class OptimisticLockingCrudTest extends LocalDynamoDbSyncTestBase {
     // 27. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions match + custom condition not respected
     // -> Optimistic Locking is applied -> does not delete the record because of the failing custom condition
     @Test
-    public void transactDeleteItemWithRequest_whenOptimisticLockingConditionRespected_butCustomConditionFails_doesNotDeleteTheRecord() {
+    public void transactDeleteItemWithRequest_whenLockHoldsAndCustomConditionFails_doesNotDeleteTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 

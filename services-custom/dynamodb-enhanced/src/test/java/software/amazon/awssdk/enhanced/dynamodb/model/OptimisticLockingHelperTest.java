@@ -26,6 +26,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.conditionallyApplyOptimisticLocking;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.createVersionCondition;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.getVersionAttributeName;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.mergeConditions;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.optimisticLocking;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
@@ -408,6 +409,162 @@ public class OptimisticLockingHelperTest {
             entry("#AMZN_MAPPED_version", "version"));
         assertThat(result.conditionExpression().expressionValues()).containsExactly(
             entry(":AMZN_MAPPED_version", AttributeValue.builder().n("1").build()));
+    }
+
+    @Test
+    public void conditionallyApplyOptimisticLocking_whenUseVersionOnDeleteMetadataIsNull_doesNotLock() {
+        TableSchema<OptimisticLockingTestItem> schema =
+            StaticTableSchema.builder(OptimisticLockingTestItem.class)
+                             .newItemSupplier(OptimisticLockingTestItem::new)
+                             .addAttribute(String.class,
+                                           a -> a.name("id")
+                                                 .getter(OptimisticLockingTestItem::getId)
+                                                 .setter(OptimisticLockingTestItem::setId)
+                                                 .addTag(primaryPartitionKey()))
+                             .addAttribute(Long.class,
+                                           a -> a.name("version")
+                                                 .getter(OptimisticLockingTestItem::getVersion)
+                                                 .setter(OptimisticLockingTestItem::setVersion)
+                                                 .addTag(versionAttribute()))
+                             .build();
+
+        assertThat(schema.tableMetadata().customMetadata())
+            .containsKey("VersionedRecordExtension:UseVersionOnDelete");
+        assertThat(schema.tableMetadata().customMetadata().get("VersionedRecordExtension:UseVersionOnDelete")).isNull();
+        assertThat(schema.tableMetadata().customMetadataObject("VersionedRecordExtension:UseVersionOnDelete", Boolean.class))
+            .isEmpty();
+
+        OptimisticLockingTestItem item = new OptimisticLockingTestItem();
+        item.setId("id");
+        item.setVersion(1L);
+        DeleteItemEnhancedRequest result = conditionallyApplyOptimisticLocking(
+            DeleteItemEnhancedRequest.builder().key(Key.builder().partitionValue("id").build()), item, schema);
+
+        assertThat(result.conditionExpression()).isNull();
+    }
+
+    @Test
+    public void mergeConditions_whenInitialConditionIsNull_returnsVersionCondition() {
+        Expression versionCondition = createVersionCondition(AttributeValue.builder().n("4").build(), "version");
+
+        assertThat(mergeConditions(null, versionCondition)).isEqualTo(versionCondition);
+    }
+
+    @Test
+    public void optimisticLocking_whenCalledTwice_replacesVersionCondition() {
+        DeleteItemEnhancedRequest request =
+            DeleteItemEnhancedRequest.builder()
+                                     .key(Key.builder().partitionValue("id").build())
+                                     .optimisticLocking(AttributeValue.builder().n("1").build(), "version")
+                                     .optimisticLocking(AttributeValue.builder().n("4").build(), "version")
+                                     .build();
+
+        assertThat(request.conditionExpression().expressionValues())
+            .containsExactly(entry(":AMZN_MAPPED_version", AttributeValue.builder().n("4").build()));
+    }
+
+    @Test
+    public void optimisticLocking_whenCalledBeforeConditionExpression_andMergesBoth() {
+        AttributeValue versionValue = AttributeValue.builder().n("1").build();
+        AttributeValue keep = AttributeValue.builder().s("keep").build();
+        Expression callerCondition = Expression.builder()
+                                               .expression("#note = :note")
+                                               .expressionNames(Collections.singletonMap("#note", "note"))
+                                               .expressionValues(Collections.singletonMap(":note", keep))
+                                               .build();
+
+        DeleteItemEnhancedRequest request =
+            DeleteItemEnhancedRequest.builder()
+                                     .key(Key.builder().partitionValue("id").build())
+                                     .optimisticLocking(versionValue, "version")
+                                     .conditionExpression(callerCondition)
+                                     .build();
+
+        assertThat(request.conditionExpression().expression())
+            .isEqualTo("(#note = :note) AND (#AMZN_MAPPED_version = :AMZN_MAPPED_version)");
+        assertThat(request.conditionExpression().expressionNames())
+            .containsEntry("#note", "note")
+            .containsEntry("#AMZN_MAPPED_version", "version");
+    }
+
+    @Test
+    public void optimisticLocking_whenCalledBeforeConditionExpressionOnTransactDelete_andMergesBoth() {
+        AttributeValue versionValue = AttributeValue.builder().n("2").build();
+        AttributeValue keep = AttributeValue.builder().s("keep").build();
+        Expression callerCondition = Expression.builder()
+                                               .expression("#note = :note")
+                                               .expressionNames(Collections.singletonMap("#note", "note"))
+                                               .expressionValues(Collections.singletonMap(":note", keep))
+                                               .build();
+
+        TransactDeleteItemEnhancedRequest request =
+            TransactDeleteItemEnhancedRequest.builder()
+                                             .key(Key.builder().partitionValue("id").build())
+                                             .optimisticLocking(versionValue, "version")
+                                             .conditionExpression(callerCondition)
+                                             .build();
+
+        assertThat(request.conditionExpression().expression())
+            .isEqualTo("(#note = :note) AND (#AMZN_MAPPED_version = :AMZN_MAPPED_version)");
+    }
+
+    @Test
+    public void optimisticLocking_whenVersionNameIsBlank_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> DeleteItemEnhancedRequest.builder()
+                                                          .optimisticLocking(AttributeValue.builder().n("1").build(), "  ")
+                                                          .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Version attribute name must not be null or empty.");
+
+        assertThatThrownBy(() -> TransactDeleteItemEnhancedRequest.builder()
+                                                                  .optimisticLocking(AttributeValue.builder().n("1").build(), "")
+                                                                  .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Version attribute name must not be null or empty.");
+    }
+
+    @Test
+    public void optimisticLocking_whenVersionValueIsNull_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> DeleteItemEnhancedRequest.builder()
+                                                          .optimisticLocking(null, "version")
+                                                          .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Version value must not be null or empty.");
+    }
+
+    @Test
+    public void optimisticLocking_whenVersionNumberIsNull_throwsIllegalArgumentException() {
+        AttributeValue stringVersion = AttributeValue.builder().s("1").build();
+
+        assertThatThrownBy(() -> DeleteItemEnhancedRequest.builder()
+                                                          .optimisticLocking(stringVersion, "version")
+                                                          .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Version value must not be null or empty.");
+
+        assertThatThrownBy(() -> TransactDeleteItemEnhancedRequest.builder()
+                                                                  .optimisticLocking(AttributeValue.builder().n("  ").build(),
+                                                                                     "version")
+                                                                  .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Version value must not be null or empty.");
+    }
+
+    @Test
+    public void optimisticLocking_whenCallerReusesVersionToken_throwsIllegalArgumentException() {
+        AttributeValue otherVersion = AttributeValue.builder().n("9").build();
+        Expression callerCondition = Expression.builder()
+                                               .expression("#AMZN_MAPPED_version = :AMZN_MAPPED_version")
+                                               .expressionNames(Collections.singletonMap("#AMZN_MAPPED_version", "other"))
+                                               .expressionValues(Collections.singletonMap(":AMZN_MAPPED_version", otherVersion))
+                                               .build();
+
+        assertThatThrownBy(() -> DeleteItemEnhancedRequest.builder()
+                                                          .conditionExpression(callerCondition)
+                                                          .optimisticLocking(AttributeValue.builder().n("1").build(), "version")
+                                                          .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("conflicting");
     }
 
     private static class OptimisticLockingTestItem {

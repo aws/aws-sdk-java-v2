@@ -56,13 +56,7 @@ public final class OptimisticLockingHelper {
     public static DeleteItemEnhancedRequest optimisticLocking(DeleteItemEnhancedRequest.Builder requestBuilder,
                                                               AttributeValue versionValue, String versionAttributeName) {
 
-        Expression mergedCondition = mergeConditions(
-            requestBuilder.build().conditionExpression(),
-            createVersionCondition(versionValue, versionAttributeName));
-
-        return requestBuilder
-            .conditionExpression(mergedCondition)
-            .build();
+        return requestBuilder.optimisticLocking(versionValue, versionAttributeName).build();
     }
 
     /**
@@ -79,13 +73,7 @@ public final class OptimisticLockingHelper {
     public static TransactDeleteItemEnhancedRequest optimisticLocking(TransactDeleteItemEnhancedRequest.Builder requestBuilder,
                                                                       AttributeValue versionValue, String versionAttributeName) {
 
-        Expression mergedCondition = mergeConditions(
-            requestBuilder.build().conditionExpression(),
-            createVersionCondition(versionValue, versionAttributeName));
-
-        return requestBuilder
-            .conditionExpression(mergedCondition)
-            .build();
+        return requestBuilder.optimisticLocking(versionValue, versionAttributeName).build();
     }
 
     /**

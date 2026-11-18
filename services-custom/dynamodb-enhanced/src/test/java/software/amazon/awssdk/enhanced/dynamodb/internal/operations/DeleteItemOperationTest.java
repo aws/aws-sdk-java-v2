@@ -53,6 +53,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Delete;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.DeleteRequest;
+import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
@@ -564,5 +566,28 @@ public class DeleteItemOperationTest {
                                                             .build();
         assertThat(actualResult).isEqualTo(expectedResult);
         verify(deleteItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
+    }
+
+    @Test
+    public void generateWriteRequest_whenConditionIsSet_copiesKeyOnly() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        AttributeValue version = AttributeValue.builder().n("1").build();
+        DeleteItemOperation<FakeItem> operation =
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
+                                                                .key(k -> k.partitionValue(fakeItem.getId()))
+                                                                .optimisticLocking(version, "version")
+                                                                .build());
+
+        DeleteItemRequest deleteItemRequest = operation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+        WriteRequest writeRequest = operation.generateWriteRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+
+        Map<String, AttributeValue> expectedKey = new HashMap<>();
+        expectedKey.put("id", AttributeValue.builder().s(fakeItem.getId()).build());
+        WriteRequest expected = WriteRequest.builder()
+                                            .deleteRequest(DeleteRequest.builder().key(expectedKey).build())
+                                            .build();
+
+        assertThat(deleteItemRequest.conditionExpression()).contains("version");
+        assertThat(writeRequest).isEqualTo(expected);
     }
 }

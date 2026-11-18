@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Adds opt-in optimistic locking for Enhanced Client delete operations. Delete stays unconditional unless useVersionOnDelete is true or the delete request sets optimisticLocking. A caller condition is combined with the version condition."
+}

@@ -152,6 +152,9 @@ public final class WriteBatch {
 
         /**
          * Adds a DeleteItem request to the builder.
+         * <p>
+         * Only the key of {@code keyItem} is used. This does not apply optimistic locking, including when the schema sets
+         * {@code useVersionOnDelete}. Batch writes cannot carry a condition.
          *
          * @param keyItem an item that will have its key fields used to match a record to delete from the database.
          * @return a builder of this type

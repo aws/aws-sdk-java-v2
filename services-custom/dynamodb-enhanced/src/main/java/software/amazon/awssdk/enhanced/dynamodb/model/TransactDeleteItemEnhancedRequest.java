@@ -49,7 +49,7 @@ public final class TransactDeleteItemEnhancedRequest {
 
     private TransactDeleteItemEnhancedRequest(Builder builder) {
         this.key = builder.key;
-        this.conditionExpression = builder.conditionExpression;
+        this.conditionExpression = mergeConditions(builder.conditionExpression, builder.versionCondition);
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
 
@@ -148,6 +148,7 @@ public final class TransactDeleteItemEnhancedRequest {
     public static final class Builder {
         private Key key;
         private Expression conditionExpression;
+        private Expression versionCondition;
         private String returnValuesOnConditionCheckFailure;
 
         private Builder() {
@@ -222,17 +223,17 @@ public final class TransactDeleteItemEnhancedRequest {
         /**
          * Adds optimistic locking to this transactional delete request.
          * <p>
-         * If a {@link #conditionExpression(Expression)} was already set, this will combine it with the optimistic locking
-         * condition using {@code AND}. If either expression has conflicting name/value tokens, {@link Expression#join} will throw
-         * {@link IllegalArgumentException}.
+         * The version condition is combined with {@link #conditionExpression(Expression)} using {@code AND} when the request is
+         * built, whichever method is called first. Calling this method again replaces the version condition. Calling
+         * {@code conditionExpression} again replaces the caller condition and keeps the version condition. If the expressions use
+         * conflicting name or value tokens, {@link Expression#join} throws {@link IllegalArgumentException}.
          *
          * @param versionValue         the expected version value that must match for the deletion to succeed
          * @param versionAttributeName the name of the version attribute in the DynamoDB table
-         * @return a builder of this type with optimistic locking condition applied (and merged if needed)
+         * @return a builder of this type
          */
         public Builder optimisticLocking(AttributeValue versionValue, String versionAttributeName) {
-            Expression optimisticLockingCondition = createVersionCondition(versionValue, versionAttributeName);
-            this.conditionExpression = mergeConditions(this.conditionExpression, optimisticLockingCondition);
+            this.versionCondition = createVersionCondition(versionValue, versionAttributeName);
             return this;
         }
 
