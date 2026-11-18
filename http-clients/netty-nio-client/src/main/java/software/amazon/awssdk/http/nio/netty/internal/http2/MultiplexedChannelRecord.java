@@ -67,6 +67,7 @@ public class MultiplexedChannelRecord {
     // Only write in the connection.eventLoop()
     private volatile RecordState state = RecordState.OPEN;
 
+    // Stored so a failed stream acquire can report why this connection takes no new streams.
     private volatile String closedToNewReason;
 
     MultiplexedChannelRecord(Channel connection, long maxConcurrencyPerConnection, Duration allowedIdleConnectionTime,
@@ -187,7 +188,8 @@ public class MultiplexedChannelRecord {
                 return;
             }
 
-            // A GOAWAY reason replaces an earlier I/O error reason.
+            // A server can send more than one GOAWAY, and each later one can lower the Last Stream ID. Setting the
+            // reason on every GOAWAY keeps the current Last Stream ID in the acquire failure message.
             closedToNewReason = "received GOAWAY with Last Stream ID " + lastStreamId;
 
             if (state == RecordState.OPEN) {

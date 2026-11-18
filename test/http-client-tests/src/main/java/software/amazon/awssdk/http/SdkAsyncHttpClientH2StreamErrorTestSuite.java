@@ -13,12 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.nio.netty.fault;
+package software.amazon.awssdk.http;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
@@ -44,12 +43,10 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
-import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.util.AttributeKey;
 import io.reactivex.Flowable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,35 +64,42 @@ import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.http.EmptyPublisher;
-import software.amazon.awssdk.http.Protocol;
-import software.amazon.awssdk.http.ProtocolNegotiation;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
-import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
-import software.amazon.awssdk.utils.AttributeMap;
 
 /**
- * A read timeout on one HTTP/2 stream must not end the other streams on its connection. The connection takes no new
- * streams and closes after its last stream ends. Closing the client fails the streams still in flight with an
- * IOException. Uses TLS with ALPN, the default for H2 service clients.
+ * Reusable suite for HTTP/2 stream errors on an async HTTP client. A read timeout on one HTTP/2 stream must not end the
+ * other streams on its connection. The connection takes no new streams and closes after its last stream ends. Closing the
+ * client fails the streams still in flight with an IOException. Uses TLS with ALPN, the default for H2 service clients.
+ *
+ * <p>Each async HTTP client module subclasses this and provides its client via {@link #createH2Client(int, Duration)}. A
+ * client that does not support a tested behavior overrides that test with an empty body.
  */
 @EnabledIf("alpnSupported")
-public class Http2StreamIoErrorTest {
+public abstract class SdkAsyncHttpClientH2StreamErrorTestSuite {
     private static final String REQUEST_ID = "x-request-id";
     private static final int FRAME_COUNT = 20;
     private static final int FRAME_BYTES = 10;
+    private static final Duration READ_TIMEOUT = Duration.ofSeconds(1);
     private static final Duration WAIT = Duration.ofSeconds(5);
 
     private final Server server = new Server();
-    private SdkEventLoopGroup clientEventLoopGroup;
     private SdkAsyncHttpClient client;
+
+    /**
+     * Creates a client that uses HTTP/2 over TLS with ALPN, trusts all certificates, and allows at least 10 streams per
+     * connection.
+     *
+     * @param eventLoopThreads the number of event loop threads the client uses
+     * @param readTimeout the read timeout, for clients that support one
+     */
+    protected abstract SdkAsyncHttpClient createH2Client(int eventLoopThreads, Duration readTimeout);
+
+    /**
+     * Returns the exception the underlying HTTP library raises when a stream hits the read timeout.
+     */
+    protected abstract Class<? extends Exception> expectedReadTimeoutCause();
 
     @BeforeEach
     public void setup() throws Exception {
@@ -106,10 +110,6 @@ public class Http2StreamIoErrorTest {
     public void teardown() {
         if (client != null) {
             client.close();
-        }
-        if (clientEventLoopGroup != null) {
-            clientEventLoopGroup.eventLoopGroup().shutdownGracefully(0, 1, TimeUnit.SECONDS)
-                                .awaitUninterruptibly(10, TimeUnit.SECONDS);
         }
         server.shutdown();
     }
@@ -142,8 +142,8 @@ public class Http2StreamIoErrorTest {
     }
 
     @Test
-    public void close_withStreamsInFlight_shouldFailStreamsWithIOException() {
-        initClient(3);
+    public void close_withStreamsInFlight_shouldFailStreamsWithIoException() {
+        client = createH2Client(3, READ_TIMEOUT);
         assertThat(send("/quick", "warmup").execute).succeedsWithin(WAIT);
         List<Call> streams = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
@@ -160,7 +160,7 @@ public class Http2StreamIoErrorTest {
                                       .withThrowableOfType(ExecutionException.class)
                                       .withCauseInstanceOf(IOException.class)
                                       .withMessageContaining("An error occurred on the connection")
-                                      .withRootCauseInstanceOf(ClosedChannelException.class);
+                                      .withMessageContaining("The HTTP client closed the connection");
             assertThat(stream.bodyError).as("%s body error", stream.requestId)
                                         .isInstanceOf(IOException.class)
                                         .hasMessageContaining("An error occurred on the connection");
@@ -173,7 +173,7 @@ public class Http2StreamIoErrorTest {
      * read timeout. Returns the siblings, still streaming.
      */
     private List<Call> streamSiblingsAndTimeOutStall(int eventLoopThreads) {
-        initClient(eventLoopThreads);
+        client = createH2Client(eventLoopThreads, READ_TIMEOUT);
         // One request first: concurrent first requests can each open a connection.
         assertThat(send("/quick", "warmup").execute).succeedsWithin(WAIT);
         List<Call> siblings = new ArrayList<>();
@@ -187,7 +187,7 @@ public class Http2StreamIoErrorTest {
         assertThat(stall.execute).failsWithin(WAIT)
                                  .withThrowableOfType(ExecutionException.class)
                                  .withMessageContaining("Read timed out")
-                                 .withRootCauseInstanceOf(ReadTimeoutException.class);
+                                 .withRootCauseInstanceOf(expectedReadTimeoutCause());
         return siblings;
     }
 
@@ -196,17 +196,6 @@ public class Http2StreamIoErrorTest {
             assertThat(sibling.execute).as(sibling.requestId).succeedsWithin(WAIT);
             assertThat(sibling.bodyBytes).as("%s body bytes", sibling.requestId).hasValue(FRAME_COUNT * FRAME_BYTES);
         }
-    }
-
-    private void initClient(int eventLoopThreads) {
-        clientEventLoopGroup = SdkEventLoopGroup.builder().numberOfThreads(eventLoopThreads).build();
-        client = NettyNioAsyncHttpClient.builder()
-                                        .protocol(Protocol.HTTP2)
-                                        .protocolNegotiation(ProtocolNegotiation.ALPN)
-                                        .readTimeout(Duration.ofSeconds(1))
-                                        .http2Configuration(b -> b.maxStreams(10L))
-                                        .eventLoopGroup(clientEventLoopGroup)
-                                        .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
     }
 
     private Call send(String path, String requestId) {
@@ -228,11 +217,11 @@ public class Http2StreamIoErrorTest {
     }
 
     private static boolean alpnSupported() {
-        return NettyUtils.isAlpnSupported(SslProvider.JDK);
+        return SslProvider.isAlpnSupported(SslProvider.JDK);
     }
 
     /**
-     * Counts body bytes, not onNext calls, because Netty may coalesce DATA frames.
+     * Counts body bytes, not onNext calls, because a client may coalesce DATA frames.
      */
     private static final class Call implements SdkAsyncHttpResponseHandler {
         private final String requestId;
@@ -252,13 +241,15 @@ public class Http2StreamIoErrorTest {
 
         @Override
         public void onStream(Publisher<ByteBuffer> stream) {
-            Flowable.fromPublisher(stream).subscribe(b -> {
-                                                         if (bodyBytes.addAndGet(b.remaining()) >= FRAME_BYTES) {
-                                                             firstFrameReceived.complete(null);
-                                                         }
-                                                     },
+            Flowable.fromPublisher(stream).subscribe(this::onBody,
                                                      t -> bodyError = t,
                                                      () -> bodyCompletedNanos = System.nanoTime());
+        }
+
+        private void onBody(ByteBuffer b) {
+            if (bodyBytes.addAndGet(b.remaining()) >= FRAME_BYTES) {
+                firstFrameReceived.complete(null);
+            }
         }
 
         @Override
@@ -273,7 +264,7 @@ public class Http2StreamIoErrorTest {
      */
     private static final class Server extends ChannelInitializer<Channel> {
         private static final AttributeKey<Integer> CONNECTION_INDEX =
-            AttributeKey.valueOf(Http2StreamIoErrorTest.class.getName() + ".CONNECTION_INDEX");
+            AttributeKey.valueOf(SdkAsyncHttpClientH2StreamErrorTestSuite.class.getName() + ".CONNECTION_INDEX");
 
         private final NioEventLoopGroup group = new NioEventLoopGroup();
         private final AtomicInteger connectionCount = new AtomicInteger();

@@ -284,6 +284,22 @@ public class MultiplexedChannelRecordTest {
     }
 
     @Test
+    public void acquireClaimedStream_whenTwoGoAwaysReceived_shouldFailWithLatestLastStreamId() {
+        EmbeddedChannel channel = newHttp2Channel();
+        MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 2, null);
+        acquireStream(channel, record);
+        record.handleGoAway(Integer.MAX_VALUE, new GoAwayException(0, "test"));
+        record.handleGoAway(3, new GoAwayException(0, "test"));
+        channel.runPendingTasks();
+
+        Promise<Channel> streamPromise = channel.eventLoop().newPromise();
+        record.acquireClaimedStream(streamPromise);
+
+        assertThat(streamPromise.cause()).isInstanceOf(IOException.class)
+                                         .hasMessageContaining("received GOAWAY with Last Stream ID 3.");
+    }
+
+    @Test
     public void closeIfIdle_retiredRecordWithNoStreams_shouldCloseConnection() {
         EmbeddedChannel channel = newHttp2Channel();
         MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 1, Duration.ofMillis(1000));

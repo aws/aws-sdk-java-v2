@@ -342,7 +342,8 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
 
         // We may not have a multiplexed channel if the parent channel hasn't been fully initialized.
         if (multiplexedChannel != null) {
-            multiplexedChannel.closeChildChannels(cause != null ? cause : new ClosedChannelException());
+            Throwable closeCause = cause != null ? cause : new IOException("The HTTP client closed the connection");
+            multiplexedChannel.closeChildChannels(closeCause);
             connections.remove(multiplexedChannel);
         }
 
