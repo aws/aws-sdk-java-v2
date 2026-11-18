@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Email Service",
+    "contributor": "",
+    "description": "This release adds support for Spillover Routing in Amazon SES."
+}
