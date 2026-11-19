@@ -45,6 +45,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Map
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -89,14 +90,18 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
     public static <T> AttributeConverter<T> converterForClass(EnhancedType<T> type,
                                                               ChainConverterProvider chainConverterProvider) {
 
-        if (type.rawClass().isAssignableFrom(List.class)) {
-            return (AttributeConverter<T>) ListAttributeConverter
-                .create(converterForClass(type.rawClassParameters().get(0), chainConverterProvider));
-        }
-        if (type.rawClass().isAssignableFrom(Map.class)) {
-            return (AttributeConverter<T>) MapAttributeConverter.mapConverter(
-                StringConverterProvider.defaultProvider().converterFor(type.rawClassParameters().get(0)),
-                converterForClass(type.rawClassParameters().get(1), chainConverterProvider));
+        if (!Object.class.equals(type.rawClass())) {
+            if (type.rawClass().isAssignableFrom(List.class)) {
+                requireTypeParameters(type);
+                return (AttributeConverter<T>) ListAttributeConverter
+                    .create(converterForClass(type.rawClassParameters().get(0), chainConverterProvider));
+            }
+            if (type.rawClass().isAssignableFrom(Map.class)) {
+                requireTypeParameters(type);
+                return (AttributeConverter<T>) MapAttributeConverter.mapConverter(
+                    StringConverterProvider.defaultProvider().converterFor(type.rawClassParameters().get(0)),
+                    converterForClass(type.rawClassParameters().get(1), chainConverterProvider));
+            }
         }
         return Optional.ofNullable(chainConverterProvider.converterFor(type))
                        .orElseThrow(() -> new IllegalStateException(
@@ -495,5 +500,13 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         Validate.isTrue(!type.isAssignableFrom(Map.class),
                         String.format(VALIDATE_TYPE_ERROR, "Map", isPut ? "put" : "get", "Map"));
 
+    }
+
+    private static void requireTypeParameters(EnhancedType<?> type) {
+        if (CollectionUtils.isNullOrEmpty(type.rawClassParameters())) {
+            throw new IllegalStateException(
+                "AttributeConverter not found for class " + type
+                + ". Type parameters are required for this type.");
+        }
     }
 }
