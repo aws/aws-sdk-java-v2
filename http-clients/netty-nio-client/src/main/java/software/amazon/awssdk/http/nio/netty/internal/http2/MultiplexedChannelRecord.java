@@ -20,7 +20,6 @@ import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.wa
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelId;
-import io.netty.channel.ChannelOutboundInvoker;
 import io.netty.handler.codec.http2.Http2GoAwayFrame;
 import io.netty.handler.codec.http2.Http2StreamChannel;
 import io.netty.handler.codec.http2.Http2StreamChannelBootstrap;
@@ -39,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelDiagnostics;
 import software.amazon.awssdk.http.nio.netty.internal.UnusedChannelExceptionHandler;
@@ -55,6 +55,7 @@ public class MultiplexedChannelRecord {
     private final Channel connection;
     private final long maxConcurrencyPerConnection;
     private final Long allowedIdleConnectionTimeMillis;
+    private final Consumer<Channel> closeAndReleaseConnection;
 
     private final AtomicLong availableChildChannels;
     private volatile long lastReserveAttemptTimeMillis;
@@ -66,13 +67,21 @@ public class MultiplexedChannelRecord {
     // Only write in the connection.eventLoop()
     private volatile RecordState state = RecordState.OPEN;
 
-    private volatile int lastStreamId;
+    // Stored so a failed stream acquire can report why this connection takes no new streams.
+    private volatile String closedToNewReason;
 
-    MultiplexedChannelRecord(Channel connection, long maxConcurrencyPerConnection, Duration allowedIdleConnectionTime) {
+    MultiplexedChannelRecord(Channel connection, long maxConcurrencyPerConnection, Duration allowedIdleConnectionTime,
+                             Consumer<Channel> closeAndReleaseConnection) {
         this.connection = connection;
         this.maxConcurrencyPerConnection = maxConcurrencyPerConnection;
         this.availableChildChannels = new AtomicLong(maxConcurrencyPerConnection);
         this.allowedIdleConnectionTimeMillis = allowedIdleConnectionTime == null ? null : allowedIdleConnectionTime.toMillis();
+        this.closeAndReleaseConnection = closeAndReleaseConnection;
+    }
+
+    @SdkTestInternalApi
+    MultiplexedChannelRecord(Channel connection, long maxConcurrencyPerConnection, Duration allowedIdleConnectionTime) {
+        this(connection, maxConcurrencyPerConnection, allowedIdleConnectionTime, Channel::close);
     }
 
     boolean acquireStream(Promise<Channel> promise) {
@@ -88,10 +97,9 @@ public class MultiplexedChannelRecord {
         doInEventLoop(connection.eventLoop(), () -> {
             if (state != RecordState.OPEN) {
                 String message;
-                // GOAWAY
                 if (state == RecordState.CLOSED_TO_NEW) {
-                    message = String.format("Connection %s received GOAWAY with Last Stream ID %d. Unable to open new "
-                                            + "streams on this connection.", connection, lastStreamId);
+                    message = String.format("Connection %s %s. Unable to open new streams on this connection.", connection,
+                                            closedToNewReason);
                 } else {
                     message = String.format("Connection %s was closed while acquiring new stream.", connection);
                 }
@@ -142,7 +150,7 @@ public class MultiplexedChannelRecord {
                 }
             });
         } catch (Throwable e) {
-            releaseClaim();
+            doInEventLoop(connection.eventLoop(), this::releaseClaim);
             throw e;
         }
     }
@@ -154,19 +162,35 @@ public class MultiplexedChannelRecord {
                            + "Please report this issue to the AWS SDK for Java team.");
             availableChildChannels.decrementAndGet();
         }
+        closeIfRetiredAndDrained();
+    }
+
+    private void closeIfRetiredAndDrained() {
+        warnIfNotInEventLoop(connection.eventLoop());
+        if (state != RecordState.CLOSED_TO_NEW
+            || !childChannels.isEmpty()
+            || availableChildChannels.get() != maxConcurrencyPerConnection) {
+            return;
+        }
+        log.debug(connection, () -> "Closing connection " + connection + " after its last stream; it takes no new streams.");
+        state = RecordState.CLOSED;
+        closeAndReleaseConnection.accept(connection);
     }
 
     /**
      * Handle a {@link Http2GoAwayFrame} on this connection, preventing new streams from being created on it, and closing any
-     * streams newer than the last-stream-id on the go-away frame.
+     * streams newer than the last-stream-id on the go-away frame. The connection closes once its last stream and pending
+     * acquires end.
      */
     void handleGoAway(int lastStreamId, GoAwayException exception) {
         doInEventLoop(connection.eventLoop(), () -> {
-            this.lastStreamId = lastStreamId;
-
             if (state == RecordState.CLOSED) {
                 return;
             }
+
+            // A server can send more than one GOAWAY, and each later one can lower the Last Stream ID. Setting the
+            // reason on every GOAWAY keeps the current Last Stream ID in the acquire failure message.
+            closedToNewReason = "received GOAWAY with Last Stream ID " + lastStreamId;
 
             if (state == RecordState.OPEN) {
                 state = RecordState.CLOSED_TO_NEW;
@@ -177,25 +201,29 @@ public class MultiplexedChannelRecord {
             childrenToClose.stream()
                            .filter(cc -> cc.stream().id() > lastStreamId)
                            .forEach(cc -> cc.pipeline().fireExceptionCaught(exception));
-        });
-    }
 
-    /**
-     * Prevent new streams from being acquired from the existing connection.
-     */
-    void closeToNewStreams() {
-        doInEventLoop(connection.eventLoop(), () -> {
-            if (state == RecordState.OPEN) {
-                state = RecordState.CLOSED_TO_NEW;
+            // Queued, so the drained check runs after Netty's GOAWAY listener returns and closes the connection if it has no
+            // streams.
+            if (state == RecordState.CLOSED_TO_NEW) {
+                connection.eventLoop().execute(this::closeIfRetiredAndDrained);
             }
         });
     }
 
     /**
-     * Close all registered child channels, and prohibit new streams from being created on this connection.
+     * Prevent new streams from being acquired from the existing connection. The connection closes once its last stream and
+     * pending acquires end.
      */
-    void closeChildChannels() {
-        closeAndExecuteOnChildChannels(ChannelOutboundInvoker::close);
+    void closeToNewStreams() {
+        doInEventLoop(connection.eventLoop(), () -> {
+            if (state == RecordState.OPEN) {
+                state = RecordState.CLOSED_TO_NEW;
+                closedToNewReason = "stopped taking new streams after an I/O error on another stream";
+                // Queued, so the drained check runs after the caller's exception handler returns and closes the connection if
+                // it has no streams.
+                connection.eventLoop().execute(this::closeIfRetiredAndDrained);
+            }
+        });
     }
 
     /**
@@ -247,6 +275,17 @@ public class MultiplexedChannelRecord {
             return;
         }
 
+        // Check before the compareAndSet below: setting the count of a retired connection to 0 would stop it from closing.
+        if (state == RecordState.CLOSED_TO_NEW) {
+            closeIfRetiredAndDrained();
+            return;
+        }
+
+        // If we've been closed, no need to shut down.
+        if (state != RecordState.OPEN) {
+            return;
+        }
+
         // Don't close if there have been any reserves attempted since the idle connection time.
         long nonVolatileLastReserveAttemptTimeMillis = lastReserveAttemptTimeMillis;
         if (nonVolatileLastReserveAttemptTimeMillis > System.currentTimeMillis() - allowedIdleConnectionTimeMillis) {
@@ -256,11 +295,6 @@ public class MultiplexedChannelRecord {
         // Cut off new streams from being acquired from this connection by setting the number of available channels to 0.
         // This write may fail if a reservation has happened since we checked the lastReserveAttemptTime.
         if (!availableChildChannels.compareAndSet(maxConcurrencyPerConnection, 0)) {
-            return;
-        }
-
-        // If we've been closed, no need to shut down.
-        if (state != RecordState.OPEN) {
             return;
         }
 
@@ -300,15 +334,11 @@ public class MultiplexedChannelRecord {
         return false;
     }
 
-    boolean canBeClosedAndReleased() {
-        return state != RecordState.OPEN && availableChildChannels.get() == maxConcurrencyPerConnection;
-    }
-
     CompletableFuture<Metrics> getMetrics() {
         CompletableFuture<Metrics> result = new CompletableFuture<>();
         doInEventLoop(connection.eventLoop(), () -> {
-            int streamCount = childChannels.size();
-            result.complete(new Metrics().setAvailableStreams(maxConcurrencyPerConnection - streamCount));
+            long availableStreams = state == RecordState.OPEN ? maxConcurrencyPerConnection - childChannels.size() : 0;
+            result.complete(new Metrics().setAvailableStreams(availableStreams));
         });
         return result;
     }
@@ -320,8 +350,9 @@ public class MultiplexedChannelRecord {
         OPEN,
 
         /**
-         * The connection is open, but new streams may not be acquired from it. This occurs when a connection is being
-         * shut down (e.g. after it has received a GOAWAY frame), but all streams haven't been closed yet.
+         * The connection is open, but new streams may not be acquired from it. This occurs after the connection receives a
+         * GOAWAY frame or has an I/O error on one of its streams. The connection closes once its last stream and pending
+         * acquires end.
          */
         CLOSED_TO_NEW,
 

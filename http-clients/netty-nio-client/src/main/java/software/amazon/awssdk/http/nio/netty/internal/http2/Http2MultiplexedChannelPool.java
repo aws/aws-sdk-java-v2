@@ -74,13 +74,13 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public class Http2MultiplexedChannelPool implements SdkChannelPool {
-    private static final NettyClientLogger log = NettyClientLogger.getLogger(Http2MultiplexedChannelPool.class);
-
     /**
      * Reference to the {@link MultiplexedChannelRecord} on a channel.
      */
-    private static final AttributeKey<MultiplexedChannelRecord> MULTIPLEXED_CHANNEL = NettyUtils.getOrCreateAttributeKey(
+    static final AttributeKey<MultiplexedChannelRecord> MULTIPLEXED_CHANNEL = NettyUtils.getOrCreateAttributeKey(
             "software.amazon.awssdk.http.nio.netty.internal.http2.Http2MultiplexedChannelPool.MULTIPLEXED_CHANNEL");
+
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(Http2MultiplexedChannelPool.class);
 
     /**
      * Whether a parent channel has been released yet. This guards against double-releasing to the delegate connection pool.
@@ -174,7 +174,8 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
             Validate.isTrue(maxStreams > 0, "Maximum streams were not positive on channel (%s).", parentChannel);
 
             MultiplexedChannelRecord multiplexedChannel = new MultiplexedChannelRecord(parentChannel, maxStreams,
-                                                                                       idleConnectionTimeout);
+                                                                                       idleConnectionTimeout,
+                                                                                       ch -> closeAndReleaseParent(ch));
             parentChannel.attr(MULTIPLEXED_CHANNEL).set(multiplexedChannel);
 
             Promise<Channel> streamPromise = parentChannel.eventLoop().newPromise();
@@ -316,12 +317,6 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
         }
 
         multiplexedChannel.closeAndReleaseChild(childChannel);
-
-        if (multiplexedChannel.canBeClosedAndReleased()) {
-            // We just closed the last stream in a connection that has reached the end of its life.
-            return closeAndReleaseParent(parentChannel, null, promise);
-        }
-
         return promise.setSuccess(null);
     }
 
@@ -347,11 +342,8 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
 
         // We may not have a multiplexed channel if the parent channel hasn't been fully initialized.
         if (multiplexedChannel != null) {
-            if (cause == null) {
-                multiplexedChannel.closeChildChannels();
-            } else {
-                multiplexedChannel.closeChildChannels(cause);
-            }
+            Throwable closeCause = cause != null ? cause : new IOException("The HTTP client closed the connection");
+            multiplexedChannel.closeChildChannels(closeCause);
             connections.remove(multiplexedChannel);
         }
 
@@ -488,20 +480,7 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            if (cause instanceof Http2ConnectionTerminatingException) {
-                closeConnectionToNewRequests(ctx, cause);
-            } else {
-                closeAndReleaseParent(ctx, cause);
-            }
-        }
-
-        void closeConnectionToNewRequests(ChannelHandlerContext ctx, Throwable cause) {
-            MultiplexedChannelRecord multiplexedChannel = ctx.channel().attr(MULTIPLEXED_CHANNEL).get();
-            if (multiplexedChannel != null) {
-                multiplexedChannel.closeToNewStreams();
-            } else {
-                closeAndReleaseParent(ctx, cause);
-            }
+            closeAndReleaseParent(ctx, cause);
         }
 
         private void closeAndReleaseParent(ChannelHandlerContext ctx, Throwable cause) {
