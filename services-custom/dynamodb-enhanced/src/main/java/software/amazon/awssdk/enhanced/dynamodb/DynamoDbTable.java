@@ -219,6 +219,9 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
      * further details and constraints.
      * <p>
+     * This overload does not apply {@code useVersionOnDelete}; only the key is sent. Use {@link #deleteItem(Object)} or
+     * {@link DeleteItemEnhancedRequest.Builder#optimisticLocking} for version-checked deletes.
+     * <p>
      * Example:
      * <pre>
      * {@code
@@ -240,8 +243,11 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
      * further details and constraints.
      * <p>
-     * For versioned records, optimistic locking behavior is controlled by the {@code useVersionOnDelete} parameter
-     * in the {@link software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute} annotation.
+     * <b>Optimistic locking:</b> If the item has a version attribute with
+     * {@link software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute#useVersionOnDelete()}
+     * set to {@code true}, a version condition is applied automatically. The delete succeeds only when the item's version
+     * matches the persisted value. A null version attribute fails with {@link IllegalStateException}.
+     * {@link #deleteItem(Key)} and request builders without {@code optimisticLocking} do not use this annotation flag.
      * <p>
      * Example:
      * <pre>

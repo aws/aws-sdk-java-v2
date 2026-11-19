@@ -46,14 +46,18 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionChe
 public final class DeleteItemEnhancedRequest {
 
     private final Key key;
-    private final Expression conditionExpression;
+    private final Expression callerCondition;
+    private final Expression versionCondition;
     private final String returnConsumedCapacity;
     private final String returnItemCollectionMetrics;
     private final String returnValuesOnConditionCheckFailure;
 
     private DeleteItemEnhancedRequest(Builder builder) {
         this.key = builder.key;
-        this.conditionExpression = mergeConditions(builder.conditionExpression, builder.versionCondition);
+        this.callerCondition = builder.conditionExpression;
+        this.versionCondition = builder.versionCondition;
+        // Validate the merge at build time so conflicting name/value tokens fail fast.
+        mergeConditions(builder.conditionExpression, builder.versionCondition);
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
@@ -68,10 +72,15 @@ public final class DeleteItemEnhancedRequest {
 
     /**
      * Returns a builder initialized with all existing values on the request object.
+     * <p>
+     * Caller and version conditions are restored separately so that later
+     * {@link Builder#conditionExpression(Expression)} or {@link Builder#optimisticLocking(AttributeValue, String)} calls
+     * only replace their own half of the merge.
      */
     public Builder toBuilder() {
         return builder().key(key)
-                        .conditionExpression(conditionExpression)
+                        .conditionExpression(callerCondition)
+                        .versionCondition(versionCondition)
                         .returnConsumedCapacity(returnConsumedCapacity)
                         .returnItemCollectionMetrics(returnItemCollectionMetrics)
                         .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
@@ -86,9 +95,13 @@ public final class DeleteItemEnhancedRequest {
 
     /**
      * Returns the condition {@link Expression} set on this request object, or null if it doesn't exist.
+     * <p>
+     * When both a caller {@link Builder#conditionExpression(Expression)} and
+     * {@link Builder#optimisticLocking(AttributeValue, String)} are set, this returns the two expressions combined with
+     * {@code AND}.
      */
     public Expression conditionExpression() {
-        return conditionExpression;
+        return mergeConditions(callerCondition, versionCondition);
     }
 
     /**
@@ -159,7 +172,8 @@ public final class DeleteItemEnhancedRequest {
         }
         DeleteItemEnhancedRequest that = (DeleteItemEnhancedRequest) o;
         return Objects.equals(key, that.key)
-               && Objects.equals(conditionExpression, that.conditionExpression)
+               && Objects.equals(callerCondition, that.callerCondition)
+               && Objects.equals(versionCondition, that.versionCondition)
                && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity)
                && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics)
                && Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
@@ -168,7 +182,8 @@ public final class DeleteItemEnhancedRequest {
     @Override
     public int hashCode() {
         int result = key != null ? key.hashCode() : 0;
-        result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
+        result = 31 * result + (callerCondition != null ? callerCondition.hashCode() : 0);
+        result = 31 * result + (versionCondition != null ? versionCondition.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);
         result = 31 * result + (returnValuesOnConditionCheckFailure != null ? returnValuesOnConditionCheckFailure.hashCode() : 0);
@@ -221,6 +236,9 @@ public final class DeleteItemEnhancedRequest {
          * will allow the delete operation to succeed. If evaluating to false, the operation will not succeed.
          * <p>
          * See {@link Expression} for condition syntax and examples.
+         * <p>
+         * Calling this method again replaces the caller condition only. A version condition set through
+         * {@link #optimisticLocking(AttributeValue, String)} is kept and combined with {@code AND} when the request is built.
          *
          * @param conditionExpression a condition written as an {@link Expression}
          * @return a builder of this type
@@ -308,6 +326,11 @@ public final class DeleteItemEnhancedRequest {
          */
         public Builder optimisticLocking(AttributeValue versionValue, String versionAttributeName) {
             this.versionCondition = createVersionCondition(versionValue, versionAttributeName);
+            return this;
+        }
+
+        private Builder versionCondition(Expression versionCondition) {
+            this.versionCondition = versionCondition;
             return this;
         }
 

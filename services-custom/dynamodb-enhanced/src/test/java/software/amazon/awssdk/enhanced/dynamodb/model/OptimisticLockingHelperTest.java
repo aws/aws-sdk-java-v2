@@ -567,6 +567,160 @@ public class OptimisticLockingHelperTest {
             .hasMessageContaining("conflicting");
     }
 
+    @Test
+    public void toBuilder_whenConditionExpressionReplaced_keepsVersionCondition() {
+        AttributeValue versionValue = AttributeValue.builder().n("1").build();
+        Expression originalCaller = Expression.builder()
+                                              .expression("#note = :note")
+                                              .expressionNames(Collections.singletonMap("#note", "note"))
+                                              .expressionValues(Collections.singletonMap(":note",
+                                                                                         AttributeValue.builder().s("old").build()))
+                                              .build();
+        Expression replacedCaller = Expression.builder()
+                                              .expression("#status = :status")
+                                              .expressionNames(Collections.singletonMap("#status", "status"))
+                                              .expressionValues(Collections.singletonMap(":status",
+                                                                                         AttributeValue.builder().s("active").build()))
+                                              .build();
+
+        DeleteItemEnhancedRequest original =
+            DeleteItemEnhancedRequest.builder()
+                                     .key(Key.builder().partitionValue("id").build())
+                                     .conditionExpression(originalCaller)
+                                     .optimisticLocking(versionValue, "version")
+                                     .build();
+
+        DeleteItemEnhancedRequest rebuilt = original.toBuilder()
+                                                    .conditionExpression(replacedCaller)
+                                                    .build();
+
+        assertThat(rebuilt.conditionExpression().expression())
+            .isEqualTo("(#status = :status) AND (#AMZN_MAPPED_version = :AMZN_MAPPED_version)");
+        assertThat(rebuilt.conditionExpression().expressionValues())
+            .containsEntry(":status", AttributeValue.builder().s("active").build())
+            .containsEntry(":AMZN_MAPPED_version", versionValue)
+            .doesNotContainKey(":note");
+    }
+
+    @Test
+    public void toBuilder_whenOptimisticLockingCalledAgain_replacesVersionConditionOnly() {
+        AttributeValue firstVersion = AttributeValue.builder().n("1").build();
+        AttributeValue secondVersion = AttributeValue.builder().n("4").build();
+        Expression callerCondition = Expression.builder()
+                                               .expression("#note = :note")
+                                               .expressionNames(Collections.singletonMap("#note", "note"))
+                                               .expressionValues(Collections.singletonMap(":note",
+                                                                                          AttributeValue.builder().s("keep").build()))
+                                               .build();
+
+        DeleteItemEnhancedRequest original =
+            DeleteItemEnhancedRequest.builder()
+                                     .key(Key.builder().partitionValue("id").build())
+                                     .conditionExpression(callerCondition)
+                                     .optimisticLocking(firstVersion, "version")
+                                     .build();
+
+        DeleteItemEnhancedRequest rebuilt = original.toBuilder()
+                                                    .optimisticLocking(secondVersion, "version")
+                                                    .build();
+
+        assertThat(rebuilt.conditionExpression().expression())
+            .isEqualTo("(#note = :note) AND (#AMZN_MAPPED_version = :AMZN_MAPPED_version)");
+        assertThat(rebuilt.conditionExpression().expressionValues())
+            .containsOnly(entry(":note", AttributeValue.builder().s("keep").build()),
+                          entry(":AMZN_MAPPED_version", secondVersion));
+    }
+
+    @Test
+    public void toBuilder_whenConditionExpressionReplacedOnTransactDelete_keepsVersionCondition() {
+        AttributeValue versionValue = AttributeValue.builder().n("2").build();
+        Expression originalCaller = Expression.builder()
+                                              .expression("#note = :note")
+                                              .expressionNames(Collections.singletonMap("#note", "note"))
+                                              .expressionValues(Collections.singletonMap(":note",
+                                                                                         AttributeValue.builder().s("old").build()))
+                                              .build();
+        Expression replacedCaller = Expression.builder()
+                                              .expression("#status = :status")
+                                              .expressionNames(Collections.singletonMap("#status", "status"))
+                                              .expressionValues(Collections.singletonMap(":status",
+                                                                                         AttributeValue.builder().s("active").build()))
+                                              .build();
+
+        TransactDeleteItemEnhancedRequest original =
+            TransactDeleteItemEnhancedRequest.builder()
+                                             .key(Key.builder().partitionValue("id").build())
+                                             .conditionExpression(originalCaller)
+                                             .optimisticLocking(versionValue, "version")
+                                             .build();
+
+        TransactDeleteItemEnhancedRequest rebuilt = original.toBuilder()
+                                                            .conditionExpression(replacedCaller)
+                                                            .build();
+
+        assertThat(rebuilt.conditionExpression().expression())
+            .isEqualTo("(#status = :status) AND (#AMZN_MAPPED_version = :AMZN_MAPPED_version)");
+        assertThat(rebuilt.conditionExpression().expressionValues())
+            .containsEntry(":AMZN_MAPPED_version", versionValue)
+            .doesNotContainKey(":note");
+    }
+
+    @Test
+    public void toBuilder_whenOptimisticLockingCalledAgainOnTransactDelete_replacesVersionConditionOnly() {
+        AttributeValue firstVersion = AttributeValue.builder().n("1").build();
+        AttributeValue secondVersion = AttributeValue.builder().n("7").build();
+        Expression callerCondition = Expression.builder()
+                                               .expression("#note = :note")
+                                               .expressionNames(Collections.singletonMap("#note", "note"))
+                                               .expressionValues(Collections.singletonMap(":note",
+                                                                                          AttributeValue.builder().s("keep").build()))
+                                               .build();
+
+        TransactDeleteItemEnhancedRequest original =
+            TransactDeleteItemEnhancedRequest.builder()
+                                             .key(Key.builder().partitionValue("id").build())
+                                             .conditionExpression(callerCondition)
+                                             .optimisticLocking(firstVersion, "version")
+                                             .build();
+
+        TransactDeleteItemEnhancedRequest rebuilt = original.toBuilder()
+                                                            .optimisticLocking(secondVersion, "version")
+                                                            .build();
+
+        assertThat(rebuilt.conditionExpression().expression())
+            .isEqualTo("(#note = :note) AND (#AMZN_MAPPED_version = :AMZN_MAPPED_version)");
+        assertThat(rebuilt.conditionExpression().expressionValues())
+            .containsOnly(entry(":note", AttributeValue.builder().s("keep").build()),
+                          entry(":AMZN_MAPPED_version", secondVersion));
+    }
+
+    /**
+     * Documents the useVersionOnDelete API contract: schema opt-in is applied only through
+     * {@link software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper#conditionallyApplyOptimisticLocking},
+     * which {@code deleteItem(T)} uses. Key-only / bare request builders (as used by {@code deleteItem(Key)}, batch, and
+     * transactional keyItem deletes) stay unconditional even when the schema opts in.
+     */
+    @Test
+    public void useVersionOnDelete_appliesOnlyThroughConditionallyApplyOptimisticLocking() {
+        OptimisticLockingTestItem item = new OptimisticLockingTestItem();
+        item.setId("id");
+        item.setVersion(3L);
+        Key key = Key.builder().partitionValue("id").build();
+
+        DeleteItemEnhancedRequest keyOnlyRequest = DeleteItemEnhancedRequest.builder().key(key).build();
+        assertThat(keyOnlyRequest.conditionExpression()).isNull();
+
+        TransactDeleteItemEnhancedRequest transactKeyOnly =
+            TransactDeleteItemEnhancedRequest.builder().key(key).build();
+        assertThat(transactKeyOnly.conditionExpression()).isNull();
+
+        DeleteItemEnhancedRequest schemaDriven =
+            conditionallyApplyOptimisticLocking(DeleteItemEnhancedRequest.builder().key(key), item, OPTIMISTIC_LOCKING_SCHEMA);
+        assertThat(schemaDriven.conditionExpression()).isNotNull();
+        assertThat(schemaDriven.conditionExpression().expressionValues())
+            .containsEntry(":AMZN_MAPPED_version", AttributeValue.builder().n("3").build());
+    }
+
     private static class OptimisticLockingTestItem {
         private String id;
         private Long version;

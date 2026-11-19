@@ -54,10 +54,18 @@ public @interface DynamoDbVersionAttribute {
     long incrementBy() default 1;
 
     /**
-     * Whether to use version checking on delete operations. When true, delete operations will apply optimistic locking using the
-     * version attribute. Default value - {@code false} for backwards compatibility.
+     * Whether to apply optimistic locking when deleting through {@code deleteItem(T)}.
+     * <p>
+     * When {@code true}, {@link software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable#deleteItem(Object)} and
+     * {@link software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable#deleteItem(Object)} add a version condition from the
+     * item. A null version attribute then fails with {@link IllegalStateException}. Default is {@code false} for backwards
+     * compatibility.
+     * <p>
+     * This flag is not applied by {@code deleteItem(Key)}, batch {@code addDeleteItem}, or transactional
+     * {@code addDeleteItem(table, item)} / {@code addDeleteItem(table, key)}. Those paths stay unconditional unless the caller
+     * sets {@code optimisticLocking} on a delete request (batch writes cannot carry a condition).
      *
-     * @return true if version checking should be used on delete operations
+     * @return true if version checking should be used on {@code deleteItem(T)}
      */
     boolean useVersionOnDelete() default false;
 

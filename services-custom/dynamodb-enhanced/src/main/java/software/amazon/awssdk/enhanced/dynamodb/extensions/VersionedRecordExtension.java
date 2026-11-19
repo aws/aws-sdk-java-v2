@@ -99,7 +99,15 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             return new VersionAttribute(startAt, incrementBy, false);
         }
 
-        public static StaticAttributeTag versionAttribute(Long startAt, Long incrementBy, Boolean useVersionOnDelete) {
+        /**
+         * Creates a version attribute tag, optionally enabling optimistic locking on {@code deleteItem(T)}.
+         *
+         * @param startAt              starting value for version comparison; may be null to use the extension default
+         * @param incrementBy          amount to increment on each write; may be null to use the extension default
+         * @param useVersionOnDelete   whether {@code deleteItem(T)} applies a version condition
+         * @return the version attribute tag
+         */
+        public static StaticAttributeTag versionAttribute(Long startAt, Long incrementBy, boolean useVersionOnDelete) {
             return new VersionAttribute(startAt, incrementBy, useVersionOnDelete);
         }
     }
@@ -119,7 +127,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             this.useVersionOnDelete = null;
         }
 
-        private VersionAttribute(Long startAt, Long incrementBy, Boolean useVersionOnDelete) {
+        private VersionAttribute(Long startAt, Long incrementBy, boolean useVersionOnDelete) {
             this.startAt = startAt;
             this.incrementBy = incrementBy;
             this.useVersionOnDelete = useVersionOnDelete;

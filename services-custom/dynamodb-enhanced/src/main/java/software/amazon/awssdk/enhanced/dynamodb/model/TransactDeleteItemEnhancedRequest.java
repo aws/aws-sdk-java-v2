@@ -44,12 +44,16 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionChe
 public final class TransactDeleteItemEnhancedRequest {
 
     private final Key key;
-    private final Expression conditionExpression;
+    private final Expression callerCondition;
+    private final Expression versionCondition;
     private final String returnValuesOnConditionCheckFailure;
 
     private TransactDeleteItemEnhancedRequest(Builder builder) {
         this.key = builder.key;
-        this.conditionExpression = mergeConditions(builder.conditionExpression, builder.versionCondition);
+        this.callerCondition = builder.conditionExpression;
+        this.versionCondition = builder.versionCondition;
+        // Validate the merge at build time so conflicting name/value tokens fail fast.
+        mergeConditions(builder.conditionExpression, builder.versionCondition);
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
 
@@ -62,10 +66,15 @@ public final class TransactDeleteItemEnhancedRequest {
 
     /**
      * Returns a builder initialized with all existing values on the request object.
+     * <p>
+     * Caller and version conditions are restored separately so that later
+     * {@link Builder#conditionExpression(Expression)} or {@link Builder#optimisticLocking(AttributeValue, String)} calls
+     * only replace their own half of the merge.
      */
     public Builder toBuilder() {
         return builder().key(key)
-                        .conditionExpression(conditionExpression)
+                        .conditionExpression(callerCondition)
+                        .versionCondition(versionCondition)
                         .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
     }
 
@@ -78,9 +87,13 @@ public final class TransactDeleteItemEnhancedRequest {
 
     /**
      * Returns the condition {@link Expression} set on this request object, or null if it doesn't exist.
+     * <p>
+     * When both a caller {@link Builder#conditionExpression(Expression)} and
+     * {@link Builder#optimisticLocking(AttributeValue, String)} are set, this returns the two expressions combined with
+     * {@code AND}.
      */
     public Expression conditionExpression() {
-        return conditionExpression;
+        return mergeConditions(callerCondition, versionCondition);
     }
 
     /**
@@ -125,7 +138,10 @@ public final class TransactDeleteItemEnhancedRequest {
         if (!Objects.equals(key, that.key)) {
             return false;
         }
-        if (!Objects.equals(conditionExpression, that.conditionExpression)) {
+        if (!Objects.equals(callerCondition, that.callerCondition)) {
+            return false;
+        }
+        if (!Objects.equals(versionCondition, that.versionCondition)) {
             return false;
         }
         return Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
@@ -134,7 +150,8 @@ public final class TransactDeleteItemEnhancedRequest {
     @Override
     public int hashCode() {
         int result = Objects.hashCode(key);
-        result = 31 * result + Objects.hashCode(conditionExpression);
+        result = 31 * result + Objects.hashCode(callerCondition);
+        result = 31 * result + Objects.hashCode(versionCondition);
         result = 31 * result + Objects.hashCode(returnValuesOnConditionCheckFailure);
         return result;
     }
@@ -183,6 +200,9 @@ public final class TransactDeleteItemEnhancedRequest {
          * will allow the delete operation to succeed. If evaluating to false, the operation will not succeed.
          * <p>
          * See {@link Expression} for condition syntax and examples.
+         * <p>
+         * Calling this method again replaces the caller condition only. A version condition set through
+         * {@link #optimisticLocking(AttributeValue, String)} is kept and combined with {@code AND} when the request is built.
          *
          * @param conditionExpression a condition written as an {@link Expression}
          * @return a builder of this type
@@ -234,6 +254,11 @@ public final class TransactDeleteItemEnhancedRequest {
          */
         public Builder optimisticLocking(AttributeValue versionValue, String versionAttributeName) {
             this.versionCondition = createVersionCondition(versionValue, versionAttributeName);
+            return this;
+        }
+
+        private Builder versionCondition(Expression versionCondition) {
+            this.versionCondition = versionCondition;
             return this;
         }
 

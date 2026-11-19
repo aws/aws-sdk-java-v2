@@ -281,11 +281,11 @@ public final class TransactWriteItemsEnhancedRequest {
          * <p>
          * Unlike {@link #addDeleteItem(MappedTableResource, Key)}, this variant allows you to provide the full modeled item
          * instead of only its primary key.
-         *
-         * <strong>Does not support Optimistic Locking.</strong>
          * <p>
-         * For more information on the delete action, see the low-level operation description in for instance
-         * {@link DynamoDbTable#deleteItem(DeleteItemEnhancedRequest)}.
+         * Only the key of {@code keyItem} is used. This does not apply optimistic locking, including when the schema sets
+         * {@code useVersionOnDelete}. For version-checked transactional deletes, build a
+         * {@link TransactDeleteItemEnhancedRequest} with {@code optimisticLocking} and pass it to
+         * {@link #addDeleteItem(MappedTableResource, TransactDeleteItemEnhancedRequest)}.
          *
          * @param mappedTableResource the table where the item is located
          * @param keyItem             the modeled item to be deleted as part of the transaction
