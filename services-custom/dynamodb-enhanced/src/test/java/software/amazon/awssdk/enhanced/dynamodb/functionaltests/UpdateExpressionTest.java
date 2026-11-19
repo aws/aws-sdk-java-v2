@@ -3,7 +3,6 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior.WRITE_IF_NOT_EXISTS;
 import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.LEGACY;
 import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.PRIORITIZE_HIGHER_SOURCE;
 
@@ -22,11 +21,10 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedRecordForUpdateExpressions;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecordForUpdateExpressions;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationName;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.model.ReadBatch;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
@@ -1111,107 +1109,6 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
                                      .build())
                         .build())
                 .build();
-        }
-    }
-
-    @DynamoDbBean
-    public static final class RecordForUpdateExpressions {
-        private String id;
-        private String stringAttribute1;
-        private List<String> requestAttributeList;
-        private Long extensionAttribute1;
-        private Set<String> extensionAttribute2;
-        private Long incrementedAttribute;
-        private NestedRecordForUpdateExpressions objectAttribute;
-        private List<NestedRecordForUpdateExpressions> objectListAttribute;
-
-        @DynamoDbPartitionKey
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        @DynamoDbUpdateBehavior(WRITE_IF_NOT_EXISTS)
-        public String getStringAttribute() {
-            return stringAttribute1;
-        }
-
-        public void setStringAttribute(String stringAttribute1) {
-            this.stringAttribute1 = stringAttribute1;
-        }
-
-        public List<String> getRequestAttributeList() {
-            return requestAttributeList;
-        }
-
-        public void setRequestAttributeList(List<String> requestAttributeList) {
-            this.requestAttributeList = requestAttributeList;
-        }
-
-        public Long getExtensionNumberAttribute() {
-            return extensionAttribute1;
-        }
-
-        public void setExtensionNumberAttribute(Long extensionAttribute1) {
-            this.extensionAttribute1 = extensionAttribute1;
-        }
-
-        public Set<String> getExtensionSetAttribute() {
-            return extensionAttribute2;
-        }
-
-        public void setExtensionSetAttribute(Set<String> extensionAttribute2) {
-            this.extensionAttribute2 = extensionAttribute2;
-        }
-
-        public Long getIncrementedAttribute() {
-            return incrementedAttribute;
-        }
-
-        public RecordForUpdateExpressions setIncrementedAttribute(Long incrementedAttribute) {
-            this.incrementedAttribute = incrementedAttribute;
-            return this;
-        }
-
-        public NestedRecordForUpdateExpressions getObjectAttribute() {
-            return objectAttribute;
-        }
-
-        public void setObjectAttribute(NestedRecordForUpdateExpressions objectAttribute) {
-            this.objectAttribute = objectAttribute;
-        }
-
-        public List<NestedRecordForUpdateExpressions> getObjectListAttribute() {
-            return objectListAttribute;
-        }
-
-        public void setObjectListAttribute(List<NestedRecordForUpdateExpressions> objectListAttribute) {
-            this.objectListAttribute = objectListAttribute;
-        }
-    }
-
-    @DynamoDbBean
-    public static final class NestedRecordForUpdateExpressions {
-        private String name;
-        private String city;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getCity() {
-            return city;
-        }
-
-        public void setCity(String city) {
-            this.city = city;
         }
     }
 }
