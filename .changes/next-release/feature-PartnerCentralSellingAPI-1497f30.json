@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Partner Central Selling API",
-    "contributor": "",
-    "description": "Adds the Leads APIs (SearchEngagements, ListEngagementGroups), customer account APIs with statistics and bulk jobs, SearchOpportunities, opportunity bulk jobs, account planning invitations, co-sell motion reason on AWS opportunity summaries, and channel recommendations on lead insights."
-}

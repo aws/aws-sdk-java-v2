@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Netty NIO HTTP Client",
-    "contributor": "",
-    "description": "Fixed three HTTP/2 issues: (1) A read timeout or other I/O error on one request ended the other requests on its connection. Some of them returned a truncated response with no error. With this fix, the other requests continue. (2) A server GOAWAY that rejected a new request also ended the requests the server had accepted. With this fix, the accepted requests complete. (3) Closing the client during requests sometimes returned a truncated response with no error. With this fix, those requests fail with an IOException."
-}
