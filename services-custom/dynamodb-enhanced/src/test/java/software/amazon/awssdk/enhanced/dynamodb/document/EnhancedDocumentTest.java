@@ -34,10 +34,13 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -50,11 +53,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkNumber;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 class EnhancedDocumentTest {
 
@@ -505,6 +511,72 @@ class EnhancedDocumentTest {
                                             .withMessage("Values of type List are not supported by this API, please use the getList API instead");
     }
 
+    @ParameterizedTest
+    @MethodSource("rawCollectionCases")
+    void toMap_whenCollectionHasNoTypeParameters_throwsConverterNotFound(
+        EnhancedType<?> type, Object value, String messagePrefix) {
+        EnhancedDocument document = documentWithRawCollection("values", value, type);
+
+        assertThatIllegalStateException()
+            .isThrownBy(document::toMap)
+            .withMessage(messagePrefix + type + ". Type parameters are required for this type.");
+    }
+
+    @Test
+    void toMap_whenObjectTypeWithCustomProviderFirst_storesCustomValue() {
+        EnhancedType<Object> type = EnhancedType.of(Object.class);
+        ObjectStringProvider provider = new ObjectStringProvider();
+
+        Map<String, AttributeValue> map = EnhancedDocument.builder()
+                                                          .attributeConverterProviders(provider, defaultProvider())
+                                                          .put("value", new Object(), type)
+                                                          .build()
+                                                          .toMap();
+
+        assertThat(map.get("value")).isEqualTo(AttributeValue.fromS("custom"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("unsupportedValues")
+    <T> void toMap_whenUnsupportedType_throwsConverterNotFound(EnhancedType<T> type, T input) {
+        assertThatIllegalStateException()
+            .isThrownBy(() -> documentWithDefaultProvider().put("value", input, type).build().toMap())
+            .withMessage("Converter not found for " + type);
+    }
+
+    @ParameterizedTest
+    @MethodSource("unsupportedValues")
+    <T> void toMap_whenListElementHasNoConverter_throwsConverterNotFound(EnhancedType<T> elementType, T element) {
+        EnhancedType<List<T>> type = EnhancedType.listOf(elementType);
+        List<T> input = Collections.singletonList(element);
+
+        assertThatIllegalStateException()
+            .isThrownBy(() -> documentWithDefaultProvider().put("value", input, type).build().toMap())
+            .withMessage("Converter not found for " + elementType);
+    }
+
+    @ParameterizedTest
+    @MethodSource("unsupportedValues")
+    <T> void toMap_whenMapValueHasNoConverter_throwsConverterNotFound(EnhancedType<T> valueType, T value) {
+        EnhancedType<Map<String, T>> type = EnhancedType.mapOf(EnhancedType.of(String.class), valueType);
+        Map<String, T> input = Collections.singletonMap("key", value);
+
+        assertThatIllegalStateException()
+            .isThrownBy(() -> documentWithDefaultProvider().put("value", input, type).build().toMap())
+            .withMessage("Converter not found for " + valueType);
+    }
+
+    @ParameterizedTest
+    @MethodSource("unsupportedValues")
+    <T> void toMap_whenSetElementHasNoConverter_throwsConverterNotFound(EnhancedType<T> elementType, T element) {
+        EnhancedType<Set<T>> type = EnhancedType.setOf(elementType);
+        Set<T> input = Collections.singleton(element);
+
+        assertThatIllegalStateException()
+            .isThrownBy(() -> documentWithDefaultProvider().put("value", input, type).build().toMap())
+            .withMessage(missingNestedConverterMessage(elementType, type, "element"));
+    }
+
     @Test
     void toJson_numberFormatting_veryLargeNumbers() throws JsonProcessingException {
         EnhancedDocument doc = EnhancedDocument.builder()
@@ -712,5 +784,95 @@ class EnhancedDocumentTest {
             Paths.get("src/test/resources/binary_edge_cases_fixture.json")), StandardCharsets.UTF_8);
 
         assertThat(actualOutput).isEqualTo(goldenOutput);
+    }
+
+    private static Stream<Arguments> rawCollectionCases() {
+        return Stream.of(
+            Arguments.of(EnhancedType.of(List.class), new ArrayList<>(), "AttributeConverter not found for class "),
+            Arguments.of(EnhancedType.of(Map.class), new HashMap<>(), "AttributeConverter not found for class "),
+            Arguments.of(EnhancedType.of(Set.class), new HashSet<>(), "Converter not found for "));
+    }
+
+    private static Stream<Arguments> unsupportedValues() {
+        return Stream.of(Arguments.of(EnhancedType.of(Object.class), new Object()),
+                         Arguments.of(EnhancedType.of(UnsupportedType.class), new UnsupportedType("a")));
+    }
+
+    private static EnhancedDocument.Builder documentWithDefaultProvider() {
+        return EnhancedDocument.builder().attributeConverterProviders(defaultProvider());
+    }
+
+    private static String missingNestedConverterMessage(EnhancedType<?> nestedType,
+                                                        EnhancedType<?> collectionType,
+                                                        String role) {
+        return "Converter not found for " + nestedType
+               + " (" + role + " of " + collectionType + "). "
+               + "DefaultAttributeConverterProvider resolves collection " + role
+               + " types only from its own converters.";
+    }
+
+    private static EnhancedDocument documentWithRawCollection(String name, Object value, EnhancedType type) {
+        return EnhancedDocument.builder()
+                               .attributeConverterProviders(defaultProvider())
+                               .put(name, value, type)
+                               .build();
+    }
+
+    private static final class UnsupportedType {
+        private final String value;
+
+        private UnsupportedType(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof UnsupportedType)) {
+                return false;
+            }
+            return Objects.equals(value, ((UnsupportedType) other).value);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(value);
+        }
+    }
+
+    private static final class ObjectStringProvider implements AttributeConverterProvider {
+        private final ObjectStringConverter converter = new ObjectStringConverter();
+
+        @Override
+        public <T> AttributeConverter<T> converterFor(EnhancedType<T> enhancedType) {
+            if (EnhancedType.of(Object.class).equals(enhancedType)) {
+                return (AttributeConverter<T>) converter;
+            }
+            return null;
+        }
+    }
+
+    private static final class ObjectStringConverter implements AttributeConverter<Object> {
+        @Override
+        public AttributeValue transformFrom(Object input) {
+            return AttributeValue.fromS("custom");
+        }
+
+        @Override
+        public Object transformTo(AttributeValue input) {
+            return input.s();
+        }
+
+        @Override
+        public EnhancedType<Object> type() {
+            return EnhancedType.of(Object.class);
+        }
+
+        @Override
+        public AttributeValueType attributeValueType() {
+            return AttributeValueType.S;
+        }
     }
 }
