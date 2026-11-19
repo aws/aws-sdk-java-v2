@@ -901,13 +901,13 @@ public class DownloadDirectoryHelperTest {
         Path writePath = writePathFor(longName);
 
         String tempName = writePath.getFileName().toString();
-        assertThat(tempName).matches("s3tmp\\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
+        assertThat(tempName).matches("s3tmp\\.[0-9a-f]{16}");
         assertThat(writePath.getParent()).isEqualTo(directory);
     }
 
     @Test
     void downloadDirectory_nameThatFitsWithSuffix_shouldKeepName() throws Exception {
-        String name = IntStream.range(0, 212).mapToObj(i -> "a").collect(Collectors.joining());
+        String name = IntStream.range(0, 232).mapToObj(i -> "a").collect(Collectors.joining());
 
         Path writePath = writePathFor(name);
 
@@ -918,7 +918,7 @@ public class DownloadDirectoryHelperTest {
 
     @Test
     void downloadDirectory_nameOneByteTooLongForSuffix_shouldUseSuffixOnly() throws Exception {
-        String name = IntStream.range(0, 213).mapToObj(i -> "a").collect(Collectors.joining());
+        String name = IntStream.range(0, 233).mapToObj(i -> "a").collect(Collectors.joining());
 
         Path writePath = writePathFor(name);
 
@@ -1073,7 +1073,7 @@ public class DownloadDirectoryHelperTest {
     private static void assertTempFileFor(Path actual, Path destination) {
         assertThat(actual.getParent()).isEqualTo(destination.getParent());
         assertThat(actual.getFileName().toString()).matches(Pattern.quote(destination.getFileName().toString())
-                                                            + "\\.s3tmp\\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
+                                                            + "\\.s3tmp\\.[0-9a-f]{16}");
     }
 
     /**

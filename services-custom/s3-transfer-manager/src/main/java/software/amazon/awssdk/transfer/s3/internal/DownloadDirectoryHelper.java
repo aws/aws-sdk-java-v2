@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.Queue;
 import java.util.UUID;
@@ -61,6 +62,7 @@ import software.amazon.awssdk.utils.Validate;
 public class DownloadDirectoryHelper {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
     private static final String TEMP_FILE_INFIX = ".s3tmp.";
+    private static final SecureRandom TEMP_FILE_RANDOM = new SecureRandom();
     private static final int MAX_FILE_NAME_BYTES = 255;
     private final TransferManagerConfiguration transferConfiguration;
     private final FileDownloader fileDownloader;
@@ -246,15 +248,16 @@ public class DownloadDirectoryHelper {
     }
 
     /**
-     * Returns {@code <name>.s3tmp.<uuid>} next to the destination, or {@code s3tmp.<uuid>} when that name would exceed 255 UTF-8
-     * bytes, the file name limit on common file systems.
+     * Returns {@code <name>.s3tmp.<16 hex digits>} next to the destination, or {@code s3tmp.<16 hex digits>} when that name would
+     * exceed 255 UTF-8 bytes, the file name limit on common file systems. The digits come from a {@link SecureRandom}, so the
+     * name can't be predicted and planted in advance.
      */
     private static Path tempFileNextTo(Path destination) {
         Path fileName = destination.getFileName();
         if (fileName == null) {
             throw new IllegalArgumentException(destination + " has no file name");
         }
-        String suffix = TEMP_FILE_INFIX + UUID.randomUUID();
+        String suffix = TEMP_FILE_INFIX + String.format("%016x", TEMP_FILE_RANDOM.nextLong());
         String tempName = fileName + suffix;
         if (tempName.getBytes(StandardCharsets.UTF_8).length > MAX_FILE_NAME_BYTES) {
             tempName = suffix.substring(1);
