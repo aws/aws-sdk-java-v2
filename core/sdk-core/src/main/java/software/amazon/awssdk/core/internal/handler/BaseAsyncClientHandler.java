@@ -42,6 +42,7 @@ import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.internal.http.IdempotentAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.AsyncAfterTransmissionInterceptorCallingResponseHandler;
+import software.amazon.awssdk.core.internal.http.async.AsyncModifyHttpResponseInterceptorCallingResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.AsyncStreamingResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.CombinedResponseAsyncHttpResponseHandler;
@@ -231,8 +232,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                        finalizeSdkHttpRequestContext.asyncRequestBody().orElse(null),
                        inputT,
                        executionContext,
-                       new AsyncAfterTransmissionInterceptorCallingResponseHandler<>(asyncResponseHandler,
-                                                                                     executionContext));
+                       interceptorCallingResponseHandler(asyncResponseHandler, executionContext));
 
             // Captured because the requestBody branch above may reassign 'marshalled', leaving it not effectively final.
             SdkHttpFullRequest requestForMetrics = marshalled;
@@ -257,6 +257,17 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
     @Override
     public void close() {
         client.close();
+    }
+
+    /**
+     * Wraps the response handler with the response interceptor steps, in order: read-only {@code afterTransmission} on
+     * the raw response, then the interceptors that can modify it.
+     */
+    static <T> TransformingAsyncResponseHandler<T> interceptorCallingResponseHandler(
+        TransformingAsyncResponseHandler<T> responseHandler, ExecutionContext executionContext) {
+        return new AsyncAfterTransmissionInterceptorCallingResponseHandler<>(
+            new AsyncModifyHttpResponseInterceptorCallingResponseHandler<>(responseHandler, executionContext),
+            executionContext);
     }
 
     /**
