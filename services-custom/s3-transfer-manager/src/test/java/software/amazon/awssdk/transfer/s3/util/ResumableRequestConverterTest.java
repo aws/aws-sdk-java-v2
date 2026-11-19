@@ -520,6 +520,36 @@ class ResumableRequestConverterTest {
         assertThat(file).hasBinaryContent(objectContent);
     }
 
+    static Stream<Arguments> crtCases() {
+        GetObjectRequest withUserIfMatch = getObjectRequest().toBuilder().ifMatch("*").build();
+        GetObjectRequest withUnresumableRange = getObjectRequest().toBuilder().range("bytes=0-1,5-6").build();
+        return Stream.of(
+            Arguments.of("range resume", getObjectRequest(), false, ETAG_BAR, ETAG_BAR),
+            Arguments.of("range resume, user If-Match", withUserIfMatch, false, ETAG_BAR, ETAG_BAR),
+            Arguments.of("range resume, no token ETag", getObjectRequest(), false, null, null),
+            Arguments.of("range resume, no token ETag, user If-Match", withUserIfMatch, false, null, "*"),
+            Arguments.of("restart", getObjectRequest(), true, ETAG_BAR, null),
+            Arguments.of("unresumable range", withUnresumableRange, false, ETAG_BAR, null)
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("crtCases")
+    void toCrtDownloadFileRequest_shouldSetIfMatchOnlyOnRangeResume(String description,
+                                                                    GetObjectRequest getObjectRequest,
+                                                                    boolean restartFromBeginning,
+                                                                    String s3ObjectEtag,
+                                                                    String expectedIfMatch) {
+        DownloadFileRequest downloadFileRequest = downloadFileRequest(getObjectRequest);
+
+        GetObjectRequest actualRequest =
+            toCrtDownloadFileRequest(resumableFileDownload(downloadFileRequest, S3_LAST_MODIFIED, s3ObjectEtag),
+                                     headObjectResponse(S3_LAST_MODIFIED), downloadFileRequest, restartFromBeginning)
+                .getObjectRequest();
+
+        assertThat(actualRequest.ifMatch()).isEqualTo(expectedIfMatch);
+    }
+
     @Test
     void toCrtDownloadFileRequest_restart_shouldUseNewResumeContext() {
         GetObjectRequest getObjectRequest = getObjectRequestWithCompletedFirstPart();

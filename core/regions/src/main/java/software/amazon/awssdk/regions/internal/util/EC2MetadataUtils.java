@@ -38,6 +38,7 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
 
@@ -393,13 +394,15 @@ public final class EC2MetadataUtils {
             throw SdkClientException.builder().message("EC2 metadata usage is disabled.").build();
         }
 
+        validateMetadataPath(path);
+
         List<String> items;
 
         String token = getToken();
 
         try {
             String hostAddress = EC2_METADATA_CONFIG_PROVIDER.getEndpoint();
-            String response = doReadResource(new URI(hostAddress + path), token);
+            String response = doReadResource(new URI(SdkHttpUtils.appendUri(hostAddress, path)), token);
             if (slurp) {
                 items = Collections.singletonList(response);
             } else {
@@ -424,6 +427,14 @@ public final class EC2MetadataUtils {
                 Thread.currentThread().interrupt();
             }
             return getItems(path, tries - 1, slurp);
+        }
+    }
+
+    private static void validateMetadataPath(String path) {
+        if (path == null || !path.startsWith("/")) {
+            throw SdkClientException.builder()
+                                    .message("EC2 metadata path must start with '/', but was: " + path)
+                                    .build();
         }
     }
 
@@ -488,7 +499,8 @@ public final class EC2MetadataUtils {
     /**
      * Fetch data using the given path
      *
-     * @param path the path
+     * @param path the absolute metadata path, which must start with '/', e.g. {@code /latest/meta-data/ami-id}. An
+     * {@link SdkClientException} is thrown for any other value.
      * @param force whether to force to override the value in the cache
      * @param attempts the number of attempts that should be executed.
      * @return the value retrieved from the path
@@ -497,6 +509,8 @@ public final class EC2MetadataUtils {
         if (SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow()) {
             throw SdkClientException.builder().message("EC2 metadata usage is disabled.").build();
         }
+
+        validateMetadataPath(path);
 
         try {
             if (force || !CACHE.containsKey(path)) {
