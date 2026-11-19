@@ -461,6 +461,7 @@
         <module>opensearchmemory</module>
         <module>sagemakerinferencerouterruntime</module>
         <module>abusesignal</module>
+        <module>partnercentralmarketing</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
