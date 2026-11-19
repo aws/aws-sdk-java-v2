@@ -18,6 +18,9 @@ package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PING_TRACKER;
@@ -81,26 +84,45 @@ public class Http2StreamExceptionHandlerTest {
     }
 
     @Test
-    public void timeoutException_shouldFireExceptionAndPropagateException() {
+    public void exceptionCaught_timeoutException_shouldRetireConnectionAndPropagateException() {
+        MultiplexedChannelRecord record = mock(MultiplexedChannelRecord.class);
+        embeddedParentChannel.attr(Http2MultiplexedChannelPool.MULTIPLEXED_CHANNEL).set(record);
         when(streamChannel.parent()).thenReturn(embeddedParentChannel);
         handler.exceptionCaught(context, ReadTimeoutException.INSTANCE);
 
-        assertThat(verifyExceptionHandler.exceptionCaught).isExactlyInstanceOf(Http2ConnectionTerminatingException.class);
+        verify(record).closeToNewStreams();
+        assertThat(verifyExceptionHandler.exceptionCaught).isNull();
         verify(context).fireExceptionCaught(ReadTimeoutException.INSTANCE);
     }
 
     @Test
-    public void ioException_shouldFireExceptionAndPropagateException() {
+    public void exceptionCaught_ioException_shouldRetireConnectionAndPropagateException() {
+        MultiplexedChannelRecord record = mock(MultiplexedChannelRecord.class);
+        embeddedParentChannel.attr(Http2MultiplexedChannelPool.MULTIPLEXED_CHANNEL).set(record);
         IOException ioException = new IOException("yolo");
         when(streamChannel.parent()).thenReturn(embeddedParentChannel);
         handler.exceptionCaught(context, ioException);
 
-        assertThat(verifyExceptionHandler.exceptionCaught).isExactlyInstanceOf(Http2ConnectionTerminatingException.class);
+        verify(record).closeToNewStreams();
+        assertThat(verifyExceptionHandler.exceptionCaught).isNull();
         verify(context).fireExceptionCaught(ioException);
     }
 
     @Test
-    public void otherException_shouldJustPropagateException() {
+    public void exceptionCaught_ioExceptionWithNoRecordOnParent_shouldJustPropagateException() {
+        IOException ioException = new IOException("yolo");
+        when(streamChannel.parent()).thenReturn(embeddedParentChannel);
+
+        assertThatCode(() -> handler.exceptionCaught(context, ioException)).doesNotThrowAnyException();
+
+        assertThat(verifyExceptionHandler.exceptionCaught).isNull();
+        verify(context).fireExceptionCaught(ioException);
+    }
+
+    @Test
+    public void exceptionCaught_otherException_shouldJustPropagateException() {
+        MultiplexedChannelRecord record = mock(MultiplexedChannelRecord.class);
+        embeddedParentChannel.attr(Http2MultiplexedChannelPool.MULTIPLEXED_CHANNEL).set(record);
         when(streamChannel.parent()).thenReturn(embeddedParentChannel);
 
         RuntimeException otherException = new RuntimeException("test");
@@ -110,6 +132,7 @@ public class Http2StreamExceptionHandlerTest {
 
         verify(context).fireExceptionCaught(otherException);
         assertThat(verifyExceptionHandler.exceptionCaught).isNull();
+        verify(record, never()).closeToNewStreams();
     }
 
     private static final class TestVerifyExceptionHandler extends ChannelInboundHandlerAdapter {
