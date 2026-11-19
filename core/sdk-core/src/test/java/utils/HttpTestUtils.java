@@ -31,25 +31,19 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
-import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
-import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.retries.api.RetryStrategy;
-import software.amazon.awssdk.utils.AttributeMap;
 
 public class HttpTestUtils {
     public static SdkHttpClient testSdkHttpClient() {
-        return new DefaultSdkHttpClientBuilder().buildWithDefaults(
-            AttributeMap.empty().merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
+        return StubSdkHttpClient.create();
     }
 
     public static SdkAsyncHttpClient testSdkAsyncHttpClient() {
-        return new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(
-            AttributeMap.empty().merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
+        return StubSdkAsyncHttpClient.create();
     }
 
     public static AmazonSyncHttpClient testAmazonHttpClient() {

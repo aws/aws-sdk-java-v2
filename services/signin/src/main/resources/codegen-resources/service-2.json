@@ -13,6 +13,26 @@
     "uid":"signin-2023-01-01"
   },
   "operations":{
+    "CreateBearerToken":{
+      "name":"CreateBearerToken",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/token?x-amz-token-request-type=bearer",
+        "responseCode":200
+      },
+      "input":{"shape":"CreateBearerTokenRequest"},
+      "output":{"shape":"CreateBearerTokenResponse"},
+      "errors":[
+        {"shape":"TooManyRequestsError"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Creates a bearer token that represents your IAM credentials and can be used to access a supported AWS service. By default, the token is valid for 12 hours.</p>",
+      "staticContextParams":{
+        "IsOAuthEndpoint":{"value":true}
+      }
+    },
     "CreateOAuth2Token":{
       "name":"CreateOAuth2Token",
       "http":{
@@ -28,9 +48,252 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>CreateOAuth2Token API</p> <p>Path: /v1/token Request Method: POST Content-Type: application/json or application/x-www-form-urlencoded</p> <p>This API implements OAuth 2.0 flows for AWS Sign-In CLI clients, supporting both:</p> <ol> <li>Authorization code redemption (grant_type=authorization_code) - NOT idempotent</li> <li>Token refresh (grant_type=refresh_token) - Idempotent within token validity window</li> </ol> <p>The operation behavior is determined by the grant_type parameter in the request body:</p> <p><strong>Authorization Code Flow (NOT Idempotent):</strong></p> <ul> <li>JSON or form-encoded body with client_id, grant_type=authorization_code, code, redirect_uri, code_verifier</li> <li>Returns access_token, token_type, expires_in, refresh_token, and id_token</li> <li>Each authorization code can only be used ONCE for security (prevents replay attacks)</li> </ul> <p><strong>Token Refresh Flow (Idempotent):</strong></p> <ul> <li>JSON or form-encoded body with client_id, grant_type=refresh_token, refresh_token</li> <li>Returns access_token, token_type, expires_in, and refresh_token (no id_token)</li> <li>Multiple calls with same refresh_token return consistent results within validity window</li> </ul> <p>Authentication and authorization:</p> <ul> <li>Confidential clients: sigv4 signing required with signin:ExchangeToken permissions</li> <li>CLI clients (public): authn/authz skipped based on client_id &amp; grant_type</li> </ul> <p>Note: This operation cannot be marked as @idempotent because it handles both idempotent (token refresh) and non-idempotent (auth code redemption) flows in a single endpoint.</p>",
+      "documentation":"<p>Exchanges an authorization code or refresh token for an OAuth 2.0 access token and refresh token.</p>",
       "auth":["smithy.api#noAuth"],
+      "staticContextParams":{
+        "IsControlPlane":{"value":false}
+      },
       "authtype":"none"
+    },
+    "CreateOAuth2TokenWithIAM":{
+      "name":"CreateOAuth2TokenWithIAM",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/token?x-amz-client-auth-method=iam",
+        "responseCode":200
+      },
+      "input":{"shape":"CreateOAuth2TokenWithIAMRequest"},
+      "output":{"shape":"CreateOAuth2TokenWithIAMResponse"},
+      "errors":[
+        {"shape":"TooManyRequestsError"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Exchanges client credentials for an OAuth 2.0 access token scoped to a resource, which you can use to access AWS services from applications.</p>",
+      "staticContextParams":{
+        "IsOAuthEndpoint":{"value":true}
+      }
+    },
+    "CreateOAuth2TokenWithTokenExchange":{
+      "name":"CreateOAuth2TokenWithTokenExchange",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/token?x-amz-oauth-token-method=token-exchange",
+        "responseCode":200
+      },
+      "input":{"shape":"CreateOAuth2TokenWithTokenExchangeRequest"},
+      "output":{"shape":"CreateOAuth2TokenWithTokenExchangeResponse"},
+      "errors":[
+        {"shape":"InvalidGrantException"},
+        {"shape":"InvalidScopeException"},
+        {"shape":"TooManyRequestsError"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Exchanges a supported token for an OAuth 2.0 access token scoped to a resource, which you can use to access AWS services from applications.</p>",
+      "auth":["smithy.api#noAuth"],
+      "staticContextParams":{
+        "IsOAuthEndpoint":{"value":true}
+      },
+      "authtype":"none"
+    },
+    "DeleteConsoleAuthorizationConfiguration":{
+      "name":"DeleteConsoleAuthorizationConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/delete-console-authorization-configuration",
+        "responseCode":200
+      },
+      "input":{"shape":"DeleteConsoleAuthorizationConfigurationInput"},
+      "output":{"shape":"DeleteConsoleAuthorizationConfigurationOutput"},
+      "errors":[
+        {"shape":"TooManyRequestsError"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Delete console authorization configuration with automatic scope detection</p>",
+      "idempotent":true,
+      "staticContextParams":{
+        "IsControlPlane":{"value":true}
+      }
+    },
+    "DeleteResourcePermissionStatement":{
+      "name":"DeleteResourcePermissionStatement",
+      "http":{
+        "method":"POST",
+        "requestUri":"/delete-resource-permission-statement",
+        "responseCode":200
+      },
+      "input":{"shape":"DeleteResourcePermissionStatementInput"},
+      "output":{"shape":"DeleteResourcePermissionStatementOutput"},
+      "errors":[
+        {"shape":"TooManyRequestsError"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Remove a permission statement from the account's SignIn resource-based policy</p>",
+      "staticContextParams":{
+        "IsControlPlane":{"value":true}
+      }
+    },
+    "GetConsoleAuthorizationConfiguration":{
+      "name":"GetConsoleAuthorizationConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/get-console-authorization-configuration",
+        "responseCode":200
+      },
+      "input":{"shape":"GetConsoleAuthorizationConfigurationInput"},
+      "output":{"shape":"GetConsoleAuthorizationConfigurationOutput"},
+      "errors":[
+        {"shape":"TooManyRequestsError"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Get console authorization configuration with automatic scope detection</p>",
+      "readonly":true,
+      "staticContextParams":{
+        "IsControlPlane":{"value":true}
+      }
+    },
+    "GetResourcePolicy":{
+      "name":"GetResourcePolicy",
+      "http":{
+        "method":"POST",
+        "requestUri":"/get-resource-policy",
+        "responseCode":200
+      },
+      "input":{"shape":"GetResourcePolicyInput"},
+      "output":{"shape":"GetResourcePolicyOutput"},
+      "errors":[
+        {"shape":"TooManyRequestsError"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Retrieve the account's consolidated SignIn resource-based policy</p>",
+      "readonly":true,
+      "staticContextParams":{
+        "IsControlPlane":{"value":true}
+      }
+    },
+    "IntrospectOAuth2TokenWithIAM":{
+      "name":"IntrospectOAuth2TokenWithIAM",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/introspect?x-amz-client-auth-method=iam",
+        "responseCode":200
+      },
+      "input":{"shape":"IntrospectOAuth2TokenWithIAMRequest"},
+      "output":{"shape":"IntrospectOAuth2TokenWithIAMResponse"},
+      "errors":[
+        {"shape":"TooManyRequestsError"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Inspects the metadata and active state of an OAuth 2.0 access token or refresh token.</p> <p>Implements RFC 7662 OAuth 2.0 Token Introspection over a SigV4-authenticated endpoint. Returns the claims associated with a token issued by AWS Sign-In.</p>",
+      "readonly":true,
+      "staticContextParams":{
+        "IsOAuthEndpoint":{"value":true}
+      }
+    },
+    "ListResourcePermissionStatements":{
+      "name":"ListResourcePermissionStatements",
+      "http":{
+        "method":"POST",
+        "requestUri":"/list-resource-permission-statements",
+        "responseCode":200
+      },
+      "input":{"shape":"ListResourcePermissionStatementsInput"},
+      "output":{"shape":"ListResourcePermissionStatementsOutput"},
+      "errors":[
+        {"shape":"TooManyRequestsError"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Retrieve all permission statements in the account's SignIn resource-based policy</p>",
+      "readonly":true,
+      "staticContextParams":{
+        "IsControlPlane":{"value":true}
+      }
+    },
+    "PutConsoleAuthorizationConfiguration":{
+      "name":"PutConsoleAuthorizationConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/put-console-authorization-configuration",
+        "responseCode":200
+      },
+      "input":{"shape":"PutConsoleAuthorizationConfigurationInput"},
+      "output":{"shape":"PutConsoleAuthorizationConfigurationOutput"},
+      "errors":[
+        {"shape":"TooManyRequestsError"},
+        {"shape":"ConflictException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Enable console authorization configuration with automatic scope detection</p>",
+      "idempotent":true,
+      "staticContextParams":{
+        "IsControlPlane":{"value":true}
+      }
+    },
+    "PutResourcePermissionStatement":{
+      "name":"PutResourcePermissionStatement",
+      "http":{
+        "method":"POST",
+        "requestUri":"/put-resource-permission-statement",
+        "responseCode":200
+      },
+      "input":{"shape":"PutResourcePermissionStatementInput"},
+      "output":{"shape":"PutResourcePermissionStatementOutput"},
+      "errors":[
+        {"shape":"TooManyRequestsError"},
+        {"shape":"ConflictException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Create a permission statement in the account's SignIn resource-based policy</p>",
+      "idempotent":true,
+      "staticContextParams":{
+        "IsControlPlane":{"value":true}
+      }
+    },
+    "RevokeOAuth2TokenWithIAM":{
+      "name":"RevokeOAuth2TokenWithIAM",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/revoke?x-amz-client-auth-method=iam",
+        "responseCode":200
+      },
+      "input":{"shape":"RevokeOAuth2TokenWithIAMRequest"},
+      "output":{"shape":"RevokeOAuth2TokenWithIAMResponse"},
+      "errors":[
+        {"shape":"TooManyRequestsError"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Revokes an OAuth 2.0 refresh token and its associated token chain.</p>",
+      "idempotent":true,
+      "staticContextParams":{
+        "IsOAuthEndpoint":{"value":true}
+      }
     }
   },
   "shapes":{
@@ -43,14 +306,14 @@
       "members":{
         "error":{
           "shape":"OAuth2ErrorCode",
-          "documentation":"<p>OAuth 2.0 error code indicating the specific type of access denial Can be TOKEN_EXPIRED, AUTHCODE_EXPIRED, USER_CREDENTIALS_CHANGED, or INSUFFICIENT_PERMISSIONS</p>"
+          "documentation":"<p>One of TOKEN_EXPIRED, AUTHCODE_EXPIRED, USER_CREDENTIALS_CHANGED, or INSUFFICIENT_PERMISSIONS.</p>"
         },
         "message":{
           "shape":"String",
-          "documentation":"<p>Detailed message explaining the access denial Provides specific information about why access was denied</p>"
+          "documentation":"<p>The reason access was denied.</p>"
         }
       },
-      "documentation":"<p>Error thrown for access denied scenarios with flexible HTTP status mapping</p> <p>Runtime HTTP Status Code Mapping:</p> <ul> <li>HTTP 401 (Unauthorized): TOKEN_EXPIRED, AUTHCODE_EXPIRED</li> <li>HTTP 403 (Forbidden): USER_CREDENTIALS_CHANGED, INSUFFICIENT_PERMISSIONS</li> </ul> <p>The specific HTTP status code is determined at runtime based on the error enum value. Consumers should use the error field to determine the specific access denial reason.</p>",
+      "documentation":"<p>You do not have sufficient access to perform this action.</p>",
       "exception":true
     },
     "AccessToken":{
@@ -63,40 +326,175 @@
       "members":{
         "accessKeyId":{
           "shape":"String",
-          "documentation":"<p>AWS access key ID for temporary credentials</p>",
+          "documentation":"<p>The AWS access key ID for the temporary credentials.</p>",
           "locationName":"accessKeyId"
         },
         "secretAccessKey":{
           "shape":"String",
-          "documentation":"<p>AWS secret access key for temporary credentials</p>",
+          "documentation":"<p>The AWS secret access key used to sign requests.</p>",
           "locationName":"secretAccessKey"
         },
         "sessionToken":{
           "shape":"String",
-          "documentation":"<p>AWS session token for temporary credentials</p>",
+          "documentation":"<p>The session token that validates the temporary security credentials.</p>",
           "locationName":"sessionToken"
         }
       },
-      "documentation":"<p>AWS credentials structure containing temporary access credentials</p> <p>The scoped-down, 15 minute duration AWS credentials. Scoping down will be based on CLI policy (CLI team needs to create it). Similar to cloud shell implementation.</p>",
+      "documentation":"<p>Contains the scoped, temporary AWS credentials used to sign requests with SigV4. Valid for 15 minutes.</p>",
       "sensitive":true
+    },
+    "AccountId":{
+      "type":"string",
+      "documentation":"<p>AWS account identifier</p>",
+      "max":12,
+      "min":12,
+      "pattern":"[0-9]{12}"
     },
     "AuthorizationCode":{
       "type":"string",
-      "documentation":"<p>Authorization code received from AWS Sign-In /v1/authorize endpoint</p> <p>The authorization code received from AWS Sign-In from /v1/authorize. Used in auth code redemption flow only.</p>",
+      "documentation":"<p>Authorization code received from AWS Sign-In. Used only in the authorization code redemption flow.</p>",
       "max":512,
       "min":1
     },
+    "BearerTokenExpiresIn":{
+      "type":"integer",
+      "documentation":"<p>Token lifetime in seconds.</p>",
+      "box":true,
+      "min":1
+    },
+    "BearerTokenType":{
+      "type":"string",
+      "documentation":"<p>Token type for access tokens. Currently supports &quot;Bearer&quot; as defined in RFC 6749.</p>",
+      "pattern":"Bearer"
+    },
+    "Boolean":{
+      "type":"boolean",
+      "box":true
+    },
+    "ClientCredentialsGrantType":{
+      "type":"string",
+      "documentation":"<p>OAuth 2.0 grant type for client_credentials flow.</p>",
+      "pattern":"client_credentials"
+    },
     "ClientId":{
       "type":"string",
-      "documentation":"<p>Client identifier pattern for AWS Sign-In devtools clients</p> <p>The ARN used by client as part of Sign-In onboarding. Expected values:</p> <ul> <li>arn:aws:signin:::devtools/cross-device (for cross-device devtools login)</li> <li>arn:aws:signin:::devtools/same-device (for same-device devtools login)</li> </ul> <p>This will be finalized after consulting with UX as this is visible to end customer.</p>",
+      "documentation":"<p>The OAuth 2.0 client identifier.</p>",
       "pattern":"arn:aws:signin:::devtools/(cross-device|same-device)"
+    },
+    "ClientToken":{
+      "type":"string",
+      "documentation":"<p>Idempotency token</p>",
+      "max":64,
+      "min":1,
+      "pattern":"[!-~]+"
     },
     "CodeVerifier":{
       "type":"string",
-      "documentation":"<p>PKCE code verifier for OAuth 2.0 security</p> <p>PKCE code verifier to prove possession of the original code challenge. Used to prevent authorization code interception attacks in public clients. Must be 43-128 characters using unreserved characters [A-Z] / [a-z] / [0-9] / &quot;-&quot; / &quot;.&quot; / &quot;_&quot; / &quot;~&quot;</p>",
+      "documentation":"<p>PKCE code verifier used to prove possession of the original code challenge. Must be 43 to 128 characters.</p>",
       "max":128,
       "min":43,
       "pattern":"[A-Za-z0-9\\-._~]+"
+    },
+    "Condition":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"ConditionValues"},
+      "documentation":"<p>Condition mapping of keys to values</p>"
+    },
+    "ConditionBlock":{
+      "type":"map",
+      "key":{"shape":"ConditionType"},
+      "value":{"shape":"Condition"},
+      "documentation":"<p>Condition block for policy statements</p>"
+    },
+    "ConditionType":{
+      "type":"string",
+      "documentation":"<p>Condition type identifier</p>"
+    },
+    "ConditionValues":{
+      "type":"list",
+      "member":{"shape":"String"},
+      "documentation":"<p>List of condition values</p>"
+    },
+    "ConflictException":{
+      "type":"structure",
+      "required":[
+        "error",
+        "message"
+      ],
+      "members":{
+        "error":{
+          "shape":"OAuth2ErrorCode",
+          "documentation":"<p>OAuth 2.0 error code indicating conflict Will be CONFLICT</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>Detailed message explaining the conflict Provides specific information about what caused the conflict</p>"
+        }
+      },
+      "documentation":"<p>Error thrown when request conflicts with current state</p> <p>HTTP Status Code: 409 Conflict</p> <p>Used when the request conflicts with the current state of the resource</p>",
+      "error":{
+        "httpStatusCode":409,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "ConsolePermissionMaxResults":{
+      "type":"integer",
+      "documentation":"<p>Maximum number of results for list operations</p>",
+      "box":true,
+      "max":100,
+      "min":1
+    },
+    "CreateBearerTokenRequest":{
+      "type":"structure",
+      "required":[
+        "grantType",
+        "resource"
+      ],
+      "members":{
+        "grantType":{
+          "shape":"ClientCredentialsGrantType",
+          "documentation":"<p>The grant type. Must be &quot;client_credentials&quot;.</p>",
+          "locationName":"grant_type"
+        },
+        "resource":{
+          "shape":"Resource",
+          "documentation":"<p>The AWS service the bearer token is for. Example: &quot;ecr.amazonaws.com&quot;.</p>"
+        },
+        "durationSeconds":{
+          "shape":"TokenDuration",
+          "documentation":"<p>The requested token lifetime in seconds, from 300 (5 minutes) up to the maximum allowed for the service, currently 43200 (12 hours). If omitted, the token is valid for 12 hours.</p>",
+          "locationName":"duration"
+        }
+      },
+      "documentation":"<p>Input structure for CreateBearerToken operation</p>"
+    },
+    "CreateBearerTokenResponse":{
+      "type":"structure",
+      "required":[
+        "accessToken",
+        "tokenType",
+        "expiresIn"
+      ],
+      "members":{
+        "accessToken":{
+          "shape":"OAuthAccessToken",
+          "documentation":"<p>The bearer token. Present it to the AWS service named in the request.</p>",
+          "locationName":"access_token"
+        },
+        "tokenType":{
+          "shape":"BearerTokenType",
+          "documentation":"<p>The token type. Always &quot;Bearer&quot;.</p>",
+          "locationName":"token_type"
+        },
+        "expiresIn":{
+          "shape":"BearerTokenExpiresIn",
+          "documentation":"<p>Token lifetime in seconds.</p>",
+          "locationName":"expires_in"
+        }
+      },
+      "documentation":"<p>Output structure for CreateBearerToken operation</p> <p>Contains the bearer token, its type, and its lifetime.</p>"
     },
     "CreateOAuth2TokenRequest":{
       "type":"structure",
@@ -104,7 +502,7 @@
       "members":{
         "tokenInput":{
           "shape":"CreateOAuth2TokenRequestBody",
-          "documentation":"<p>Flattened token operation inputs The specific operation is determined by grant_type in the request body</p>"
+          "documentation":"<p>Flattened token operation inputs. The &quot;grant_type&quot; in the request body determines the specific operation.</p>"
         }
       },
       "documentation":"<p>Input structure for CreateOAuth2Token operation</p> <p>Contains flattened token operation inputs for both authorization code and refresh token flows. The operation type is determined by the grant_type parameter in the request body.</p>",
@@ -119,35 +517,35 @@
       "members":{
         "clientId":{
           "shape":"ClientId",
-          "documentation":"<p>The client identifier (ARN) used during Sign-In onboarding Required for both authorization code and refresh token flows</p>",
+          "documentation":"<p>The OAuth 2.0 client identifier. Expected values: &quot;arn:aws:signin:::devtools/same-device&quot; or &quot;arn:aws:signin:::devtools/cross-device&quot;.</p>",
           "locationName":"clientId"
         },
         "grantType":{
           "shape":"GrantType",
-          "documentation":"<p>OAuth 2.0 grant type - determines which flow is used Must be &quot;authorization_code&quot; or &quot;refresh_token&quot;</p>",
+          "documentation":"<p>The OAuth 2.0 grant type. Supported values:</p> <ul> <li>&quot;authorization_code&quot; - Exchange an authorization code for tokens.</li> <li>&quot;refresh_token&quot; - Use a refresh token to obtain a new access token.</li> </ul>",
           "locationName":"grantType"
         },
         "code":{
           "shape":"AuthorizationCode",
-          "documentation":"<p>The authorization code received from /v1/authorize Required only when grant_type=authorization_code</p>"
+          "documentation":"<p>The authorization code received from the &quot;/v1/authorize&quot; endpoint. Required when &quot;grant_type=authorization_code&quot;.</p>"
         },
         "redirectUri":{
           "shape":"RedirectUri",
-          "documentation":"<p>The redirect URI that must match the original authorization request Required only when grant_type=authorization_code</p>",
+          "documentation":"<p>The redirect URI that was used in the original authorization request. Must match exactly. Required when &quot;grant_type=authorization_code&quot;.</p>",
           "locationName":"redirectUri"
         },
         "codeVerifier":{
           "shape":"CodeVerifier",
-          "documentation":"<p>PKCE code verifier to prove possession of the original code challenge Required only when grant_type=authorization_code</p>",
+          "documentation":"<p>The PKCE code verifier that proves possession of the original code challenge. Required when &quot;grant_type=authorization_code&quot;.</p>",
           "locationName":"codeVerifier"
         },
         "refreshToken":{
           "shape":"RefreshToken",
-          "documentation":"<p>The refresh token returned from auth_code redemption Required only when grant_type=refresh_token</p>",
+          "documentation":"<p>The refresh token issued by a previous token response. Required when &quot;grant_type=refresh_token&quot;.</p>",
           "locationName":"refreshToken"
         }
       },
-      "documentation":"<p>Request body payload for CreateOAuth2Token operation</p> <p>The operation type is determined by the grant_type parameter:</p> <ul> <li>grant_type=authorization_code: Requires code, redirect_uri, code_verifier</li> <li>grant_type=refresh_token: Requires refresh_token</li> </ul>"
+      "documentation":"<p>The request body for creating an OAuth 2.0 token. Supports both the authorization code and refresh token flows, selected by the &quot;grant_type&quot; parameter.</p>"
     },
     "CreateOAuth2TokenResponse":{
       "type":"structure",
@@ -155,7 +553,7 @@
       "members":{
         "tokenOutput":{
           "shape":"CreateOAuth2TokenResponseBody",
-          "documentation":"<p>Flattened token operation outputs The specific response fields depend on the grant_type used in the request</p>"
+          "documentation":"<p>Flattened token operation outputs. The specific response fields depend on the grant_type used in the request.</p>"
         }
       },
       "documentation":"<p>Output structure for CreateOAuth2Token operation</p> <p>Contains flattened token operation outputs for both authorization code and refresh token flows. The response content depends on the grant_type from the original request.</p>",
@@ -172,47 +570,263 @@
       "members":{
         "accessToken":{
           "shape":"AccessToken",
-          "documentation":"<p>Scoped-down AWS credentials (15 minute duration) Present for both authorization code redemption and token refresh</p>",
+          "documentation":"<p>The access token issued by the authorization server. The token contains temporary AWS security credentials that you use to sign requests with SigV4.</p>",
           "locationName":"accessToken"
         },
         "tokenType":{
           "shape":"TokenType",
-          "documentation":"<p>Token type indicating this is AWS SigV4 credentials Value is &quot;aws_sigv4&quot; for both flows</p>",
+          "documentation":"<p>The type of token issued. Value is &quot;aws_sigv4&quot;.</p>",
           "locationName":"tokenType"
         },
         "expiresIn":{
           "shape":"ExpiresIn",
-          "documentation":"<p>Time to expiry in seconds (maximum 900) Present for both authorization code redemption and token refresh</p>",
+          "documentation":"<p>The number of seconds until the access token expires. Maximum value is 900 seconds (15 minutes).</p>",
           "locationName":"expiresIn"
         },
         "refreshToken":{
           "shape":"RefreshToken",
-          "documentation":"<p>Encrypted refresh token with cnf.jkt (SHA-256 thumbprint of presented jwk) Always present in responses (required for both flows)</p>",
+          "documentation":"<p>A refresh token that can be used to obtain new access tokens without re-authenticating.</p>",
           "locationName":"refreshToken"
         },
         "idToken":{
           "shape":"IdToken",
-          "documentation":"<p>ID token containing user identity information Present only in authorization code redemption response (grant_type=authorization_code) Not included in token refresh responses</p>",
+          "documentation":"<p>A JSON Web Token (JWT) containing user identity claims. Present only when &quot;grant_type=authorization_code&quot;. Not included in refresh token responses.</p>",
           "locationName":"idToken"
         }
       },
-      "documentation":"<p>Response body payload for CreateOAuth2Token operation</p> <p>The response content depends on the grant_type from the request:</p> <ul> <li>grant_type=authorization_code: Returns all fields including refresh_token and id_token</li> <li>grant_type=refresh_token: Returns access_token, token_type, expires_in, refresh_token (no id_token)</li> </ul>"
+      "documentation":"<p>The response body for an OAuth 2.0 token request. The fields returned depend on the &quot;grant_type&quot;. The authorization code flow returns &quot;refresh_token&quot; and &quot;id_token&quot;. The refresh token flow omits &quot;id_token&quot;.</p>"
+    },
+    "CreateOAuth2TokenWithIAMRequest":{
+      "type":"structure",
+      "required":[
+        "grantType",
+        "resource"
+      ],
+      "members":{
+        "grantType":{
+          "shape":"ClientCredentialsGrantType",
+          "documentation":"<p>The OAuth 2.0 grant type. Must be &quot;client_credentials&quot;.</p>",
+          "locationName":"grant_type"
+        },
+        "resource":{
+          "shape":"Resource",
+          "documentation":"<p>The OAuth resource for which the access token is requested. Example: &quot;aws-mcp.amazonaws.com&quot;.</p>"
+        }
+      },
+      "documentation":"<p>Input structure for CreateOAuth2TokenWithIAM operation</p>"
+    },
+    "CreateOAuth2TokenWithIAMResponse":{
+      "type":"structure",
+      "required":[
+        "accessToken",
+        "tokenType",
+        "expiresIn"
+      ],
+      "members":{
+        "accessToken":{
+          "shape":"OAuthAccessToken",
+          "documentation":"<p>Access token containing principal identity, resource scope, and session metadata.</p>",
+          "locationName":"access_token"
+        },
+        "tokenType":{
+          "shape":"BearerTokenType",
+          "documentation":"<p>The token type. Always &quot;Bearer&quot; as defined in RFC 6749.</p>",
+          "locationName":"token_type"
+        },
+        "expiresIn":{
+          "shape":"TokenExpiresIn",
+          "documentation":"<p>Token lifetime in seconds. Value is the minimum of the caller's session validity and 1 hour (3600 seconds).</p>",
+          "locationName":"expires_in"
+        }
+      },
+      "documentation":"<p>Output structure for CreateOAuth2TokenWithIAM operation</p> <p>Contains the access token, token type, and expiration as defined in RFC 6749 §5.1.</p>"
+    },
+    "CreateOAuth2TokenWithTokenExchangeRequest":{
+      "type":"structure",
+      "required":["grantType"],
+      "members":{
+        "grantType":{
+          "shape":"TokenExchangeGrantType",
+          "documentation":"<p>The OAuth 2.0 grant type. Currently only supports &quot;urn:ietf:params:oauth:grant-type:token-exchange&quot;.</p>",
+          "locationName":"grant_type"
+        },
+        "subjectToken":{
+          "shape":"SubjectToken",
+          "documentation":"<p>The subject token that represents the identity of the party on whose behalf the request is made. Required when &quot;grant_type=urn:ietf:params:oauth:grant-type:token-exchange&quot;.</p>",
+          "locationName":"subject_token"
+        },
+        "subjectTokenType":{
+          "shape":"SubjectTokenType",
+          "documentation":"<p>The token type of the subject token. Currently only supports &quot;urn:ietf:params:oauth:token-type:jwt&quot;. Required when &quot;grant_type=urn:ietf:params:oauth:grant-type:token-exchange&quot;.</p>",
+          "locationName":"subject_token_type"
+        },
+        "resource":{
+          "shape":"Resource",
+          "documentation":"<p>The OAuth resource for which the access token is requested. Required when &quot;grant_type=urn:ietf:params:oauth:grant-type:token-exchange&quot;. Example: &quot;glue.amazonaws.com&quot;.</p>"
+        },
+        "scope":{
+          "shape":"Scope",
+          "documentation":"<p>IAM managed policy Amazon Resource Names (ARNs) to apply as session policies that further scope down the permissions of the issued access token, provided as a space-delimited list. Example: &quot;arn:aws:iam::444455556666:policy/MyPolicy&quot;.</p>"
+        }
+      },
+      "documentation":"<p>Input structure for CreateOAuth2TokenWithTokenExchange operation</p>"
+    },
+    "CreateOAuth2TokenWithTokenExchangeResponse":{
+      "type":"structure",
+      "required":[
+        "accessToken",
+        "tokenType",
+        "expiresIn"
+      ],
+      "members":{
+        "accessToken":{
+          "shape":"OAuthAccessToken",
+          "documentation":"<p>Access token containing principal identity, resource scope, and session metadata.</p>",
+          "locationName":"access_token"
+        },
+        "issuedTokenType":{
+          "shape":"IssuedOAuthAccessTokenType",
+          "documentation":"<p>The token type of the issued token. Always &quot;urn:ietf:params:oauth:token-type:access_token&quot; as defined in RFC 8693 §2.2.1.</p>",
+          "locationName":"issued_token_type"
+        },
+        "tokenType":{
+          "shape":"BearerTokenType",
+          "documentation":"<p>The token type. Currently only supports &quot;Bearer&quot; as defined in RFC 6749.</p>",
+          "locationName":"token_type"
+        },
+        "expiresIn":{
+          "shape":"TokenExpiresIn",
+          "documentation":"<p>Token lifetime in seconds. Value is the minimum of the subject token's validity and 1 hour (3600 seconds).</p>",
+          "locationName":"expires_in"
+        }
+      },
+      "documentation":"<p>Output structure for CreateOAuth2TokenWithTokenExchange operation.</p> <p>Contains the access token, issued token type, token type, and expiration as defined in RFC 6749 §5.1 and RFC 8693 §2.2.1.</p>"
+    },
+    "DeleteConsoleAuthorizationConfigurationInput":{
+      "type":"structure",
+      "members":{
+        "targetId":{
+          "shape":"TargetId",
+          "documentation":"<p>Target account identifier</p>"
+        }
+      },
+      "documentation":"<p>Input for DeleteConsoleAuthorizationConfiguration operation</p>"
+    },
+    "DeleteConsoleAuthorizationConfigurationOutput":{
+      "type":"structure",
+      "required":[
+        "targetId",
+        "scope",
+        "consoleAuthorizationEnabled"
+      ],
+      "members":{
+        "targetId":{
+          "shape":"TargetId",
+          "documentation":"<p>Target account identifier</p>"
+        },
+        "scope":{
+          "shape":"String",
+          "documentation":"<p>Authorization scope</p>"
+        },
+        "consoleAuthorizationEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether console authorization is enabled</p>"
+        }
+      },
+      "documentation":"<p>Output for DeleteConsoleAuthorizationConfiguration operation</p>"
+    },
+    "DeleteResourcePermissionStatementInput":{
+      "type":"structure",
+      "required":["statementId"],
+      "members":{
+        "statementId":{
+          "shape":"StatementId",
+          "documentation":"<p>Unique identifier of the permission statement to delete</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>Idempotency token for the request</p>",
+          "idempotencyToken":true
+        }
+      },
+      "documentation":"<p>Input for DeleteResourcePermissionStatement operation</p>"
+    },
+    "DeleteResourcePermissionStatementOutput":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Output for DeleteResourcePermissionStatement operation</p>"
+    },
+    "ExcludedPrincipal":{
+      "type":"string",
+      "documentation":"<p>Principal to exclude from permission statements</p>",
+      "max":2048,
+      "min":20,
+      "pattern":"arn:aws:((iam::[0-9]{12}:role/[a-zA-Z0-9_+=,.@-]{1,64})|(iam::[0-9]{12}:user/[a-zA-Z0-9_+=,.@-]{1,64})|(sts::[0-9]{12}:federated-user/[a-zA-Z0-9_+=,.@-]{2,193})|(iam::[0-9]{12}:root))"
     },
     "ExpiresIn":{
       "type":"integer",
-      "documentation":"<p>Time to expiry in seconds</p> <p>The time to expiry in seconds, for these purposes will be at most 900 (15 minutes).</p>",
+      "documentation":"<p>Time to expiry in seconds. At most 900 (15 minutes).</p>",
       "box":true,
       "max":900,
       "min":1
     },
+    "GetConsoleAuthorizationConfigurationInput":{
+      "type":"structure",
+      "members":{
+        "targetId":{
+          "shape":"TargetId",
+          "documentation":"<p>Target account identifier</p>"
+        }
+      },
+      "documentation":"<p>Input for GetConsoleAuthorizationConfiguration operation</p>"
+    },
+    "GetConsoleAuthorizationConfigurationOutput":{
+      "type":"structure",
+      "required":[
+        "targetId",
+        "scope",
+        "consoleAuthorizationEnabled"
+      ],
+      "members":{
+        "targetId":{
+          "shape":"TargetId",
+          "documentation":"<p>Target account identifier</p>"
+        },
+        "scope":{
+          "shape":"String",
+          "documentation":"<p>Authorization scope</p>"
+        },
+        "consoleAuthorizationEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether console authorization is enabled</p>"
+        }
+      },
+      "documentation":"<p>Output for GetConsoleAuthorizationConfiguration operation</p>"
+    },
+    "GetResourcePolicyInput":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Input for GetResourcePolicy operation</p>"
+    },
+    "GetResourcePolicyOutput":{
+      "type":"structure",
+      "required":["signinResourceBasedPolicy"],
+      "members":{
+        "signinResourceBasedPolicy":{
+          "shape":"SigninResourceBasedPolicy",
+          "documentation":"<p>The account's SignIn resource-based policy</p>"
+        }
+      },
+      "documentation":"<p>Output for GetResourcePolicy operation</p>"
+    },
     "GrantType":{
       "type":"string",
-      "documentation":"<p>OAuth 2.0 grant type parameter</p> <p>For auth code redemption: Must be &quot;authorization_code&quot; For token refresh: Must be &quot;refresh_token&quot;</p> <p>Based on client_id &amp; grant_type, authn/authz is skipped for CLI endpoints.</p>",
+      "documentation":"<p>The OAuth 2.0 grant type. &quot;authorization_code&quot; for authorization code redemption, &quot;refresh_token&quot; for token refresh.</p>",
       "pattern":"(authorization_code|refresh_token)"
     },
     "IdToken":{
       "type":"string",
-      "documentation":"<p>ID token containing user identity information</p> <p>Encoded JWT token containing user identity claims and authentication context. Returned only in authorization code redemption responses (grant_type=authorization_code). Contains user identity information such as ARN and other identity claims.</p>",
+      "documentation":"<p>ID token (JWT) containing user identity claims. Returned only for authorization code redemption.</p>",
       "max":4096,
       "min":1
     },
@@ -225,17 +839,207 @@
       "members":{
         "error":{
           "shape":"OAuth2ErrorCode",
-          "documentation":"<p>OAuth 2.0 error code indicating server error Will be SERVER_ERROR for internal server errors</p>"
+          "documentation":"<p>Will be server_error.</p>"
         },
         "message":{
           "shape":"String",
-          "documentation":"<p>Detailed message explaining the server error May include error details for debugging purposes</p>"
+          "documentation":"<p>The server error detail.</p>"
         }
       },
-      "documentation":"<p>Error thrown when an internal server error occurs</p> <p>HTTP Status Code: 500 Internal Server Error</p> <p>Used for unexpected server-side errors that prevent request processing.</p>",
+      "documentation":"<p>The request failed because of an internal server error.</p>",
       "error":{"httpStatusCode":500},
       "exception":true,
       "fault":true
+    },
+    "IntrospectOAuth2TokenWithIAMRequest":{
+      "type":"structure",
+      "required":["token"],
+      "members":{
+        "token":{
+          "shape":"IntrospectionToken",
+          "documentation":"<p>The access token or refresh token issued by AWS Sign-In.</p>",
+          "locationName":"token"
+        },
+        "tokenTypeHint":{
+          "shape":"TokenTypeHint",
+          "documentation":"<p>An optional hint about the type of the token submitted for introspection, as defined in RFC 7662 §2.1. The server checks both token types regardless of the hint. Allowed values: &quot;access_token&quot;, &quot;refresh_token&quot;.</p>",
+          "locationName":"token_type_hint"
+        }
+      },
+      "documentation":"<p>Input structure for IntrospectOAuth2TokenWithIAM operation</p> <p>RFC 7662 §2.1 introspection request. Contains the token to inspect and an optional hint about the token's type.</p>"
+    },
+    "IntrospectOAuth2TokenWithIAMResponse":{
+      "type":"structure",
+      "required":["active"],
+      "members":{
+        "active":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the token is currently active. Returns &quot;true&quot; only when the token is valid, has not expired, has not been revoked, and belongs to the caller's account.</p>"
+        },
+        "clientId":{
+          "shape":"String",
+          "documentation":"<p>Client identifier for the OAuth 2.0 client that requested the token.</p>",
+          "locationName":"client_id"
+        },
+        "userId":{
+          "shape":"String",
+          "documentation":"<p>User identifier matching the &quot;UserId&quot; field from &quot;sts:GetCallerIdentity&quot; for the token's subject principal.</p>",
+          "locationName":"user_id"
+        },
+        "tokenType":{
+          "shape":"IntrospectedTokenType",
+          "documentation":"<p>Indicates which kind of token was introspected. One of &quot;access_token&quot; or &quot;refresh_token&quot;.</p>",
+          "locationName":"token_type"
+        },
+        "exp":{
+          "shape":"Long",
+          "documentation":"<p>Token expiration time as a NumericDate (Unix epoch seconds).</p>",
+          "locationName":"exp"
+        },
+        "iat":{
+          "shape":"Long",
+          "documentation":"<p>Token issuance time as a NumericDate (Unix epoch seconds).</p>",
+          "locationName":"iat"
+        },
+        "nbf":{
+          "shape":"Long",
+          "documentation":"<p>Token &quot;not before&quot; time as a NumericDate (Unix epoch seconds).</p>",
+          "locationName":"nbf"
+        },
+        "sub":{
+          "shape":"String",
+          "documentation":"<p>The IAM principal Amazon Resource Name (ARN). For assumed-role sessions, this is the session ARN.</p>",
+          "locationName":"sub"
+        },
+        "aud":{
+          "shape":"String",
+          "documentation":"<p>The OAuth resource the token is scoped to. Omitted for refresh tokens. Example: &quot;aws-mcp.amazonaws.com&quot;.</p>",
+          "locationName":"aud"
+        },
+        "iss":{
+          "shape":"String",
+          "documentation":"<p>Issuer of the token. Always &quot;signin.amazonaws.com&quot; for AWS Sign-In.</p>",
+          "locationName":"iss"
+        },
+        "jti":{
+          "shape":"String",
+          "documentation":"<p>Unique identifier for the token.</p>",
+          "locationName":"jti"
+        },
+        "accountId":{
+          "shape":"AccountId",
+          "documentation":"<p>12-digit AWS account ID of the token's subject principal.</p>",
+          "locationName":"account_id"
+        },
+        "signinSession":{
+          "shape":"String",
+          "documentation":"<p>AWS Sign-In session ARN bound to the token, of the form arn:aws:signin:{region}:{account}:session/{uuid}.</p>",
+          "locationName":"signin_session"
+        },
+        "resource":{
+          "shape":"Resource",
+          "documentation":"<p>The OAuth resource the token is scoped to. Only present for refresh token introspection.</p>",
+          "locationName":"resource"
+        }
+      },
+      "documentation":"<p>Output structure for IntrospectOAuth2TokenWithIAM operation</p> <p>RFC 7662 §2.2 introspection response. Only <code>active</code> is required; all other claims are omitted when the token is inactive.</p>"
+    },
+    "IntrospectedTokenType":{
+      "type":"string",
+      "documentation":"<p>The token_type value in the introspection response.</p>",
+      "pattern":"(access_token|refresh_token)"
+    },
+    "IntrospectionToken":{
+      "type":"string",
+      "documentation":"<p>Token string submitted for introspection. May be an AWS Sign-In access token or refresh token.</p>",
+      "max":4096,
+      "min":1,
+      "pattern":"ASO[AR][A-Za-z0-9+/=_\\-]+",
+      "sensitive":true
+    },
+    "InvalidGrantException":{
+      "type":"structure",
+      "required":[
+        "error",
+        "message"
+      ],
+      "members":{
+        "error":{
+          "shape":"OAuth2ErrorCode",
+          "documentation":"<p>Will be invalid_grant.</p>"
+        },
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The request failed because the provided grant is invalid or expired.</p>",
+      "error":{
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "InvalidScopeException":{
+      "type":"structure",
+      "required":[
+        "error",
+        "message"
+      ],
+      "members":{
+        "error":{
+          "shape":"OAuth2ErrorCode",
+          "documentation":"<p>Will be invalid_scope.</p>"
+        },
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The request failed because the requested scope is invalid or exceeds the scope that can be granted.</p>",
+      "error":{
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "IssuedOAuthAccessTokenType":{
+      "type":"string",
+      "pattern":"urn:ietf:params:oauth:token-type:access_token"
+    },
+    "ListResourcePermissionStatementsInput":{
+      "type":"structure",
+      "members":{
+        "maxResults":{
+          "shape":"ConsolePermissionMaxResults",
+          "documentation":"<p>Maximum number of results to return</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Token for pagination</p>"
+        }
+      },
+      "documentation":"<p>Input for ListResourcePermissionStatements operation</p>"
+    },
+    "ListResourcePermissionStatementsOutput":{
+      "type":"structure",
+      "required":["permissionStatements"],
+      "members":{
+        "permissionStatements":{
+          "shape":"PermissionStatementSummaries",
+          "documentation":"<p>List of permission statement summaries</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Token for next page of results</p>"
+        }
+      },
+      "documentation":"<p>Output for ListResourcePermissionStatements operation</p>"
+    },
+    "Long":{
+      "type":"long",
+      "box":true
+    },
+    "NextToken":{
+      "type":"string",
+      "documentation":"<p>Pagination token</p>",
+      "max":2048,
+      "min":0,
+      "pattern":"[-a-zA-Z0-9+=/_]*"
     },
     "OAuth2ErrorCode":{
       "type":"string",
@@ -246,27 +1050,371 @@
         "INSUFFICIENT_PERMISSIONS",
         "AUTHCODE_EXPIRED",
         "server_error",
-        "INVALID_REQUEST"
+        "INVALID_REQUEST",
+        "RESOURCE_NOT_FOUND",
+        "CONFLICT",
+        "SERVICE_QUOTA_EXCEEDED",
+        "unsupported_grant_type",
+        "invalid_request",
+        "invalid_grant",
+        "invalid_scope",
+        "invalid_target",
+        "rate_exceeded",
+        "service_unavailable"
       ]
+    },
+    "OAuthAccessToken":{
+      "type":"string",
+      "documentation":"<p>OAuth 2.0 access token containing principal identity and resource scope.</p>",
+      "max":4096,
+      "min":1,
+      "sensitive":true
+    },
+    "PermissionStatementSummaries":{
+      "type":"list",
+      "member":{"shape":"PermissionStatementSummary"}
+    },
+    "PermissionStatementSummary":{
+      "type":"structure",
+      "required":["sid"],
+      "members":{
+        "sid":{
+          "shape":"StatementId",
+          "documentation":"<p>Unique identifier for the permission statement</p>"
+        },
+        "condition":{
+          "shape":"ConditionBlock",
+          "documentation":"<p>Condition block for the permission statement</p>"
+        }
+      },
+      "documentation":"<p>Summary of a permission statement</p>"
+    },
+    "PolicyActions":{
+      "type":"list",
+      "member":{"shape":"String"},
+      "documentation":"<p>List of policy actions</p>"
+    },
+    "PolicyStatement":{
+      "type":"structure",
+      "members":{
+        "effect":{
+          "shape":"String",
+          "documentation":"<p>Effect of the policy statement (Allow/Deny)</p>",
+          "locationName":"Effect"
+        },
+        "principal":{
+          "shape":"Principal",
+          "documentation":"<p>Principal the statement applies to</p>",
+          "locationName":"Principal"
+        },
+        "action":{
+          "shape":"PolicyActions",
+          "documentation":"<p>Actions the statement controls</p>",
+          "locationName":"Action"
+        },
+        "resource":{
+          "shape":"String",
+          "documentation":"<p>Resource the statement applies to</p>",
+          "locationName":"Resource"
+        },
+        "condition":{
+          "shape":"ConditionBlock",
+          "documentation":"<p>Condition block for the statement</p>",
+          "locationName":"Condition"
+        }
+      },
+      "documentation":"<p>Individual policy statement within a resource-based policy</p>"
+    },
+    "PolicyStatements":{
+      "type":"list",
+      "member":{"shape":"PolicyStatement"}
+    },
+    "Principal":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"String"},
+      "documentation":"<p>IAM principal identifier</p>"
+    },
+    "PutConsoleAuthorizationConfigurationInput":{
+      "type":"structure",
+      "members":{
+        "targetId":{
+          "shape":"TargetId",
+          "documentation":"<p>Target account identifier</p>"
+        }
+      },
+      "documentation":"<p>Input for PutConsoleAuthorizationConfiguration operation</p>"
+    },
+    "PutConsoleAuthorizationConfigurationOutput":{
+      "type":"structure",
+      "required":[
+        "targetId",
+        "scope",
+        "consoleAuthorizationEnabled"
+      ],
+      "members":{
+        "targetId":{
+          "shape":"TargetId",
+          "documentation":"<p>Target account identifier</p>"
+        },
+        "scope":{
+          "shape":"String",
+          "documentation":"<p>Authorization scope</p>"
+        },
+        "consoleAuthorizationEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether console authorization is enabled</p>"
+        }
+      },
+      "documentation":"<p>Output for PutConsoleAuthorizationConfiguration operation</p>"
+    },
+    "PutResourcePermissionStatementInput":{
+      "type":"structure",
+      "members":{
+        "sourceVpc":{
+          "shape":"SourceVpc",
+          "documentation":"<p>VPC identifier to restrict console access</p>"
+        },
+        "signinSourceVpce":{
+          "shape":"SourceVpce",
+          "documentation":"<p>SignIn VPC endpoint identifier</p>"
+        },
+        "consoleSourceVpce":{
+          "shape":"SourceVpce",
+          "documentation":"<p>Console VPC endpoint identifier</p>"
+        },
+        "vpcSourceIp":{
+          "shape":"VpcSourceIp",
+          "documentation":"<p>Source IP address within VPC</p>"
+        },
+        "sourceIp":{
+          "shape":"SourceIp",
+          "documentation":"<p>Source IP address</p>"
+        },
+        "requestedRegion":{
+          "shape":"RequestedRegion",
+          "documentation":"<p>AWS region where the VPC and VPC endpoint reside Required when sourceVpc or signinSourceVpce/consoleSourceVpce is provided</p>"
+        },
+        "excludedPrincipal":{
+          "shape":"ExcludedPrincipal",
+          "documentation":"<p>Principal to exclude from the permission statement</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>Idempotency token for the request</p>",
+          "idempotencyToken":true
+        }
+      },
+      "documentation":"<p>Input for PutResourcePermissionStatement operation</p>"
+    },
+    "PutResourcePermissionStatementOutput":{
+      "type":"structure",
+      "required":["statementId"],
+      "members":{
+        "statementId":{
+          "shape":"StatementId",
+          "documentation":"<p>Unique identifier for the created permission statement</p>"
+        }
+      },
+      "documentation":"<p>Output for PutResourcePermissionStatement operation</p>"
     },
     "RedirectUri":{
       "type":"string",
-      "documentation":"<p>Redirect URI for OAuth 2.0 flow validation</p> <p>The same redirect URI used in the authorization request. This must match exactly what was sent in the original authorization request for security validation.</p>",
+      "documentation":"<p>The redirect URI from the authorization request. Must match the original request exactly.</p>",
       "max":2048,
       "min":1
     },
     "RefreshToken":{
       "type":"string",
-      "documentation":"<p>Encrypted refresh token with cnf.jkt</p> <p>This is the encrypted refresh token returned from auth code redemption. The token content includes cnf.jkt (SHA-256 thumbprint of the presented jwk). Used in subsequent token refresh requests.</p>",
+      "documentation":"<p>The refresh token returned from authorization code redemption. Used in subsequent token refresh requests.</p>",
       "max":2048,
       "min":1,
       "sensitive":true
     },
+    "RequestedRegion":{
+      "type":"string",
+      "documentation":"<p>AWS region identifier for VPC and VPC endpoint pairing</p>",
+      "pattern":"[a-z]{2}(-[a-z]+)+-\\d+"
+    },
+    "Resource":{
+      "type":"string",
+      "max":2048,
+      "min":1
+    },
+    "ResourceNotFoundException":{
+      "type":"structure",
+      "required":[
+        "error",
+        "message"
+      ],
+      "members":{
+        "error":{
+          "shape":"OAuth2ErrorCode",
+          "documentation":"<p>OAuth 2.0 error code indicating resource not found Will be RESOURCE_NOT_FOUND</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>Detailed message explaining which resource was not found Provides specific information about the missing resource</p>"
+        }
+      },
+      "documentation":"<p>Error thrown when requested resource is not found</p> <p>HTTP Status Code: 404 Not Found</p> <p>Used when the specified resource does not exist</p>",
+      "error":{
+        "httpStatusCode":404,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "RevocationToken":{
+      "type":"string",
+      "documentation":"<p>Refresh token string submitted for revocation.</p>",
+      "max":4096,
+      "min":1,
+      "pattern":"ASOR[A-Za-z0-9+/=_\\-]+",
+      "sensitive":true
+    },
+    "RevokeOAuth2TokenWithIAMRequest":{
+      "type":"structure",
+      "required":["token"],
+      "members":{
+        "token":{
+          "shape":"RevocationToken",
+          "documentation":"<p>The refresh token to revoke. Must be a refresh token issued by AWS Sign-In. Access tokens are not accepted for revocation.</p>",
+          "locationName":"token"
+        }
+      },
+      "documentation":"<p>Input structure for RevokeOAuth2TokenWithIAM operation</p> <p>RFC 7009 §2.1 revocation request. Contains the refresh_token to revoke.</p>"
+    },
+    "RevokeOAuth2TokenWithIAMResponse":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Output structure for RevokeOAuth2TokenWithIAM operation</p> <p>RFC 7009 §2.2 revocation response. The endpoint returns 200 OK with an empty body on success; there are no response fields.</p>"
+    },
+    "Scope":{
+      "type":"string",
+      "max":4096,
+      "min":1
+    },
+    "ServiceQuotaExceededException":{
+      "type":"structure",
+      "required":[
+        "error",
+        "message"
+      ],
+      "members":{
+        "error":{
+          "shape":"OAuth2ErrorCode",
+          "documentation":"<p>OAuth 2.0 error code indicating service quota exceeded Will be SERVICE_QUOTA_EXCEEDED</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>Detailed message explaining which quota was exceeded Provides specific information about the limit and current usage</p>"
+        }
+      },
+      "documentation":"<p>Error thrown when service quota is exceeded</p> <p>HTTP Status Code: 402 Payment Required (used as quota exceeded indicator)</p> <p>Used when the request would cause a service quota to be exceeded</p>",
+      "error":{
+        "httpStatusCode":402,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "ServiceUnavailableException":{
+      "type":"structure",
+      "required":[
+        "error",
+        "message"
+      ],
+      "members":{
+        "error":{
+          "shape":"OAuth2ErrorCode",
+          "documentation":"<p>Will be service_unavailable.</p>"
+        },
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The request failed because a dependency is temporarily unavailable. You can retry the request.</p>",
+      "error":{"httpStatusCode":503},
+      "exception":true,
+      "fault":true,
+      "retryable":{"throttling":false}
+    },
+    "SigninResourceBasedPolicy":{
+      "type":"structure",
+      "members":{
+        "version":{
+          "shape":"String",
+          "documentation":"<p>Policy version</p>",
+          "locationName":"Version"
+        },
+        "statement":{
+          "shape":"PolicyStatements",
+          "documentation":"<p>Policy statements</p>",
+          "locationName":"Statement"
+        }
+      },
+      "documentation":"<p>SignIn resource-based policy document</p>"
+    },
+    "SourceIp":{
+      "type":"string",
+      "documentation":"<p>Source IP address for access control</p>"
+    },
+    "SourceVpc":{
+      "type":"string",
+      "documentation":"<p>VPC identifier for network-based access control</p>",
+      "pattern":"vpc-([0-9a-f]{8}|[0-9a-f]{17})"
+    },
+    "SourceVpce":{
+      "type":"string",
+      "documentation":"<p>VPC endpoint identifier</p>",
+      "pattern":"vpce-[a-z0-9]{8,20}"
+    },
+    "StatementId":{
+      "type":"string",
+      "documentation":"<p>Unique identifier for a permission statement</p>",
+      "pattern":"[A-Za-z0-9+/]{64}=?"
+    },
     "String":{"type":"string"},
+    "SubjectToken":{
+      "type":"string",
+      "max":20000,
+      "min":4,
+      "sensitive":true
+    },
+    "SubjectTokenType":{
+      "type":"string",
+      "pattern":"urn:ietf:params:oauth:token-type:.+"
+    },
+    "TargetId":{
+      "type":"string",
+      "documentation":"<p>Target account identifier for console authorization</p>",
+      "max":32,
+      "min":12,
+      "pattern":"(\\d{12}|o-[a-z0-9]{10}|r-[0-9a-z]{4,32})"
+    },
+    "TokenDuration":{
+      "type":"integer",
+      "documentation":"<p>Requested token lifetime in seconds, at least 300 (5 minutes).</p>",
+      "box":true,
+      "min":300
+    },
+    "TokenExchangeGrantType":{
+      "type":"string",
+      "pattern":"urn:ietf:params:oauth:grant-type:token-exchange"
+    },
+    "TokenExpiresIn":{
+      "type":"integer",
+      "documentation":"<p>Token lifetime in seconds. The lesser of session validity and 3600 (1 hour).</p>",
+      "box":true,
+      "max":3600,
+      "min":1
+    },
     "TokenType":{
       "type":"string",
-      "documentation":"<p>Token type parameter indicating credential usage</p> <p>A parameter which indicates to the client how the token must be used. Value is &quot;aws_sigv4&quot; (instead of typical &quot;Bearer&quot; for other OAuth systems) to indicate that the client must de-serialize the token and use it to generate a signature.</p>",
+      "documentation":"<p>The token type. &quot;aws_sigv4&quot; indicates the client must use the token to generate a SigV4 signature.</p>",
       "pattern":"aws_sigv4"
+    },
+    "TokenTypeHint":{
+      "type":"string",
+      "documentation":"<p>Optional token_type_hint value, as defined in RFC 7662 §2.1. One of &quot;access_token&quot; or &quot;refresh_token&quot;.</p>",
+      "pattern":"(access_token|refresh_token)"
     },
     "TooManyRequestsError":{
       "type":"structure",
@@ -277,14 +1425,14 @@
       "members":{
         "error":{
           "shape":"OAuth2ErrorCode",
-          "documentation":"<p>OAuth 2.0 error code indicating the specific type of error Will be INVALID_REQUEST for rate limiting scenarios</p>"
+          "documentation":"<p>Will be rate_exceeded.</p>"
         },
         "message":{
           "shape":"String",
-          "documentation":"<p>Detailed message about the rate limiting May include retry-after information or rate limit details</p>"
+          "documentation":"<p>Details about the rate limit.</p>"
         }
       },
-      "documentation":"<p>Error thrown when rate limit is exceeded</p> <p>HTTP Status Code: 429 Too Many Requests</p> <p>Possible OAuth2ErrorCode values:</p> <ul> <li>INVALID_REQUEST: Rate limiting, too many requests, abuse prevention</li> </ul> <p>Possible causes:</p> <ul> <li>Too many token requests from the same client</li> <li>Rate limiting based on client_id or IP address</li> <li>Abuse prevention mechanisms triggered</li> <li>Service protection against excessive token generation</li> </ul>",
+      "documentation":"<p>The request failed because you exceeded the request rate limit for this operation.</p>",
       "error":{
         "httpStatusCode":429,
         "senderFault":true
@@ -300,20 +1448,24 @@
       "members":{
         "error":{
           "shape":"OAuth2ErrorCode",
-          "documentation":"<p>OAuth 2.0 error code indicating validation failure Will be INVALID_REQUEST for validation errors</p>"
+          "documentation":"<p>The specific code depends on which validation failed.</p>"
         },
         "message":{
           "shape":"String",
-          "documentation":"<p>Detailed message explaining the validation failure Provides specific information about which validation failed</p>"
+          "documentation":"<p>The validation constraint that failed.</p>"
         }
       },
-      "documentation":"<p>Error thrown when request validation fails</p> <p>HTTP Status Code: 400 Bad Request</p> <p>Used for request validation errors such as malformed parameters, missing required fields, or invalid parameter values.</p>",
+      "documentation":"<p>The request failed because it contains a malformed, missing, or invalid parameter.</p>",
       "error":{
         "httpStatusCode":400,
         "senderFault":true
       },
       "exception":true
+    },
+    "VpcSourceIp":{
+      "type":"string",
+      "documentation":"<p>Source IP address within a VPC</p>"
     }
   },
-  "documentation":"<p>AWS Sign-In manages authentication for AWS services. This service provides secure authentication flows for accessing AWS resources from the console and developer tools.</p>"
+  "documentation":"<p>AWS Sign-In manages authentication for AWS services. It implements OAuth 2.0, providing secure token exchange and refresh capabilities.</p>"
 }

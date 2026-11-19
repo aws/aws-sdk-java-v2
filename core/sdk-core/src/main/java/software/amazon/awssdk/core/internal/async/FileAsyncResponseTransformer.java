@@ -126,11 +126,20 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         }
 
         ExecutorService executorService = configuration.executorService().orElse(null);
-        return AsynchronousFileChannel.open(path, options, executorService);
+        try {
+            return AsynchronousFileChannel.open(path, options, executorService);
+        } catch (NoSuchFileException e) {
+            if (configuration.fileWriteOption() == WRITE_TO_POSITION) {
+                throw e;
+            }
+            throw new NoSuchFileException(e.getFile(), e.getOtherFile(),
+                                          "Verify that the file's parent directories exist. The SDK will not auto-create them.");
+        }
     }
 
     @Override
     public CompletableFuture<ResponseT> prepare() {
+        fileChannel = null;
         cf = new CompletableFuture<>();
         cf.whenComplete((r, t) -> {
             if (t != null && fileChannel != null) {
@@ -161,14 +170,16 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
     @Override
     public void exceptionOccurred(Throwable throwable) {
+        AsynchronousFileChannel currentFileChannel = fileChannel;
+        fileChannel = null;
         try {
-            if (fileChannel != null) {
+            if (currentFileChannel != null) {
                 runAndLogError(log.logger(),
                                String.format("Failed to close the file %s, resource may be leaked", path),
-                               () -> fileChannel.close());
+                               currentFileChannel::close);
             }
         } finally {
-            if (configuration.failureBehavior() == FailureBehavior.DELETE) {
+            if (currentFileChannel != null && configuration.failureBehavior() == FailureBehavior.DELETE) {
                 runAndLogError(log.logger(),
                                String.format("Failed to delete the file %s", path),
                                () -> Files.deleteIfExists(path));

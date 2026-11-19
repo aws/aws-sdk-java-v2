@@ -34,6 +34,7 @@ import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidationContext;
 import software.amazon.awssdk.codegen.validation.ModelValidationReport;
 import software.amazon.awssdk.codegen.validation.ModelValidator;
+import software.amazon.awssdk.codegen.validation.PaginatorDefinitionValidator;
 import software.amazon.awssdk.codegen.validation.SharedModelsValidator;
 import software.amazon.awssdk.codegen.validation.ValidationEntry;
 import software.amazon.awssdk.utils.Logger;
@@ -44,7 +45,8 @@ public class CodeGenerator {
 
     private static final List<ModelValidator> DEFAULT_MODEL_VALIDATORS = Arrays.asList(
             new SharedModelsValidator(),
-            new CustomizationConfigValidator()
+            new CustomizationConfigValidator(),
+            new PaginatorDefinitionValidator()
     );
 
     private final C2jModels c2jModels;

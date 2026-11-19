@@ -41,9 +41,11 @@ import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
+import software.amazon.awssdk.testutils.service.S3BucketUtils;
 
 /**
  * Base class for S3 Control integration tests. Loads AWS credentials from a properties
@@ -106,6 +108,10 @@ public class S3ControlIntegrationTestBase extends AwsTestBase {
                                    .createBucketConfiguration(
                                        CreateBucketConfiguration.builder()
                                                                 .locationConstraint(BucketLocationConstraint.US_WEST_2)
+                                                                .tags(Tag.builder()
+                                                                         .key(S3BucketUtils.INTEG_TEST_RESOURCE_TAG_KEY)
+                                                                         .value(S3BucketUtils.INTEG_TEST_RESOURCE_TAG_VALUE)
+                                                                         .build())
                                                                 .build())
                                    .build());
         } catch (S3Exception e) {

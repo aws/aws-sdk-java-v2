@@ -122,8 +122,11 @@ public final class ProfileCredentialsProvider
         if (shouldUpdateCredentialsProvider(cachedOrRefreshedProfileFile)) {
             synchronized (credentialsProviderLock) {
                 if (shouldUpdateCredentialsProvider(cachedOrRefreshedProfileFile)) {
-                    currentProfileFile = cachedOrRefreshedProfileFile;
+                    // Publish the profile file only after its credentials provider is in place. Callers that skip the lock
+                    // compare against currentProfileFile, so publishing it first would let them use the previous provider,
+                    // and a failed reload would mark the new file as already loaded.
                     handleProfileFileReload(cachedOrRefreshedProfileFile);
+                    currentProfileFile = cachedOrRefreshedProfileFile;
                 }
             }
         }

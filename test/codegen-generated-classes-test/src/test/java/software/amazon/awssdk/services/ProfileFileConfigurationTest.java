@@ -41,6 +41,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -197,7 +198,7 @@ public class ProfileFileConfigurationTest {
             env.remove(SdkSystemSetting.AWS_ACCESS_KEY_ID);
             env.remove(SdkSystemSetting.AWS_SECRET_ACCESS_KEY);
 
-            Mockito.when(signer.signAsync(any(AsyncSignRequest.class))).thenReturn(CompletableFuture.completedFuture(any(AsyncSignRequest.class)));
+            Mockito.when(signer.signAsync(any(AsyncSignRequest.class))).thenReturn(CompletableFuture.completedFuture(mock(AsyncSignedRequest.class)));
 
             ProtocolRestJsonAsyncClient asyncClient = asyncClientWithHttpSignerOverride();
 

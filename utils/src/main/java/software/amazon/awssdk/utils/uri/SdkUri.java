@@ -58,8 +58,9 @@ public final class SdkUri {
 
     public URI create(String s) {
         if (!isAccountIdUri(s)) {
-            log.trace(() -> "skipping cache for uri " + s);
-            return URI.create(s);
+            URI uri = URI.create(s);
+            logSkippingCache(uri);
+            return uri;
         }
         StringConstructorArgs key = new StringConstructorArgs(s);
         boolean containsK = cache.containsKey(key);
@@ -70,8 +71,9 @@ public final class SdkUri {
 
     public URI newUri(String s) throws URISyntaxException {
         if (!isAccountIdUri(s)) {
-            log.trace(() -> "skipping cache for uri " + s);
-            return new URI(s);
+            URI uri = new URI(s);
+            logSkippingCache(uri);
+            return uri;
         }
         try {
             StringConstructorArgs key = new StringConstructorArgs(s);
@@ -92,8 +94,9 @@ public final class SdkUri {
                       String userInfo, String host, int port,
                       String path, String query, String fragment) throws URISyntaxException {
         if (!isAccountIdUri(host)) {
-            log.trace(() -> "skipping cache for host " + host);
-            return new URI(scheme, userInfo, host, port, path, query, fragment);
+            URI uri = new URI(scheme, userInfo, host, port, path, query, fragment);
+            logSkippingCache(uri);
+            return uri;
         }
         try {
             HostConstructorArgs key = new HostConstructorArgs(scheme, userInfo, host, port, path, query, fragment);
@@ -113,8 +116,9 @@ public final class SdkUri {
                       String authority,
                       String path, String query, String fragment) throws URISyntaxException {
         if (!isAccountIdUri(authority)) {
-            log.trace(() -> "skipping cache for authority " + authority);
-            return new URI(scheme, authority, path, query, fragment);
+            URI uri = new URI(scheme, authority, path, query, fragment);
+            logSkippingCache(uri);
+            return uri;
         }
         try {
             AuthorityConstructorArgs key = new AuthorityConstructorArgs(scheme, authority, path, query, fragment);
@@ -153,13 +157,40 @@ public final class SdkUri {
         return false;
     }
 
+    private void logSkippingCache(URI uri) {
+        log.trace(() -> "skipping cache for uri: " + uriForLogging(uri));
+    }
+
     private void logCacheUsage(boolean containsKey, URI uri) {
         log.trace(() -> "URI cache size: " + cache.size());
         if (containsKey) {
-            log.trace(() -> "Using cached uri for " + uri.toString());
+            log.trace(() -> "Using cached uri for " + uriForLogging(uri));
         } else {
-            log.trace(() -> "Cache empty for " + uri.toString());
+            log.trace(() -> "Cache empty for " + uriForLogging(uri));
         }
+    }
+
+    /*
+     * Formats a URI for logging as <scheme>://<host><:port><path>, leaving out the userinfo, query and fragment.
+     */
+    private static String uriForLogging(URI uri) {
+        StringBuilder result = new StringBuilder();
+        if (uri.getScheme() != null) {
+            result.append(uri.getScheme()).append(':');
+        }
+        if (uri.isOpaque()) {
+            return result.toString();
+        }
+        if (uri.getHost() != null) {
+            result.append("//").append(uri.getHost());
+            if (uri.getPort() != -1) {
+                result.append(':').append(uri.getPort());
+            }
+        }
+        if (uri.getRawPath() != null) {
+            result.append(uri.getRawPath());
+        }
+        return result.toString();
     }
 
     private static final class StringConstructorArgs implements UriConstructorArgs {

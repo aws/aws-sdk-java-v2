@@ -48,6 +48,12 @@
       "limit_key": "MaxResults",
       "result_key": "RecommenderRecipes"
     },
+    "ListRecommenderSchemas": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "RecommenderSchemas"
+    },
     "ListRecommenders": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -65,6 +71,12 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "Items"
+    },
+    "ListSegmentSubscriptionEvents": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "Events"
     },
     "ListUploadJobs": {
       "input_token": "NextToken",

@@ -29,6 +29,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.annotations.SdkAdvancedApi;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Usage;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileRequestBodyConfiguration;
@@ -63,6 +65,15 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
  * @see ByteBuffersAsyncRequestBody
  */
 @SdkPublicApi
+@SdkAdvancedApi(
+    cautionWhen = Usage.IMPLEMENTED,
+    guidance = "This is a reactive-streams Publisher and must obey the reactive-streams specification. "
+          + "The SDK re-subscribes on each retry attempt, "
+          + "so to support retries, reproduce the full content on every subscribe; a body that cannot should fail the "
+          + "subscriber on a later subscribe rather than emit partial content.",
+    saferAlternative = "Prefer the AsyncRequestBody.fromFile/fromBytes/fromInputStream factories. If you must supply a "
+          + "custom Publisher, build it with an established reactive-streams library such as RxJava or Reactor rather "
+          + "than implementing Publisher by hand.")
 public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
 
     /**
@@ -94,6 +105,16 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * @param publisher Publisher of source data
      * @return Implementation of {@link AsyncRequestBody} that produces data send by the publisher
      */
+    @SdkAdvancedApi(
+        cautionWhen = Usage.CALLED,
+        guidance = "The returned AsyncRequestBody passes each subscribe straight through to the supplied publisher, so "
+              + "the publisher must itself meet the AsyncRequestBody contract: obey the reactive-streams "
+              + "specification, and since the SDK re-subscribes on each "
+              + "retry attempt, reproduce the full content on every subscribe to support retries; a publisher that "
+              + "cannot should fail the subscriber on a later subscribe rather than emit partial content.",
+        saferAlternative = "Prefer the AsyncRequestBody.fromFile/fromBytes/fromInputStream factories, which do not "
+              + "require the caller to supply a contract-compliant publisher. If you must supply one, build it with an "
+              + "established reactive-streams library such as RxJava or Reactor rather than by hand.")
     static AsyncRequestBody fromPublisher(Publisher<ByteBuffer> publisher) {
         return new AsyncRequestBody() {
 
@@ -370,10 +391,27 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
     }
 
     /**
-     * Creates an {@link AsyncRequestBody} from an {@link InputStream}.
+     * Creates an {@link AsyncRequestBody} from an {@link InputStream} with a customer-provided {@link ExecutorService}.
      *
      * <p>An {@link ExecutorService} is required in order to perform the blocking data reads, to prevent blocking the
-     * non-blocking event loop threads owned by the SDK.
+     * non-blocking event loop threads owned by the SDK. Consider using {@link #fromInputStream(InputStream, Long)} instead,
+     * which lets the SDK manage threading internally.
+     *
+     * <p><b>Executor Guidance:</b> The provided executor is used to run a blocking task that reads from the input stream and
+     * pushes data to the HTTP connection. If the executor has fewer threads than the number of concurrent requests using it,
+     * tasks are serialized — one slow or failing request may block other requests from writing data in a timely manner,
+     * leading to idle HTTP connections that the server may close before data can be written. This may result in
+     * degraded performance or request timeouts.
+     *
+     * <p>To avoid this:
+     * <ul>
+     *     <li>Use a <b>dedicated</b> executor for SDK input stream requests — do not share it with other blocking work
+     *     in your application, as competing tasks may delay data writes and cause the same issue.</li>
+     *     <li>Size the executor's thread pool to at least the maximum number of concurrent requests.</li>
+     * </ul>
+     *
+     * <p>It is also recommended to configure an API call timeout via
+     * {@code ClientOverrideConfiguration.builder().apiCallTimeout()} to bound the total time spent on retries.
      *
      * @param inputStream The input stream containing the data to be sent
      * @param contentLength The content length. If a content length smaller than the actual size of the object is set, the client
@@ -383,14 +421,35 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *
      * @return An AsyncRequestBody instance for the input stream
      *
+     * @see #fromInputStream(InputStream, Long)
      */
     static AsyncRequestBody fromInputStream(InputStream inputStream, Long contentLength, ExecutorService executor) {
         return fromInputStream(b -> b.inputStream(inputStream).contentLength(contentLength).executor(executor));
     }
 
     /**
+     * Creates an {@link AsyncRequestBody} from an {@link InputStream} with SDK-managed executor.
+     *
+     * <p>The SDK manages the threading required to perform blocking reads from the input stream
+     * without blocking the non-blocking event loop threads.
+     *
+     * @param inputStream The input stream containing the data to be sent
+     * @param contentLength The content length. If a content length smaller than the actual size of the object is set, the client
+     *                      will truncate the stream to the specified content length and only send exactly the number of bytes
+     *                      equal to the content length.
+     *
+     * @see #fromInputStream(InputStream, Long, ExecutorService)
+     * @return An AsyncRequestBody instance for the input stream
+     */
+    static AsyncRequestBody fromInputStream(InputStream inputStream, Long contentLength) {
+        return fromInputStream(b -> b.inputStream(inputStream).contentLength(contentLength));
+    }
+
+    /**
      * Creates an {@link AsyncRequestBody} from an {@link InputStream} with the provided
-     * {@link AsyncRequestBodySplitConfiguration}.
+     * {@link AsyncRequestBodyFromInputStreamConfiguration}.
+     *
+     * <p>See {@link #fromInputStream(InputStream, Long, ExecutorService)} for guidance on executor.
      */
     static AsyncRequestBody fromInputStream(AsyncRequestBodyFromInputStreamConfiguration configuration) {
         Validate.notNull(configuration, "configuration");

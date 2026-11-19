@@ -1,0 +1,47 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2024-01-01",
+    "endpointPrefix": "dangling",
+    "jsonVersion": "1.1",
+    "protocol": "json",
+    "serviceAbbreviation": "Dangling",
+    "serviceFullName": "Dangling Shape Validation Test Service",
+    "serviceId": "Dangling",
+    "signatureVersion": "v4",
+    "targetPrefix": "Dangling",
+    "uid": "dangling-2024-01-01"
+  },
+  "operations": {
+    "GetRequestSignature": {
+      "name": "GetRequestSignature",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "GetRequestSignatureRequest"},
+      "output": {"shape": "GetRequestSignatureResponse"}
+    }
+  },
+  "shapes": {
+    "GetRequestSignatureRequest": {
+      "type": "structure",
+      "members": {
+        "Name": {"shape": "String"}
+      }
+    },
+    "GetRequestSignatureResponse": {
+      "type": "structure",
+      "members": {
+        "Signature": {"shape": "SignatureType"}
+      }
+    },
+    "SignatureType": {
+      "type": "string",
+      "enum": ["FULL", "PARTIAL"]
+    },
+    "String": {
+      "type": "string"
+    }
+  }
+}

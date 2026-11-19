@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.checksums;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -50,6 +52,13 @@ public final class DefaultChecksumAlgorithm {
         }
 
         return ChecksumAlgorithmsCache.VALUES.get(algorithm.toUpperCase(Locale.US));
+    }
+
+    /**
+     * Returns all registered checksum algorithms.
+     */
+    public static Collection<ChecksumAlgorithm> values() {
+        return Collections.unmodifiableCollection(ChecksumAlgorithmsCache.VALUES.values());
     }
 
     private static final class ChecksumAlgorithmsCache {

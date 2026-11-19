@@ -23,6 +23,7 @@ import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.internal.retry.MaxAttemptsResolver;
 import software.amazon.awssdk.core.internal.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.RetryMode;
@@ -41,12 +42,18 @@ final class DynamoDbRetryPolicy {
     /**
      * Default max retry count for DynamoDB client, regardless of retry mode.
      **/
-    private static final int MAX_ERROR_RETRY = 8;
+    private static final int MAX_ERROR_RETRY_V20 = 8;
 
     /**
-     * Default attempts count for DynamoDB client, regardless of retry mode.
+     * Default attempts count for DynamoDB client in {@link RetryMode#LEGACY} mode.
      **/
-    private static final int MAX_ATTEMPTS = MAX_ERROR_RETRY + 1;
+    private static final int MAX_ATTEMPTS_V20 = MAX_ERROR_RETRY_V20 + 1;
+
+    /**
+     * Default attempts count for DynamoDB client in {@link RetryMode#STANDARD} and {@link RetryMode#ADAPTIVE_V2} modes (v2.1),
+     * used when no max attempts is configured in the environment or the profile.
+     **/
+    private static final int MAX_ATTEMPTS_V21 = 4;
 
     /**
      * Default base sleep time for DynamoDB, regardless of retry mode.
@@ -95,9 +102,19 @@ final class DynamoDbRetryPolicy {
                                      .build();
         }
 
-        return AwsRetryStrategy.forRetryMode(retryMode)
+        int maxAttempts;
+        if (retryMode == RetryMode.LEGACY) {
+            maxAttempts = MAX_ATTEMPTS_V20;
+        } else {
+            Integer resolvedMaxAttempts = resolveMaxAttempts(config);
+            maxAttempts = resolvedMaxAttempts != null ? resolvedMaxAttempts : MAX_ATTEMPTS_V21;
+        }
+
+        return AwsRetryStrategy.forRetryMode(retryMode,
+                                             config.option(SdkClientOption.PROFILE_FILE_SUPPLIER),
+                                             config.option(SdkClientOption.PROFILE_NAME))
             .toBuilder()
-            .maxAttempts(MAX_ATTEMPTS)
+            .maxAttempts(maxAttempts)
             .backoffStrategy(exponentialDelay(BASE_DELAY, SdkDefaultRetrySetting.MAX_BACKOFF))
             .build();
     }
@@ -106,7 +123,7 @@ final class DynamoDbRetryPolicy {
         return AwsRetryPolicy.forRetryMode(retryMode)
                              .toBuilder()
                              .additionalRetryConditionsAllowed(false)
-                             .numRetries(MAX_ERROR_RETRY)
+                             .numRetries(MAX_ERROR_RETRY_V20)
                              .backoffStrategy(BACKOFF_STRATEGY)
                              .build();
     }
@@ -117,5 +134,12 @@ final class DynamoDbRetryPolicy {
                         .profileName(config.option(SdkClientOption.PROFILE_NAME))
                         .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
                         .resolve();
+    }
+
+    private static Integer resolveMaxAttempts(SdkClientConfiguration config) {
+        return new MaxAttemptsResolver()
+            .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+            .profileName(config.option(SdkClientOption.PROFILE_NAME))
+            .resolve();
     }
 }

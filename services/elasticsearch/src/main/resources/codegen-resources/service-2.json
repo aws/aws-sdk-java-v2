@@ -772,6 +772,23 @@
       ],
       "documentation":"<p>Schedules a service software update for an Amazon ES domain.</p>"
     },
+    "UpdateClone":{
+      "name":"UpdateClone",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2015-01-01/es/domain/{DomainName}/clone"
+      },
+      "input":{"shape":"UpdateCloneRequest"},
+      "output":{"shape":"UpdateCloneResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Manages a cloned blue/green upgrade that is in progress on a domain. Use it to shift a percentage of search traffic to the cloned cluster, to cut over to the cloned cluster or back to the primary cluster, or to change the retention period. Specify exactly one of <code>TrafficSplitOptions</code>, <code>CutoverOptions</code>, or <code>RetentionOptions</code> in each request.</p>"
+    },
     "UpdateElasticsearchDomainConfig":{
       "name":"UpdateElasticsearchDomainConfig",
       "http":{
@@ -1288,6 +1305,66 @@
       "documentation":"<p>Specifies Auto-Tune type. Valid value is SCHEDULED_ACTION. </p>",
       "enum":["SCHEDULED_ACTION"]
     },
+    "AutomatedSnapshotPauseOptions":{
+      "type":"structure",
+      "required":["Enabled"],
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether automated snapshot pause is enabled for the domain.</p>"
+        },
+        "StartTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The timestamp at which the automated snapshot pause begins.</p>"
+        },
+        "EndTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The timestamp at which the automated snapshot pause ends.</p>"
+        },
+        "State":{
+          "shape":"PauseState",
+          "documentation":"<p>The current state of the automated snapshot pause. Valid values are <code>Active</code>, <code>Completed</code>, <code>Scheduled</code>, and <code>Disabled</code>.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the automated snapshot pause options for the domain. These options allow you to temporarily pause automated snapshots for a specified time period.</p>"
+    },
+    "AutomatedSnapshotPauseOptionsStatus":{
+      "type":"structure",
+      "required":[
+        "Options",
+        "Status"
+      ],
+      "members":{
+        "Options":{
+          "shape":"AutomatedSnapshotPauseOptions",
+          "documentation":"<p>Automated snapshot pause options for the specified Elasticsearch domain.</p>"
+        },
+        "Status":{
+          "shape":"OptionStatus",
+          "documentation":"<p>The current status of the automated snapshot pause options for the specified Elasticsearch domain.</p>"
+        }
+      },
+      "documentation":"<p>The status of automated snapshot pause options for the specified Elasticsearch domain.</p>"
+    },
+    "AutomatedSnapshotPauseRequestOptions":{
+      "type":"structure",
+      "required":["Enabled"],
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to enable or disable automated snapshot pause for the domain.</p>"
+        },
+        "StartTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The timestamp at which the automated snapshot pause should begin.</p>"
+        },
+        "EndTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The timestamp at which the automated snapshot pause should end. The maximum allowed duration between <code>StartTime</code> and <code>EndTime</code> is 3 days.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the automated snapshot pause request options for the domain.</p> <important> <p>Suspending snapshots reduces data protection. You cannot restore your domain to points in time when snapshots are suspended. Use this feature only for short-term operational needs such as migrations or maintenance windows.</p> </important> <p>Maximum suspension duration: 3 days.</p>"
+    },
     "BackendRole":{
       "type":"string",
       "max":256,
@@ -1492,6 +1569,10 @@
         "InitiatedBy":{
           "shape":"InitiatedBy",
           "documentation":"<p>The IAM principal who initiated the configuration change.</p>"
+        },
+        "ClonedBlueGreenUpgradeDetails":{
+          "shape":"ClonedBlueGreenUpgradeDetails",
+          "documentation":"<p>Details about a cloned blue/green upgrade, when the change is one.</p>"
         }
       },
       "documentation":"<p>The progress details of a specific domain configuration change.</p>"
@@ -1500,6 +1581,56 @@
       "type":"string",
       "max":64,
       "min":1
+    },
+    "ClonedBlueGreenOptions":{
+      "type":"structure",
+      "members":{
+        "RetentionOptions":{
+          "shape":"RetentionOptions",
+          "documentation":"<p>How long to keep the cluster that you cut over from after cutover completes. When you start the upgrade, only <code>RetentionInHours</code> is accepted.</p>"
+        }
+      },
+      "documentation":"<p>Options for a cloned blue/green upgrade.</p>"
+    },
+    "ClonedBlueGreenScheduledAction":{
+      "type":"structure",
+      "members":{
+        "Action":{
+          "shape":"ClonedBlueGreenScheduledActionType",
+          "documentation":"<p>The action that the service takes.</p>"
+        },
+        "ScheduledTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The time at which the service takes the action.</p>"
+        }
+      },
+      "documentation":"<p>An action that the service takes automatically at a scheduled time during a cloned blue/green upgrade.</p>"
+    },
+    "ClonedBlueGreenScheduledActionType":{
+      "type":"string",
+      "documentation":"<p><code>AutomaticCutoverToPrimaryCluster</code> cuts the domain back over to the primary cluster if you haven't cut over by the scheduled time. <code>DeletePrimaryCluster</code> deletes the primary cluster when the retention period ends.</p>",
+      "enum":[
+        "AutomaticCutoverToPrimaryCluster",
+        "DeletePrimaryCluster"
+      ]
+    },
+    "ClonedBlueGreenUpgradeDetails":{
+      "type":"structure",
+      "members":{
+        "TrafficSplit":{
+          "shape":"TrafficPercents",
+          "documentation":"<p>The current split of search traffic between the primary and cloned clusters.</p>"
+        },
+        "ScheduledAction":{
+          "shape":"ClonedBlueGreenScheduledAction",
+          "documentation":"<p>The action that the service takes automatically if you don't act before the scheduled time.</p>"
+        },
+        "RetentionInHours":{
+          "shape":"IntegerClass",
+          "documentation":"<p>The retention period, in hours, for the cluster that you cut over from.</p>"
+        }
+      },
+      "documentation":"<p>The state of a cloned blue/green upgrade. Members that don't apply are omitted.</p>"
     },
     "CloudWatchLogsLogGroupArn":{
       "type":"string",
@@ -1670,6 +1801,18 @@
         "DeploymentStrategyOptions":{
           "shape":"DeploymentStrategyOptions",
           "documentation":"<p>Specifies the deployment strategy options.</p>"
+        },
+        "AutomatedSnapshotPauseOptions":{
+          "shape":"AutomatedSnapshotPauseRequestOptions",
+          "documentation":"<p>Specifies the automated snapshot pause options for the domain.</p> <important> <p>Suspending snapshots reduces data protection. You cannot restore your domain to points in time when snapshots are suspended. Use this feature only for short-term operational needs such as migrations or maintenance windows.</p> </important> <p>Maximum suspension duration: 3 days.</p>"
+        },
+        "UseCase":{
+          "shape":"DomainUseCase",
+          "documentation":"<p>The primary use case for the domain. For valid values, see <code>DomainUseCase</code>.</p>"
+        },
+        "EngineMode":{
+          "shape":"DomainEngineMode",
+          "documentation":"<p>The engine mode for the domain. For valid values and requirements, see <code>DomainEngineMode</code>.</p>"
         }
       }
     },
@@ -1805,6 +1948,52 @@
     "CreatedAt":{"type":"timestamp"},
     "CrossClusterSearchConnectionId":{"type":"string"},
     "CrossClusterSearchConnectionStatusMessage":{"type":"string"},
+    "CutoverOptions":{
+      "type":"structure",
+      "required":[
+        "Target",
+        "Status"
+      ],
+      "members":{
+        "Target":{
+          "shape":"CutoverTarget",
+          "documentation":"<p>The cluster that the domain is cutting over to.</p>"
+        },
+        "Status":{
+          "shape":"CutoverStatus",
+          "documentation":"<p>The status of the cutover.</p>"
+        }
+      },
+      "documentation":"<p>The cutover target and status for a cloned blue/green upgrade.</p>"
+    },
+    "CutoverRequestOptions":{
+      "type":"structure",
+      "required":["Target"],
+      "members":{
+        "Target":{
+          "shape":"CutoverTarget",
+          "documentation":"<p>The cluster to cut over to. <code>ClonedCluster</code> makes the cloned cluster serve the domain. <code>PrimaryCluster</code> keeps the primary cluster and ends the upgrade.</p>"
+        }
+      },
+      "documentation":"<p>The cutover to perform for a cloned blue/green upgrade.</p>"
+    },
+    "CutoverStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a cutover.</p>",
+      "enum":[
+        "InProgress",
+        "Completed",
+        "Failed"
+      ]
+    },
+    "CutoverTarget":{
+      "type":"string",
+      "documentation":"<p>The cluster to cut over to in a cloned blue/green upgrade.</p>",
+      "enum":[
+        "ClonedCluster",
+        "PrimaryCluster"
+      ]
+    },
     "DeleteElasticsearchDomainRequest":{
       "type":"structure",
       "required":["DomainName"],
@@ -1968,6 +2157,26 @@
         }
       },
       "documentation":"<p>Specifies the status of deployment strategy options for the specified Elasticsearch domain.</p>"
+    },
+    "DeploymentStrategyOverride":{
+      "type":"string",
+      "documentation":"<p>The deployment strategy override for an operation. The only valid value is <code>ClonedBlueGreen</code>.</p>",
+      "enum":["ClonedBlueGreen"]
+    },
+    "DeploymentStrategyOverrideOptions":{
+      "type":"structure",
+      "required":["DeploymentStrategy"],
+      "members":{
+        "DeploymentStrategy":{
+          "shape":"DeploymentStrategyOverride",
+          "documentation":"<p>The deployment strategy to use for this operation. The only valid value is <code>ClonedBlueGreen</code>, which creates a cloned cluster on the target version next to the primary cluster so that you can validate it and shift traffic to it before you cut over.</p>"
+        },
+        "ClonedBlueGreenOptions":{
+          "shape":"ClonedBlueGreenOptions",
+          "documentation":"<p>Options that apply when <code>DeploymentStrategy</code> is <code>ClonedBlueGreen</code>.</p>"
+        }
+      },
+      "documentation":"<p>Overrides the deployment strategy for a single operation, such as a version upgrade.</p>"
     },
     "DeploymentType":{
       "type":"string",
@@ -2437,7 +2646,7 @@
         },
         "TLSSecurityPolicy":{
           "shape":"TLSSecurityPolicy",
-          "documentation":"<p>Specify the TLS security policy that needs to be applied to the HTTPS endpoint of Elasticsearch domain. <br/> It can be one of the following values: <ul> <li><b>Policy-Min-TLS-1-0-2019-07: </b> TLS security policy that supports TLS version 1.0 to TLS version 1.2</li> <li><b>Policy-Min-TLS-1-2-2019-07: </b> TLS security policy that supports only TLS version 1.2</li> <li><b>Policy-Min-TLS-1-2-PFS-2023-10: </b> TLS security policy that supports TLS version 1.2 to TLS version 1.3 with perfect forward secrecy cipher suites</li> </ul> </p>"
+          "documentation":"<p>Specify the TLS security policy that needs to be applied to the HTTPS endpoint of Elasticsearch domain. <br/> It can be one of the following values: <ul> <li><b>Policy-Min-TLS-1-0-2019-07: </b> TLS security policy that supports TLS version 1.0 to TLS version 1.2</li> <li><b>Policy-Min-TLS-1-2-2019-07: </b> TLS security policy that supports only TLS version 1.2</li> <li><b>Policy-Min-TLS-1-2-PFS-2023-10: </b> TLS security policy that supports TLS version 1.2 to TLS version 1.3 with perfect forward secrecy cipher suites</li> <li><b>Policy-Min-TLS-1-2-RFC9151-FIPS-2024-08: </b> TLS security policy that supports TLS version 1.3 with FIPS</li> </ul> </p>"
         },
         "CustomEndpointEnabled":{
           "shape":"Boolean",
@@ -2471,6 +2680,14 @@
         }
       },
       "documentation":"<p>The configured endpoint options for the domain and their current status.</p>"
+    },
+    "DomainEngineMode":{
+      "type":"string",
+      "documentation":"<p>The engine mode for the domain. Valid values are <code>GENERAL</code> (the standard Elasticsearch/OpenSearch engine) and <code>OPTIMIZED</code> (the cost- and performance-optimized engine for observability and log-analytics workloads). If you don't specify an engine mode, <code>GENERAL</code> is used. <code>OPTIMIZED</code> requires OpenSearch 3.5 or later, OpenSearch Optimized instance types (OR1, OR2, OM2, or OI2) for the data tier, and encryption at rest, and is available only for the <code>OBSERVABILITY</code> and <code>MIXED</code> use cases. The engine mode can't be changed after the domain is created.</p>",
+      "enum":[
+        "GENERAL",
+        "OPTIMIZED"
+      ]
     },
     "DomainId":{
       "type":"string",
@@ -2586,6 +2803,16 @@
         "UpdatingServiceSoftware",
         "Isolated",
         "Deleting"
+      ]
+    },
+    "DomainUseCase":{
+      "type":"string",
+      "documentation":"<p>The primary use case for the domain, which determines the default configuration and the engine modes that are available. Valid values are <code>SEARCH</code> (full-text search, e-commerce, content discovery, and hybrid and semantic search), <code>VECTOR</code> (k-NN and semantic search, and retrieval-augmented generation), <code>OBSERVABILITY</code> (logs, metrics, traces, and dashboards), and <code>MIXED</code> (a combination of search and analytics). If you don't specify a use case, <code>MIXED</code> is used.</p>",
+      "enum":[
+        "SEARCH",
+        "VECTOR",
+        "OBSERVABILITY",
+        "MIXED"
       ]
     },
     "Double":{"type":"double"},
@@ -2875,6 +3102,18 @@
         "DeploymentStrategyOptions":{
           "shape":"DeploymentStrategyOptionsStatus",
           "documentation":"<p>Specifies <code>DeploymentStrategyOptions</code> for the domain. </p>"
+        },
+        "AutomatedSnapshotPauseOptions":{
+          "shape":"AutomatedSnapshotPauseOptionsStatus",
+          "documentation":"<p>Specifies <code>AutomatedSnapshotPauseOptions</code> for the domain. </p>"
+        },
+        "UseCase":{
+          "shape":"UseCaseStatus",
+          "documentation":"<p>The use case configured for the domain.</p>"
+        },
+        "EngineMode":{
+          "shape":"EngineModeStatus",
+          "documentation":"<p>The engine mode configured for the domain.</p>"
         }
       },
       "documentation":"<p>The configuration of an Elasticsearch domain.</p>"
@@ -2996,6 +3235,18 @@
         "DeploymentStrategyOptions":{
           "shape":"DeploymentStrategyOptions",
           "documentation":"<p>The current status of the Elasticsearch domain's deployment strategy options.</p>"
+        },
+        "AutomatedSnapshotPauseOptions":{
+          "shape":"AutomatedSnapshotPauseOptions",
+          "documentation":"<p>The current status of the Elasticsearch domain's automated snapshot pause options.</p>"
+        },
+        "UseCase":{
+          "shape":"DomainUseCase",
+          "documentation":"<p>The primary use case for the domain.</p>"
+        },
+        "EngineMode":{
+          "shape":"DomainEngineMode",
+          "documentation":"<p>The engine mode for the domain.</p>"
         }
       },
       "documentation":"<p>The current status of an Elasticsearch domain.</p>"
@@ -3077,6 +3328,24 @@
       "type":"map",
       "key":{"shape":"String"},
       "value":{"shape":"ServiceUrl"}
+    },
+    "EngineModeStatus":{
+      "type":"structure",
+      "required":[
+        "Options",
+        "Status"
+      ],
+      "members":{
+        "Options":{
+          "shape":"DomainEngineMode",
+          "documentation":"<p>The engine mode configured for the domain.</p>"
+        },
+        "Status":{
+          "shape":"OptionStatus",
+          "documentation":"<p>The current status of the engine mode for the domain.</p>"
+        }
+      },
+      "documentation":"<p>The status of the engine mode for the domain.</p>"
     },
     "EngineType":{
       "type":"string",
@@ -4051,6 +4320,15 @@
       "min":8,
       "sensitive":true
     },
+    "PauseState":{
+      "type":"string",
+      "enum":[
+        "Active",
+        "Completed",
+        "Scheduled",
+        "Disabled"
+      ]
+    },
     "PolicyDocument":{
       "type":"string",
       "documentation":"<p>Access policy rules for an Elasticsearch domain service endpoints. For more information, see <a href=\"http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-createupdatedomains.html#es-createdomain-configure-access-policies\" target=\"_blank\">Configuring Access Policies</a> in the <i>Amazon Elasticsearch Service Developer Guide</i>. The maximum size of a policy document is 100 KB.</p>"
@@ -4297,6 +4575,29 @@
       "documentation":"<p>An exception for accessing or deleting a resource that does not exist. Gives http status code of 400.</p>",
       "error":{"httpStatusCode":409},
       "exception":true
+    },
+    "RetentionAction":{
+      "type":"string",
+      "documentation":"<p>The action that ends the retention period. <code>RollbackToPrimaryCluster</code> moves the domain back to the primary cluster. <code>DeletePrimaryCluster</code> deletes the primary cluster.</p>",
+      "enum":[
+        "RollbackToPrimaryCluster",
+        "DeletePrimaryCluster"
+      ]
+    },
+    "RetentionOptions":{
+      "type":"structure",
+      "members":{
+        "RetentionInHours":{
+          "shape":"IntegerClass",
+          "documentation":"<p>The number of hours to keep the cluster that you cut over from. The retention period starts when cutover completes. The minimum is 1 hour. In an <code>UpdateClone</code> response after cutover completes, this value is the number of hours remaining in the retention period, rounded up.</p>"
+        },
+        "RetentionAction":{
+          "shape":"RetentionAction",
+          "documentation":"<p>Ends the retention period now. Valid only after cutover completes.</p>"
+        }
+      },
+      "documentation":"<p>Controls how long the cluster that you cut over from is kept after cutover completes. Specify exactly one of <code>RetentionInHours</code> or <code>RetentionAction</code>.</p>",
+      "union":true
     },
     "RevokeVpcEndpointAccessRequest":{
       "type":"structure",
@@ -4618,7 +4919,8 @@
       "enum":[
         "Policy-Min-TLS-1-0-2019-07",
         "Policy-Min-TLS-1-2-2019-07",
-        "Policy-Min-TLS-1-2-PFS-2023-10"
+        "Policy-Min-TLS-1-2-PFS-2023-10",
+        "Policy-Min-TLS-1-2-RFC9151-FIPS-2024-08"
       ]
     },
     "Tag":{
@@ -4662,9 +4964,143 @@
       "enum":["HOURS"]
     },
     "TotalNumberOfStages":{"type":"integer"},
+    "TrafficPercent":{
+      "type":"integer",
+      "documentation":"<p>A traffic percentage from 0 to 100.</p>",
+      "max":100,
+      "min":0
+    },
+    "TrafficPercents":{
+      "type":"structure",
+      "required":[
+        "PrimaryReadTrafficPercent",
+        "CloneReadTrafficPercent"
+      ],
+      "members":{
+        "PrimaryReadTrafficPercent":{
+          "shape":"TrafficPercent",
+          "documentation":"<p>The percentage of search traffic sent to the primary cluster.</p>"
+        },
+        "CloneReadTrafficPercent":{
+          "shape":"TrafficPercent",
+          "documentation":"<p>The percentage of search traffic sent to the cloned cluster.</p>"
+        }
+      },
+      "documentation":"<p>The split of search traffic between the primary and cloned clusters.</p>"
+    },
+    "TrafficSplitOptions":{
+      "type":"structure",
+      "required":[
+        "Current",
+        "Target",
+        "Status"
+      ],
+      "members":{
+        "Current":{
+          "shape":"TrafficPercents",
+          "documentation":"<p>The traffic split currently in effect.</p>"
+        },
+        "Target":{
+          "shape":"TrafficPercents",
+          "documentation":"<p>The requested traffic split.</p>"
+        },
+        "Status":{
+          "shape":"TrafficSplitStatus",
+          "documentation":"<p>The status of the traffic shift.</p>"
+        }
+      },
+      "documentation":"<p>The traffic split and status for a cloned blue/green upgrade.</p>"
+    },
+    "TrafficSplitRequestOptions":{
+      "type":"structure",
+      "required":[
+        "Strategy",
+        "CloneReadTrafficPercent"
+      ],
+      "members":{
+        "Strategy":{
+          "shape":"TrafficStrategy",
+          "documentation":"<p>The traffic shifting strategy. The only valid value is <code>ShiftReadTrafficPercent</code>.</p>"
+        },
+        "CloneReadTrafficPercent":{
+          "shape":"TrafficPercent",
+          "documentation":"<p>The percentage of search traffic, from 0 to 100, to send to the cloned cluster. The rest goes to the primary cluster.</p>"
+        }
+      },
+      "documentation":"<p>The traffic shift to perform for a cloned blue/green upgrade.</p>"
+    },
+    "TrafficSplitStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a traffic shift.</p>",
+      "enum":[
+        "InProgress",
+        "Completed",
+        "Failed"
+      ]
+    },
+    "TrafficStrategy":{
+      "type":"string",
+      "documentation":"<p>The strategy used to shift traffic between the primary and cloned clusters.</p>",
+      "enum":["ShiftReadTrafficPercent"]
+    },
     "UIntValue":{
       "type":"integer",
       "min":0
+    },
+    "UpdateCloneRequest":{
+      "type":"structure",
+      "required":["DomainName"],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "documentation":"<p>The name of the domain that has a cloned blue/green upgrade in progress.</p>",
+          "location":"uri",
+          "locationName":"DomainName"
+        },
+        "TrafficSplitOptions":{
+          "shape":"TrafficSplitRequestOptions",
+          "documentation":"<p>Shifts a percentage of search traffic from the primary cluster to the cloned cluster.</p>"
+        },
+        "CutoverOptions":{
+          "shape":"CutoverRequestOptions",
+          "documentation":"<p>Cuts the domain over to the cloned cluster or back to the primary cluster.</p>"
+        },
+        "RetentionOptions":{
+          "shape":"RetentionOptions",
+          "documentation":"<p>Changes the retention period, or ends it after cutover completes.</p>"
+        }
+      },
+      "documentation":"<p>Container for the request parameters to the <code>UpdateClone</code> operation.</p>"
+    },
+    "UpdateCloneResponse":{
+      "type":"structure",
+      "required":[
+        "DomainName",
+        "ChangeId"
+      ],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "documentation":"<p>The name of the domain.</p>"
+        },
+        "ChangeId":{
+          "shape":"GUID",
+          "documentation":"<p>The unique identifier of the configuration change. Use it with <code>DescribeDomainChangeProgress</code> to track the change.</p>"
+        },
+        "CutoverOptions":{
+          "shape":"CutoverOptions",
+          "documentation":"<p>The requested cutover target and the status of the cutover.</p>"
+        },
+        "TrafficSplitOptions":{
+          "shape":"TrafficSplitOptions",
+          "documentation":"<p>The current and requested traffic split, and the status of the traffic shift.</p>"
+        },
+        "RetentionOptions":{
+          "shape":"RetentionOptions",
+          "documentation":"<p>The retention settings for the upgrade.</p>"
+        }
+      },
+      "documentation":"<p>Container for the response returned by the <code>UpdateClone</code> operation.</p>"
     },
     "UpdateElasticsearchDomainConfigRequest":{
       "type":"structure",
@@ -4735,6 +5171,18 @@
         "DeploymentStrategyOptions":{
           "shape":"DeploymentStrategyOptions",
           "documentation":"<p>Specifies the deployment strategy options.</p>"
+        },
+        "AutomatedSnapshotPauseOptions":{
+          "shape":"AutomatedSnapshotPauseRequestOptions",
+          "documentation":"<p>Specifies the automated snapshot pause options for the domain.</p> <important> <p>Suspending snapshots reduces data protection. You cannot restore your domain to points in time when snapshots are suspended. Use this feature only for short-term operational needs such as migrations or maintenance windows.</p> </important> <p>Maximum suspension duration: 3 days.</p>"
+        },
+        "UseCase":{
+          "shape":"DomainUseCase",
+          "documentation":"<p>The primary use case for the domain. For valid values, see <code>DomainUseCase</code>.</p>"
+        },
+        "EngineMode":{
+          "shape":"DomainEngineMode",
+          "documentation":"<p>The engine mode for the domain. For valid values and requirements, see <code>DomainEngineMode</code>.</p>"
         }
       },
       "documentation":"<p>Container for the parameters to the <code><a>UpdateElasticsearchDomain</a></code> operation. Specifies the type and number of instances in the domain cluster.</p>"
@@ -4832,6 +5280,10 @@
         "PerformCheckOnly":{
           "shape":"Boolean",
           "documentation":"<p> This flag, when set to True, indicates that an Upgrade Eligibility Check needs to be performed. This will not actually perform the Upgrade. </p>"
+        },
+        "DeploymentStrategyOptions":{
+          "shape":"DeploymentStrategyOverrideOptions",
+          "documentation":"<p>Overrides the deployment strategy for this upgrade. To run a cloned blue/green upgrade, set <code>DeploymentStrategy</code> to <code>ClonedBlueGreen</code>.</p>"
         }
       },
       "documentation":"<p> Container for request parameters to <code> <a>UpgradeElasticsearchDomain</a> </code> operation. </p>"
@@ -4847,6 +5299,10 @@
         "PerformCheckOnly":{
           "shape":"Boolean",
           "documentation":"<p> This flag, when set to True, indicates that an Upgrade Eligibility Check needs to be performed. This will not actually perform the Upgrade. </p>"
+        },
+        "DeploymentStrategyOptions":{
+          "shape":"DeploymentStrategyOverrideOptions",
+          "documentation":"<p>The deployment strategy override used for the upgrade.</p>"
         },
         "ChangeProgressDetails":{"shape":"ChangeProgressDetails"}
       },
@@ -4921,6 +5377,24 @@
     "UpgradeStepsList":{
       "type":"list",
       "member":{"shape":"UpgradeStepItem"}
+    },
+    "UseCaseStatus":{
+      "type":"structure",
+      "required":[
+        "Options",
+        "Status"
+      ],
+      "members":{
+        "Options":{
+          "shape":"DomainUseCase",
+          "documentation":"<p>The use case configured for the domain.</p>"
+        },
+        "Status":{
+          "shape":"OptionStatus",
+          "documentation":"<p>The current status of the use case for the domain.</p>"
+        }
+      },
+      "documentation":"<p>The status of the use case for the domain.</p>"
     },
     "UserPoolId":{
       "type":"string",

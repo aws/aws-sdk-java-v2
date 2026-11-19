@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.auth.scheme.internal.DefaultQueryAuthSchemeParams;
+import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -37,6 +38,25 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
     }
 
     /**
+     * Create a builder pre-populated with endpoint parameters.
+     *
+     * @param endpointParams
+     *        the endpoint parameters to copy
+     * @return a builder with values from the endpoint parameters
+     */
+    static Builder fromEndpointParams(QueryEndpointParams endpointParams) {
+        Builder builder = builder();
+        builder.region(endpointParams.region());
+        builder.defaultTrueParam(endpointParams.defaultTrueParam());
+        builder.defaultStringParam(endpointParams.defaultStringParam());
+        builder.deprecatedParam(endpointParams.deprecatedParam());
+        builder.booleanContextParam(endpointParams.booleanContextParam());
+        builder.stringContextParam(endpointParams.stringContextParam());
+        builder.operationContextParam(endpointParams.operationContextParam());
+        return builder;
+    }
+
+    /**
      * Returns the operation for which to resolve the auth scheme.
      */
     String operation();
@@ -45,6 +65,14 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
      * Returns the region. The region parameter may be used with the "aws.auth#sigv4" auth scheme.
      */
     Region region();
+
+    /**
+     * Returns the region ID as a string. Returns null if region is not set.
+     */
+    default String regionId() {
+        Region region = region();
+        return region == null ? null : region.id();
+    }
 
     /**
      * Returns the RegionSet. The regionSet parameter may be used with the "aws.auth#sigv4a" auth scheme.

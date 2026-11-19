@@ -50,7 +50,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCannedPolicy;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
 import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
@@ -61,6 +61,7 @@ import software.amazon.awssdk.services.cloudfront.model.CreateCloudFrontOriginAc
 import software.amazon.awssdk.services.cloudfront.model.CreatePublicKeyResponse;
 import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
 import software.amazon.awssdk.services.cloudfront.model.DefaultCacheBehavior;
+import software.amazon.awssdk.services.cloudfront.utils.SigningHashAlgorithm;
 import software.amazon.awssdk.services.cloudfront.model.Distribution;
 import software.amazon.awssdk.services.cloudfront.model.DistributionConfig;
 import software.amazon.awssdk.services.cloudfront.model.DistributionSummary;
@@ -89,7 +90,6 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     private static final String S3_OBJECT_KEY_ON_SUB_PATH = "foo/specific-file";
     private static final String S3_OBJECT_KEY_ON_SUB_PATH_OTHER = "foo/other-file";
 
-
     private static String bucket;
     private static String domainName;
     private static String resourceUrl;
@@ -98,18 +98,15 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     private static File rsaKeyFile;
     private static Path rsaKeyFilePath;
     private static String keyGroupId;
-
     private static String ecKeyPairId;
     private static PrivateKey ecPrivateKey;
     private static File ecKeyFile;
     private static Path ecKeyFilePath;
-
     private static String originAccessId;
-    private static String distributionId;
 
     @BeforeAll
     public static void init() throws Exception {
-        IntegrationTestBase.setUp();
+        setUp();
         initStaticFields();
     }
 
@@ -132,17 +129,39 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         }
     }
 
-    static Stream<KeyTestCase> keyCases() throws Exception {
+    static Stream<KeyTestCase> keyCases() {
         return Stream.of(
             new KeyTestCase("RSA", rsaKeyPairId, rsaPrivateKey, rsaKeyFilePath),
             new KeyTestCase("ECDSA", ecKeyPairId, ecPrivateKey, ecKeyFilePath)
         );
     }
 
+    private static class SigningTestCase {
+        final KeyTestCase keyTestCase;
+        final SigningHashAlgorithm hashAlgorithm;
+
+        SigningTestCase(KeyTestCase keyTestCase, SigningHashAlgorithm hashAlgorithm) {
+            this.keyTestCase = keyTestCase;
+            this.hashAlgorithm = hashAlgorithm;
+        }
+
+        @Override
+        public String toString() {
+            return keyTestCase.name + "_" + hashAlgorithm;
+        }
+    }
+
+    static Stream<SigningTestCase> signingCases() {
+        return keyCases().flatMap(k -> Stream.of(
+            new SigningTestCase(k, SigningHashAlgorithm.SHA1),
+            new SigningTestCase(k, SigningHashAlgorithm.SHA256)
+        ));
+    }
+
 
     @Test
     void unsignedUrl_shouldReturn403Response() throws Exception {
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response =
             client.prepareRequest(HttpExecuteRequest.builder()
                                                     .request(SdkHttpRequest.builder()
@@ -157,17 +176,18 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedUrlWithCannedPolicy_producesValidUrl(KeyTestCase testCase) throws Exception {
+    @MethodSource("signingCases")
+    void getSignedUrlWithCannedPolicy_producesValidUrl(SigningTestCase testCase) throws Exception {
         InputStream originalBucketContent = s3Client.getObject(r -> r.bucket(bucket).key(S3_OBJECT_KEY));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CannedSignerRequest request = CannedSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
-                                                         .privateKey(testCase.keyFilePath)
-                                                         .keyPairId(testCase.keyPairId)
-                                                         .expirationDate(expirationDate).build();
+                                                         .privateKey(testCase.keyTestCase.keyFilePath)
+                                                         .keyPairId(testCase.keyTestCase.keyPairId)
+                                                         .expirationDate(expirationDate)
+                                                         .hashAlgorithm(testCase.hashAlgorithm).build();
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(signedUrl.createHttpGetRequest())
                                                                                .build()).call();
@@ -179,14 +199,15 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedUrlWithCannedPolicy_withExpiredDate_shouldReturn403Response(KeyTestCase testCase) throws Exception {
+    @MethodSource("signingCases")
+    void getSignedUrlWithCannedPolicy_withExpiredDate_shouldReturn403Response(SigningTestCase testCase) throws Exception {
         Instant expirationDate = LocalDate.of(2020, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r.resourceUrl(resourceUrl)
-                                                                                      .privateKey(testCase.privateKey)
-                                                                                      .keyPairId(testCase.keyPairId)
-                                                                                      .expirationDate(expirationDate));
-        SdkHttpClient client = ApacheHttpClient.create();
+                                                                                      .privateKey(testCase.keyTestCase.privateKey)
+                                                                                      .keyPairId(testCase.keyTestCase.keyPairId)
+                                                                                      .expirationDate(expirationDate)
+                                                                                      .hashAlgorithm(testCase.hashAlgorithm));
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(signedUrl.createHttpGetRequest())
                                                                                .build()).call();
@@ -195,19 +216,20 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedUrlWithCustomPolicy_producesValidUrl(KeyTestCase testCase) throws Exception {
+    @MethodSource("signingCases")
+    void getSignedUrlWithCustomPolicy_producesValidUrl(SigningTestCase testCase) throws Exception {
         InputStream originalBucketContent = s3Client.getObject(r -> r.bucket(bucket).key(S3_OBJECT_KEY));
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
-                                                         .privateKey(testCase.keyFilePath)
-                                                         .keyPairId(testCase.keyPairId)
+                                                         .privateKey(testCase.keyTestCase.keyFilePath)
+                                                         .keyPairId(testCase.keyTestCase.keyPairId)
                                                          .expirationDate(expirationDate)
-                                                         .activeDate(activeDate).build();
+                                                         .activeDate(activeDate)
+                                                         .hashAlgorithm(testCase.hashAlgorithm).build();
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(signedUrl.createHttpGetRequest())
                                                                                .build()).call();
@@ -227,7 +249,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                                                       .keyPairId(rsaKeyPairId)
                                                                                       .expirationDate(expirationDate)
                                                                                       .activeDate(activeDate));
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(signedUrl.createHttpGetRequest())
                                                                                .build()).call();
@@ -236,16 +258,17 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getCookiesForCannedPolicy_producesValidCookies(KeyTestCase testCase) throws Exception {
+    @MethodSource("signingCases")
+    void getCookiesForCannedPolicy_producesValidCookies(SigningTestCase testCase) throws Exception {
         InputStream originalBucketContent = s3Client.getObject(r -> r.bucket(bucket).key(S3_OBJECT_KEY));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(r -> r.resourceUrl(resourceUrl)
-                                                                                             .privateKey(testCase.privateKey)
-                                                                                             .keyPairId(testCase.keyPairId)
-                                                                                             .expirationDate(expirationDate));
+                                                                                             .privateKey(testCase.keyTestCase.privateKey)
+                                                                                             .keyPairId(testCase.keyTestCase.keyPairId)
+                                                                                             .expirationDate(expirationDate)
+                                                                                             .hashAlgorithm(testCase.hashAlgorithm));
 
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(cookies.createHttpGetRequest())
                                                                                .build()).call();
@@ -266,7 +289,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                          .expirationDate(expirationDate).build();
         CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(request);
 
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(cookies.createHttpGetRequest())
                                                                                .build()).call();
@@ -275,18 +298,19 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getCookiesForCustomPolicy_producesValidCookies(KeyTestCase testCase) throws Exception {
+    @MethodSource("signingCases")
+    void getCookiesForCustomPolicy_producesValidCookies(SigningTestCase testCase) throws Exception {
         InputStream originalBucketContent = s3Client.getObject(r -> r.bucket(bucket).key(S3_OBJECT_KEY));
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(r -> r.resourceUrl(resourceUrl)
-                                                                                             .privateKey(testCase.privateKey)
-                                                                                             .keyPairId(testCase.keyPairId)
+                                                                                             .privateKey(testCase.keyTestCase.privateKey)
+                                                                                             .keyPairId(testCase.keyTestCase.keyPairId)
                                                                                              .expirationDate(expirationDate)
-                                                                                             .activeDate(activeDate));
+                                                                                             .activeDate(activeDate)
+                                                                                             .hashAlgorithm(testCase.hashAlgorithm));
 
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(cookies.createHttpGetRequest())
                                                                                .build()).call();
@@ -309,7 +333,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                          .activeDate(activeDate).build();
         CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(request);
 
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(cookies.createHttpGetRequest())
                                                                                .build()).call();
@@ -318,8 +342,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getCookiesForCustomPolicy_shouldAllowQueryParametersWhenUsingWildcard(KeyTestCase testCase) throws Exception {
+    @MethodSource("signingCases")
+    void getCookiesForCustomPolicy_shouldAllowQueryParametersWhenUsingWildcard(SigningTestCase testCase) throws Exception {
         Instant expirationDate = LocalDate.of(2050, 1, 1)
                                           .atStartOfDay()
                                           .toInstant(ZoneOffset.of("Z"));
@@ -329,30 +353,33 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                       .toInstant(ZoneOffset.of("Z"));
 
         CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(r -> r.resourceUrl(resourceUrl)
-                                                                                             .privateKey(testCase.privateKey)
-                                                                                             .keyPairId(testCase.keyPairId)
+                                                                                             .privateKey(testCase.keyTestCase.privateKey)
+                                                                                             .keyPairId(testCase.keyTestCase.keyPairId)
                                                                                              .resourceUrlPattern(resourceUrl + "*")
                                                                                              .activeDate(activeDate)
-                                                                                             .expirationDate(expirationDate));
+                                                                                             .expirationDate(expirationDate)
+                                                                                             .hashAlgorithm(testCase.hashAlgorithm));
 
         // Request the same resource with an additional query parameter - should still be allowed by the wildcard policy
         URI uri = URI.create(resourceUrl + "?foo=bar");
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
+        SdkHttpRequest.Builder requestBuilder = SdkHttpRequest.builder()
+                                                              .uri(uri)
+                                                              .appendHeader("Cookie", cookies.policyHeaderValue())
+                                                              .appendHeader("Cookie", cookies.signatureHeaderValue())
+                                                              .appendHeader("Cookie", cookies.keyPairIdHeaderValue());
+        if (cookies.hashAlgorithmHeaderValue() != null) {
+            requestBuilder.appendHeader("Cookie", cookies.hashAlgorithmHeaderValue());
+        }
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                               .request(SdkHttpRequest.builder()
-                                                                                                      .uri(uri)
-                                                                                                      .appendHeader("Cookie", cookies.policyHeaderValue())
-                                                                                                      .appendHeader("Cookie", cookies.signatureHeaderValue())
-                                                                                                      .appendHeader("Cookie", cookies.keyPairIdHeaderValue())
-                                                                                                      .method(SdkHttpMethod.GET)
-                                                                                                      .build())
+                                                                               .request(requestBuilder.method(SdkHttpMethod.GET).build())
                                                                                .build()).call();
         assertThat(response.httpResponse().statusCode()).isEqualTo(200);
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getCookiesForCustomPolicy_wildCardPath(KeyTestCase testCase) throws Exception {
+    @MethodSource("signingCases")
+    void getCookiesForCustomPolicy_wildCardPath(SigningTestCase testCase) throws Exception {
         String resourceUri = "https://" + domainName;
         Instant expirationDate = LocalDate.of(2050, 1, 1)
                                           .atStartOfDay()
@@ -364,30 +391,33 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(
             r -> r.resourceUrl(resourceUri + "/foo/specific-file")
-                  .privateKey(testCase.privateKey)
-                  .keyPairId(testCase.keyPairId)
+                  .privateKey(testCase.keyTestCase.privateKey)
+                  .keyPairId(testCase.keyTestCase.keyPairId)
                   .resourceUrlPattern(resourceUri + "/foo/*")
                   .activeDate(activeDate)
-                  .expirationDate(expirationDate));
+                  .expirationDate(expirationDate)
+                  .hashAlgorithm(testCase.hashAlgorithm));
 
         // Use the cookies to access a different file under the same wildcard path
         URI otherFileUri = URI.create(resourceUri + "/foo/other-file");
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
+        SdkHttpRequest.Builder requestBuilder = SdkHttpRequest.builder()
+                                                              .uri(otherFileUri)
+                                                              .appendHeader("Cookie", cookies.policyHeaderValue())
+                                                              .appendHeader("Cookie", cookies.signatureHeaderValue())
+                                                              .appendHeader("Cookie", cookies.keyPairIdHeaderValue());
+        if (cookies.hashAlgorithmHeaderValue() != null) {
+            requestBuilder.appendHeader("Cookie", cookies.hashAlgorithmHeaderValue());
+        }
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                               .request(SdkHttpRequest.builder()
-                                                                                                      .uri(otherFileUri)
-                                                                                                      .appendHeader("Cookie", cookies.policyHeaderValue())
-                                                                                                      .appendHeader("Cookie", cookies.signatureHeaderValue())
-                                                                                                      .appendHeader("Cookie", cookies.keyPairIdHeaderValue())
-                                                                                                      .method(SdkHttpMethod.GET)
-                                                                                                      .build())
+                                                                               .request(requestBuilder.method(SdkHttpMethod.GET).build())
                                                                                .build()).call();
         assertThat(response.httpResponse().statusCode()).isEqualTo(200);
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getCookiesForCustomPolicy_wildCardPolicyResource_allowsAnyPath(KeyTestCase testCase) throws Exception {
+    @MethodSource("signingCases")
+    void getCookiesForCustomPolicy_wildCardPolicyResource_allowsAnyPath(SigningTestCase testCase) throws Exception {
         Instant expirationDate = LocalDate.of(2050, 1, 1)
                                           .atStartOfDay()
                                           .toInstant(ZoneOffset.of("Z"));
@@ -398,30 +428,33 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(
             r -> r.resourceUrl(resourceUrl)
-                  .privateKey(testCase.privateKey)
-                  .keyPairId(testCase.keyPairId)
+                  .privateKey(testCase.keyTestCase.privateKey)
+                  .keyPairId(testCase.keyTestCase.keyPairId)
                   .resourceUrlPattern("*")
                   .activeDate(activeDate)
-                  .expirationDate(expirationDate));
+                  .expirationDate(expirationDate)
+                  .hashAlgorithm(testCase.hashAlgorithm));
 
         // Use the cookies to access a completely different path - the "*" pattern should allow any path
         URI differentPathUri = URI.create(resourceUrl.replace("/s3ObjectKey", "/foo/other-file"));
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
+        SdkHttpRequest.Builder requestBuilder = SdkHttpRequest.builder()
+                                                              .uri(differentPathUri)
+                                                              .appendHeader("Cookie", cookies.policyHeaderValue())
+                                                              .appendHeader("Cookie", cookies.signatureHeaderValue())
+                                                              .appendHeader("Cookie", cookies.keyPairIdHeaderValue());
+        if (cookies.hashAlgorithmHeaderValue() != null) {
+            requestBuilder.appendHeader("Cookie", cookies.hashAlgorithmHeaderValue());
+        }
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                               .request(SdkHttpRequest.builder()
-                                                                                                      .uri(differentPathUri)
-                                                                                                      .appendHeader("Cookie", cookies.policyHeaderValue())
-                                                                                                      .appendHeader("Cookie", cookies.signatureHeaderValue())
-                                                                                                      .appendHeader("Cookie", cookies.keyPairIdHeaderValue())
-                                                                                                      .method(SdkHttpMethod.GET)
-                                                                                                      .build())
+                                                                               .request(requestBuilder.method(SdkHttpMethod.GET).build())
                                                                                .build()).call();
         assertThat(response.httpResponse().statusCode()).isEqualTo(200);
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedUrlWithCustomPolicy_shouldAllowQueryParametersWhenUsingWildcard(KeyTestCase testCase) throws Exception {
+    @MethodSource("signingCases")
+    void getSignedUrlWithCustomPolicy_shouldAllowQueryParametersWhenUsingWildcard(SigningTestCase testCase) throws Exception {
         Instant expirationDate = LocalDate.of(2050, 1, 1)
                                           .atStartOfDay()
                                           .toInstant(ZoneOffset.of("Z"));
@@ -432,11 +465,12 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
-                                                         .privateKey(testCase.keyFilePath)
-                                                         .keyPairId(testCase.keyPairId)
+                                                         .privateKey(testCase.keyTestCase.keyFilePath)
+                                                         .keyPairId(testCase.keyTestCase.keyPairId)
                                                          .resourceUrlPattern(resourceUrl + "*")
                                                          .activeDate(activeDate)
                                                          .expirationDate(expirationDate)
+                                                         .hashAlgorithm(testCase.hashAlgorithm)
                                                          .build();
 
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
@@ -445,7 +479,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         URI modifiedUri = URI.create(urlWithDynamicParam);
 
 
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(SdkHttpRequest.builder()
                                                                                                       .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
@@ -458,8 +492,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedUrlWithCustomPolicy_wildCardPath(KeyTestCase testCase) throws Exception {
+    @MethodSource("signingCases")
+    void getSignedUrlWithCustomPolicy_wildCardPath(SigningTestCase testCase) throws Exception {
         String resourceUri = "https://" + domainName;
         Instant expirationDate = LocalDate.of(2050, 1, 1)
                                           .atStartOfDay()
@@ -471,18 +505,19 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(resourceUri + "/foo/specific-file")
-                                                         .privateKey(testCase.keyFilePath)
-                                                         .keyPairId(testCase.keyPairId)
+                                                         .privateKey(testCase.keyTestCase.keyFilePath)
+                                                         .keyPairId(testCase.keyTestCase.keyPairId)
                                                          .resourceUrlPattern(resourceUri + "/foo/*")
                                                          .activeDate(activeDate)
                                                          .expirationDate(expirationDate)
+                                                         .hashAlgorithm(testCase.hashAlgorithm)
                                                          .build();
 
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
 
 
         URI modifiedUri = URI.create(signedUrl.url().replace("/specific-file","/other-file"));
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(SdkHttpRequest.builder()
                                                                                                       .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
@@ -495,8 +530,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedUrlWithCustomPolicy_wildCardPolicyResource_allowsAnyPath(KeyTestCase testCase) throws Exception {
+    @MethodSource("signingCases")
+    void getSignedUrlWithCustomPolicy_wildCardPolicyResource_allowsAnyPath(SigningTestCase testCase) throws Exception {
         Instant expirationDate = LocalDate.of(2050, 1, 1)
                                           .atStartOfDay()
                                           .toInstant(ZoneOffset.of("Z"));
@@ -507,18 +542,19 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
-                                                         .privateKey(testCase.keyFilePath)
-                                                         .keyPairId(testCase.keyPairId)
+                                                         .privateKey(testCase.keyTestCase.keyFilePath)
+                                                         .keyPairId(testCase.keyTestCase.keyPairId)
                                                          .resourceUrlPattern("*")
                                                          .activeDate(activeDate)
                                                          .expirationDate(expirationDate)
+                                                         .hashAlgorithm(testCase.hashAlgorithm)
                                                          .build();
 
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
 
 
         URI modifiedUri = URI.create(signedUrl.url().replace("/s3ObjectKey","/foo/other-file"));
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(SdkHttpRequest.builder()
                                                                                                       .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
@@ -541,7 +577,6 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         domainName = distribution.domainName;
         resourceUrl = "https://" + domainName + "/" + S3_OBJECT_KEY;
-        distributionId = distribution.id;
     }
 
     private static void initializeRsaKeyFileAndPair() throws Exception {

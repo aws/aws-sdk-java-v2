@@ -1,0 +1,210 @@
+{
+    "version": "2.58.0",
+    "date": "2026-11-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Directory Service",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Direct Connect",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "Update list operations to support wildcard name filtering and page sizes up to 100 results via MaxResults"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Cases",
+            "contributor": "",
+            "description": "This release adds APIs that allow customers to merge cases to consolidate case history, and get the status of an ongoing case merge operation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Added support for 96 new languages for AI-powered automated evaluations. Chat interactions support all 96 languages. Voice interactions support 57 languages, those with transcription available through post-call conversational analytics."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Adds private certificate authority (CA) support for AgentCore Identity custom OAuth2.0 credential providers and custom JWT authorizers, enabling connections to IdPs with private CAs. Support SigV4 request signing (cryptographically signed) in the Bedrock AgentCore Harness MCP connector tool."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage v2",
+            "contributor": "",
+            "description": "This release adds the BandwidthReportingMode setting to DASH manifest configurations, which lets you choose whether the bandwidth attribute of video Representations in the DASH manifest reports the average (default) or peak bitrate of the video track."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeDeploy",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "This release adds session management operations that let user pool administrators and users list and revoke active sessions, and configure session tracking, per-user session limits, and SSO session validity per app client."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Domains",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "AWS Config now supports connectors for Google Cloud. PutConnector accepts a Google Cloud connector configuration, and ListConnectors returns Google Cloud connector details."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWSMarketplace Metering",
+            "contributor": "",
+            "description": "AWS Marketplace Metering Service adds decimal quantity support to the MeterUsage and BatchMeterUsage APIs. This includes new request fields UsageQuantityAsDecimal (MeterUsage), QuantityAsDecimal (BatchMeterUsage), and AllocatedUsageQuantityAsDecimal (UsageAllocation for both APIs)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "The default retry mode is now `standard`, and the `standard` and `adaptive` retry modes now use retry behavior 2.1. The `AWS_NEW_RETRIES_2026` setting is ignored. Retry behavior 2.1 retries sooner, uses fewer attempts, and spends more of the retry quota on each retry, so bursts of failures can exhaust it faster. To keep the previous behavior, set the retry mode to `legacy`, for example with `AWS_RETRY_MODE=legacy`."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore",
+            "contributor": "",
+            "description": "Support SigV4 request signing (cryptographically signed) in the Bedrock AgentCore Harness MCP connector tool."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups Tagging API",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Textract",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Comprehend",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Fixed a connection pool leak with `ProtocolNegotiation.ALPN`. A TLS handshake failure on a new connection never returned its pool slot. Once all slots leaked, every request failed with `Acquire operation took longer than the configured maximum time`. The request now fails with an `IOException` and returns the slot."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud Map",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adds support for AWS Cloud WAN Flow Logs. The CreateFlowLogs API now accepts CoreNetwork, CoreNetworkEdge, and CoreNetworkAttachment resource types, enabling customers to capture information about IP traffic traversing their Cloud WAN core networks."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon MemoryDB",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Shield",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodePipeline",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSO Identity Store",
+            "contributor": "",
+            "description": "Updated ApiRestrictSourceVpcs in NetworkConfiguration to accept VPC ARNs in addition to VPC IDs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Analytics",
+            "contributor": "",
+            "description": "This release adds support for Enhanced Snapshots in Amazon Managed Service for Apache Flink, enabling application state to be managed as a standalone resource that customers can export, import, and reuse across applications."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudHSM V2",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

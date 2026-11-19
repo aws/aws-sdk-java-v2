@@ -1,0 +1,54 @@
+{
+    "version": "2.44.4",
+    "date": "2026-05-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Launching AgentCore payments - a capability that provides secure, instant microtransaction payments for AI agents to access paid APIs, MCP servers, and content. It handles payment processing for x402 protocol, payment limits, and 3P wallet integrations with Coinbase CDP and Stripe (Privy)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore",
+            "contributor": "",
+            "description": "Launching AgentCore payments - a capability that provides secure, instant microtransaction payments for AI agents to access paid APIs, MCP servers, and content. It handles payment processing for x402 protocol, payment limits, and 3P wallet integrations with Coinbase CDP and Stripe (Privy)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Billing and Cost Management Data Exports",
+            "contributor": "",
+            "description": "With this release, customers can configure their data exports to generate additional integration artifacts for Athena and Redshift."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Resolver",
+            "contributor": "",
+            "description": "Adds supports for DNS64 on inbound endpoints and IPv6 forwarding through the internet gateway (IGW) on outbound endpoints, making it easier to manage hybrid DNS across IPv4 and IPv6 networks."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Invoicing",
+            "contributor": "",
+            "description": "Updated ListInvoiceSummaries API to add new ReceiverRole filter in Request and Response"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "This is a documentation update"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "DescribeInstanceTypes now accepts an IncludeUnsupportedInRegion parameter. When set, the response also lists instance types that are not available in the current Region. Each instance type includes a SupportedInRegion field indicating its regional availability."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

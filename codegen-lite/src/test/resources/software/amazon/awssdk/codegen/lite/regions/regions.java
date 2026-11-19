@@ -1,5 +1,8 @@
 package software.amazon.awssdk.regions;
 
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -183,13 +186,48 @@ public final class Region {
     }
 
     private static class RegionCache {
-        private static final ConcurrentHashMap<String, Region> VALUES = new ConcurrentHashMap<>();
+        private static final ConcurrentHashMap<String, RegionReference> VALUES = new ConcurrentHashMap<>();
+
+        private static final ReferenceQueue<Region> QUEUE = new ReferenceQueue<>();
 
         private RegionCache() {
         }
 
         private static Region put(String value, boolean isGlobalRegion) {
-            return VALUES.computeIfAbsent(value, v -> new Region(value, isGlobalRegion));
+            expungeStaleEntries();
+            while (true) {
+                RegionReference existingRef = VALUES.get(value);
+                if (existingRef != null) {
+                    Region existing = existingRef.get();
+                    if (existing != null) {
+                        return existing;
+                    }
+                }
+                Region newRegion = new Region(value, isGlobalRegion);
+                RegionReference newRef = new RegionReference(value, newRegion, QUEUE);
+                boolean installed = existingRef == null ? VALUES.putIfAbsent(value, newRef) == null : VALUES.replace(value,
+                        existingRef, newRef);
+                if (installed) {
+                    return newRegion;
+                }
+            }
+        }
+
+        private static void expungeStaleEntries() {
+            Reference<? extends Region> ref;
+            while ((ref = QUEUE.poll()) != null) {
+                RegionReference regionRef = (RegionReference) ref;
+                VALUES.remove(regionRef.key, regionRef);
+            }
+        }
+
+        private static final class RegionReference extends WeakReference<Region> {
+            private final String key;
+
+            RegionReference(String key, Region referent, ReferenceQueue<? super Region> queue) {
+                super(referent, queue);
+                this.key = key;
+            }
         }
     }
 }

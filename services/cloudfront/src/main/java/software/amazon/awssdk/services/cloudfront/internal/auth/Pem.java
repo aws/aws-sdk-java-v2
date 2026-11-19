@@ -35,6 +35,12 @@ public final class Pem {
     private static final String BEGIN_MARKER = "-----BEGIN ";
     private static final Pattern BEGIN = Pattern.compile("BEGIN", Pattern.LITERAL);
 
+    /**
+     * Longest begin-marker line accepted. The longest marker this class recognizes is
+     * "-----BEGIN RSA PRIVATE KEY-----" (31 characters).
+     */
+    private static final int MAX_MARKER_LENGTH = 128;
+
     private Pem() {
     }
 
@@ -104,17 +110,19 @@ public final class Pem {
         String line;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
             while ((line = reader.readLine()) != null) {
+                String trimmed = line.trim();
                 if (readingContent) {
-                    if (line.contains(endMarker)) {
+                    if (trimmed.startsWith(endMarker)) {
                         pemContents.add(new PemObject(beginMarker, Base64.getDecoder().decode(sb.toString())));
                         readingContent = false;
                     } else {
-                        sb.append(line.trim());
+                        sb.append(trimmed);
                     }
                 } else {
-                    if (line.contains(BEGIN_MARKER)) {
+                    // A line with an over-long marker is skipped, like any other line outside a PEM object.
+                    if (trimmed.length() <= MAX_MARKER_LENGTH && trimmed.contains(BEGIN_MARKER)) {
                         readingContent = true;
-                        beginMarker = line.trim();
+                        beginMarker = trimmed;
                         endMarker = BEGIN.matcher(beginMarker).replaceAll("END");
                         sb = new StringBuilder();
                     }

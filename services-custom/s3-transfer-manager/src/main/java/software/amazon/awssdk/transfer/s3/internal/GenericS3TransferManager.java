@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadUtils.multipartDownloadResumeContext;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.COPY_SOURCE_CONTENT_LENGTH_LISTENER;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.PAUSE_OBSERVABLE;
@@ -23,13 +24,14 @@ import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionA
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.RESUME_TOKEN;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -38,11 +40,9 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtDirectBufferPoolStreamMarker;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
-import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
-import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
-import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -59,11 +59,14 @@ import software.amazon.awssdk.transfer.s3.internal.model.DefaultDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultPresignedFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.internal.progress.ResumeTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
+import software.amazon.awssdk.transfer.s3.internal.utils.LogSanitizer;
+import software.amazon.awssdk.transfer.s3.internal.utils.SseCustomerKeyValidator;
 import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
 import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
@@ -79,6 +82,9 @@ import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.PresignedDownloadRequest;
+import software.amazon.awssdk.transfer.s3.model.PresignedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
@@ -108,7 +114,8 @@ class GenericS3TransferManager implements S3TransferManager {
                              boolean isDefaultS3AsyncClient) {
         this.s3AsyncClient = s3AsyncClient;
         this.transferConfiguration = transferConfiguration;
-        uploadDirectoryHelper = new UploadDirectoryHelper(transferConfiguration, this::uploadFile);
+        uploadDirectoryHelper = new UploadDirectoryHelper(transferConfiguration,
+                                                          (request, confineToRoot) -> uploadFile(request, confineToRoot));
         ListObjectsHelper listObjectsHelper = new ListObjectsHelper(s3AsyncClient::listObjectsV2);
         downloadDirectoryHelper = new DownloadDirectoryHelper(transferConfiguration,
                                                               listObjectsHelper,
@@ -203,11 +210,20 @@ class GenericS3TransferManager implements S3TransferManager {
      */
     @Override
     public FileUpload uploadFile(UploadFileRequest uploadFileRequest) {
+        return uploadFile(uploadFileRequest, null);
+    }
+
+    /**
+     * Uploads a file. If {@code confineToRoot} is not null, the file is read below that directory without following a
+     * symbolic link in any path component below it. May be overridden by subclasses to provide customized behavior.
+     */
+    FileUpload uploadFile(UploadFileRequest uploadFileRequest, Path confineToRoot) {
         Validate.paramNotNull(uploadFileRequest, "uploadFileRequest");
 
         AsyncRequestBody requestBody =
             FileAsyncRequestBody.builder()
                                 .path(uploadFileRequest.source())
+                                .confineToRoot(confineToRoot)
                                 .build();
 
         CompletableFuture<CompletedFileUpload> returnFuture = new CompletableFuture<>();
@@ -253,11 +269,16 @@ class GenericS3TransferManager implements S3TransferManager {
     @Override
     public final FileUpload resumeUploadFile(ResumableFileUpload resumableFileUpload) {
         Validate.paramNotNull(resumableFileUpload, "resumableFileUpload");
+        SseCustomerKeyValidator.validateUpload(resumableFileUpload.uploadFileRequest().putObjectRequest());
 
         boolean fileModified = PAUSE_RESUME_HELPER.fileModified(resumableFileUpload, s3AsyncClient);
-        boolean noResumeToken = !PAUSE_RESUME_HELPER.hasResumeToken(resumableFileUpload);
+        if (fileModified) {
+            return uploadFile(resumableFileUpload.uploadFileRequest());
+        }
 
-        if (fileModified || noResumeToken) {
+        PAUSE_RESUME_HELPER.validateResumeToken(resumableFileUpload);
+        boolean noResumeToken = !PAUSE_RESUME_HELPER.hasResumeToken(resumableFileUpload);
+        if (noResumeToken) {
             return uploadFile(resumableFileUpload.uploadFileRequest());
         }
 
@@ -298,9 +319,7 @@ class GenericS3TransferManager implements S3TransferManager {
         if (resumableFileUpload.totalParts().isPresent()) {
             builder.totalNumParts(resumableFileUpload.totalParts().getAsLong());
         }
-        if (resumableFileUpload.transferredParts().isPresent()) {
-            builder.numPartsCompleted(resumableFileUpload.transferredParts().getAsLong());
-        }
+        builder.numPartsCompleted(resumableFileUpload.transferredParts().orElse(0L));
 
         return builder.build();
     }
@@ -333,8 +352,8 @@ class GenericS3TransferManager implements S3TransferManager {
                                 .build();
     }
 
-    private GetObjectRequest attachSdkAttribute(GetObjectRequest request,
-                                                 Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
+    GetObjectRequest attachSdkAttribute(GetObjectRequest request,
+                                        Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
         AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
             request.overrideConfiguration()
                    .map(o -> o.toBuilder().applyMutation(builderMutation).build())
@@ -372,6 +391,9 @@ class GenericS3TransferManager implements S3TransferManager {
 
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
         progressUpdater.transferInitiated();
+        if (responseTransformer instanceof S3CrtDirectBufferPoolStreamMarker) {
+            return doDownloadWithDirectBufferPool(downloadRequest, progressUpdater);
+        }
         if (isS3ClientMultipartEnabled()) {
             if (responseTransformer.split(b -> b.bufferSizeInBytes(1L)).parallelSplitSupported()) {
                 responseTransformer =
@@ -405,10 +427,32 @@ class GenericS3TransferManager implements S3TransferManager {
         return new DefaultDownload<>(returnFuture, progressUpdater.progress());
     }
 
+    /**
+     * May be overridden by subclasses to provide customized behavior
+     */
+    <ResultT> Download<ResultT> doDownloadWithDirectBufferPool(DownloadRequest<ResultT> downloadRequest,
+                                                               TransferProgressUpdater progressUpdater) {
+        return failedDownload(progressUpdater, new UnsupportedOperationException(
+            "Direct buffer pool downloads require an S3 CRT async client with a configured direct buffer pool"));
+    }
+
+    static <ResultT> Download<ResultT> failedDownload(TransferProgressUpdater progressUpdater, Throwable error) {
+        CompletableFuture<CompletedDownload<ResultT>> returnFuture = new CompletableFuture<>();
+        progressUpdater.registerCompletion(returnFuture);
+        returnFuture.completeExceptionally(error);
+        return new DefaultDownload<>(returnFuture, progressUpdater.progress());
+    }
+
     @Override
     public final FileDownload downloadFile(DownloadFileRequest downloadRequest) {
         Validate.paramNotNull(downloadRequest, "downloadFileRequest");
+        return doDownloadFile(downloadRequest);
+    }
 
+    /**
+     * May be overridden by subclasses to provide customized behavior
+     */
+    FileDownload doDownloadFile(DownloadFileRequest downloadRequest) {
         GetObjectRequest getObjectRequestWithAttributes = attachSdkAttribute(
             downloadRequest.getObjectRequest(),
             b -> b.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext()));
@@ -420,13 +464,13 @@ class GenericS3TransferManager implements S3TransferManager {
                                             FileTransformerConfiguration.defaultCreateOrReplaceExisting());
 
         CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
-        TransferProgressUpdater progressUpdater = doDownloadFile(
+        TransferProgressUpdater progressUpdater = initiateDownload(
             downloadFileRequestWithAttributes, responseTransformer, returnFuture);
 
         return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> downloadFileRequestWithAttributes, null);
     }
 
-    private TransferProgressUpdater doDownloadFile(
+    private TransferProgressUpdater initiateDownload(
         DownloadFileRequest downloadRequest,
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer,
         CompletableFuture<CompletedFileDownload> returnFuture) {
@@ -460,7 +504,14 @@ class GenericS3TransferManager implements S3TransferManager {
     @Override
     public final FileDownload resumeDownloadFile(ResumableFileDownload resumableFileDownload) {
         Validate.paramNotNull(resumableFileDownload, "resumableFileDownload");
+        SseCustomerKeyValidator.validateDownload(resumableFileDownload.downloadFileRequest().getObjectRequest());
+        return doResumeDownloadFile(resumableFileDownload);
+    }
 
+    /**
+     * May be overridden by subclasses to provide customized behavior
+     */
+    FileDownload doResumeDownloadFile(ResumableFileDownload resumableFileDownload) {
         // check if the multipart-download was already completed and handle it gracefully.
         Optional<MultipartDownloadResumeContext> optCtx =
             multipartDownloadResumeContext(resumableFileDownload.downloadFileRequest().getObjectRequest());
@@ -475,6 +526,12 @@ class GenericS3TransferManager implements S3TransferManager {
         GetObjectRequest getObjectRequest = originalDownloadRequest.getObjectRequest();
         CompletableFuture<TransferProgress> progressFuture = new CompletableFuture<>();
         CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture = new CompletableFuture<>();
+        AtomicReference<DownloadFileRequest> requestToSaveOnPauseRef = new AtomicReference<>(originalDownloadRequest);
+        // Created before the HEAD is sent, so it records the destination file before this resume can write to it.
+        DefaultFileDownload fileDownload = new DefaultFileDownload(returnFuture,
+                                                                   new ResumeTransferProgress(progressFuture),
+                                                                   requestToSaveOnPauseRef::get,
+                                                                   resumableFileDownload);
 
         CompletableFuture<HeadObjectResponse> headFuture =
             s3AsyncClient.headObject(b -> b.bucket(getObjectRequest.bucket()).key(getObjectRequest.key()));
@@ -488,22 +545,53 @@ class GenericS3TransferManager implements S3TransferManager {
                                                                   originalDownloadRequest);
 
             DownloadFileRequest newDownloadFileRequest = requestPair.left();
+            requestToSaveOnPauseRef.set(requestToSaveOnPause(originalDownloadRequest, newDownloadFileRequest));
             newDownloadFileRequestFuture.complete(newDownloadFileRequest);
-            log.debug(() -> "Sending downloadFileRequest " + newDownloadFileRequest);
+            log.debug(() -> LogSanitizer.escapeControlCharacters("Sending downloadFileRequest " + newDownloadFileRequest));
 
-            TransferProgressUpdater progressUpdater = doDownloadFile(newDownloadFileRequest,
-                                                                     requestPair.right(),
-                                                                     returnFuture);
+            TransferProgressUpdater progressUpdater = initiateDownload(newDownloadFileRequest,
+                                                                      requestPair.right(),
+                                                                      returnFuture);
             progressFuture.complete(progressUpdater.progress());
         }).exceptionally(throwable -> {
             handleException(returnFuture, progressFuture, newDownloadFileRequestFuture, throwable);
             return null;
         });
 
-        return new DefaultFileDownload(returnFuture,
-                                       new ResumeTransferProgress(progressFuture),
-                                       () -> newOrOriginalRequestForPause(newDownloadFileRequestFuture, originalDownloadRequest),
-                                       resumableFileDownload);
+        return fileDownload;
+    }
+
+    /**
+     * Returns the request to save in the {@link ResumableFileDownload} if this resumed download is paused again.
+     *
+     * <p>This is the user's original request rather than {@code newDownloadFileRequest}, because the new request can carry a
+     * range and conditions ({@code If-Match}, {@code If-Unmodified-Since}) computed for this resume only, and saving them
+     * would break the next resume. The only thing taken from {@code newDownloadFileRequest} is its
+     * {@link MultipartDownloadResumeContext}, because that is the context the running download records completed parts in.
+     * When the download restarted from the beginning, that is a new context, not the original one. For the CRT-based client,
+     * which does not record parts in the context, this only ensures that a restart does not save the original context, which
+     * the Java-based client would otherwise use to skip parts when resuming the token.
+     */
+    DownloadFileRequest requestToSaveOnPause(DownloadFileRequest originalDownloadRequest,
+                                             DownloadFileRequest newDownloadFileRequest) {
+        MultipartDownloadResumeContext newResumeContext =
+            multipartDownloadResumeContext(newDownloadFileRequest.getObjectRequest()).orElse(null);
+        MultipartDownloadResumeContext originalResumeContext =
+            multipartDownloadResumeContext(originalDownloadRequest.getObjectRequest()).orElse(null);
+        // Compare by identity, not equality: a new empty context must not be mistaken for the original one, because only
+        // the new one records the parts this download completes.
+        if (newResumeContext == null || newResumeContext == originalResumeContext) {
+            return originalDownloadRequest;
+        }
+        return attachResumeContext(originalDownloadRequest, newResumeContext);
+    }
+
+    private DownloadFileRequest attachResumeContext(DownloadFileRequest downloadRequest,
+                                                    MultipartDownloadResumeContext resumeContext) {
+        GetObjectRequest getObjectRequest = attachSdkAttribute(
+            downloadRequest.getObjectRequest(),
+            b -> b.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, resumeContext));
+        return downloadRequest.copy(b -> b.getObjectRequest(getObjectRequest));
     }
 
     private FileDownload completedDownload(ResumableFileDownload resumableFileDownload, MultipartDownloadResumeContext ctx) {
@@ -520,19 +608,10 @@ class GenericS3TransferManager implements S3TransferManager {
                                        resumableFileDownload);
     }
 
-    private DownloadFileRequest newOrOriginalRequestForPause(CompletableFuture<DownloadFileRequest> newDownloadFuture,
-                                                             DownloadFileRequest originalDownloadRequest) {
-        try {
-            return newDownloadFuture.getNow(originalDownloadRequest);
-        } catch (CompletionException e) {
-            return originalDownloadRequest;
-        }
-    }
-
-    private static void handleException(CompletableFuture<CompletedFileDownload> returnFuture,
-                                        CompletableFuture<TransferProgress> progressFuture,
-                                        CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture,
-                                        Throwable throwable) {
+    static void handleException(CompletableFuture<CompletedFileDownload> returnFuture,
+                                CompletableFuture<TransferProgress> progressFuture,
+                                CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture,
+                                Throwable throwable) {
         Throwable exceptionCause = throwable instanceof CompletionException ? throwable.getCause() : throwable;
 
         Throwable propagatedException = exceptionCause instanceof SdkException || exceptionCause instanceof Error
@@ -565,20 +644,18 @@ class GenericS3TransferManager implements S3TransferManager {
 
         CompletableFuture<CompletedCopy> returnFuture = new CompletableFuture<>();
 
-        // set length to 10000 as reference value, since we don't make HeadObject call yet
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(copyRequest, 10000L);
+        // The total size is not known yet. Clients that copy through CopyObjectHelper report it from their HeadObject call
+        // through COPY_SOURCE_CONTENT_LENGTH_LISTENER. Other clients ignore these attributes.
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(copyRequest, null);
 
-        // TransferListener is not supported for CRT-based client, so we'll only initiate and register completion when using
-        // the Java-based client with multipart enabled
-        if (isS3ClientMultipartEnabled()) {
-            Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
-                b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
-            CopyObjectRequest copyObjectRequest = attachSdkAttribute(copyRequest.copyObjectRequest(), attachProgressListener);
-            copyRequest = copyRequest.toBuilder().copyObjectRequest(copyObjectRequest).build();
+        Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
+            b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener())
+                  .putExecutionAttribute(COPY_SOURCE_CONTENT_LENGTH_LISTENER, progressUpdater::updateTotalBytes);
+        CopyObjectRequest copyObjectRequest = attachSdkAttribute(copyRequest.copyObjectRequest(), attachProgressListener);
+        copyRequest = copyRequest.toBuilder().copyObjectRequest(copyObjectRequest).build();
 
-            progressUpdater.transferInitiated();
-            progressUpdater.registerCompletion(returnFuture);
-        }
+        progressUpdater.transferInitiated();
+        progressUpdater.registerCompletionWithoutEndOfStream(returnFuture);
 
         try {
             assertNotUnsupportedArn(copyRequest.copyObjectRequest().sourceBucket(), "copy sourceBucket");
@@ -602,6 +679,78 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
+    public final PresignedFileDownload downloadFileWithPresignedUrl(PresignedDownloadFileRequest presignedDownloadFileRequest) {
+        Validate.paramNotNull(presignedDownloadFileRequest, "presignedDownloadFileRequest");
+
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
+            AsyncResponseTransformer.toFile(presignedDownloadFileRequest.destination(),
+                                            FileTransformerConfiguration.defaultCreateOrReplaceExisting());
+
+        CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
+
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(presignedDownloadFileRequest, null);
+        progressUpdater.transferInitiated();
+
+        responseTransformer = isS3ClientMultipartEnabled()
+                              && presignedDownloadFileRequest.presignedUrlDownloadRequest().range() == null
+                              ? progressUpdater.wrapForNonSerialFileDownload(
+                                  responseTransformer, GetObjectRequest.builder().build())
+                              : progressUpdater.wrapResponseTransformer(responseTransformer);
+        progressUpdater.registerCompletion(returnFuture);
+
+        try {
+            CompletableFuture<GetObjectResponse> future = s3AsyncClient.presignedUrlExtension().getObject(
+                presignedDownloadFileRequest.presignedUrlDownloadRequest(), responseTransformer);
+
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+                                                              res -> CompletedFileDownload.builder()
+                                                                                          .response(res)
+                                                                                          .build());
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
+        }
+
+        return new DefaultPresignedFileDownload(returnFuture, progressUpdater.progress());
+    }
+
+    @Override
+    public final <ResultT> Download<ResultT> downloadWithPresignedUrl(
+        PresignedDownloadRequest<ResultT> presignedDownloadRequest) {
+        Validate.paramNotNull(presignedDownloadRequest, "presignedDownloadRequest");
+
+        AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer =
+            presignedDownloadRequest.responseTransformer();
+
+        CompletableFuture<CompletedDownload<ResultT>> returnFuture = new CompletableFuture<>();
+
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(presignedDownloadRequest, null);
+        progressUpdater.transferInitiated();
+
+        responseTransformer = isS3ClientMultipartEnabled()
+                              && presignedDownloadRequest.presignedUrlDownloadRequest().range() == null
+                              ? progressUpdater.wrapForNonSerialFileDownload(
+                                  responseTransformer, GetObjectRequest.builder().build())
+                              : progressUpdater.wrapResponseTransformer(responseTransformer);
+        progressUpdater.registerCompletion(returnFuture);
+
+        try {
+            CompletableFuture<ResultT> future = s3AsyncClient.presignedUrlExtension().getObject(
+                presignedDownloadRequest.presignedUrlDownloadRequest(), responseTransformer);
+
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+                                                              r -> CompletedDownload.builder()
+                                                                                    .result(r)
+                                                                                    .build());
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
+        }
+
+        return new DefaultDownload<>(returnFuture, progressUpdater.progress());
+    }
+
+    @Override
     public final void close() {
         if (isDefaultS3AsyncClient) {
             IoUtils.closeQuietly(s3AsyncClient, log.logger());
@@ -622,27 +771,9 @@ class GenericS3TransferManager implements S3TransferManager {
             String error = String.format("%s does not support S3 Object Lambda resources", operation);
             throw new IllegalArgumentException(error);
         }
-
-        Arn arn = Arn.fromString(bucket);
-
-        if (isMrapArn(arn)) {
-            String error = String.format("%s does not support S3 multi-region access point ARN", operation);
-            throw new IllegalArgumentException(error);
-        }
     }
 
     private static boolean isObjectLambdaArn(String arn) {
         return arn.contains(":s3-object-lambda");
-    }
-
-    private static boolean isMrapArn(Arn arn) {
-        S3Resource s3Resource = S3ArnConverter.create().convertArn(arn);
-
-        S3AccessPointResource s3EndpointResource =
-            Validate.isInstanceOf(S3AccessPointResource.class, s3Resource,
-                                  "An ARN was passed as a bucket parameter to an S3 operation, however it does not "
-                                  + "appear to be a valid S3 access point ARN.");
-
-        return !s3EndpointResource.region().isPresent();
     }
 }

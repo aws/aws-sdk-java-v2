@@ -12,6 +12,24 @@
       "limit_key": "MaxResults",
       "result_key": "TrainingPlanExtensions"
     },
+    "ListAIBenchmarkJobs": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AIBenchmarkJobs"
+    },
+    "ListAIRecommendationJobs": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AIRecommendationJobs"
+    },
+    "ListAIWorkloadConfigs": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AIWorkloadConfigs"
+    },
     "ListActions": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -72,11 +90,29 @@
       "limit_key": "MaxResults",
       "result_key": "Events"
     },
+    "ListClusterExtensionVersions": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "ExtensionVersions"
+    },
+    "ListClusterExtensions": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "Extensions"
+    },
     "ListClusterNodes": {
       "input_token": "NextToken",
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "ClusterNodeSummaries"
+    },
+    "ListClusterOperations": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "ClusterOperationSummaries"
     },
     "ListClusterSchedulerConfigs": {
       "input_token": "NextToken",
@@ -227,6 +263,24 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "InferenceRecommendationsJobs"
+    },
+    "ListInferenceRouters": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "InferenceRouters"
+    },
+    "ListJobSchemaVersions": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "JobConfigSchemas"
+    },
+    "ListJobs": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "JobSummaries"
     },
     "ListLabelingJobs": {
       "input_token": "NextToken",
@@ -405,7 +459,8 @@
     "ListProjects": {
       "input_token": "NextToken",
       "output_token": "NextToken",
-      "limit_key": "MaxResults"
+      "limit_key": "MaxResults",
+      "result_key": "ProjectSummaryList"
     },
     "ListResourceCatalogs": {
       "input_token": "NextToken",
@@ -460,6 +515,12 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "TrainingPlanSummaries"
+    },
+    "ListTrainingSessions": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "TrainingSessionSummaries"
     },
     "ListTransformJobs": {
       "input_token": "NextToken",

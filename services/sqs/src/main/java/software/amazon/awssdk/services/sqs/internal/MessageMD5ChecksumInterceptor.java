@@ -212,7 +212,6 @@ public final class MessageMD5ChecksumInterceptor implements ExecutionInterceptor
      * Returns the hex-encoded MD5 hash String of the given message body.
      */
     private static String calculateMessageBodyMd5(String messageBody) {
-        log.debug(() -> "Message body: " + messageBody);
         byte[] expectedMd5;
         try {
             expectedMd5 = Md5Utils.computeMD5Hash(messageBody.getBytes(StandardCharsets.UTF_8));
@@ -234,7 +233,6 @@ public final class MessageMD5ChecksumInterceptor implements ExecutionInterceptor
      * Returns the hex-encoded MD5 hash String of the given message attributes.
      */
     private static String calculateMessageAttributesMd5(final Map<String, MessageAttributeValue> messageAttributes) {
-        log.debug(() -> "Message attributes: " + messageAttributes);
         List<String> sortedAttributeNames = new ArrayList<>(messageAttributes.keySet());
         Collections.sort(sortedAttributeNames);
 

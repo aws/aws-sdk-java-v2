@@ -38,7 +38,7 @@ public final class DefaultRetryStrategy {
     }
 
     /**
-     * Create a new builder for a {@link StandardRetryStrategy}.
+     * Create a new builder for a {@link StandardRetryStrategy} that uses retry behavior 2.1.
      *
      * <p>Example Usage
      * {@snippet
@@ -51,6 +51,18 @@ public final class DefaultRetryStrategy {
      */
     public static StandardRetryStrategy.Builder standardStrategyBuilder() {
         return StandardRetryStrategy.builder();
+    }
+
+    /**
+     * Create a new builder for a {@link StandardRetryStrategy}. When {@code retries2026Enabled} is not {@code true}, the
+     * builder uses the retry behavior 2.0 constants.
+     *
+     * @param retries2026Enabled Whether retries 2.1 behavior is used.
+     * @deprecated Retry behavior 2.1 is the default. Use {@link #standardStrategyBuilder()} instead.
+     */
+    @Deprecated
+    public static StandardRetryStrategy.Builder standardStrategyBuilder(Boolean retries2026Enabled) {
+        return StandardRetryStrategy.builder(retries2026Enabled);
     }
 
     /**
@@ -70,7 +82,7 @@ public final class DefaultRetryStrategy {
     }
 
     /**
-     * Create a new builder for a {@link AdaptiveRetryStrategy}.
+     * Create a new builder for a {@link AdaptiveRetryStrategy} that uses retry behavior 2.1.
      *
      * <p>Example Usage
      * {@snippet
@@ -85,13 +97,33 @@ public final class DefaultRetryStrategy {
         return AdaptiveRetryStrategy.builder();
     }
 
+    /**
+     * Create a new builder for a {@link AdaptiveRetryStrategy}. When {@code retries2026Enabled} is not {@code true}, the
+     * builder uses the retry behavior 2.0 constants.
+     *
+     * @param retries2026Enabled Whether retries 2.1 behavior is used.
+     * @deprecated Retry behavior 2.1 is the default. Use {@link #adaptiveStrategyBuilder()} instead.
+     */
+    @Deprecated
+    public static AdaptiveRetryStrategy.Builder adaptiveStrategyBuilder(Boolean retries2026Enabled) {
+        return AdaptiveRetryStrategy.builder(retries2026Enabled);
+    }
+
     static final class Standard {
         static final int MAX_ATTEMPTS = 3;
-        static final Duration BASE_DELAY = Duration.ofMillis(100);
+
+        // v2.1 constants
+        static final Duration BASE_DELAY_V21 = Duration.ofMillis(50);
+        static final int DEFAULT_EXCEPTION_TOKEN_COST_V21 = 14;
+        static final int THROTTLING_EXCEPTION_TOKEN_COST_V21 = 5;
+
+        // v2.0 constants
+        static final Duration BASE_DELAY_V20 = Duration.ofMillis(100);
+        static final int DEFAULT_EXCEPTION_TOKEN_COST_V20 = 5;
+
         static final Duration THROTTLED_BASE_DELAY = Duration.ofSeconds(1);
         static final Duration MAX_BACKOFF = Duration.ofSeconds(20);
         static final int TOKEN_BUCKET_SIZE = 500;
-        static final int DEFAULT_EXCEPTION_TOKEN_COST = 5;
 
         private Standard() {
         }

@@ -23,6 +23,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static software.amazon.awssdk.enhanced.dynamodb.TableMetadata.primaryIndexName;
+import static software.amazon.awssdk.enhanced.dynamodb.model.DistanceFunction.COSINE;
+import static software.amazon.awssdk.enhanced.dynamodb.model.DistanceFunction.EUCLIDEAN;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +36,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedVectorIndex;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElementType;
+import software.amazon.awssdk.enhanced.dynamodb.model.VectorIndexMetadata;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 public class StaticTableMetadataTest {
@@ -543,6 +548,128 @@ public class StaticTableMetadataTest {
     }
 
     @Test
+    public void setAndRetrieveVectorIndex() {
+        VectorIndexMetadata vectorIndex = VectorIndexMetadata.builder()
+                                                             .indexName("embeddings-index")
+                                                             .vectorAttributeName("embedding")
+                                                             .dimensions(1536)
+                                                             .distanceFunction(COSINE)
+                                                             .build();
+
+        TableMetadata tableMetadata = StaticTableMetadata.builder()
+                                                         .addVectorIndex(vectorIndex)
+                                                         .build();
+
+        assertThat(tableMetadata.vectorIndices().size(), is(1));
+        assertThat(tableMetadata.vectorIndices(), contains(vectorIndex));
+        assertThat(tableMetadata.indices().stream().anyMatch(index -> "embeddings-index".equals(index.name())), is(false));
+    }
+
+    @Test
+    public void addVectorIndex_fromEnhancedVectorIndex() {
+        EnhancedVectorIndex enhancedVectorIndex =
+            EnhancedVectorIndex.builder()
+                               .indexName("embeddings-index")
+                               .vectorAttributeName("embedding")
+                               .dimensions(768)
+                               .distanceFunction(EUCLIDEAN)
+                               .addSearchSchemaElement(b -> b.attributeName("category")
+                                                             .searchSchemaElementType(SearchSchemaElementType.HASH))
+                               .build();
+
+        TableMetadata tableMetadata = StaticTableMetadata.builder()
+                                                         .addVectorIndex(enhancedVectorIndex)
+                                                         .build();
+
+        assertThat(tableMetadata.vectorIndices().size(), is(1));
+        assertThat(tableMetadata.vectorIndices(),
+                   contains(VectorIndexMetadata.fromEnhancedVectorIndex(enhancedVectorIndex)));
+    }
+
+    @Test
+    public void addDuplicateVectorIndex_throws() {
+        VectorIndexMetadata vectorIndex = VectorIndexMetadata.builder()
+                                                             .indexName("embeddings-index")
+                                                             .vectorAttributeName("embedding")
+                                                             .dimensions(1536)
+                                                             .distanceFunction(COSINE)
+                                                             .build();
+
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder().addVectorIndex(vectorIndex);
+
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Attempt to add a vector index that has already been added. Vector index name: embeddings-index");
+
+        builder.addVectorIndex(vectorIndex);
+    }
+
+    @Test
+    public void mergeVectorIndices() {
+        VectorIndexMetadata vectorIndex = VectorIndexMetadata.builder()
+                                                             .indexName("embeddings-index")
+                                                             .vectorAttributeName("embedding")
+                                                             .dimensions(1536)
+                                                             .distanceFunction(COSINE)
+                                                             .build();
+
+        StaticTableMetadata original = StaticTableMetadata.builder()
+                                                          .addIndexPartitionKey(primaryIndexName(), "id", AttributeValueType.S)
+                                                          .addVectorIndex(vectorIndex)
+                                                          .build();
+
+        StaticTableMetadata merged = StaticTableMetadata.builder()
+                                                        .mergeWith(original)
+                                                        .build();
+
+        assertThat(merged, is(original));
+        assertThat(merged.vectorIndices(), contains(vectorIndex));
+    }
+
+    @Test
+    public void mergeWithDuplicateVectorIndex() {
+        VectorIndexMetadata vectorIndex = VectorIndexMetadata.builder()
+                                                             .indexName("embeddings-index")
+                                                             .vectorAttributeName("embedding")
+                                                             .dimensions(1536)
+                                                             .distanceFunction(COSINE)
+                                                             .build();
+
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder().addVectorIndex(vectorIndex);
+
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Attempt to add a vector index that has already been added. "
+                                + "Vector index name: embeddings-index");
+
+        builder.mergeWith(builder.build()).build();
+    }
+
+    @Test
+    public void mergeWith_mergesPartialVectorIndexMetadataIntoSingleIndex() {
+        StaticTableMetadata hashOnly = StaticTableMetadata.builder()
+                                                          .addSearchVectorsHashKey("idx", "category")
+                                                          .build();
+
+        StaticTableMetadata vectorOnly = StaticTableMetadata.builder()
+                                                            .setVectorAttribute("idx", "embedding", 1536, COSINE)
+                                                            .build();
+
+        StaticTableMetadata merged = StaticTableMetadata.builder()
+                                                        .mergeWith(hashOnly)
+                                                        .mergeWith(vectorOnly)
+                                                        .build();
+
+        assertThat(merged.vectorIndices().size(), is(1));
+        VectorIndexMetadata vectorIndex = merged.vectorIndices().iterator().next();
+        assertThat(vectorIndex.indexName(), is("idx"));
+        assertThat(vectorIndex.vectorAttributeName(), is("embedding"));
+        assertThat(vectorIndex.dimensions(), is(1536));
+        assertThat(vectorIndex.distanceFunction(), is(COSINE));
+        assertThat(vectorIndex.searchSchemaElements().size(), is(1));
+        assertThat(vectorIndex.searchSchemaElements().get(0).attributeName(), is("category"));
+        assertThat(vectorIndex.searchSchemaElements().get(0).searchSchemaElementType(), is(SearchSchemaElementType.HASH));
+    }
+
+    @Test
     public void mergeFullIntoEmpty() {
         StaticTableMetadata tableMetadata = StaticTableMetadata.builder()
             .addIndexPartitionKey(primaryIndexName(), "primary_id", AttributeValueType.S)
@@ -558,6 +685,149 @@ public class StaticTableMetadataTest {
         StaticTableMetadata mergedTableMetadata = StaticTableMetadata.builder().mergeWith(tableMetadata).build();
 
         assertThat(mergedTableMetadata, is(tableMetadata));
+    }
+
+    @Test
+    public void addSearchVectorsHashKey_createsVectorIndexWithHashElement() {
+        TableMetadata tableMetadata = StaticTableMetadata.builder()
+                                                         .addSearchVectorsHashKey("idx", "category")
+                                                         .build();
+
+        assertThat(tableMetadata.vectorIndices().size(), is(1));
+        VectorIndexMetadata vectorIndex = tableMetadata.vectorIndices().iterator().next();
+        assertThat(vectorIndex.indexName(), is("idx"));
+        assertThat(vectorIndex.searchSchemaElements().size(), is(1));
+        assertThat(vectorIndex.searchSchemaElements().get(0).attributeName(), is("category"));
+        assertThat(vectorIndex.searchSchemaElements().get(0).searchSchemaElementType(), is(SearchSchemaElementType.HASH));
+    }
+
+    @Test
+    public void addSearchVectorsInlineFilterKey_createsVectorIndexWithInlineFilterElement() {
+        TableMetadata tableMetadata = StaticTableMetadata.builder()
+                                                         .addSearchVectorsInlineFilterKey("idx", "category")
+                                                         .build();
+
+        assertThat(tableMetadata.vectorIndices().size(), is(1));
+        VectorIndexMetadata vectorIndex = tableMetadata.vectorIndices().iterator().next();
+        assertThat(vectorIndex.indexName(), is("idx"));
+        assertThat(vectorIndex.searchSchemaElements().size(), is(1));
+        assertThat(vectorIndex.searchSchemaElements().get(0).attributeName(), is("category"));
+        assertThat(vectorIndex.searchSchemaElements().get(0).searchSchemaElementType(),
+                   is(SearchSchemaElementType.INLINE_FILTER));
+    }
+
+    @Test
+    public void setVectorAttribute_setsVectorConfiguration() {
+        TableMetadata tableMetadata = StaticTableMetadata.builder()
+                                                         .setVectorAttribute("idx", "embedding", 1536, COSINE)
+                                                         .build();
+
+        assertThat(tableMetadata.vectorIndices().size(), is(1));
+        VectorIndexMetadata vectorIndex = tableMetadata.vectorIndices().iterator().next();
+        assertThat(vectorIndex.indexName(), is("idx"));
+        assertThat(vectorIndex.vectorAttributeName(), is("embedding"));
+        assertThat(vectorIndex.dimensions(), is(1536));
+        assertThat(vectorIndex.distanceFunction(), is(COSINE));
+    }
+
+    @Test
+    public void setVectorAttribute_duplicateVectorAttribute_throws() {
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder()
+                                                                 .setVectorAttribute("idx", "embedding", 1536, COSINE);
+
+        assertThatThrownBy(() -> builder.setVectorAttribute("idx", "otherEmbedding", 768, EUCLIDEAN))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Attempt to set a vector attribute for a vector index that already has one. "
+                                  + "Vector index name: idx");
+    }
+
+    @Test
+    public void mergeWith_duplicateVectorAttribute_throws() {
+        StaticTableMetadata first = StaticTableMetadata.builder()
+                                                       .setVectorAttribute("idx", "embedding", 1536, COSINE)
+                                                       .build();
+
+        StaticTableMetadata second = StaticTableMetadata.builder()
+                                                        .setVectorAttribute("idx", "otherEmbedding", 768, EUCLIDEAN)
+                                                        .build();
+
+        assertThatThrownBy(() -> StaticTableMetadata.builder().mergeWith(first).mergeWith(second).build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Attempt to set a vector attribute for a vector index that already has one. "
+                                  + "Vector index name: idx");
+    }
+
+    @Test
+    public void incrementalBuild_multipleElements_sameIndex() {
+        TableMetadata tableMetadata = StaticTableMetadata.builder()
+                                                         .addSearchVectorsHashKey("idx", "category")
+                                                         .addSearchVectorsInlineFilterKey("idx", "status")
+                                                         .setVectorAttribute("idx", "embedding", 1536, COSINE)
+                                                         .build();
+
+        assertThat(tableMetadata.vectorIndices().size(), is(1));
+        VectorIndexMetadata vectorIndex = tableMetadata.vectorIndices().iterator().next();
+        assertThat(vectorIndex.indexName(), is("idx"));
+        assertThat(vectorIndex.vectorAttributeName(), is("embedding"));
+        assertThat(vectorIndex.dimensions(), is(1536));
+        assertThat(vectorIndex.distanceFunction(), is(COSINE));
+        assertThat(vectorIndex.searchSchemaElements().size(), is(2));
+        assertThat(vectorIndex.searchSchemaElements().get(0).searchSchemaElementType(), is(SearchSchemaElementType.HASH));
+        assertThat(vectorIndex.searchSchemaElements().get(1).searchSchemaElementType(), is(SearchSchemaElementType.INLINE_FILTER));
+    }
+
+    @Test
+    public void incrementalBuild_multipleInlineFilters() {
+        TableMetadata tableMetadata = StaticTableMetadata.builder()
+                                                         .addSearchVectorsInlineFilterKey("idx", "category")
+                                                         .addSearchVectorsInlineFilterKey("idx", "status")
+                                                         .build();
+
+        assertThat(tableMetadata.vectorIndices().size(), is(1));
+        VectorIndexMetadata vectorIndex = tableMetadata.vectorIndices().iterator().next();
+        assertThat(vectorIndex.searchSchemaElements().size(), is(2));
+        assertThat(vectorIndex.searchSchemaElements().get(0).attributeName(), is("category"));
+        assertThat(vectorIndex.searchSchemaElements().get(0).searchSchemaElementType(),
+                   is(SearchSchemaElementType.INLINE_FILTER));
+        assertThat(vectorIndex.searchSchemaElements().get(1).attributeName(), is("status"));
+        assertThat(vectorIndex.searchSchemaElements().get(1).searchSchemaElementType(),
+                   is(SearchSchemaElementType.INLINE_FILTER));
+    }
+
+    @Test
+    public void incrementalBuild_conflictWithProgrammatic_throwsException() {
+        VectorIndexMetadata vectorIndex = VectorIndexMetadata.builder()
+                                                             .indexName("idx")
+                                                             .build();
+
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("defined both programmatically and via annotations");
+
+        StaticTableMetadata.builder()
+                           .addVectorIndex(vectorIndex)
+                           .addSearchVectorsHashKey("idx", "cat")
+                           .build();
+    }
+
+    @Test
+    public void mergeWith_preservesIncrementalVectorIndices() {
+        StaticTableMetadata original = StaticTableMetadata.builder()
+                                                          .addSearchVectorsHashKey("idx", "category")
+                                                          .setVectorAttribute("idx", "embedding", 1536, COSINE)
+                                                          .build();
+
+        StaticTableMetadata merged = StaticTableMetadata.builder()
+                                                        .mergeWith(original)
+                                                        .build();
+
+        assertThat(merged.vectorIndices().size(), is(1));
+        VectorIndexMetadata vectorIndex = merged.vectorIndices().iterator().next();
+        assertThat(vectorIndex.indexName(), is("idx"));
+        assertThat(vectorIndex.vectorAttributeName(), is("embedding"));
+        assertThat(vectorIndex.dimensions(), is(1536));
+        assertThat(vectorIndex.distanceFunction(), is(COSINE));
+        assertThat(vectorIndex.searchSchemaElements().size(), is(1));
+        assertThat(vectorIndex.searchSchemaElements().get(0).attributeName(), is("category"));
     }
 
     @Test

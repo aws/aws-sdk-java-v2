@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.utils.cache.lru;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,14 +69,31 @@ public final class LruCache<K, V>  {
     public V get(K key) {
         while (true) {
             CacheEntry<K, V> cachedEntry = cache.computeIfAbsent(key, this::newEntry);
+            CacheEntry<K, V> evictedEntry;
             synchronized (listLock) {
                 if (cachedEntry.evicted()) {
                     continue;
                 }
-                moveToBackOfQueue(cachedEntry);
-                return cachedEntry.value();
+                evictedEntry = moveToBackOfQueue(cachedEntry);
+            }
+            closeEvictedResourcesIfPossible(evictedEntry);
+            return cachedEntry.value();
+        }
+    }
+
+    public List<V> evictAll() {
+        List<V> evicted = new ArrayList<>(cache.size());
+        synchronized (listLock) {
+            while (true) {
+                CacheEntry<K, V> evictedEntry = evict();
+                if (evictedEntry == null) {
+                    break;
+                }
+                evicted.add(evictedEntry.value);
             }
         }
+        evicted.forEach(this::closeEvictedResourcesIfPossible);
+        return evicted;
     }
 
     private CacheEntry<K, V> newEntry(K key) {
@@ -92,12 +111,12 @@ public final class LruCache<K, V>  {
      * <li>Add it to the back of the queue (most recently used)</li>
      *</ol>
      */
-    private void moveToBackOfQueue(CacheEntry<K, V> entry) {
+    private CacheEntry<K, V> moveToBackOfQueue(CacheEntry<K, V> entry) {
         if (entry.equals(mostRecentlyUsed)) {
-            return;
+            return null;
         }
         removeFromQueue(entry);
-        addToQueue(entry);
+        return addToQueue(entry);
     }
 
     /**
@@ -129,7 +148,7 @@ public final class LruCache<K, V>  {
      * Adds an entry to the queue as the most recently used, adjusts all pointers and triggers an evict
      * event if the cache is now full.
      */
-    private void addToQueue(CacheEntry<K, V> entry) {
+    private CacheEntry<K, V> addToQueue(CacheEntry<K, V> entry) {
         if (mostRecentlyUsed != null) {
             mostRecentlyUsed.setPrevious(entry);
             entry.setNext(mostRecentlyUsed);
@@ -140,18 +159,31 @@ public final class LruCache<K, V>  {
             leastRecentlyUsed = entry;
         }
         if (size() > maxCacheSize) {
-            evict();
+            return evict();
         }
+        return null;
     }
 
     /**
      * Removes the least recently used entry from the cache, marks it as evicted and removes it from the queue.
      */
-    private void evict() {
-        leastRecentlyUsed.isEvicted(true);
-        closeEvictedResourcesIfPossible(leastRecentlyUsed.value);
-        cache.remove(leastRecentlyUsed.key());
-        removeFromQueue(leastRecentlyUsed);
+    private CacheEntry<K, V> evict() {
+        if (leastRecentlyUsed == null) {
+            return null;
+        }
+
+        CacheEntry<K, V> entryToEvict = leastRecentlyUsed;
+
+        entryToEvict.isEvicted(true);
+        cache.remove(entryToEvict.key(), entryToEvict);
+        removeFromQueue(entryToEvict);
+        return entryToEvict;
+    }
+
+    private void closeEvictedResourcesIfPossible(CacheEntry<K, V> entry) {
+        if (entry != null) {
+            closeEvictedResourcesIfPossible(entry.value());
+        }
     }
 
     private void closeEvictedResourcesIfPossible(V value) {

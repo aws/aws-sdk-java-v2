@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.42.26-SNAPSHOT</version>
+        <version>2.59.4-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -183,8 +183,6 @@
         <module>mediapackagevod</module>
         <module>groundstation</module>
         <module>iotthingsgraph</module>
-        <module>iotevents</module>
-        <module>ioteventsdata</module>
         <module>personalizeruntime</module>
         <module>personalize</module>
         <module>personalizeevents</module>
@@ -262,8 +260,6 @@
         <module>fis</module>
         <module>mgn</module>
         <module>lookoutequipment</module>
-        <module>finspacedata</module>
-        <module>finspace</module>
         <module>ssmincidents</module>
         <module>ssmcontacts</module>
         <module>applicationcostprofiler</module>
@@ -283,7 +279,6 @@
         <module>account</module>
         <module>cloudcontrol</module>
         <module>grafana</module>
-        <module>panorama</module>
         <module>chimesdkmeetings</module>
         <module>resiliencehub</module>
         <module>migrationhubstrategy</module>
@@ -319,7 +314,6 @@
         <module>chimesdkvoice</module>
         <module>oam</module>
         <module>arczonalshift</module>
-        <module>simspaceweaver</module>
         <module>securitylake</module>
         <module>opensearchserverless</module>
         <module>omics</module>
@@ -333,7 +327,6 @@
         <module>kendraranking</module>
         <module>cleanrooms</module>
         <module>cloudtraildata</module>
-        <module>tnb</module>
         <module>internetmonitor</module>
         <module>ivsrealtime</module>
         <module>vpclattice</module>
@@ -442,6 +435,31 @@
         <module>devopsagent</module>
         <module>securityagent</module>
         <module>sustainability</module>
+        <module>s3files</module>
+        <module>marketplacediscovery</module>
+        <module>interconnect</module>
+        <module>resiliencehubv2</module>
+        <module>sagemakerjobruntime</module>
+        <module>lambdamicrovms</module>
+        <module>lambdacore</module>
+        <module>supportauthz</module>
+        <module>partnercentralrevenuemeasurement</module>
+        <module>pricingplanmanager</module>
+        <module>agentregistry</module>
+        <module>agentregistrycontrol</module>
+        <module>accountaccess</module>
+        <module>iamtoolbox</module>
+        <module>cloudwatchomni</module>
+        <module>networksecuritymanager</module>
+        <module>eventbridgev2</module>
+        <module>endusermessaging</module>
+        <module>lambdaweb</module>
+        <module>sagemakertrainingsessionruntime</module>
+        <module>continuum</module>
+        <module>accountaccessruntime</module>
+        <module>connectscheduling</module>
+        <module>opensearchmemory</module>
+        <module>sagemakerinferencerouterruntime</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
@@ -528,7 +546,7 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <artifactId>apache-client</artifactId>
+            <artifactId>apache5-client</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
             <scope>runtime</scope>
@@ -656,6 +674,37 @@
                     <plugin>
                         <groupId>software.amazon.awssdk</groupId>
                         <artifactId>codegen-maven-plugin</artifactId>
+                    </plugin>
+                    <!-- Binds the version.properties executions defined in the root pom. -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>parse-sdk-version</id>
+                                <phase>validate</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>generate-version-properties</id>
+                                <phase>generate-resources</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>require-version-properties</id>
+                                <phase>process-resources</phase>
+                            </execution>
+                        </executions>
                     </plugin>
                 </plugins>
             </build>

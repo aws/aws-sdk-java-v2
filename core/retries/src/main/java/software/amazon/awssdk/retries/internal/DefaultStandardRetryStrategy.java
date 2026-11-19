@@ -19,6 +19,7 @@ import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
+import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 import software.amazon.awssdk.utils.Logger;
 
@@ -41,7 +42,6 @@ public final class DefaultStandardRetryStrategy
     }
 
     public static class Builder extends BaseRetryStrategy.Builder implements StandardRetryStrategy.Builder {
-
         Builder() {
         }
 
@@ -80,6 +80,12 @@ public final class DefaultStandardRetryStrategy
         }
 
         @Override
+        public Builder doNotRetryWhen(Predicate<RefreshRetryTokenRequest> doNotRetry) {
+            setDoNotRetryWhen(doNotRetry);
+            return this;
+        }
+
+        @Override
         public Builder circuitBreakerEnabled(Boolean circuitBreakerEnabled) {
             setCircuitBreakerEnabled(circuitBreakerEnabled);
             return this;
@@ -87,6 +93,11 @@ public final class DefaultStandardRetryStrategy
 
         public Builder tokenBucketExceptionCost(int exceptionCost) {
             setTokenBucketExceptionCost(exceptionCost);
+            return this;
+        }
+
+        public Builder throttlingTokenBucketExceptionCost(int throttlingExceptionCost) {
+            setThrottlingTokenBucketExceptionCost(throttlingExceptionCost);
             return this;
         }
 
@@ -98,6 +109,14 @@ public final class DefaultStandardRetryStrategy
         @Override
         public Builder useClientDefaults(boolean useClientDefaults) {
             setUseClientDefaults(useClientDefaults);
+            return this;
+        }
+
+        /**
+         * Whether retries 2.1 behavior is enabled.
+         */
+        public Builder retries2026Enabled(Boolean retries2026Enabled) {
+            setRetries2026Enabled(retries2026Enabled);
             return this;
         }
 

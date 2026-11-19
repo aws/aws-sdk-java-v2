@@ -20,7 +20,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
@@ -39,6 +41,7 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.ReleaseResponse;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucket;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -48,6 +51,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
+    private static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
 
     protected final Logger log;
     protected final List<Predicate<Throwable>> retryPredicates;
@@ -57,9 +61,13 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
     protected final BackoffStrategy throttlingBackoffStrategy;
     protected final Predicate<Throwable> treatAsThrottling;
     protected final int exceptionCost;
+    protected final int throttlingExceptionCost;
     protected final TokenBucketStore tokenBucketStore;
     protected final Set<String> defaultsAdded;
     protected final boolean useClientDefaults;
+    protected final boolean retries21;
+    protected final List<Predicate<RefreshRetryTokenRequest>> doNotRetryPredicates;
+    private final AtomicBoolean doNotRetryPredicateFailureLogged = new AtomicBoolean(false);
 
     BaseRetryStrategy(Logger log, Builder builder) {
         this.log = log;
@@ -71,10 +79,14 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         this.throttlingBackoffStrategy = Validate.paramNotNull(builder.throttlingBackoffStrategy, "throttlingBackoffStrategy");
         this.treatAsThrottling = Validate.paramNotNull(builder.treatAsThrottling, "treatAsThrottling");
         this.exceptionCost = Validate.paramNotNull(builder.exceptionCost, "exceptionCost");
+        this.throttlingExceptionCost = builder.throttlingExceptionCost != null
+            ? builder.throttlingExceptionCost : this.exceptionCost;
         this.tokenBucketStore = Validate.paramNotNull(builder.tokenBucketStore, "tokenBucketStore");
         this.defaultsAdded = Collections.unmodifiableSet(
             Validate.paramNotNull(new HashSet<>(builder.defaultsAdded), "defaultsAdded"));
         this.useClientDefaults = builder.useClientDefaults == null || builder.useClientDefaults;
+        this.retries21 = Boolean.TRUE.equals(builder.retries2026Enabled);
+        this.doNotRetryPredicates = Collections.unmodifiableList(new ArrayList<>(builder.doNotRetryPredicates));
     }
 
     /**
@@ -83,7 +95,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
      * @see RetryStrategy#acquireInitialToken(AcquireInitialTokenRequest)
      */
     @Override
-    public final AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request) {
+    public AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request) {
         logAcquireInitialToken(request);
         DefaultRetryToken token = DefaultRetryToken.builder().scope(request.scope()).build();
         return AcquireInitialTokenResponse.create(token, computeInitialBackoff(request));
@@ -95,7 +107,20 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
      * @see RetryStrategy#refreshRetryToken(RefreshRetryTokenRequest)
      */
     @Override
-    public final RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request) {
+    public RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request) {
+        Pair<DefaultRetryToken, AcquireResponse> refreshedToken = refreshTokenOrThrow(request);
+        Duration backoff = computeBackoff(request, refreshedToken.left());
+
+        logRefreshTokenSuccess(refreshedToken.left(), refreshedToken.right(), backoff);
+        return RefreshRetryTokenResponseImpl.create(refreshedToken.left(), backoff);
+    }
+
+    /**
+     * Attempt to refresh the token for a retry or throws {@link TokenAcquisitionFailedException} if unable to do so.
+     *
+     * @return A pair of the refreshed token and the successful acquire response from the token bucket.
+     */
+    protected Pair<DefaultRetryToken, AcquireResponse> refreshTokenOrThrow(RefreshRetryTokenRequest request) {
         DefaultRetryToken token = asDefaultRetryToken(request.token());
 
         // Check if we meet the preconditions needed for retrying. These will throw if the expected condition is not meet.
@@ -112,12 +137,8 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         // All the conditions required to retry were meet, update the internal state before retrying.
         updateStateForRetry(request);
 
-        // Refresh the retry token and compute the backoff delay.
-        DefaultRetryToken refreshedToken = refreshToken(request, acquireResponse);
-        Duration backoff = computeBackoff(request, refreshedToken);
-
-        logRefreshTokenSuccess(refreshedToken, acquireResponse, backoff);
-        return RefreshRetryTokenResponseImpl.create(refreshedToken, backoff);
+        // Refresh the retry token
+        return Pair.of(refreshToken(request, acquireResponse), acquireResponse);
     }
 
     /**
@@ -155,7 +176,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
 
     /**
      * Computes the backoff before the first attempt, by default {@link Duration#ZERO}. Extending classes can override this method
-     * to compute different a different depending on their logic.
+     * to compute a different duration depending on their logic.
      */
     protected Duration computeInitialBackoff(AcquireInitialTokenRequest request) {
         return Duration.ZERO;
@@ -163,7 +184,10 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
 
     /**
      * Computes the backoff before a retry using the configured backoff strategy. Extending classes can override this method to
-     * compute different a different depending on their logic.
+     * compute a different duration depending on their logic.
+     * <p>
+     * When retries 2.1 behavior is enabled, a suggested delay is clamped to be at least the computed backoff and at most
+     * five seconds more than it. Otherwise, the larger of the suggested delay and the computed backoff is used.
      */
     protected Duration computeBackoff(RefreshRetryTokenRequest request, DefaultRetryToken token) {
         Duration backoff;
@@ -172,8 +196,44 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         } else {
             backoff = backoffStrategy.computeDelay(token.attempt());
         }
-        Duration suggested = request.suggestedDelay().orElse(Duration.ZERO);
-        return maxOf(suggested, backoff);
+
+        if (!retries21) {
+            Duration suggested = request.suggestedDelay().orElse(Duration.ZERO);
+            return maxOf(suggested, backoff);
+        }
+
+        Optional<Duration> optionalSuggested = request.suggestedDelay();
+        if (!optionalSuggested.isPresent()) {
+            return backoff;
+        }
+
+        // the suggested delay needs to be at least what the strategy computed, AND
+        // not greater than 5s more than what the strategy computed
+        Duration minBackoff = backoff;
+        Duration maxBackoff = backoff.plus(FIVE_SECONDS);
+
+        Duration clamped = maxOf(minBackoff, optionalSuggested.get());
+        return minOf(maxBackoff, clamped);
+    }
+
+    /**
+     * Computes the backoff before exiting the retry loop using the configured backoff strategy. Extending classes can override
+     * this method to compute a different duration depending on their logic.
+     * <p>
+     * When retries 2.1 behavior is enabled and the request is a long-polling request, this returns the backoff that would have
+     * been used for the next attempt. Otherwise, it returns 0 delay.
+     *
+     * @param request The refresh request that failed to acquire sufficient capacity.
+     */
+    protected Duration computeAcquireFailureBackoff(RefreshRetryTokenRequest request) {
+        if (!retries21 || !request.isLongPolling()) {
+            return Duration.ZERO;
+        }
+
+        DefaultRetryToken attemptIncremented = asDefaultRetryToken(request.token()).toBuilder()
+                                                                                   .increaseAttempt()
+                                                                                   .build();
+        return computeBackoff(request, attemptIncremented);
     }
 
     /**
@@ -194,10 +254,13 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
      * amount for the specific kind of failure.
      */
     protected int exceptionCost(RefreshRetryTokenRequest request) {
-        if (circuitBreakerEnabled) {
-            return exceptionCost;
+        if (!circuitBreakerEnabled) {
+            return 0;
         }
-        return 0;
+        if (treatAsThrottling.test(request.failure())) {
+            return throttlingExceptionCost;
+        }
+        return exceptionCost;
     }
 
     /**
@@ -293,7 +356,8 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                      .build();
             String message = acquisitionFailedMessage(acquireResponse);
             log.debug(() -> message, failure);
-            throw new TokenAcquisitionFailedException(message, refreshedToken, failure);
+            Duration delay = computeAcquireFailureBackoff(request);
+            throw new TokenAcquisitionFailedException(message, refreshedToken, failure, delay);
         }
     }
 
@@ -317,7 +381,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                              response.maxCapacity());
     }
 
-    private void logAcquireInitialToken(AcquireInitialTokenRequest request) {
+    protected void logAcquireInitialToken(AcquireInitialTokenRequest request) {
         // Request attempt 1 token acquired (backoff: 0ms, cost: 0, capacity: 500/500)
         TokenBucket tokenBucket = tokenBucketStore.tokenBucketForScope(request.scope());
         log.debug(() -> String.format("Request attempt 1 token acquired "
@@ -325,7 +389,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                                       tokenBucket.currentCapacity(), tokenBucket.maxCapacity()));
     }
 
-    private void logRefreshTokenSuccess(DefaultRetryToken token, AcquireResponse acquireResponse, Duration delay) {
+    protected void logRefreshTokenSuccess(DefaultRetryToken token, AcquireResponse acquireResponse, Duration delay) {
         log.debug(() -> String.format("Request attempt %d token acquired "
                                       + "(backoff: %dms, cost: %d, capacity: %d/%d)",
                                       token.attempt(), delay.toMillis(),
@@ -345,7 +409,29 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         return token.attempt() >= maxAttempts;
     }
 
+    // A predicate that throws must not replace the failure the caller should see, so treat it as "do not retry".
+    private boolean doNotRetryOrFailSafe(Predicate<RefreshRetryTokenRequest> doNotRetry, RefreshRetryTokenRequest request) {
+        try {
+            return doNotRetry.test(request);
+        } catch (RuntimeException e) {
+            // Warn once per strategy so that a predicate that always throws doesn't log on every failed attempt
+            if (doNotRetryPredicateFailureLogged.compareAndSet(false, true)) {
+                log.warn(() -> "A doNotRetryWhen predicate threw an exception. The request will not be retried. Later "
+                               + "exceptions from doNotRetryWhen predicates of this retry strategy are logged at debug level.",
+                         e);
+            } else {
+                log.debug(() -> "A doNotRetryWhen predicate threw an exception. The request will not be retried.", e);
+            }
+            return true;
+        }
+    }
+
     private boolean isNonRetryableException(RefreshRetryTokenRequest request) {
+        for (Predicate<RefreshRetryTokenRequest> doNotRetry : doNotRetryPredicates) {
+            if (doNotRetryOrFailSafe(doNotRetry, request)) {
+                return true;
+            }
+        }
         Throwable failure = request.failure();
         for (Predicate<Throwable> retryPredicate : retryPredicates) {
             if (retryPredicate.test(failure)) {
@@ -362,6 +448,13 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         return right;
     }
 
+    static Duration minOf(Duration left, Duration right) {
+        if (left.compareTo(right) <= 0) {
+            return left;
+        }
+        return right;
+    }
+
     static DefaultRetryToken asDefaultRetryToken(RetryToken token) {
         return Validate.isInstanceOf(DefaultRetryToken.class, token,
                                      "RetryToken is of unexpected class (%s), "
@@ -372,6 +465,11 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
 
     public boolean shouldAddDefaults(String defaultPredicateName) {
         return useClientDefaults && !defaultsAdded.contains(defaultPredicateName);
+    }
+
+    @Override
+    public boolean usesRetryBehavior21() {
+        return retries21;
     }
 
     @Override
@@ -397,6 +495,9 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                        .add("tokenBucketStore", tokenBucketStore)
                        .add("defaultsAdded", defaultsAdded)
                        .add("useClientDefaults", useClientDefaults)
+                       .add("throttlingExceptionCost", throttlingExceptionCost)
+                       .add("retries21", retries21)
+                       .add("doNotRetryPredicates", doNotRetryPredicates)
                        .build();
     }
 
@@ -408,14 +509,18 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         private Boolean circuitBreakerEnabled;
         private Boolean useClientDefaults;
         private Integer exceptionCost;
+        private Integer throttlingExceptionCost;
         private BackoffStrategy backoffStrategy;
         private BackoffStrategy throttlingBackoffStrategy;
         private Predicate<Throwable> treatAsThrottling = throwable -> false;
         private TokenBucketStore tokenBucketStore;
+        private Boolean retries2026Enabled;
+        private List<Predicate<RefreshRetryTokenRequest>> doNotRetryPredicates;
 
         Builder() {
             retryPredicates = new ArrayList<>();
             defaultsAdded = new HashSet<>();
+            doNotRetryPredicates = new ArrayList<>();
         }
 
         Builder(BaseRetryStrategy strategy) {
@@ -423,16 +528,23 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
             this.maxAttempts = strategy.maxAttempts;
             this.circuitBreakerEnabled = strategy.circuitBreakerEnabled;
             this.exceptionCost = strategy.exceptionCost;
+            this.throttlingExceptionCost = strategy.throttlingExceptionCost;
             this.backoffStrategy = strategy.backoffStrategy;
             this.throttlingBackoffStrategy = strategy.throttlingBackoffStrategy;
             this.treatAsThrottling = strategy.treatAsThrottling;
             this.tokenBucketStore = strategy.tokenBucketStore;
             this.defaultsAdded = new HashSet<>(strategy.defaultsAdded);
             this.useClientDefaults = strategy.useClientDefaults;
+            this.retries2026Enabled = strategy.retries21;
+            this.doNotRetryPredicates = new ArrayList<>(strategy.doNotRetryPredicates);
         }
 
         void setRetryOnException(Predicate<Throwable> shouldRetry) {
             this.retryPredicates.add(shouldRetry);
+        }
+
+        void setDoNotRetryWhen(Predicate<RefreshRetryTokenRequest> doNotRetry) {
+            this.doNotRetryPredicates.add(Validate.paramNotNull(doNotRetry, "doNotRetry"));
         }
 
         void setMaxAttempts(int maxAttempts) {
@@ -463,13 +575,26 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
             this.exceptionCost = exceptionCost;
         }
 
+        void setThrottlingTokenBucketExceptionCost(int throttlingExceptionCost) {
+            this.throttlingExceptionCost = throttlingExceptionCost;
+        }
+
         void setUseClientDefaults(Boolean useClientDefaults) {
             this.useClientDefaults = useClientDefaults;
+        }
+
+        void setRetries2026Enabled(Boolean retries2026Enabled) {
+            this.retries2026Enabled = retries2026Enabled;
         }
 
         @Override
         public void markDefaultAdded(String d) {
             defaultsAdded.add(d);
+        }
+
+        @Override
+        public boolean usesRetryBehavior21() {
+            return Boolean.TRUE.equals(retries2026Enabled);
         }
     }
 }

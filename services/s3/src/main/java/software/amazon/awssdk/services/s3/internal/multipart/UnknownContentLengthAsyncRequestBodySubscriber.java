@@ -232,7 +232,7 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
                             subscription.request(1);
                         }
                     }
-                    completeMultipartUploadIfFinish(inFlight);
+                    completeMultipartUploadIfFinish();
                 }
             });
     }
@@ -266,12 +266,13 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
             multipartUploadHelper.uploadInOneChunk(putObjectRequest, entireRequestBody, returnFuture);
         } else {
             isDone = true;
-            completeMultipartUploadIfFinish(asyncRequestBodyInFlight.get());
+            completeMultipartUploadIfFinish();
         }
     }
 
-    private void completeMultipartUploadIfFinish(int requestsInFlight) {
-        if (isDone && requestsInFlight == 0 && completedMultipartInitiated.compareAndSet(false, true)) {
+    private void completeMultipartUploadIfFinish() {
+        // All atomics including asyncRequestBodyInFlight MUST be re-read here rather than passed in by the caller.
+        if (isDone && asyncRequestBodyInFlight.get() == 0 && completedMultipartInitiated.compareAndSet(false, true)) {
             CompletedPart[] parts = completedParts.stream()
                                                   .sorted(Comparator.comparingInt(CompletedPart::partNumber))
                                                   .toArray(CompletedPart[]::new);

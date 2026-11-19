@@ -33,6 +33,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,6 +44,8 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -58,6 +61,7 @@ import software.amazon.awssdk.core.signer.AsyncSigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
@@ -594,6 +598,50 @@ public class AsyncSigningStageTest {
                                                                  .build();
         context.attemptMetricCollector(metricCollector);
         return context;
+    }
+
+    @Test
+    public void execute_signerReturnsSdkHttpContentPublisher_preservesContentLength() throws Exception {
+        AsyncRequestBody asyncPayload = AsyncRequestBody.fromString("async request body");
+
+        SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
+            CompletableFuture.completedFuture(identity),
+            httpSigner,
+            AuthSchemeOption.builder()
+                            .schemeId("my.auth#myAuth")
+                            .build());
+        RequestExecutionContext context = createContext(selectedAuthScheme, asyncPayload, null);
+
+        SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
+
+        SdkHttpContentPublisher contentPublisher =
+            new SdkHttpContentPublisher() {
+                @Override
+                public Optional<Long> contentLength() {
+                    return Optional.of(42L);
+                }
+
+                @Override
+                public void subscribe(Subscriber<? super ByteBuffer> s) {
+                    s.onSubscribe(new Subscription() {
+                        @Override public void request(long n) { s.onComplete(); }
+                        @Override public void cancel() { }
+                    });
+                }
+            };
+
+        when(httpSigner.signAsync(ArgumentMatchers.<AsyncSignRequest<? extends Identity>>any()))
+            .thenReturn(
+                CompletableFuture.completedFuture(AsyncSignedRequest.builder()
+                                                                    .request(signedRequest)
+                                                                    .payload(contentPublisher)
+                                                                    .build()));
+
+        SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
+        stage.execute(request, context).join();
+
+        assertThat(context.requestProvider()).isNotNull();
+        assertThat(context.requestProvider().contentLength()).hasValue(42L);
     }
 
     private interface TestAsyncRequestBodySigner extends Signer, AsyncRequestBodySigner {

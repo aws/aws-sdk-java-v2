@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @SdkInternalApi
 public final class DefaultConfiguration {
-    public static final Boolean EXPECT_CONTINUE_ENABLED = Boolean.TRUE;
+    public static final Boolean EXPECT_CONTINUE_ENABLED = Boolean.FALSE;
 
     private DefaultConfiguration() {
     }

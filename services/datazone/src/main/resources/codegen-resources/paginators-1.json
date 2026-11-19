@@ -54,6 +54,12 @@
       "limit_key": "maxResults",
       "result_key": "items"
     },
+    "ListDesignations": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults",
+      "result_key": "items"
+    },
     "ListDomainUnitsForParent": {
       "input_token": "nextToken",
       "output_token": "nextToken",
@@ -121,6 +127,18 @@
       "result_key": "nodes"
     },
     "ListMetadataGenerationRuns": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults",
+      "result_key": "items"
+    },
+    "ListNotebookRuns": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults",
+      "result_key": "items"
+    },
+    "ListNotebooks": {
       "input_token": "nextToken",
       "output_token": "nextToken",
       "limit_key": "maxResults",

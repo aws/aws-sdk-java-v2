@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class DescribeTableEnhancedResponseTest {
 
@@ -33,6 +34,9 @@ public class DescribeTableEnhancedResponseTest {
     public void equalsHashcode() {
         EqualsVerifier.forClass(DescribeTableEnhancedResponse.class)
                       .withNonnullFields("response")
+                      .withPrefabValues(AttributeValue.class,
+                                        AttributeValue.builder().s("one").build(),
+                                        AttributeValue.builder().s("two").build())
                       .verify();
     }
 }

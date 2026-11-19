@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
@@ -28,6 +29,8 @@ public class EndpointSharedConfigTest {
     private static final String GLOBAL_SYS_PROP = "aws.endpointUrl";
     private static final String SERVICE_ENV_VAR = "AWS_ENDPOINT_URL_AMAZONPROTOCOLRESTJSON";
     private static final String SERVICE_SYS_PROP = "aws.endpointUrlProtocolRestJson";
+    private static final String IGNORE_ENDPOINT_URLS_SYS_PROP =
+        SdkSystemSetting.AWS_IGNORE_CONFIGURED_ENDPOINT_URLS.property();
 
     @Parameterized.Parameter
     public TestCase testCase;
@@ -37,6 +40,7 @@ public class EndpointSharedConfigTest {
         Map<String, String> systemPropertiesBeforeTest = new HashMap<>();
         systemPropertiesBeforeTest.put(GLOBAL_SYS_PROP, System.getProperty(GLOBAL_SYS_PROP));
         systemPropertiesBeforeTest.put(SERVICE_SYS_PROP, System.getProperty(SERVICE_SYS_PROP));
+        systemPropertiesBeforeTest.put(IGNORE_ENDPOINT_URLS_SYS_PROP, System.getProperty(IGNORE_ENDPOINT_URLS_SYS_PROP));
 
         EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
 
@@ -64,6 +68,10 @@ public class EndpointSharedConfigTest {
 
             if (testCase.serviceSystemPropSetting != null) {
                 System.setProperty(SERVICE_SYS_PROP, testCase.serviceSystemPropSetting);
+            }
+
+            if (testCase.ignoreConfiguredEndpointUrls) {
+                System.setProperty(IGNORE_ENDPOINT_URLS_SYS_PROP, "true");
             }
 
             StringBuilder profileFileContent = new StringBuilder();
@@ -128,7 +136,8 @@ public class EndpointSharedConfigTest {
                           "Global environment variable",
                           "Services Section profile file",
                           "Service profile file",
-                          "Global profile file");
+                          "Global profile file",
+                          "Ignore configured endpoint URLs");
 
         boolean[][] settingCombinations = getSettingCombinations(settingNames.size());
 
@@ -161,6 +170,9 @@ public class EndpointSharedConfigTest {
             }
         }
 
+        boolean ignoreConfiguredEndpointUrls = settings[8];
+        expectedEndpointIndex = applyIgnoreConfiguredEndpointUrls(expectedEndpointIndex, ignoreConfiguredEndpointUrls);
+
         // Create case name
         String caseName;
         if (firstTrueSetting == null) {
@@ -176,7 +188,17 @@ public class EndpointSharedConfigTest {
             caseName += ".";
         }
 
-        return new TestCase(settings, expectedEndpointIndex, caseName);
+        return new TestCase(settings, expectedEndpointIndex, ignoreConfiguredEndpointUrls, caseName);
+    }
+
+    /**
+     * When ignore_configured_endpoint_urls is true, all endpoint sources are suppressed except client override (index 0).
+     */
+    private static Integer applyIgnoreConfiguredEndpointUrls(Integer expectedEndpointIndex, boolean ignore) {
+        if (!ignore || Integer.valueOf(0).equals(expectedEndpointIndex)) {
+            return expectedEndpointIndex;
+        }
+        return null;
     }
 
     public static void printArrayOfArrays(boolean[][] arrays) {
@@ -229,13 +251,15 @@ public class EndpointSharedConfigTest {
         private final String serviceProfileSetting;
         private final String globalProfileSetting;
         private final String serviceSectionProfileSetting;
+        private final boolean ignoreConfiguredEndpointUrls;
         private final String caseName;
         private final String expectedEndpoint;
 
-        public TestCase(boolean[] settings, Integer expectedEndpointIndex, String caseName) {
+        public TestCase(boolean[] settings, Integer expectedEndpointIndex, boolean ignoreConfiguredEndpointUrls,
+                        String caseName) {
             this(endpoint(settings, 0), endpoint(settings, 1), endpoint(settings, 2), endpoint(settings, 3),
                  endpoint(settings, 4), endpoint(settings, 5), endpoint(settings, 6), endpoint(settings, 7),
-                 endpointForIndex(expectedEndpointIndex), caseName);
+                 ignoreConfiguredEndpointUrls, endpointForIndex(expectedEndpointIndex), caseName);
         }
 
         private static String endpoint(boolean[] settings, int i) {
@@ -257,6 +281,7 @@ public class EndpointSharedConfigTest {
                          String serviceSectionProfileSetting,
                          String serviceProfileSetting,
                          String globalProfileSetting,
+                         boolean ignoreConfiguredEndpointUrls,
                          String expectedEndpoint,
                          String caseName) {
             this.clientSetting = clientSetting;
@@ -267,6 +292,7 @@ public class EndpointSharedConfigTest {
             this.serviceProfileSetting = serviceProfileSetting;
             this.globalProfileSetting = globalProfileSetting;
             this.serviceSectionProfileSetting = serviceSectionProfileSetting;
+            this.ignoreConfiguredEndpointUrls = ignoreConfiguredEndpointUrls;
             this.expectedEndpoint = expectedEndpoint;
             this.caseName = caseName;
         }

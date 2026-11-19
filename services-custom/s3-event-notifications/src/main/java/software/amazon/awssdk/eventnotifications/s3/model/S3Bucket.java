@@ -16,6 +16,9 @@
 package software.amazon.awssdk.eventnotifications.s3.model;
 
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
@@ -29,11 +32,19 @@ public class S3Bucket {
     private final String name;
     private final UserIdentity ownerIdentity;
     private final String arn;
+    private final Map<String, String> awsGeneratedTags;
 
     public S3Bucket(String name, UserIdentity ownerIdentity, String arn) {
+        this(name, ownerIdentity, arn, null);
+    }
+
+    public S3Bucket(String name, UserIdentity ownerIdentity, String arn, Map<String, String> awsGeneratedTags) {
         this.name = name;
         this.ownerIdentity = ownerIdentity;
         this.arn = arn;
+        this.awsGeneratedTags = awsGeneratedTags == null
+                                ? null
+                                : Collections.unmodifiableMap(new LinkedHashMap<>(awsGeneratedTags));
     }
 
     /**
@@ -57,6 +68,14 @@ public class S3Bucket {
         return arn;
     }
 
+    /**
+     * @return The AWS-generated system tags for the bucket, or {@code null} if not present in the event. The returned map
+     *         is unmodifiable.
+     */
+    public Map<String, String> getAwsGeneratedTags() {
+        return awsGeneratedTags;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -74,7 +93,10 @@ public class S3Bucket {
         if (!Objects.equals(ownerIdentity, s3Bucket.ownerIdentity)) {
             return false;
         }
-        return Objects.equals(arn, s3Bucket.arn);
+        if (!Objects.equals(arn, s3Bucket.arn)) {
+            return false;
+        }
+        return Objects.equals(awsGeneratedTags, s3Bucket.awsGeneratedTags);
     }
 
     @Override
@@ -82,15 +104,19 @@ public class S3Bucket {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (ownerIdentity != null ? ownerIdentity.hashCode() : 0);
         result = 31 * result + (arn != null ? arn.hashCode() : 0);
+        result = 31 * result + (awsGeneratedTags != null ? awsGeneratedTags.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return ToString.builder("S3Bucket")
-                       .add("name", name)
-                       .add("ownerIdentity", ownerIdentity)
-                       .add("arn", arn)
-                       .build();
+        ToString builder = ToString.builder("S3Bucket")
+                                   .add("name", name)
+                                   .add("ownerIdentity", ownerIdentity)
+                                   .add("arn", arn);
+        if (awsGeneratedTags != null) {
+            builder.add("awsGeneratedTags", awsGeneratedTags);
+        }
+        return builder.build();
     }
 }

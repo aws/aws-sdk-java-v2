@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.resolveTimeoutInMillis;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
+import static software.amazon.awssdk.http.Header.TRANSFER_ENCODING;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -76,15 +77,18 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private final Executor futureCompletionExecutor;
     private final ScheduledExecutorService timeoutExecutor;
     private final Duration apiCallAttemptTimeout;
+    private final CompletableFuture<Void> abortSignal;
 
     public MakeAsyncHttpRequestStage(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler,
-                                     HttpClientDependencies dependencies) {
+                                     HttpClientDependencies dependencies,
+                                     CompletableFuture<Void> abortSignal) {
         this.responseHandler = responseHandler;
         this.futureCompletionExecutor =
                 dependencies.clientConfiguration().option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
         this.sdkAsyncHttpClient = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_HTTP_CLIENT);
         this.apiCallAttemptTimeout = dependencies.clientConfiguration().option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT);
         this.timeoutExecutor = dependencies.clientConfiguration().option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
+        this.abortSignal = abortSignal;
     }
 
     @Override
@@ -206,6 +210,15 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         long startTime = MetricUtils.resetApiCallAttemptStartNanoTime(context);
         CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
+        abortSignal.whenComplete((ignored, cause) -> {
+            if (abortSignal.isCancelled()) {
+                httpClientFuture.cancel(true);
+            } else if (cause != null) {
+                httpClientFuture.completeExceptionally(
+                    SdkClientException.create("The async HTTP request was aborted because request execution failed.",
+                                              cause));
+            }
+        });
 
         CompletableFuture<Void> result = httpClientFuture.whenComplete((r, t) -> {
             long d = System.nanoTime() - startTime;
@@ -243,6 +256,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         if (request.method() == SdkHttpMethod.GET || request.method() == SdkHttpMethod.HEAD ||
             request.firstMatchingHeader(CONTENT_LENGTH).isPresent()) {
+            return false;
+        }
+
+        if (request.firstMatchingHeader(TRANSFER_ENCODING).isPresent()) {
             return false;
         }
 

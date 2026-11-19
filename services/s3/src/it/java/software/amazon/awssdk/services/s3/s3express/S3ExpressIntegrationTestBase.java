@@ -39,6 +39,7 @@ import software.amazon.awssdk.services.s3.model.LocationType;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.utils.S3TestUtils;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.utils.Logger;
 
@@ -76,6 +77,7 @@ public class S3ExpressIntegrationTestBase {
             CreateBucketConfiguration bucketConfiguration = CreateBucketConfiguration.builder()
                                                                                      .location(location)
                                                                                      .bucket(bucketInfo)
+                                                                                     .tags(S3TestUtils.integTestTag())
                                                                                      .build();
             client.createBucket(CreateBucketRequest.builder()
                                                    .bucket(bucketName)

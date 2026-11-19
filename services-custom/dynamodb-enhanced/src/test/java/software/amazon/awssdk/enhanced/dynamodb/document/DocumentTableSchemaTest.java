@@ -16,38 +16,76 @@
 package software.amazon.awssdk.enhanced.dynamodb.document;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
 import static software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocumentTestData.testDataInstance;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
-import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.IndexMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
-import software.amazon.awssdk.enhanced.dynamodb.document.DocumentTableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
-import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocumentTestData;
-import software.amazon.awssdk.enhanced.dynamodb.document.TestData;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ChainConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticKeyAttributeMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.model.DistanceFunction;
+import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedVectorIndex;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElementType;
+import software.amazon.awssdk.enhanced.dynamodb.model.VectorIndexMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 class DocumentTableSchemaTest {
 
     String NO_PRIMARY_KEYS_IN_METADATA = "Attempt to execute an operation that requires a primary index without defining "
                                          + "any primary key attributes in the table metadata.";
+
+    @Test
+    void attributeValue_forNullItem_returnsNull() {
+        DocumentTableSchema documentTableSchema =
+            DocumentTableSchema.builder()
+                               .attributeConverterProviders(defaultProvider())
+                               .build();
+
+        assertThat(documentTableSchema.attributeValue(null, "key")).isNull();
+    }
+
+    @Test
+    void itemToMapWithIgnoreNullsFlag_forNullItem_returnsNull() {
+        DocumentTableSchema documentTableSchema =
+            DocumentTableSchema.builder()
+                               .attributeConverterProviders(defaultProvider())
+                               .build();
+
+        assertThat(documentTableSchema.itemToMap(null, false)).isNull();
+    }
+
+    @Test
+    void itemToMap_withListOfAttributes_forItemToMapNull_returnsNull() {
+        DocumentTableSchema documentTableSchema =
+            DocumentTableSchema.builder()
+                               .attributeConverterProviders(defaultProvider())
+                               .build();
+
+        EnhancedDocument doc = mock(EnhancedDocument.class);
+        when(doc.toMap()).thenReturn(null);
+
+        assertThat(documentTableSchema.itemToMap(doc, Arrays.asList("filterOne", "filterTwo"))).isNull();
+    }
 
     @Test
     void converterForAttribute_APIIsNotSupported() {
@@ -217,6 +255,35 @@ class DocumentTableSchemaTest {
     }
 
     @Test
+    void vectorIndexMetadata_storedSeparatelyFromGsiAndLsiIndices() {
+        EnhancedVectorIndex vectorIndex = EnhancedVectorIndex.builder()
+                                                             .indexName("embeddings-index")
+                                                             .vectorAttributeName("embedding")
+                                                             .dimensions(1536)
+                                                             .distanceFunction(DistanceFunction.COSINE)
+                                                             .addSearchSchemaElement(b -> b.attributeName("id")
+                                                                                           .searchSchemaElementType(
+                                                                                               SearchSchemaElementType.HASH))
+                                                             .build();
+
+        DocumentTableSchema documentTableSchema = DocumentTableSchema.builder()
+                                                                     .addIndexPartitionKey(TableMetadata.primaryIndexName(),
+                                                                                           "id",
+                                                                                           AttributeValueType.S)
+                                                                     .vectorIndexes(vectorIndex)
+                                                                     .build();
+
+        TableMetadata metadata = documentTableSchema.tableMetadata();
+
+        assertThat(metadata.vectorIndices())
+            .hasSize(1)
+            .containsExactly(VectorIndexMetadata.fromEnhancedVectorIndex(vectorIndex));
+        assertThat(metadata.indices())
+            .extracting(IndexMetadata::name)
+            .doesNotContain("embeddings-index");
+    }
+
+    @Test
     void validate_DocumentTableSchema_WithCustomIntegerAttributeProvider() {
         EnhancedDocument numberDocument = EnhancedDocument.builder()
                                                           .putNumber("integerOne", 1)
@@ -236,5 +303,50 @@ class DocumentTableSchemaTest {
                                                                      .build();
         Assertions.assertThat(
             documentTableSchema.itemToMap(numberDocument, true)).isEqualTo(resultMap);
+    }
+
+    @Test
+    void mergeAttributeConverterProviders_withItemHavingConverters_mergesProviders() {
+        DocumentTableSchema schema = DocumentTableSchema.builder().build();
+
+        EnhancedDocument mockItem = mock(EnhancedDocument.class);
+        EnhancedDocument.Builder mockBuilder = mock(EnhancedDocument.Builder.class);
+        EnhancedDocument builtItem = mock(EnhancedDocument.class);
+
+        when(mockItem.attributeConverterProviders()).thenReturn(Arrays.asList(defaultProvider()));
+        when(mockItem.toBuilder()).thenReturn(mockBuilder);
+        when(mockBuilder.attributeConverterProviders((List<AttributeConverterProvider>) any()))
+            .thenReturn(mockBuilder);
+        when(mockBuilder.build()).thenReturn(builtItem);
+        Map<String, AttributeValue> resultMap = Collections.singletonMap("key", AttributeValue.fromS("value"));
+        when(builtItem.toMap()).thenReturn(resultMap);
+
+        Map<String, AttributeValue> result = schema.itemToMap(mockItem, false);
+
+        assertThat(result).containsKey("key");
+    }
+
+    @Test
+    void itemToMapWithAttributes_duplicateKeys_keepsFirstValue() {
+        DocumentTableSchema schema = DocumentTableSchema.builder().build();
+
+        EnhancedDocument mockItem = mock(EnhancedDocument.class);
+        EnhancedDocument.Builder mockBuilder = mock(EnhancedDocument.Builder.class);
+        EnhancedDocument builtItem = mock(EnhancedDocument.class);
+        Map<String, AttributeValue> itemMap = new LinkedHashMap<>();
+        itemMap.put("key1", AttributeValue.fromS("value1"));
+        itemMap.put("key2", AttributeValue.fromS("value2"));
+
+        when(mockItem.toMap()).thenReturn(itemMap);
+        when(mockItem.attributeConverterProviders()).thenReturn(null);
+        when(mockItem.toBuilder()).thenReturn(mockBuilder);
+        when(mockBuilder.attributeConverterProviders((List<AttributeConverterProvider>) any()))
+            .thenReturn(mockBuilder);
+        when(mockBuilder.build()).thenReturn(builtItem);
+        when(builtItem.toMap()).thenReturn(itemMap);
+
+        Map<String, AttributeValue> result = schema.itemToMap(mockItem, Arrays.asList("key1", "key1"));
+
+        assertThat(result).hasSize(1).containsKey("key1");
     }
 }

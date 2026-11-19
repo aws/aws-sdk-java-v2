@@ -1,0 +1,48 @@
+{
+    "version": "2.48.1",
+    "date": "2026-07-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "This release adds support for the IpAddressType field on SourceIpConfig, enabling Network Load Balancer listener rules to match traffic based on whether the source IP is IPv4 or IPv6."
+        },
+        {
+            "type": "feature",
+            "category": "S3 Event Notification",
+            "contributor": "",
+            "description": "Added `awsGeneratedTags` field to `S3Bucket` in the S3 Event Notifications module. Amazon S3 emits AWS-generated system tags on the `bucket` portion of event notifications when system tags are enabled on the source bucket. SDK consumers on the SNS/SQS/Lambda delivery paths can now access these tags via `S3Bucket#getAwsGeneratedTags()`."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "jtuglu1",
+            "description": "Fixed an issue where `ContainerCredentialsProvider` rejected the EKS Pod Identity IPv6 endpoint unless `AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE` was set to `IPv6`."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon HealthLake",
+            "contributor": "",
+            "description": "AWS HealthLake now offers data transformation in Preview to convert CSV and C-CDA data to FHIR R4. Customers can maintain reusable mapping profiles, run sync or async jobs with provenance tracking and drift detection, and use an AI agent to build and edit mapping logic from natural language."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds support for modifying EngineLifecycleSupport on DB instances and DB clusters through ModifyDBInstance and ModifyDBCluster."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Fix HarnessEndpointArn pattern to match the actual service-emitted ARN format ('harness-endpoint' instead of 'endpoint'). Add additionalParams to Gemini model configuration for passing provider-specific parameters through to the model unchanged."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Data Plane",
+            "contributor": "",
+            "description": "Adds support for UnionPay session key derivation to the GenerateAuthRequestCryptogram, VerifyAuthRequestCryptogram, GenerateMac, and VerifyMac APIs."
+        }
+    ]
+}

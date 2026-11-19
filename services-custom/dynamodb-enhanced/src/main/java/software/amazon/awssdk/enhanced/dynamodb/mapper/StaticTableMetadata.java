@@ -35,6 +35,11 @@ import software.amazon.awssdk.enhanced.dynamodb.KeyAttributeMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticIndexMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticKeyAttributeMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.model.DistanceFunction;
+import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedVectorIndex;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElement;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElementType;
+import software.amazon.awssdk.enhanced.dynamodb.model.VectorIndexMetadata;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 /**
@@ -48,6 +53,7 @@ public final class StaticTableMetadata implements TableMetadata {
     private final Map<String, Object> customMetadata;
     private final Map<String, IndexMetadata> indexByNameMap;
     private final Map<String, KeyAttributeMetadata> keyAttributes;
+    private final List<VectorIndexMetadata> vectorIndices;
     private final ConcurrentHashMap<String, List<String>> partitionKeyCache = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, List<String>> sortKeyCache = new ConcurrentHashMap<>();
 
@@ -57,6 +63,7 @@ public final class StaticTableMetadata implements TableMetadata {
         builder.indexBuilders.forEach((key, value) -> indices.put(key, value.name(key).build()));
         this.indexByNameMap = Collections.unmodifiableMap(indices);
         this.keyAttributes = Collections.unmodifiableMap(builder.keyAttributes);
+        this.vectorIndices = Collections.unmodifiableList(builder.buildFinalVectorIndices());
     }
 
     /**
@@ -175,6 +182,11 @@ public final class StaticTableMetadata implements TableMetadata {
     }
 
     @Override
+    public Collection<VectorIndexMetadata> vectorIndices() {
+        return vectorIndices;
+    }
+
+    @Override
     public Map<String, Object> customMetadata() {
         return this.customMetadata;
     }
@@ -237,7 +249,10 @@ public final class StaticTableMetadata implements TableMetadata {
         if (indexByNameMap != null ? ! indexByNameMap.equals(that.indexByNameMap) : that.indexByNameMap != null) {
             return false;
         }
-        return keyAttributes != null ? keyAttributes.equals(that.keyAttributes) : that.keyAttributes == null;
+        if (keyAttributes != null ? !keyAttributes.equals(that.keyAttributes) : that.keyAttributes != null) {
+            return false;
+        }
+        return vectorIndices != null ? vectorIndices.equals(that.vectorIndices) : that.vectorIndices == null;
     }
 
     @Override
@@ -245,6 +260,7 @@ public final class StaticTableMetadata implements TableMetadata {
         int result = customMetadata != null ? customMetadata.hashCode() : 0;
         result = 31 * result + (indexByNameMap != null ? indexByNameMap.hashCode() : 0);
         result = 31 * result + (keyAttributes != null ? keyAttributes.hashCode() : 0);
+        result = 31 * result + (vectorIndices != null ? vectorIndices.hashCode() : 0);
         return result;
     }
 
@@ -256,6 +272,8 @@ public final class StaticTableMetadata implements TableMetadata {
         private final Map<String, Object> customMetadata = new LinkedHashMap<>();
         private final Map<String, StaticIndexMetadata.Builder> indexBuilders = new LinkedHashMap<>();
         private final Map<String, KeyAttributeMetadata> keyAttributes = new LinkedHashMap<>();
+        private final Map<String, VectorIndexMetadata> vectorIndices = new LinkedHashMap<>();
+        private final Map<String, VectorIndexMetadata.Builder> incrementalVectorIndices = new LinkedHashMap<>();
 
         private Builder() {
             indexBuilders.put(TableMetadata.primaryIndexName(), StaticIndexMetadata.builder());
@@ -408,6 +426,107 @@ public final class StaticTableMetadata implements TableMetadata {
         }
 
         /**
+         * Adds a HASH element to the SearchSchema for the named vector index. The vector index metadata is built incrementally
+         * from annotations and finalized at {@link #build()} time.
+         *
+         * @param indexName     the name of the vector index
+         * @param attributeName the attribute to use as the HASH partition key in the search schema
+         */
+        public Builder addSearchVectorsHashKey(String indexName, String attributeName) {
+            getOrCreateIncrementalVectorIndex(indexName)
+                .addSearchSchemaElement(SearchSchemaElement.builder()
+                                                           .attributeName(attributeName)
+                                                           .searchSchemaElementType(SearchSchemaElementType.HASH)
+                                                           .build());
+            return this;
+        }
+
+        /**
+         * Adds an INLINE_FILTER element to the SearchSchema for the named vector index. The vector index metadata is built
+         * incrementally from annotations and finalized at {@link #build()} time.
+         *
+         * @param indexName     the name of the vector index
+         * @param attributeName the attribute to use as an inline filter in the search schema
+         */
+        public Builder addSearchVectorsInlineFilterKey(String indexName, String attributeName) {
+            getOrCreateIncrementalVectorIndex(indexName)
+                .addSearchSchemaElement(SearchSchemaElement.builder()
+                                                           .attributeName(attributeName)
+                                                           .searchSchemaElementType(SearchSchemaElementType.INLINE_FILTER)
+                                                           .build());
+            return this;
+        }
+
+        /**
+         * Sets the vector attribute, dimensions, and distance function for the named vector index. The vector index metadata is
+         * built incrementally from annotations and finalized at {@link #build()} time.
+         *
+         * @param indexName        the name of the vector index
+         * @param attributeName    the attribute that stores the vector embedding
+         * @param dimensions       the number of vector dimensions
+         * @param distanceFunction the distance function for similarity search
+         */
+        public Builder setVectorAttribute(String indexName, String attributeName,
+                                          int dimensions, DistanceFunction distanceFunction) {
+            VectorIndexMetadata.Builder builder = getOrCreateIncrementalVectorIndex(indexName);
+
+            if (builder.vectorAttributeName() != null) {
+                throw new IllegalArgumentException(
+                    "Attempt to set a vector attribute for a vector index that already has one. "
+                    + "Vector index name: " + indexName);
+            }
+
+            builder.vectorAttributeName(attributeName)
+                   .dimensions(dimensions)
+                   .distanceFunction(distanceFunction);
+            return this;
+        }
+
+        private VectorIndexMetadata.Builder getOrCreateIncrementalVectorIndex(String indexName) {
+            return incrementalVectorIndices.computeIfAbsent(indexName,
+                                                            k -> VectorIndexMetadata.builder().indexName(k));
+        }
+
+        private List<VectorIndexMetadata> buildFinalVectorIndices() {
+            Map<String, VectorIndexMetadata> merged = new LinkedHashMap<>(vectorIndices);
+            incrementalVectorIndices.forEach((name, builder) -> {
+                if (merged.containsKey(name)) {
+                    throw new IllegalArgumentException(
+                        "Vector index '" + name + "' is defined both programmatically and via annotations.");
+                }
+                merged.put(name, builder.build());
+            });
+            return new ArrayList<>(merged.values());
+        }
+
+        /**
+         * Adds metadata for a vector index on this table. Vector indexes are distinct from global and local secondary indexes and
+         * must not be registered through {@link #addIndexPartitionKey(String, String, AttributeValueType)}.
+         *
+         * @param vectorIndex the vector index metadata to add
+         * @throws IllegalArgumentException if a vector index with the same name has already been added
+         */
+        public Builder addVectorIndex(VectorIndexMetadata vectorIndex) {
+            if (vectorIndices.containsKey(vectorIndex.indexName())) {
+                throw new IllegalArgumentException("Attempt to add a vector index that has already been added. "
+                                                   + "Vector index name: " + vectorIndex.indexName());
+            }
+
+            vectorIndices.put(vectorIndex.indexName(), vectorIndex);
+            return this;
+        }
+
+        /**
+         * Adds metadata for a vector index on this table.
+         *
+         * @param enhancedVectorIndex the enhanced vector index definition to add
+         * @throws IllegalArgumentException if a vector index with the same name has already been added
+         */
+        public Builder addVectorIndex(EnhancedVectorIndex enhancedVectorIndex) {
+            return addVectorIndex(VectorIndexMetadata.fromEnhancedVectorIndex(enhancedVectorIndex));
+        }
+
+        /**
          * Package-private method to merge the contents of a constructed {@link TableMetadata} into this builder.
          */
         Builder mergeWith(TableMetadata other) {
@@ -430,7 +549,30 @@ public final class StaticTableMetadata implements TableMetadata {
             other.customMetadata().forEach(this::mergeCustomMetaDataObject);
             other.keyAttributes().forEach(keyAttribute -> markAttributeAsKey(keyAttribute.name(),
                                                                              keyAttribute.attributeValueType()));
+            other.vectorIndices().forEach(this::mergeVectorIndex);
             return this;
+        }
+
+        private void mergeVectorIndex(VectorIndexMetadata vi) {
+            if (vectorIndices.containsKey(vi.indexName())) {
+                throw new IllegalArgumentException("Attempt to add a vector index that has already been added. "
+                                                   + "Vector index name: " + vi.indexName());
+            }
+            VectorIndexMetadata.Builder builder = getOrCreateIncrementalVectorIndex(vi.indexName());
+            if (vi.vectorAttributeName() != null) {
+                if (builder.vectorAttributeName() != null) {
+                    throw new IllegalArgumentException(
+                        "Attempt to set a vector attribute for a vector index that already has one. "
+                        + "Vector index name: " + vi.indexName());
+                }
+                builder.vectorAttributeName(vi.vectorAttributeName())
+                       .dimensions(vi.dimensions())
+                       .distanceFunction(vi.distanceFunction());
+            }
+            if (vi.projection() != null) {
+                builder.projection(vi.projection());
+            }
+            vi.searchSchemaElements().forEach(builder::addSearchSchemaElement);
         }
 
         private void mergeCustomMetaDataObject(String key, Object object) {

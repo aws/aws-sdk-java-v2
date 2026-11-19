@@ -117,6 +117,10 @@ public class AwsServiceModel implements ClassSpec {
 
         if (shapeModel.isUnion()) {
             specBuilder.addField(unionTypeField());
+            if (intermediateModel.getCustomizationConfig().getGenerateDirectUnionConstructors()
+                    .contains(shapeModel.getShapeName())) {
+                specBuilder.addField(directUnionUnsetConstant());
+            }
         }
 
         if (!isEvent()) {
@@ -519,9 +523,116 @@ public class AwsServiceModel implements ClassSpec {
 
         List<MethodSpec> unionMembers = new ArrayList<>();
         unionMembers.addAll(unionConstructors());
+        if (intermediateModel.getCustomizationConfig().getGenerateDirectUnionConstructors().contains(shapeModel.getShapeName())) {
+            unionMembers.addAll(directUnionConstructors());
+        }
         unionMembers.add(unionTypeMethod());
         unionMembers.addAll(unionAcceptMethods());
         return unionMembers;
+    }
+
+    private Collection<MethodSpec> directUnionConstructors() {
+        intermediateModel.getCustomizationConfig().getGenerateDirectUnionConstructors().forEach(shapeName ->
+            Validate.isTrue(intermediateModel.getShapes().containsKey(shapeName),
+                            "generateDirectUnionConstructors references shape '%s' which does not exist in the model.",
+                            shapeName));
+        Validate.isTrue(shapeModel.getShapeType() == ShapeType.Model,
+                        "Direct union constructors are only supported on Model shapes, not %s (%s)",
+                        shapeModel.getShapeType(), shapeModel.getShapeName());
+        List<MemberModel> members = shapeModel.getMembers();
+        List<MethodSpec> methods = new ArrayList<>();
+
+        MethodSpec.Builder ctor = MethodSpec.constructorBuilder()
+                                            .addModifiers(PRIVATE)
+                                            .addParameter(unionTypeClassName(), "type");
+        ctor.addStatement("this.type = type");
+        for (MemberModel m : members) {
+            String fName = m.getVariable().getVariableName();
+            ctor.addParameter(typeProvider.typeName(m, new TypeNameOptions().useEnumTypes(false)), fName);
+            ctor.addStatement("this.$N = $N", fName, fName);
+        }
+        methods.add(ctor.build());
+
+        for (MemberModel member : members) {
+            String memberName = member.getVariable().getVariableName();
+            String factoryName = "create" + capitalize(member.getFluentSetterMethodName());
+            TypeName paramType = typeProvider.typeName(member, new TypeNameOptions().useEnumTypes(false));
+            boolean isCollection = member.isList() || member.isMap();
+
+            MethodSpec.Builder factory = MethodSpec.methodBuilder(factoryName)
+                                                   .addJavadoc("Equivalent to {@code builder().$N($N).build()} "
+                                                               + "but with a single allocation.\n",
+                                                               member.getFluentSetterMethodName(), memberName)
+                                                   .addModifiers(PUBLIC, STATIC)
+                                                   .returns(className())
+                                                   .addParameter(paramType, memberName);
+
+            String slotValue = memberName;
+            if (isCollection) {
+                factory.beginControlFlow("if ($N == null)", memberName);
+                factory.addStatement("return UNSET_INSTANCE");
+                factory.endControlFlow();
+                ClassName copier = serviceModelCopiers.copierClassFor(member)
+                    .orElseThrow(() -> new IllegalStateException(
+                        "Direct union constructor requires a copier for collection member "
+                        + memberName + " on shape " + shapeModel.getShapeName()));
+                factory.addStatement("$T copied = $T.$N($N)", paramType, copier,
+                                     serviceModelCopiers.copyMethodName(), memberName);
+                slotValue = "copied";
+                ClassName autoConstruct = member.isMap()
+                    ? ClassName.get("software.amazon.awssdk.core.util", "SdkAutoConstructMap")
+                    : ClassName.get("software.amazon.awssdk.core.util", "SdkAutoConstructList");
+                factory.beginControlFlow("if ($N instanceof $T)", slotValue, autoConstruct);
+                factory.addStatement("return UNSET_INSTANCE");
+            } else {
+                factory.beginControlFlow("if ($N == null)", memberName);
+                factory.addStatement("return UNSET_INSTANCE");
+            }
+            factory.endControlFlow();
+            factory.addStatement("$L", directCtorCall(members, member, slotValue));
+
+            methods.add(factory.build());
+        }
+        return methods;
+    }
+
+    private FieldSpec directUnionUnsetConstant() {
+        List<MemberModel> members = shapeModel.getMembers();
+        CodeBlock.Builder init = CodeBlock.builder();
+        init.add("new $T($T.UNKNOWN_TO_SDK_VERSION", className(), unionTypeClassName());
+        for (MemberModel m : members) {
+            if (m.isList() || m.isMap()) {
+                ClassName sentinel = m.isMap()
+                    ? ClassName.get("software.amazon.awssdk.core.util", "DefaultSdkAutoConstructMap")
+                    : ClassName.get("software.amazon.awssdk.core.util", "DefaultSdkAutoConstructList");
+                init.add(", $T.getInstance()", sentinel);
+            } else {
+                init.add(", null");
+            }
+        }
+        init.add(")");
+        return FieldSpec.builder(className(), "UNSET_INSTANCE", PRIVATE, STATIC, Modifier.FINAL)
+                        .initializer(init.build())
+                        .build();
+    }
+
+    private CodeBlock directCtorCall(List<MemberModel> members, MemberModel target, String slotValue) {
+        CodeBlock.Builder args = CodeBlock.builder();
+        args.add("$T.$N", unionTypeClassName(), target.getUnionEnumTypeName());
+        for (MemberModel m : members) {
+            String fName = m.getVariable().getVariableName();
+            if (fName.equals(target.getVariable().getVariableName())) {
+                args.add(", $N", slotValue);
+            } else if (m.isList() || m.isMap()) {
+                ClassName sentinel = m.isMap()
+                    ? ClassName.get("software.amazon.awssdk.core.util", "DefaultSdkAutoConstructMap")
+                    : ClassName.get("software.amazon.awssdk.core.util", "DefaultSdkAutoConstructList");
+                args.add(", $T.getInstance()", sentinel);
+            } else {
+                args.add(", null");
+            }
+        }
+        return CodeBlock.of("return new $T($L)", className(), args.build());
     }
 
     private Collection<MethodSpec> unionConstructors() {

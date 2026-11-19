@@ -36,11 +36,8 @@ import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.services.s3.endpoints.internal.KnownS3ExpressEndpointProperty;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectAclRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectAclResponse;
@@ -62,8 +59,8 @@ public class EnableTrailingChecksumInterceptorTest {
     @ParameterizedTest
     @MethodSource("getObjectRequestParams")
     public void testGetObjectModifyRequest(boolean useS3Express, boolean disableChecksumValidation, boolean checksumModeEnabled) {
-        GetObjectRequest request = createGetObjectRequest(checksumModeEnabled);
-        ExecutionAttributes executionAttributes = createExecutionAttributes(disableChecksumValidation, useS3Express);
+        GetObjectRequest request = createGetObjectRequest(checksumModeEnabled, useS3Express);
+        ExecutionAttributes executionAttributes = createExecutionAttributes(disableChecksumValidation);
         Context.ModifyRequest modifyRequestContext = () -> request;
         SdkRequest modifiedRequest = interceptor.modifyRequest(modifyRequestContext, executionAttributes);
 
@@ -106,8 +103,11 @@ public class EnableTrailingChecksumInterceptorTest {
         }
     }
 
-    private GetObjectRequest createGetObjectRequest(boolean checksumModeEnabled) {
+    private GetObjectRequest createGetObjectRequest(boolean checksumModeEnabled, boolean isS3ExpressBucket) {
         GetObjectRequest.Builder requestBuilder = GetObjectRequest.builder();
+        if (isS3ExpressBucket) {
+            requestBuilder.bucket("my-bucket--x-s3");
+        }
         if (checksumModeEnabled) {
             requestBuilder.checksumMode(ChecksumMode.ENABLED);
         }
@@ -120,7 +120,7 @@ public class EnableTrailingChecksumInterceptorTest {
         boolean useS3Express = false;
         boolean disableChecksumValidation = false;
 
-        ExecutionAttributes executionAttributes = createExecutionAttributes(disableChecksumValidation, useS3Express);
+        ExecutionAttributes executionAttributes = createExecutionAttributes(disableChecksumValidation);
         Context.ModifyRequest modifyRequestContext = () -> request;
         SdkRequest modifiedRequest = interceptor.modifyRequest(modifyRequestContext, executionAttributes);
 
@@ -130,7 +130,7 @@ public class EnableTrailingChecksumInterceptorTest {
         assertThat(sdkHttpRequest.headers().get(ENABLE_CHECKSUM_REQUEST_HEADER)).isNull();
     }
 
-    private ExecutionAttributes createExecutionAttributes(boolean disableChecksumValidation, boolean useS3Express) {
+    private ExecutionAttributes createExecutionAttributes(boolean disableChecksumValidation) {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         if (disableChecksumValidation) {
             executionAttributes.putAttribute(REQUEST_CHECKSUM_CALCULATION, RequestChecksumCalculation.WHEN_REQUIRED);
@@ -138,10 +138,6 @@ public class EnableTrailingChecksumInterceptorTest {
         } else {
             executionAttributes.putAttribute(REQUEST_CHECKSUM_CALCULATION, RequestChecksumCalculation.WHEN_SUPPORTED);
             executionAttributes.putAttribute(RESPONSE_CHECKSUM_VALIDATION, ResponseChecksumValidation.WHEN_SUPPORTED);
-        }
-        if (useS3Express) {
-            Endpoint s3ExpressEndpoint = Endpoint.builder().putAttribute(KnownS3ExpressEndpointProperty.BACKEND, "S3Express").build();
-            executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, s3ExpressEndpoint);
         }
         return executionAttributes;
     }

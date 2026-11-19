@@ -1147,6 +1147,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "henricook",
+      "name": "Henri Cook",
+      "avatar_url": "https://avatars.githubusercontent.com/u/82004?v=4",
+      "profile": "https://www.henricook.com",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "parasparani1",
+      "name": "parasparani1",
+      "avatar_url": "https://avatars.githubusercontent.com/u/294045026?v=4",
+      "profile": "https://github.com/parasparani1",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

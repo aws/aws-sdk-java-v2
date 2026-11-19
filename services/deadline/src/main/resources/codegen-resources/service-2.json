@@ -194,6 +194,25 @@
       "documentation":"<p>Allows a worker to assume a queue role.</p>",
       "endpoint":{"hostPrefix":"scheduling."}
     },
+    "BatchGetJob":{
+      "name":"BatchGetJob",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2023-10-12/batch-get-job",
+        "responseCode":200
+      },
+      "input":{"shape":"BatchGetJobRequest"},
+      "output":{"shape":"BatchGetJobResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Retrieves multiple jobs in a single request. This is a batch version of the <code>GetJob</code> API.</p> <p>The result of getting each job is reported individually in the response. Because the batch request can result in a combination of successful and unsuccessful actions, you should check for batch errors even when the call returns an HTTP status code of 200.</p>",
+      "endpoint":{"hostPrefix":"management."},
+      "readonly":true
+    },
     "BatchGetJobEntity":{
       "name":"BatchGetJobEntity",
       "http":{
@@ -213,6 +232,139 @@
       "documentation":"<p>Get batched job details for a worker.</p>",
       "endpoint":{"hostPrefix":"scheduling."},
       "readonly":true
+    },
+    "BatchGetSession":{
+      "name":"BatchGetSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2023-10-12/batch-get-session",
+        "responseCode":200
+      },
+      "input":{"shape":"BatchGetSessionRequest"},
+      "output":{"shape":"BatchGetSessionResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Retrieves multiple sessions in a single request. This is a batch version of the <code>GetSession</code> API.</p> <p>The result of getting each session is reported individually in the response. Because the batch request can result in a combination of successful and unsuccessful actions, you should check for batch errors even when the call returns an HTTP status code of 200.</p>",
+      "endpoint":{"hostPrefix":"management."},
+      "readonly":true
+    },
+    "BatchGetSessionAction":{
+      "name":"BatchGetSessionAction",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2023-10-12/batch-get-session-action",
+        "responseCode":200
+      },
+      "input":{"shape":"BatchGetSessionActionRequest"},
+      "output":{"shape":"BatchGetSessionActionResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Retrieves multiple session actions in a single request. This is a batch version of the <code>GetSessionAction</code> API.</p> <p>The result of getting each session action is reported individually in the response. Because the batch request can result in a combination of successful and unsuccessful actions, you should check for batch errors even when the call returns an HTTP status code of 200.</p>",
+      "endpoint":{"hostPrefix":"management."},
+      "readonly":true
+    },
+    "BatchGetStep":{
+      "name":"BatchGetStep",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2023-10-12/batch-get-step",
+        "responseCode":200
+      },
+      "input":{"shape":"BatchGetStepRequest"},
+      "output":{"shape":"BatchGetStepResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Retrieves multiple steps in a single request. This is a batch version of the <code>GetStep</code> API.</p> <p>The result of getting each step is reported individually in the response. Because the batch request can result in a combination of successful and unsuccessful actions, you should check for batch errors even when the call returns an HTTP status code of 200.</p>",
+      "endpoint":{"hostPrefix":"management."},
+      "readonly":true
+    },
+    "BatchGetTask":{
+      "name":"BatchGetTask",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2023-10-12/batch-get-task",
+        "responseCode":200
+      },
+      "input":{"shape":"BatchGetTaskRequest"},
+      "output":{"shape":"BatchGetTaskResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Retrieves multiple tasks in a single request. This is a batch version of the <code>GetTask</code> API.</p> <p>The result of getting each task is reported individually in the response. Because the batch request can result in a combination of successful and unsuccessful actions, you should check for batch errors even when the call returns an HTTP status code of 200.</p>",
+      "endpoint":{"hostPrefix":"management."},
+      "readonly":true
+    },
+    "BatchGetWorker":{
+      "name":"BatchGetWorker",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2023-10-12/batch-get-worker",
+        "responseCode":200
+      },
+      "input":{"shape":"BatchGetWorkerRequest"},
+      "output":{"shape":"BatchGetWorkerResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Retrieves multiple workers in a single request. This is a batch version of the <code>GetWorker</code> API.</p> <p>The result of getting each worker is reported individually in the response. Because the batch request can result in a combination of successful and unsuccessful actions, you should check for batch errors even when the call returns an HTTP status code of 200.</p>",
+      "endpoint":{"hostPrefix":"management."},
+      "readonly":true
+    },
+    "BatchUpdateJob":{
+      "name":"BatchUpdateJob",
+      "http":{
+        "method":"PATCH",
+        "requestUri":"/2023-10-12/batch-update-job",
+        "responseCode":200
+      },
+      "input":{"shape":"BatchUpdateJobRequest"},
+      "output":{"shape":"BatchUpdateJobResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Updates multiple jobs in a single request. This is a batch version of the <code>UpdateJob</code> API.</p> <p>The result of updating each job is reported individually in the response. Because the batch request can result in a combination of successful and unsuccessful actions, you should check for batch errors even when the call returns an HTTP status code of 200.</p> <p>When you change the status of a job to <code>ARCHIVED</code>, the job can't be scheduled or archived.</p> <important> <p>An archived job and its steps and tasks are deleted after 120 days. The job can't be recovered.</p> </important>",
+      "endpoint":{"hostPrefix":"management."},
+      "idempotent":true
+    },
+    "BatchUpdateTask":{
+      "name":"BatchUpdateTask",
+      "http":{
+        "method":"PATCH",
+        "requestUri":"/2023-10-12/batch-update-task",
+        "responseCode":200
+      },
+      "input":{"shape":"BatchUpdateTaskRequest"},
+      "output":{"shape":"BatchUpdateTaskResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Updates multiple tasks in a single request. This is a batch version of the <code>UpdateTask</code> API.</p> <p>The result of updating each task is reported individually in the response. Because the batch request can result in a combination of successful and unsuccessful actions, you should check for batch errors even when the call returns an HTTP status code of 200.</p>",
+      "endpoint":{"hostPrefix":"management."},
+      "idempotent":true
     },
     "CopyJobTemplate":{
       "name":"CopyJobTemplate",
@@ -499,7 +651,7 @@
         {"shape":"ConflictException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Creates a worker. A worker tells your instance how much processing power (vCPU), and memory (GiB) you’ll need to assemble the digital assets held within a particular instance. You can specify certain instance types to use, or let the worker know which instances types to exclude.</p> <p>Deadline Cloud limits the number of workers to less than or equal to the fleet's maximum worker count. The service maintains eventual consistency for the worker count. If you make multiple rapid calls to <code>CreateWorker</code> before the field updates, you might exceed your fleet's maximum worker count. For example, if your <code>maxWorkerCount</code> is 10 and you currently have 9 workers, making two quick <code>CreateWorker</code> calls might successfully create 2 workers instead of 1, resulting in 11 total workers.</p>",
+      "documentation":"<p>Creates a worker. A worker tells your instance how much processing power (vCPU), and memory (GiB) you'll need to assemble the digital assets held within a particular instance. You can specify certain instance types to use, or let the worker know which instances types to exclude.</p> <p>Deadline Cloud limits the number of workers to less than or equal to the fleet's maximum worker count. The service maintains eventual consistency for the worker count. If you make multiple rapid calls to <code>CreateWorker</code> before the field updates, you might exceed your fleet's maximum worker count. For example, if your <code>maxWorkerCount</code> is 10 and you currently have 9 workers, making two quick <code>CreateWorker</code> calls might successfully create 2 workers instead of 1, resulting in 11 total workers.</p>",
       "endpoint":{"hostPrefix":"scheduling."},
       "idempotent":true
     },
@@ -742,6 +894,27 @@
         {"shape":"ValidationException"}
       ],
       "documentation":"<p>Deletes a storage profile.</p>",
+      "endpoint":{"hostPrefix":"management."},
+      "idempotent":true
+    },
+    "DeleteVolume":{
+      "name":"DeleteVolume",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2023-10-12/farms/{farmId}/fleets/{fleetId}/volumes/{volumeId}",
+        "responseCode":200
+      },
+      "input":{"shape":"DeleteVolumeRequest"},
+      "output":{"shape":"DeleteVolumeResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Deletes a persistent volume.</p>",
       "endpoint":{"hostPrefix":"management."},
       "idempotent":true
     },
@@ -988,6 +1161,26 @@
       "endpoint":{"hostPrefix":"management."},
       "readonly":true
     },
+    "GetMonitorSettings":{
+      "name":"GetMonitorSettings",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2023-10-12/monitors/{monitorId}/settings",
+        "responseCode":200
+      },
+      "input":{"shape":"GetMonitorSettingsRequest"},
+      "output":{"shape":"GetMonitorSettingsResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Gets the settings for a Deadline Cloud monitor.</p>",
+      "endpoint":{"hostPrefix":"management."},
+      "readonly":true
+    },
     "GetQueue":{
       "name":"GetQueue",
       "http":{
@@ -1205,6 +1398,26 @@
         {"shape":"ValidationException"}
       ],
       "documentation":"<p>Gets a task.</p>",
+      "endpoint":{"hostPrefix":"management."},
+      "readonly":true
+    },
+    "GetVolume":{
+      "name":"GetVolume",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2023-10-12/farms/{farmId}/fleets/{fleetId}/volumes/{volumeId}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetVolumeRequest"},
+      "output":{"shape":"GetVolumeResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Gets a persistent volume.</p>",
       "endpoint":{"hostPrefix":"management."},
       "readonly":true
     },
@@ -1441,6 +1654,26 @@
         {"shape":"ValidationException"}
       ],
       "documentation":"<p>Gets a list of limits defined in the specified farm.</p>",
+      "endpoint":{"hostPrefix":"management."},
+      "readonly":true
+    },
+    "ListMemberships":{
+      "name":"ListMemberships",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2023-10-12/memberships",
+        "responseCode":200
+      },
+      "input":{"shape":"ListMembershipsRequest"},
+      "output":{"shape":"ListMembershipsResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Lists the Deadline Cloud resource memberships associated with a specified IAM Identity Center principal, optionally filtered by the requested resource types.</p>",
       "endpoint":{"hostPrefix":"management."},
       "readonly":true
     },
@@ -1781,6 +2014,26 @@
       "endpoint":{"hostPrefix":"management."},
       "readonly":true
     },
+    "ListVolumes":{
+      "name":"ListVolumes",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2023-10-12/farms/{farmId}/fleets/{fleetId}/volumes",
+        "responseCode":200
+      },
+      "input":{"shape":"ListVolumesRequest"},
+      "output":{"shape":"ListVolumesResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Lists the persistent volumes in a fleet.</p>",
+      "endpoint":{"hostPrefix":"management."},
+      "readonly":true
+    },
     "ListWorkers":{
       "name":"ListWorkers",
       "http":{
@@ -2019,7 +2272,7 @@
         {"shape":"ValidationException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
-      "documentation":"<p>Updates a fleet.</p>",
+      "documentation":"<p>Updates a fleet.</p> <note> <p>Workers that are running when you call <code>UpdateFleet</code> keep the instance type and capabilities that they launched with until they scale in. Deadline Cloud can schedule jobs that you submit after the update on these existing workers, so the new configuration might not take effect immediately. To make sure that all workers use the new configuration, set <code>maxWorkerCount</code> to 0, use the <code>ListWorkers</code> operation to confirm that the fleet has no workers, and then restore <code>maxWorkerCount</code>.</p> </note>",
       "endpoint":{"hostPrefix":"management."},
       "idempotent":true
     },
@@ -2081,6 +2334,26 @@
         {"shape":"ValidationException"}
       ],
       "documentation":"<p>Modifies the settings for a Deadline Cloud monitor. You can modify one or all of the settings when you call <code>UpdateMonitor</code>.</p>",
+      "endpoint":{"hostPrefix":"management."},
+      "idempotent":true
+    },
+    "UpdateMonitorSettings":{
+      "name":"UpdateMonitorSettings",
+      "http":{
+        "method":"PATCH",
+        "requestUri":"/2023-10-12/monitors/{monitorId}/settings",
+        "responseCode":200
+      },
+      "input":{"shape":"UpdateMonitorSettingsRequest"},
+      "output":{"shape":"UpdateMonitorSettingsResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Updates the settings for a Deadline Cloud monitor. Keys present in the request are upserted; keys absent are left unchanged. Send an empty string value to delete a key.</p>",
       "endpoint":{"hostPrefix":"management."},
       "idempotent":true
     },
@@ -2304,7 +2577,7 @@
           "documentation":"<p>The number of GPU accelerators specified for worker hosts in this fleet.</p> <important> <p>You must specify either <code>acceleratorCapabilities.count.max</code> or <code>allowedInstanceTypes</code> when using accelerator capabilities. If you don't specify a maximum count, Amazon Web Services Deadline Cloud uses the instance types you specify in <code>allowedInstanceTypes</code> to determine the maximum number of accelerators.</p> </important>"
         }
       },
-      "documentation":"<p>Provides information about the GPU accelerators used for jobs processed by a fleet.</p> <important> <p>Accelerator capabilities cannot be used with wait-and-save fleets. If you specify accelerator capabilities, you must use either spot or on-demand instance market options.</p> </important> <note> <p>Each accelerator type maps to specific EC2 instance families:</p> <ul> <li> <p> <code>t4</code>: Uses G4dn instance family</p> </li> <li> <p> <code>a10g</code>: Uses G5 instance family</p> </li> <li> <p> <code>l4</code>: Uses G6 and Gr6 instance families</p> </li> <li> <p> <code>l40s</code>: Uses G6e instance family</p> </li> </ul> </note>"
+      "documentation":"<p>Provides information about the GPU accelerators used for jobs processed by a fleet.</p> <important> <p>Accelerator capabilities cannot be used with wait-and-save fleets. If you specify accelerator capabilities, you must use either spot or on-demand instance market options.</p> </important> <note> <p>Each accelerator type maps to specific EC2 instance families:</p> <ul> <li> <p> <code>t4</code>: Uses G4dn instance family</p> </li> <li> <p> <code>a10g</code>: Uses G5 instance family</p> </li> <li> <p> <code>l4</code>: Uses G6, G6f, Gr6, and Gr6f instance families</p> </li> <li> <p> <code>l40s</code>: Uses G6e instance family</p> </li> <li> <p> <code>rtx-pro-server-6000</code>: Uses G7e instance family</p> </li> <li> <p> <code>rtx-pro-4500</code>: Uses G7 instance family</p> </li> </ul> </note>"
     },
     "AcceleratorCountRange":{
       "type":"structure",
@@ -2327,7 +2600,9 @@
         "t4",
         "a10g",
         "l4",
-        "l40s"
+        "l40s",
+        "rtx-pro-server-6000",
+        "rtx-pro-4500"
       ]
     },
     "AcceleratorRuntime":{
@@ -2341,11 +2616,11 @@
       "members":{
         "name":{
           "shape":"AcceleratorName",
-          "documentation":"<p>The name of the chip used by the GPU accelerator.</p> <p>The available GPU accelerators are:</p> <ul> <li> <p> <code>t4</code> - NVIDIA T4 Tensor Core GPU (16 GiB memory)</p> </li> <li> <p> <code>a10g</code> - NVIDIA A10G Tensor Core GPU (24 GiB memory)</p> </li> <li> <p> <code>l4</code> - NVIDIA L4 Tensor Core GPU (24 GiB memory)</p> </li> <li> <p> <code>l40s</code> - NVIDIA L40S Tensor Core GPU (48 GiB memory)</p> </li> </ul>"
+          "documentation":"<p>The name of the chip used by the GPU accelerator.</p> <p>The available GPU accelerators are:</p> <ul> <li> <p> <code>t4</code> - NVIDIA T4 Tensor Core GPU (16 GiB memory)</p> </li> <li> <p> <code>a10g</code> - NVIDIA A10G Tensor Core GPU (24 GiB memory)</p> </li> <li> <p> <code>l4</code> - NVIDIA L4 Tensor Core GPU (24 GiB memory)</p> </li> <li> <p> <code>l40s</code> - NVIDIA L40S Tensor Core GPU (48 GiB memory)</p> </li> <li> <p> <code>rtx-pro-server-6000</code> - NVIDIA RTX PRO Server 6000 GPU (96 GiB memory)</p> </li> <li> <p> <code>rtx-pro-4500</code> - NVIDIA RTX PRO 4500 GPU (32 GiB memory)</p> </li> </ul>"
         },
         "runtime":{
           "shape":"AcceleratorRuntime",
-          "documentation":"<p>Specifies the runtime driver to use for the GPU accelerator. You must use the same runtime for all GPUs in a fleet. </p> <p>You can choose from the following runtimes:</p> <ul> <li> <p> <code>latest</code> - Use the latest runtime available for the chip. If you specify <code>latest</code> and a new version of the runtime is released, the new version of the runtime is used.</p> </li> <li> <p> <code>grid:r570</code> - <a href=\"https://docs.nvidia.com/vgpu/18.0/index.html\">NVIDIA vGPU software 18</a> </p> </li> <li> <p> <code>grid:r535</code> - <a href=\"https://docs.nvidia.com/vgpu/16.0/index.html\">NVIDIA vGPU software 16</a> </p> </li> </ul> <p>If you don't specify a runtime, Amazon Web Services Deadline Cloud uses <code>latest</code> as the default. However, if you have multiple accelerators and specify <code>latest</code> for some and leave others blank, Amazon Web Services Deadline Cloud raises an exception.</p> <important> <p>Not all runtimes are compatible with all accelerator types:</p> <ul> <li> <p> <code>t4</code> and <code>a10g</code>: Support all runtimes (<code>grid:r570</code>, <code>grid:r535</code>)</p> </li> <li> <p> <code>l4</code> and <code>l40s</code>: Only support <code>grid:r570</code> and newer</p> </li> </ul> <p>All accelerators in a fleet must use the same runtime version. You cannot mix different runtime versions within a single fleet.</p> </important> <note> <p>When you specify <code>latest</code>, it resolves to <code>grid:r570</code> for all currently supported accelerators.</p> </note>"
+          "documentation":"<p>Specifies the runtime driver to use for the GPU accelerator. You must use the same runtime for all GPUs in a fleet. </p> <p>You can choose from the following runtimes:</p> <ul> <li> <p> <code>latest</code> - Use the latest runtime available for the chip. If you specify <code>latest</code> and a new version of the runtime is released, the new version of the runtime is used.</p> </li> <li> <p> <code>grid:r595</code> - <a href=\"https://docs.nvidia.com/vgpu/20.0/index.html\">NVIDIA vGPU software 20</a> </p> </li> <li> <p> <code>grid:r580</code> - <a href=\"https://docs.nvidia.com/vgpu/19.0/index.html\">NVIDIA vGPU software 19</a> </p> </li> </ul> <p>If you don't specify a runtime, Amazon Web Services Deadline Cloud uses <code>latest</code> as the default. However, if you have multiple accelerators and specify <code>latest</code> for some and leave others blank, Amazon Web Services Deadline Cloud raises an exception.</p> <important> <p>All accelerator types support <code>grid:r595</code> and <code>grid:r580</code>.</p> <p>All accelerators in a fleet must use the same runtime version. You cannot mix different runtime versions within a single fleet.</p> </important> <note> <p>When you specify <code>latest</code>, it resolves to <code>grid:r595</code> for all currently supported accelerators.</p> </note>"
         }
       },
       "documentation":"<p>Describes a specific GPU accelerator required for an Amazon Elastic Compute Cloud worker host.</p>"
@@ -2487,6 +2762,10 @@
         "logConfiguration":{
           "shape":"LogConfiguration",
           "documentation":"<p>The log configuration for the worker's assigned session.</p>"
+        },
+        "metadata":{
+          "shape":"SessionMetadata",
+          "documentation":"<p>Key-value hints that the service provides to guide how the session runs. This value is used by the worker agent.</p>"
         }
       },
       "documentation":"<p>The assigned session for the worker.</p>"
@@ -2606,9 +2885,12 @@
           "documentation":"<p>The member's principal ID to associate with the farm.</p>",
           "location":"uri",
           "locationName":"principalId"
+        },
+        "identityCenterRegion":{
+          "shape":"Region",
+          "documentation":"<p>The Region of the IAM Identity Center instance. If not provided, the service defaults to the Region of the farm.</p>"
         }
-      },
-      "documentation":"<p>Shared member fields for Associate inputs and {Resource}Member response structures. principalId is excluded because it has @httpLabel on inputs but not on responses.</p>"
+      }
     },
     "AssociateMemberToFarmResponse":{
       "type":"structure",
@@ -2654,9 +2936,12 @@
           "documentation":"<p>The member's principal ID to associate with a fleet.</p>",
           "location":"uri",
           "locationName":"principalId"
+        },
+        "identityCenterRegion":{
+          "shape":"Region",
+          "documentation":"<p>The Region of the IAM Identity Center instance. If not provided, the service defaults to the Region of the farm.</p>"
         }
-      },
-      "documentation":"<p>Shared member fields for Associate inputs and {Resource}Member response structures. principalId is excluded because it has @httpLabel on inputs but not on responses.</p>"
+      }
     },
     "AssociateMemberToFleetResponse":{
       "type":"structure",
@@ -2709,9 +2994,12 @@
           "documentation":"<p>The member's principal ID to associate with the job.</p>",
           "location":"uri",
           "locationName":"principalId"
+        },
+        "identityCenterRegion":{
+          "shape":"Region",
+          "documentation":"<p>The Region of the IAM Identity Center instance. If not provided, the service defaults to the Region of the farm.</p>"
         }
-      },
-      "documentation":"<p>Shared member fields for Associate inputs and {Resource}Member response structures. principalId is excluded because it has @httpLabel on inputs but not on responses.</p>"
+      }
     },
     "AssociateMemberToJobResponse":{
       "type":"structure",
@@ -2757,9 +3045,12 @@
           "documentation":"<p>The member's principal ID to associate with the queue.</p>",
           "location":"uri",
           "locationName":"principalId"
+        },
+        "identityCenterRegion":{
+          "shape":"Region",
+          "documentation":"<p>The Region of the IAM Identity Center instance. If not provided, the service defaults to the Region of the farm.</p>"
         }
-      },
-      "documentation":"<p>Shared member fields for Associate inputs and {Resource}Member response structures. principalId is excluded because it has @httpLabel on inputs but not on responses.</p>"
+      }
     },
     "AssociateMemberToQueueResponse":{
       "type":"structure",
@@ -2795,7 +3086,6 @@
           "documentation":"<p>The credentials for the fleet role.</p>"
         }
       },
-      "documentation":"<p>Shared response body for AssumeRole operations where credentials are required. AssumeQueueRoleForWorkerResponse is excluded because credentials is optional there because Queue.roleArn is optional, so the mixin's @required trait would be incorrect.</p>",
       "sensitive":true
     },
     "AssumeFleetRoleForWorkerRequest":{
@@ -2835,7 +3125,6 @@
           "documentation":"<p>The credentials for the worker.</p>"
         }
       },
-      "documentation":"<p>Shared response body for AssumeRole operations where credentials are required. AssumeQueueRoleForWorkerResponse is excluded because credentials is optional there because Queue.roleArn is optional, so the mixin's @required trait would be incorrect.</p>",
       "sensitive":true
     },
     "AssumeQueueRoleForReadRequest":{
@@ -2868,7 +3157,6 @@
           "documentation":"<p>The credentials for the queue role.</p>"
         }
       },
-      "documentation":"<p>Shared response body for AssumeRole operations where credentials are required. AssumeQueueRoleForWorkerResponse is excluded because credentials is optional there because Queue.roleArn is optional, so the mixin's @required trait would be incorrect.</p>",
       "sensitive":true
     },
     "AssumeQueueRoleForUserRequest":{
@@ -2901,7 +3189,6 @@
           "documentation":"<p>The credentials for the queue role that a user has access to.</p>"
         }
       },
-      "documentation":"<p>Shared response body for AssumeRole operations where credentials are required. AssumeQueueRoleForWorkerResponse is excluded because credentials is optional there because Queue.roleArn is optional, so the mixin's @required trait would be incorrect.</p>",
       "sensitive":true
     },
     "AssumeQueueRoleForWorkerRequest":{
@@ -3086,6 +3373,1474 @@
         }
       }
     },
+    "BatchGetJobError":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "code",
+        "message"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the job that could not be retrieved.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the job that could not be retrieved.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the job that could not be retrieved.</p>"
+        },
+        "code":{
+          "shape":"BatchGetJobErrorCode",
+          "documentation":"<p>The error code.</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>The error message.</p>"
+        }
+      },
+      "documentation":"<p>The error details for a job that could not be retrieved in a batch get operation.</p>"
+    },
+    "BatchGetJobErrorCode":{
+      "type":"string",
+      "enum":[
+        "InternalServerErrorException",
+        "ResourceNotFoundException",
+        "ValidationException",
+        "AccessDeniedException",
+        "ThrottlingException"
+      ]
+    },
+    "BatchGetJobErrors":{
+      "type":"list",
+      "member":{"shape":"BatchGetJobError"}
+    },
+    "BatchGetJobIdentifier":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the job.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the job.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID.</p>"
+        }
+      },
+      "documentation":"<p>The identifiers for a job.</p>"
+    },
+    "BatchGetJobIdentifiers":{
+      "type":"list",
+      "member":{"shape":"BatchGetJobIdentifier"},
+      "max":100,
+      "min":1
+    },
+    "BatchGetJobItem":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "name",
+        "lifecycleStatus",
+        "lifecycleStatusMessage",
+        "priority",
+        "createdAt",
+        "createdBy"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the job.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the job.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID.</p>"
+        },
+        "name":{
+          "shape":"JobName",
+          "documentation":"<p>The name of the job.</p>"
+        },
+        "lifecycleStatus":{
+          "shape":"JobLifecycleStatus",
+          "documentation":"<p>The life cycle status of the job.</p>"
+        },
+        "lifecycleStatusMessage":{
+          "shape":"String",
+          "documentation":"<p>A message that communicates the status of the life cycle.</p>"
+        },
+        "priority":{
+          "shape":"JobPriority",
+          "documentation":"<p>The job priority.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The date and time the resource was created.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The user or system that created this resource.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The date and time the resource was updated. Task status changes don't update this value.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The user or system that updated this resource.</p>"
+        },
+        "startedAt":{
+          "shape":"StartedAt",
+          "documentation":"<p>The date and time the resource started running. Requeuing the job doesn't change this value.</p>"
+        },
+        "endedAt":{
+          "shape":"EndedAt",
+          "documentation":"<p>The date and time the resource ended running. Returned only when the job has finished.</p>"
+        },
+        "taskRunStatus":{
+          "shape":"TaskRunStatus",
+          "documentation":"<p>The task run status for the job.</p>"
+        },
+        "targetTaskRunStatus":{
+          "shape":"JobTargetTaskRunStatus",
+          "documentation":"<p>The task status to start with on the job.</p>"
+        },
+        "taskRunStatusCounts":{
+          "shape":"TaskRunStatusCounts",
+          "documentation":"<p>The number of tasks for each run status for the job.</p>"
+        },
+        "taskFailureRetryCount":{
+          "shape":"TaskFailureRetryCount",
+          "documentation":"<p>The number of times that tasks failed and were retried.</p>"
+        },
+        "storageProfileId":{
+          "shape":"StorageProfileId",
+          "documentation":"<p>The storage profile ID associated with the job.</p>"
+        },
+        "maxFailedTasksCount":{
+          "shape":"MaxFailedTasksCount",
+          "documentation":"<p>The number of task failures before the job stops running and is marked as <code>FAILED</code>.</p>"
+        },
+        "maxRetriesPerTask":{
+          "shape":"MaxRetriesPerTask",
+          "documentation":"<p>The maximum number of retries per failed tasks.</p>"
+        },
+        "parameters":{
+          "shape":"JobParameters",
+          "documentation":"<p>The parameters for the job.</p>"
+        },
+        "attachments":{
+          "shape":"Attachments",
+          "documentation":"<p>The attachments for the job.</p>"
+        },
+        "description":{
+          "shape":"JobDescription",
+          "documentation":"<p>The description of the job.</p>"
+        },
+        "maxWorkerCount":{
+          "shape":"MaxWorkerCount",
+          "documentation":"<p>The maximum number of worker hosts that can concurrently process a job.</p>"
+        },
+        "sourceJobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID for the source job.</p>"
+        }
+      },
+      "documentation":"<p>The details of a job returned in a batch get operation.</p>"
+    },
+    "BatchGetJobItems":{
+      "type":"list",
+      "member":{"shape":"BatchGetJobItem"}
+    },
+    "BatchGetJobRequest":{
+      "type":"structure",
+      "required":["identifiers"],
+      "members":{
+        "identifiers":{
+          "shape":"BatchGetJobIdentifiers",
+          "documentation":"<p>The list of job identifiers to retrieve. You can specify up to 100 identifiers per request.</p>"
+        }
+      }
+    },
+    "BatchGetJobResponse":{
+      "type":"structure",
+      "required":[
+        "jobs",
+        "errors"
+      ],
+      "members":{
+        "jobs":{
+          "shape":"BatchGetJobItems",
+          "documentation":"<p>A list of jobs that were successfully retrieved.</p>"
+        },
+        "errors":{
+          "shape":"BatchGetJobErrors",
+          "documentation":"<p>A list of errors for jobs that could not be retrieved.</p>"
+        }
+      }
+    },
+    "BatchGetSessionActionError":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "sessionActionId",
+        "code",
+        "message"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the session action that could not be retrieved.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the session action that could not be retrieved.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the session action that could not be retrieved.</p>"
+        },
+        "sessionActionId":{
+          "shape":"SessionActionId",
+          "documentation":"<p>The session action ID of the session action that could not be retrieved.</p>"
+        },
+        "code":{
+          "shape":"BatchGetSessionActionErrorCode",
+          "documentation":"<p>The error code.</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>The error message.</p>"
+        }
+      },
+      "documentation":"<p>The error details for a session action that could not be retrieved in a batch get operation.</p>"
+    },
+    "BatchGetSessionActionErrorCode":{
+      "type":"string",
+      "enum":[
+        "InternalServerErrorException",
+        "ResourceNotFoundException",
+        "ValidationException"
+      ]
+    },
+    "BatchGetSessionActionErrors":{
+      "type":"list",
+      "member":{"shape":"BatchGetSessionActionError"}
+    },
+    "BatchGetSessionActionIdentifier":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "sessionActionId"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the session action.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the session action.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the session action.</p>"
+        },
+        "sessionActionId":{
+          "shape":"SessionActionId",
+          "documentation":"<p>The session action ID.</p>"
+        }
+      },
+      "documentation":"<p>The identifiers for a session action.</p>"
+    },
+    "BatchGetSessionActionIdentifiers":{
+      "type":"list",
+      "member":{"shape":"BatchGetSessionActionIdentifier"},
+      "max":100,
+      "min":1
+    },
+    "BatchGetSessionActionItem":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "sessionActionId",
+        "status",
+        "sessionId",
+        "definition"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the session action.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the session action.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the session action.</p>"
+        },
+        "sessionActionId":{
+          "shape":"SessionActionId",
+          "documentation":"<p>The session action ID.</p>"
+        },
+        "status":{
+          "shape":"SessionActionStatus",
+          "documentation":"<p>The status of the session action.</p>"
+        },
+        "startedAt":{
+          "shape":"StartedAt",
+          "documentation":"<p>The date and time the resource started running.</p>"
+        },
+        "endedAt":{
+          "shape":"EndedAt",
+          "documentation":"<p>The date and time the resource ended running.</p>"
+        },
+        "workerUpdatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time the resource was updated by a worker.</p>"
+        },
+        "progressPercent":{
+          "shape":"SessionActionProgressPercent",
+          "documentation":"<p>The completion percentage for the session action.</p>"
+        },
+        "manifests":{
+          "shape":"TaskRunManifestPropertiesListResponse",
+          "documentation":"<p>The manifests for the session action.</p>"
+        },
+        "sessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The session ID for the session action.</p>"
+        },
+        "processExitCode":{
+          "shape":"ProcessExitCode",
+          "documentation":"<p>The exit code to apply to the session action.</p>"
+        },
+        "progressMessage":{
+          "shape":"SessionActionProgressMessage",
+          "documentation":"<p>The message that communicates the progress of the session action.</p>"
+        },
+        "acquiredLimits":{
+          "shape":"AcquiredLimits",
+          "documentation":"<p>The limits that were acquired for the session action.</p>"
+        },
+        "definition":{
+          "shape":"SessionActionDefinition",
+          "documentation":"<p>The session action definition.</p>"
+        }
+      },
+      "documentation":"<p>The details of a session action returned in a batch get operation.</p>"
+    },
+    "BatchGetSessionActionItems":{
+      "type":"list",
+      "member":{"shape":"BatchGetSessionActionItem"}
+    },
+    "BatchGetSessionActionRequest":{
+      "type":"structure",
+      "required":["identifiers"],
+      "members":{
+        "identifiers":{
+          "shape":"BatchGetSessionActionIdentifiers",
+          "documentation":"<p>The list of session action identifiers to retrieve. You can specify up to 100 identifiers per request.</p>"
+        }
+      }
+    },
+    "BatchGetSessionActionResponse":{
+      "type":"structure",
+      "required":[
+        "sessionActions",
+        "errors"
+      ],
+      "members":{
+        "sessionActions":{
+          "shape":"BatchGetSessionActionItems",
+          "documentation":"<p>A list of session actions that were successfully retrieved.</p>"
+        },
+        "errors":{
+          "shape":"BatchGetSessionActionErrors",
+          "documentation":"<p>A list of errors for session actions that could not be retrieved.</p>"
+        }
+      }
+    },
+    "BatchGetSessionError":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "sessionId",
+        "code",
+        "message"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the session that could not be retrieved.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the session that could not be retrieved.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the session that could not be retrieved.</p>"
+        },
+        "sessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The session ID of the session that could not be retrieved.</p>"
+        },
+        "code":{
+          "shape":"BatchGetSessionErrorCode",
+          "documentation":"<p>The error code.</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>The error message.</p>"
+        }
+      },
+      "documentation":"<p>The error details for a session that could not be retrieved in a batch get operation.</p>"
+    },
+    "BatchGetSessionErrorCode":{
+      "type":"string",
+      "enum":[
+        "InternalServerErrorException",
+        "ResourceNotFoundException",
+        "ValidationException"
+      ]
+    },
+    "BatchGetSessionErrors":{
+      "type":"list",
+      "member":{"shape":"BatchGetSessionError"}
+    },
+    "BatchGetSessionIdentifier":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "sessionId"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the session.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the session.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the session.</p>"
+        },
+        "sessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The session ID.</p>"
+        }
+      },
+      "documentation":"<p>The identifiers for a session.</p>"
+    },
+    "BatchGetSessionIdentifiers":{
+      "type":"list",
+      "member":{"shape":"BatchGetSessionIdentifier"},
+      "max":100,
+      "min":1
+    },
+    "BatchGetSessionItem":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "sessionId",
+        "fleetId",
+        "workerId",
+        "startedAt",
+        "lifecycleStatus",
+        "log"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the session.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the session.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the session.</p>"
+        },
+        "sessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The session ID.</p>"
+        },
+        "fleetId":{
+          "shape":"FleetId",
+          "documentation":"<p>The fleet ID of the session.</p>"
+        },
+        "workerId":{
+          "shape":"WorkerId",
+          "documentation":"<p>The worker ID of the session.</p>"
+        },
+        "startedAt":{
+          "shape":"StartedAt",
+          "documentation":"<p>The date and time the resource started running.</p>"
+        },
+        "lifecycleStatus":{
+          "shape":"SessionLifecycleStatus",
+          "documentation":"<p>The life cycle status of the session.</p>"
+        },
+        "endedAt":{
+          "shape":"EndedAt",
+          "documentation":"<p>The date and time the resource ended running.</p>"
+        },
+        "targetLifecycleStatus":{
+          "shape":"SessionLifecycleTargetStatus",
+          "documentation":"<p>The target life cycle status for the session.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The date and time the resource was updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The user or system that updated this resource.</p>"
+        },
+        "log":{
+          "shape":"LogConfiguration",
+          "documentation":"<p>The session log.</p>"
+        },
+        "hostProperties":{
+          "shape":"HostPropertiesResponse",
+          "documentation":"<p>The host properties for the session.</p>"
+        },
+        "workerLog":{
+          "shape":"LogConfiguration",
+          "documentation":"<p>The worker log for the session.</p>"
+        }
+      },
+      "documentation":"<p>The details of a session returned in a batch get operation.</p>"
+    },
+    "BatchGetSessionItems":{
+      "type":"list",
+      "member":{"shape":"BatchGetSessionItem"}
+    },
+    "BatchGetSessionRequest":{
+      "type":"structure",
+      "required":["identifiers"],
+      "members":{
+        "identifiers":{
+          "shape":"BatchGetSessionIdentifiers",
+          "documentation":"<p>The list of session identifiers to retrieve. You can specify up to 100 identifiers per request.</p>"
+        }
+      }
+    },
+    "BatchGetSessionResponse":{
+      "type":"structure",
+      "required":[
+        "sessions",
+        "errors"
+      ],
+      "members":{
+        "sessions":{
+          "shape":"BatchGetSessionItems",
+          "documentation":"<p>A list of sessions that were successfully retrieved.</p>"
+        },
+        "errors":{
+          "shape":"BatchGetSessionErrors",
+          "documentation":"<p>A list of errors for sessions that could not be retrieved.</p>"
+        }
+      }
+    },
+    "BatchGetStepError":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "stepId",
+        "code",
+        "message"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the step that could not be retrieved.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the step that could not be retrieved.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the step that could not be retrieved.</p>"
+        },
+        "stepId":{
+          "shape":"StepId",
+          "documentation":"<p>The step ID of the step that could not be retrieved.</p>"
+        },
+        "code":{
+          "shape":"BatchGetStepErrorCode",
+          "documentation":"<p>The error code.</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>The error message.</p>"
+        }
+      },
+      "documentation":"<p>The error details for a step that could not be retrieved in a batch get operation.</p>"
+    },
+    "BatchGetStepErrorCode":{
+      "type":"string",
+      "enum":[
+        "InternalServerErrorException",
+        "ResourceNotFoundException",
+        "ValidationException",
+        "AccessDeniedException",
+        "ThrottlingException"
+      ]
+    },
+    "BatchGetStepErrors":{
+      "type":"list",
+      "member":{"shape":"BatchGetStepError"}
+    },
+    "BatchGetStepIdentifier":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "stepId"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the step.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the step.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the step.</p>"
+        },
+        "stepId":{
+          "shape":"StepId",
+          "documentation":"<p>The step ID.</p>"
+        }
+      },
+      "documentation":"<p>The identifiers for a step.</p>"
+    },
+    "BatchGetStepIdentifiers":{
+      "type":"list",
+      "member":{"shape":"BatchGetStepIdentifier"},
+      "max":100,
+      "min":1
+    },
+    "BatchGetStepItem":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "stepId",
+        "name",
+        "lifecycleStatus",
+        "taskRunStatus",
+        "taskRunStatusCounts",
+        "createdAt",
+        "createdBy"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the step.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the step.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the step.</p>"
+        },
+        "stepId":{
+          "shape":"StepId",
+          "documentation":"<p>The step ID.</p>"
+        },
+        "name":{
+          "shape":"StepName",
+          "documentation":"<p>The name of the step.</p>"
+        },
+        "lifecycleStatus":{
+          "shape":"StepLifecycleStatus",
+          "documentation":"<p>The life cycle status of the step.</p>"
+        },
+        "lifecycleStatusMessage":{
+          "shape":"String",
+          "documentation":"<p>A message that communicates the status of the life cycle.</p>"
+        },
+        "taskRunStatus":{
+          "shape":"TaskRunStatus",
+          "documentation":"<p>The task run status for the step.</p>"
+        },
+        "taskRunStatusCounts":{
+          "shape":"TaskRunStatusCounts",
+          "documentation":"<p>The number of tasks for each run status for the step.</p>"
+        },
+        "taskFailureRetryCount":{
+          "shape":"TaskFailureRetryCount",
+          "documentation":"<p>The number of times that tasks failed and were retried.</p>"
+        },
+        "targetTaskRunStatus":{
+          "shape":"StepTargetTaskRunStatus",
+          "documentation":"<p>The task status to start with on the step.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The date and time the resource was created.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The user or system that created this resource.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The date and time the resource was updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The user or system that updated this resource.</p>"
+        },
+        "startedAt":{
+          "shape":"StartedAt",
+          "documentation":"<p>The date and time the resource started running.</p>"
+        },
+        "endedAt":{
+          "shape":"EndedAt",
+          "documentation":"<p>The date and time the resource ended running.</p>"
+        },
+        "dependencyCounts":{
+          "shape":"DependencyCounts",
+          "documentation":"<p>The number of dependencies for the step.</p>"
+        },
+        "requiredCapabilities":{
+          "shape":"StepRequiredCapabilities",
+          "documentation":"<p>The required capabilities for the step.</p>"
+        },
+        "parameterSpace":{
+          "shape":"ParameterSpace",
+          "documentation":"<p>The parameter space for the step.</p>"
+        },
+        "description":{
+          "shape":"StepDescription",
+          "documentation":"<p>The description of the step.</p>"
+        }
+      },
+      "documentation":"<p>The details of a step returned in a batch get operation.</p>"
+    },
+    "BatchGetStepItems":{
+      "type":"list",
+      "member":{"shape":"BatchGetStepItem"}
+    },
+    "BatchGetStepRequest":{
+      "type":"structure",
+      "required":["identifiers"],
+      "members":{
+        "identifiers":{
+          "shape":"BatchGetStepIdentifiers",
+          "documentation":"<p>The list of step identifiers to retrieve. You can specify up to 100 identifiers per request.</p>"
+        }
+      }
+    },
+    "BatchGetStepResponse":{
+      "type":"structure",
+      "required":[
+        "steps",
+        "errors"
+      ],
+      "members":{
+        "steps":{
+          "shape":"BatchGetStepItems",
+          "documentation":"<p>A list of steps that were successfully retrieved.</p>"
+        },
+        "errors":{
+          "shape":"BatchGetStepErrors",
+          "documentation":"<p>A list of errors for steps that could not be retrieved.</p>"
+        }
+      }
+    },
+    "BatchGetTaskError":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "stepId",
+        "taskId",
+        "code",
+        "message"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the task that could not be retrieved.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the task that could not be retrieved.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the task that could not be retrieved.</p>"
+        },
+        "stepId":{
+          "shape":"StepId",
+          "documentation":"<p>The step ID of the task that could not be retrieved.</p>"
+        },
+        "taskId":{
+          "shape":"TaskId",
+          "documentation":"<p>The task ID of the task that could not be retrieved.</p>"
+        },
+        "code":{
+          "shape":"BatchGetTaskErrorCode",
+          "documentation":"<p>The error code.</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>The error message.</p>"
+        }
+      },
+      "documentation":"<p>The error details for a task that could not be retrieved in a batch get operation.</p>"
+    },
+    "BatchGetTaskErrorCode":{
+      "type":"string",
+      "enum":[
+        "InternalServerErrorException",
+        "ResourceNotFoundException",
+        "ValidationException",
+        "AccessDeniedException",
+        "ThrottlingException"
+      ]
+    },
+    "BatchGetTaskErrors":{
+      "type":"list",
+      "member":{"shape":"BatchGetTaskError"}
+    },
+    "BatchGetTaskIdentifier":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "stepId",
+        "taskId"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the task.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the task.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the task.</p>"
+        },
+        "stepId":{
+          "shape":"StepId",
+          "documentation":"<p>The step ID of the task.</p>"
+        },
+        "taskId":{
+          "shape":"TaskId",
+          "documentation":"<p>The task ID.</p>"
+        }
+      },
+      "documentation":"<p>The identifiers for a task.</p>"
+    },
+    "BatchGetTaskIdentifiers":{
+      "type":"list",
+      "member":{"shape":"BatchGetTaskIdentifier"},
+      "max":100,
+      "min":1
+    },
+    "BatchGetTaskItem":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "stepId",
+        "taskId",
+        "createdAt",
+        "createdBy",
+        "runStatus"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the task.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the task.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the task.</p>"
+        },
+        "stepId":{
+          "shape":"StepId",
+          "documentation":"<p>The step ID of the task.</p>"
+        },
+        "taskId":{
+          "shape":"TaskId",
+          "documentation":"<p>The task ID.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The date and time the resource was created.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The user or system that created this resource.</p>"
+        },
+        "runStatus":{
+          "shape":"TaskRunStatus",
+          "documentation":"<p>The run status of the task.</p>"
+        },
+        "targetRunStatus":{
+          "shape":"TaskTargetRunStatus",
+          "documentation":"<p>The run status with which to start the task.</p>"
+        },
+        "failureRetryCount":{
+          "shape":"TaskRetryCount",
+          "documentation":"<p>The number of times the task failed and was retried.</p>"
+        },
+        "startedAt":{
+          "shape":"StartedAt",
+          "documentation":"<p>The date and time the resource started running.</p>"
+        },
+        "endedAt":{
+          "shape":"EndedAt",
+          "documentation":"<p>The date and time the resource ended running.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The date and time the resource was updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The user or system that updated this resource.</p>"
+        },
+        "latestSessionActionId":{
+          "shape":"SessionActionId",
+          "documentation":"<p>The latest session action for the task.</p>"
+        },
+        "parameters":{
+          "shape":"TaskParameters",
+          "documentation":"<p>The parameters for the task.</p>"
+        }
+      },
+      "documentation":"<p>The details of a task returned in a batch get operation.</p>"
+    },
+    "BatchGetTaskItems":{
+      "type":"list",
+      "member":{"shape":"BatchGetTaskItem"}
+    },
+    "BatchGetTaskRequest":{
+      "type":"structure",
+      "required":["identifiers"],
+      "members":{
+        "identifiers":{
+          "shape":"BatchGetTaskIdentifiers",
+          "documentation":"<p>The list of task identifiers to retrieve. You can specify up to 100 identifiers per request.</p>"
+        }
+      }
+    },
+    "BatchGetTaskResponse":{
+      "type":"structure",
+      "required":[
+        "tasks",
+        "errors"
+      ],
+      "members":{
+        "tasks":{
+          "shape":"BatchGetTaskItems",
+          "documentation":"<p>A list of tasks that were successfully retrieved.</p>"
+        },
+        "errors":{
+          "shape":"BatchGetTaskErrors",
+          "documentation":"<p>A list of errors for tasks that could not be retrieved.</p>"
+        }
+      }
+    },
+    "BatchGetWorkerError":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "fleetId",
+        "workerId",
+        "code",
+        "message"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the worker that could not be retrieved.</p>"
+        },
+        "fleetId":{
+          "shape":"FleetId",
+          "documentation":"<p>The fleet ID of the worker that could not be retrieved.</p>"
+        },
+        "workerId":{
+          "shape":"WorkerId",
+          "documentation":"<p>The worker ID of the worker that could not be retrieved.</p>"
+        },
+        "code":{
+          "shape":"BatchGetWorkerErrorCode",
+          "documentation":"<p>The error code.</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>The error message.</p>"
+        }
+      },
+      "documentation":"<p>The error details for a worker that could not be retrieved in a batch get operation.</p>"
+    },
+    "BatchGetWorkerErrorCode":{
+      "type":"string",
+      "enum":[
+        "InternalServerErrorException",
+        "ResourceNotFoundException",
+        "ValidationException"
+      ]
+    },
+    "BatchGetWorkerErrors":{
+      "type":"list",
+      "member":{"shape":"BatchGetWorkerError"}
+    },
+    "BatchGetWorkerIdentifier":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "fleetId",
+        "workerId"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the worker.</p>"
+        },
+        "fleetId":{
+          "shape":"FleetId",
+          "documentation":"<p>The fleet ID of the worker.</p>"
+        },
+        "workerId":{
+          "shape":"WorkerId",
+          "documentation":"<p>The worker ID.</p>"
+        }
+      },
+      "documentation":"<p>The identifiers for a worker.</p>"
+    },
+    "BatchGetWorkerIdentifiers":{
+      "type":"list",
+      "member":{"shape":"BatchGetWorkerIdentifier"},
+      "max":100,
+      "min":1
+    },
+    "BatchGetWorkerItem":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "fleetId",
+        "workerId",
+        "status",
+        "createdAt",
+        "createdBy"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the worker.</p>"
+        },
+        "fleetId":{
+          "shape":"FleetId",
+          "documentation":"<p>The fleet ID of the worker.</p>"
+        },
+        "workerId":{
+          "shape":"WorkerId",
+          "documentation":"<p>The worker ID.</p>"
+        },
+        "hostProperties":{
+          "shape":"HostPropertiesResponse",
+          "documentation":"<p>The host properties for the worker.</p>"
+        },
+        "status":{
+          "shape":"WorkerStatus",
+          "documentation":"<p>The status of the worker.</p>"
+        },
+        "log":{
+          "shape":"LogConfiguration",
+          "documentation":"<p>The log configuration for the worker.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The date and time the resource was created.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The user or system that created this resource.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The date and time the resource was updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The user or system that updated this resource.</p>"
+        }
+      },
+      "documentation":"<p>The details of a worker returned in a batch get operation.</p>"
+    },
+    "BatchGetWorkerItems":{
+      "type":"list",
+      "member":{"shape":"BatchGetWorkerItem"}
+    },
+    "BatchGetWorkerRequest":{
+      "type":"structure",
+      "required":["identifiers"],
+      "members":{
+        "identifiers":{
+          "shape":"BatchGetWorkerIdentifiers",
+          "documentation":"<p>The list of worker identifiers to retrieve. You can specify up to 100 identifiers per request.</p>"
+        }
+      }
+    },
+    "BatchGetWorkerResponse":{
+      "type":"structure",
+      "required":[
+        "workers",
+        "errors"
+      ],
+      "members":{
+        "workers":{
+          "shape":"BatchGetWorkerItems",
+          "documentation":"<p>A list of workers that were successfully retrieved.</p>"
+        },
+        "errors":{
+          "shape":"BatchGetWorkerErrors",
+          "documentation":"<p>A list of errors for workers that could not be retrieved.</p>"
+        }
+      }
+    },
+    "BatchUpdateJobError":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "code",
+        "message"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the job that could not be updated.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the job that could not be updated.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the job that could not be updated.</p>"
+        },
+        "code":{
+          "shape":"BatchUpdateJobErrorCode",
+          "documentation":"<p>The error code.</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>The error message.</p>"
+        }
+      },
+      "documentation":"<p>The error details for a job that could not be updated in a batch update operation.</p>"
+    },
+    "BatchUpdateJobErrorCode":{
+      "type":"string",
+      "enum":[
+        "ConflictException",
+        "InternalServerErrorException",
+        "ResourceNotFoundException",
+        "ValidationException",
+        "AccessDeniedException",
+        "ThrottlingException"
+      ]
+    },
+    "BatchUpdateJobErrors":{
+      "type":"list",
+      "member":{"shape":"BatchUpdateJobError"}
+    },
+    "BatchUpdateJobItem":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the job to update.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the job to update.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the job to update.</p>"
+        },
+        "targetTaskRunStatus":{
+          "shape":"JobTargetTaskRunStatus",
+          "documentation":"<p>The task status to update the job's tasks to.</p>"
+        },
+        "priority":{
+          "shape":"JobPriority",
+          "documentation":"<p>The job priority to update.</p>"
+        },
+        "maxFailedTasksCount":{
+          "shape":"MaxFailedTasksCount",
+          "documentation":"<p>The number of task failures before the job stops running and is marked as <code>FAILED</code>.</p>"
+        },
+        "maxRetriesPerTask":{
+          "shape":"MaxRetriesPerTask",
+          "documentation":"<p>The maximum number of retries per failed tasks.</p>"
+        },
+        "lifecycleStatus":{
+          "shape":"UpdateJobLifecycleStatus",
+          "documentation":"<p>The status of a job in its lifecycle. When you change the status of the job to <code>ARCHIVED</code>, the job can't be scheduled or archived.</p> <important> <p>An archived job and its steps and tasks are deleted after 120 days. The job can't be recovered.</p> </important>"
+        },
+        "maxWorkerCount":{
+          "shape":"MaxWorkerCount",
+          "documentation":"<p>The maximum number of worker hosts that can concurrently process a job.</p>"
+        },
+        "name":{
+          "shape":"JobName",
+          "documentation":"<p>The name of the job to update.</p>"
+        },
+        "description":{
+          "shape":"JobDescriptionOverride",
+          "documentation":"<p>The description of the job to update.</p>"
+        }
+      },
+      "documentation":"<p>The details of a job to update in a batch update operation.</p>"
+    },
+    "BatchUpdateJobItems":{
+      "type":"list",
+      "member":{"shape":"BatchUpdateJobItem"},
+      "max":100,
+      "min":1
+    },
+    "BatchUpdateJobRequest":{
+      "type":"structure",
+      "required":["jobs"],
+      "members":{
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>The unique token which the server uses to recognize retries of the same request.</p>",
+          "idempotencyToken":true,
+          "location":"header",
+          "locationName":"X-Amz-Client-Token"
+        },
+        "jobs":{
+          "shape":"BatchUpdateJobItems",
+          "documentation":"<p>The list of jobs to update. You can specify up to 100 jobs per request.</p>"
+        }
+      }
+    },
+    "BatchUpdateJobResponse":{
+      "type":"structure",
+      "required":["errors"],
+      "members":{
+        "errors":{
+          "shape":"BatchUpdateJobErrors",
+          "documentation":"<p>A list of errors for jobs that could not be updated.</p>"
+        }
+      }
+    },
+    "BatchUpdateTaskError":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "stepId",
+        "taskId",
+        "code",
+        "message"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the task that could not be updated.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the task that could not be updated.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the task that could not be updated.</p>"
+        },
+        "stepId":{
+          "shape":"StepId",
+          "documentation":"<p>The step ID of the task that could not be updated.</p>"
+        },
+        "taskId":{
+          "shape":"TaskId",
+          "documentation":"<p>The task ID of the task that could not be updated.</p>"
+        },
+        "code":{
+          "shape":"BatchUpdateTaskErrorCode",
+          "documentation":"<p>The error code.</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>The error message.</p>"
+        }
+      },
+      "documentation":"<p>The error details for a task that could not be updated in a batch update operation.</p>"
+    },
+    "BatchUpdateTaskErrorCode":{
+      "type":"string",
+      "enum":[
+        "ConflictException",
+        "InternalServerErrorException",
+        "ResourceNotFoundException",
+        "ValidationException",
+        "AccessDeniedException",
+        "ThrottlingException"
+      ]
+    },
+    "BatchUpdateTaskErrors":{
+      "type":"list",
+      "member":{"shape":"BatchUpdateTaskError"}
+    },
+    "BatchUpdateTaskItem":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "queueId",
+        "jobId",
+        "stepId",
+        "taskId",
+        "targetRunStatus"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the task to update.</p>"
+        },
+        "queueId":{
+          "shape":"QueueId",
+          "documentation":"<p>The queue ID of the task to update.</p>"
+        },
+        "jobId":{
+          "shape":"JobId",
+          "documentation":"<p>The job ID of the task to update.</p>"
+        },
+        "stepId":{
+          "shape":"StepId",
+          "documentation":"<p>The step ID of the task to update.</p>"
+        },
+        "taskId":{
+          "shape":"TaskId",
+          "documentation":"<p>The task ID of the task to update.</p>"
+        },
+        "targetRunStatus":{
+          "shape":"TaskTargetRunStatus",
+          "documentation":"<p>The run status with which to start the task.</p>"
+        }
+      },
+      "documentation":"<p>The details of a task to update in a batch update operation.</p>"
+    },
+    "BatchUpdateTaskItems":{
+      "type":"list",
+      "member":{"shape":"BatchUpdateTaskItem"},
+      "max":100,
+      "min":1
+    },
+    "BatchUpdateTaskRequest":{
+      "type":"structure",
+      "required":["tasks"],
+      "members":{
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>The unique token which the server uses to recognize retries of the same request.</p>",
+          "idempotencyToken":true,
+          "location":"header",
+          "locationName":"X-Amz-Client-Token"
+        },
+        "tasks":{
+          "shape":"BatchUpdateTaskItems",
+          "documentation":"<p>The list of tasks to update. You can specify up to 100 tasks per request.</p>"
+        }
+      }
+    },
+    "BatchUpdateTaskResponse":{
+      "type":"structure",
+      "required":["errors"],
+      "members":{
+        "errors":{
+          "shape":"BatchUpdateTaskErrors",
+          "documentation":"<p>A list of errors for tasks that could not be updated.</p>"
+        }
+      }
+    },
+    "BooleanString":{
+      "type":"string",
+      "max":5,
+      "min":1,
+      "pattern":"([Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee]|[Yy][Ee][Ss]|[Nn][Oo]|[Oo][Nn]|[Oo][Ff][Ff]|[01])"
+    },
+    "BooleanStringList":{
+      "type":"list",
+      "member":{"shape":"BooleanString"},
+      "max":512,
+      "min":0
+    },
     "BoundedString":{
       "type":"string",
       "max":64,
@@ -3199,7 +4954,7 @@
         },
         "status":{
           "shape":"BudgetStatus",
-          "documentation":"<p>The status of the budget.</p> <ul> <li> <p> <code>ACTIVE</code>–The budget is being evaluated.</p> </li> <li> <p> <code>INACTIVE</code>–The budget is inactive. This can include Expired, Canceled, or deleted Deleted statuses.</p> </li> </ul>"
+          "documentation":"<p>The status of the budget.</p> <ul> <li> <p> <code>ACTIVE</code> - The budget is being evaluated.</p> </li> <li> <p> <code>INACTIVE</code> - The budget is inactive. This can include Expired, Canceled, or deleted Deleted statuses.</p> </li> </ul>"
         },
         "displayName":{
           "shape":"ResourceName",
@@ -3381,7 +5136,6 @@
     },
     "CostScaleFactor":{
       "type":"float",
-      "documentation":"<p>A multiplier applied to calculated costs. Valid range is 0 to 100. Values less than 1.0 represent discounts, values greater than 1.0 represent markups, and a value of 1.0 represents no adjustment.</p>",
       "box":true,
       "max":100,
       "min":0
@@ -3445,8 +5199,7 @@
           "shape":"Tags",
           "documentation":"<p>Each tag consists of a tag key and a tag value. Tag keys and values are both required, but tag values can be empty strings.</p>"
         }
-      },
-      "documentation":"<p>Shared displayName + description for Create operations where both are present. displayName is @required here - this mixin is Create-only by design (Update has optional displayName).</p>"
+      }
     },
     "CreateBudgetResponse":{
       "type":"structure",
@@ -3456,8 +5209,7 @@
           "shape":"BudgetId",
           "documentation":"<p>The budget ID.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "CreateFarmRequest":{
       "type":"structure",
@@ -3490,8 +5242,7 @@
           "shape":"Tags",
           "documentation":"<p>The tags to add to your farm. Each tag consists of a tag key and a tag value. Tag keys and values are both required, but tag values can be empty strings.</p>"
         }
-      },
-      "documentation":"<p>Shared displayName + description for Create operations where both are present. displayName is @required here - this mixin is Create-only by design (Update has optional displayName).</p>"
+      }
     },
     "CreateFarmResponse":{
       "type":"structure",
@@ -3501,8 +5252,7 @@
           "shape":"FarmId",
           "documentation":"<p>The farm ID.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "CreateFleetRequest":{
       "type":"structure",
@@ -3559,8 +5309,7 @@
           "shape":"HostConfiguration",
           "documentation":"<p>Provides a script that runs as a worker is starting up that you can use to provide additional configuration for workers in your fleet.</p>"
         }
-      },
-      "documentation":"<p>Shared displayName + description for Create operations where both are present. displayName is @required here - this mixin is Create-only by design (Update has optional displayName).</p>"
+      }
     },
     "CreateFleetResponse":{
       "type":"structure",
@@ -3570,8 +5319,7 @@
           "shape":"FleetId",
           "documentation":"<p>The fleet ID.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "CreateJobRequest":{
       "type":"structure",
@@ -3666,8 +5414,7 @@
           "shape":"JobId",
           "documentation":"<p>The job ID.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "CreateJobTargetTaskRunStatus":{
       "type":"string",
@@ -3729,8 +5476,7 @@
           "shape":"LicenseEndpointId",
           "documentation":"<p>The license endpoint ID.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "CreateLimitRequest":{
       "type":"structure",
@@ -3806,6 +5552,10 @@
           "shape":"IdentityCenterInstanceArn",
           "documentation":"<p>The Amazon Resource Name of the IAM Identity Center instance that authenticates monitor users.</p>"
         },
+        "identityCenterRegion":{
+          "shape":"Region",
+          "documentation":"<p>The Region where IAM Identity Center is enabled. Required when IAM Identity Center is in a different Region than the monitor.</p>"
+        },
         "subdomain":{
           "shape":"Subdomain",
           "documentation":"<p>The subdomain to use when creating the monitor URL. The full URL of the monitor is subdomain.Region.deadlinecloud.amazonaws.com.</p>"
@@ -3835,8 +5585,7 @@
           "shape":"IdentityCenterApplicationArn",
           "documentation":"<p>The Amazon Resource Name that IAM Identity Center assigns to the monitor.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "CreateQueueEnvironmentRequest":{
       "type":"structure",
@@ -4002,9 +5751,12 @@
         "tags":{
           "shape":"Tags",
           "documentation":"<p>Each tag consists of a tag key and a tag value. Tag keys and values are both required, but tag values can be empty strings.</p>"
+        },
+        "schedulingConfiguration":{
+          "shape":"SchedulingConfiguration",
+          "documentation":"<p>The scheduling configuration for the queue. This configuration determines how workers are assigned to jobs in the queue.</p> <p>If not specified, the queue defaults to the <code>priorityFifo</code> scheduling configuration.</p>"
         }
-      },
-      "documentation":"<p>Shared displayName + description for Create operations where both are present. displayName is @required here - this mixin is Create-only by design (Update has optional displayName).</p>"
+      }
     },
     "CreateQueueResponse":{
       "type":"structure",
@@ -4014,8 +5766,7 @@
           "shape":"QueueId",
           "documentation":"<p>The queue ID.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "CreateStorageProfileRequest":{
       "type":"structure",
@@ -4106,8 +5857,7 @@
           "shape":"WorkerId",
           "documentation":"<p>The worker ID.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "CreatedAt":{
       "type":"timestamp",
@@ -4131,18 +5881,18 @@
       "members":{
         "standbyWorkerCount":{
           "shape":"MinZeroMaxInteger",
-          "documentation":"<p>The number of standby workers to maintain for the fleet.</p>"
+          "documentation":"<p>The number of idle workers maintained and ready to process incoming tasks. The default is 0.</p>"
         },
         "workerIdleDurationSeconds":{
           "shape":"MinZeroMaxInteger",
-          "documentation":"<p>The duration in seconds that a worker can be idle before it is scaled down.</p>"
+          "documentation":"<p>The number of seconds that a worker can remain idle before it is shut down. The default is 300 seconds (5 minutes).</p>"
         },
         "scaleOutWorkersPerMinute":{
           "shape":"MinOneMaxInteger",
-          "documentation":"<p>The number of workers that can be scaled out per minute.</p>"
+          "documentation":"<p>The number of workers that can be added per minute to the fleet. The default is 10 workers per minute.</p>"
         }
       },
-      "documentation":"<p>The auto scaling configuration options for a customer managed fleet.</p>"
+      "documentation":"<p>The auto scaling configuration settings for a customer managed fleet.</p>"
     },
     "CustomerManagedFleetConfiguration":{
       "type":"structure",
@@ -4157,7 +5907,7 @@
         },
         "autoScalingConfiguration":{
           "shape":"CustomerManagedAutoScalingConfiguration",
-          "documentation":"<p>The auto scaling configuration options for the customer managed fleet.</p>"
+          "documentation":"<p>The auto scaling configuration settings for the customer managed fleet.</p>"
         },
         "workerCapabilities":{
           "shape":"CustomerManagedWorkerCapabilities",
@@ -4244,14 +5994,14 @@
         },
         "operator":{
           "shape":"ComparisonOperator",
-          "documentation":"<p>The type of comparison to use to filter the results.</p>"
+          "documentation":"<p>The type of comparison to use to filter the results. <code>NOT_EQUAL</code>, <code>ANY_EQUALS</code>, and <code>ALL_NOT_EQUALS</code> aren't supported.</p>"
         },
         "dateTime":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The date and time.</p>"
         }
       },
-      "documentation":"<p>The time stamp in date-time format.</p>"
+      "documentation":"<p>The timestamp in date-time format.</p>"
     },
     "DefaultQueueBudgetAction":{
       "type":"string",
@@ -4480,8 +6230,7 @@
           "location":"uri",
           "locationName":"fleetId"
         }
-      },
-      "documentation":"<p>Identifier mixin for queue-fleet association operations. Composes QueueIdentifierMixin (farmId + queueId) and adds fleetId.</p>"
+      }
     },
     "DeleteQueueFleetAssociationResponse":{
       "type":"structure",
@@ -4566,6 +6315,38 @@
       }
     },
     "DeleteStorageProfileResponse":{
+      "type":"structure",
+      "members":{}
+    },
+    "DeleteVolumeRequest":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "fleetId",
+        "volumeId"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the farm that contains the fleet.</p>",
+          "location":"uri",
+          "locationName":"farmId"
+        },
+        "fleetId":{
+          "shape":"FleetId",
+          "documentation":"<p>The fleet ID of the fleet that contains the volume.</p>",
+          "location":"uri",
+          "locationName":"fleetId"
+        },
+        "volumeId":{
+          "shape":"VolumeId",
+          "documentation":"<p>The volume ID of the volume to delete.</p>",
+          "location":"uri",
+          "locationName":"volumeId"
+        }
+      }
+    },
+    "DeleteVolumeResponse":{
       "type":"structure",
       "members":{}
     },
@@ -4801,6 +6582,11 @@
       "max":1000,
       "min":125
     },
+    "EbsVolumeType":{
+      "type":"string",
+      "documentation":"<p>The EBS volume type.</p>",
+      "enum":["gp3"]
+    },
     "Ec2EbsVolume":{
       "type":"structure",
       "members":{
@@ -4859,6 +6645,14 @@
         "template":{
           "shape":"Document",
           "documentation":"<p>The template used for the environment.</p>"
+        },
+        "extensions":{
+          "shape":"OpenjdExtensionNameList",
+          "documentation":"<p>The Open Job Description extensions that the environment uses. This value is used by the worker agent.</p>"
+        },
+        "resolvedSymbolTable":{
+          "shape":"SerializedSymbolTable",
+          "documentation":"<p>The resolved symbol table for the environment's expressions, serialized as JSON. This value is used by the worker agent.</p>"
         }
       },
       "documentation":"<p>The details of a specified environment.</p>"
@@ -5269,6 +7063,27 @@
       "type":"list",
       "member":{"shape":"FleetMember"}
     },
+    "FleetSoftwareAddOn":{
+      "type":"structure",
+      "required":["name"],
+      "members":{
+        "name":{
+          "shape":"FleetSoftwareAddOnName",
+          "documentation":"<p>The name of the software add-on. The supported value is <code>docker</code>.</p>"
+        }
+      },
+      "documentation":"<p>Software that the service installs on worker hosts in a service-managed fleet.</p>"
+    },
+    "FleetSoftwareAddOnName":{
+      "type":"string",
+      "enum":["docker"]
+    },
+    "FleetSoftwareAddOns":{
+      "type":"list",
+      "member":{"shape":"FleetSoftwareAddOn"},
+      "max":10,
+      "min":0
+    },
     "FleetStatus":{
       "type":"string",
       "enum":[
@@ -5372,6 +7187,12 @@
       "min":1,
       "pattern":"[-]?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)?"
     },
+    "FloatStringList":{
+      "type":"list",
+      "member":{"shape":"FloatString"},
+      "max":512,
+      "min":0
+    },
     "GetBudgetRequest":{
       "type":"structure",
       "required":[
@@ -5418,7 +7239,7 @@
         },
         "status":{
           "shape":"BudgetStatus",
-          "documentation":"<p>The status of the budget.</p> <ul> <li> <p> <code>ACTIVE</code>–Get a budget being evaluated.</p> </li> <li> <p> <code>INACTIVE</code>–Get an inactive budget. This can include expired, canceled, or deleted statuses.</p> </li> </ul>"
+          "documentation":"<p>The status of the budget.</p> <ul> <li> <p> <code>ACTIVE</code> - Get a budget being evaluated.</p> </li> <li> <p> <code>INACTIVE</code> - Get an inactive budget. This can include expired, canceled, or deleted statuses.</p> </li> </ul>"
         },
         "displayName":{
           "shape":"ResourceName",
@@ -5464,8 +7285,7 @@
           "shape":"UpdatedAt",
           "documentation":"<p>The date and time the queue stopped.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "GetFarmRequest":{
       "type":"structure",
@@ -5525,8 +7345,7 @@
           "shape":"CostScaleFactor",
           "documentation":"<p>A multiplier applied to the farm's calculated costs for usage data and budget tracking. A value less than 1 represents a discount, a value greater than 1 represents a premium, and a value of 1 represents no adjustment.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "GetFleetRequest":{
       "type":"structure",
@@ -5641,8 +7460,7 @@
           "shape":"IamRoleArn",
           "documentation":"<p>The IAM role ARN.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "GetJobEntityError":{
       "type":"structure",
@@ -5737,7 +7555,7 @@
         },
         "updatedAt":{
           "shape":"UpdatedAt",
-          "documentation":"<p>The date and time the resource was updated.</p>"
+          "documentation":"<p>The date and time the resource was updated. Task status changes don't update this value.</p>"
         },
         "updatedBy":{
           "shape":"UpdatedBy",
@@ -5745,11 +7563,11 @@
         },
         "startedAt":{
           "shape":"StartedAt",
-          "documentation":"<p>The date and time the resource started running.</p>"
+          "documentation":"<p>The date and time the resource started running. Requeuing the job doesn't change this value.</p>"
         },
         "endedAt":{
           "shape":"EndedAt",
-          "documentation":"<p>The date and time the resource ended running.</p>"
+          "documentation":"<p>The date and time the resource ended running. Returned only when the job has finished.</p>"
         },
         "taskRunStatus":{
           "shape":"TaskRunStatus",
@@ -5799,8 +7617,7 @@
           "shape":"JobId",
           "documentation":"<p>The job ID for the source job.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "GetLicenseEndpointRequest":{
       "type":"structure",
@@ -5850,8 +7667,7 @@
           "shape":"GetLicenseEndpointResponseSecurityGroupIdsList",
           "documentation":"<p>The security group IDs for the license endpoint.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "GetLicenseEndpointResponseSecurityGroupIdsList":{
       "type":"list",
@@ -5943,8 +7759,7 @@
           "shape":"Description",
           "documentation":"<p>The description of the limit that helps identify what the limit is used for.</p> <important> <p>This field can store any content. Escape or encode this content before displaying it on a webpage or any other system that might interpret the content of this field.</p> </important>"
         }
-      },
-      "documentation":"<p>Domain fields for Limit summary/response shapes, ordered before timestamps.</p>"
+      }
     },
     "GetMonitorRequest":{
       "type":"structure",
@@ -5996,6 +7811,10 @@
           "shape":"IdentityCenterInstanceArn",
           "documentation":"<p>The Amazon Resource Name of the IAM Identity Center instance responsible for authenticating monitor users.</p>"
         },
+        "identityCenterRegion":{
+          "shape":"Region",
+          "documentation":"<p>The Region where IAM Identity Center is enabled.</p>"
+        },
         "identityCenterApplicationArn":{
           "shape":"IdentityCenterApplicationArn",
           "documentation":"<p>The Amazon Resource Name that the IAM Identity Center assigned to the monitor when it was created.</p>"
@@ -6016,8 +7835,29 @@
           "shape":"UpdatedBy",
           "documentation":"<p>The user name of the person that last updated the monitor.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
+    },
+    "GetMonitorSettingsRequest":{
+      "type":"structure",
+      "required":["monitorId"],
+      "members":{
+        "monitorId":{
+          "shape":"MonitorId",
+          "documentation":"<p>The unique identifier of the monitor. This ID is returned by the <code>CreateMonitor</code> operation, and is included in the response to the <code>ListMonitors</code> operation.</p>",
+          "location":"uri",
+          "locationName":"monitorId"
+        }
+      }
+    },
+    "GetMonitorSettingsResponse":{
+      "type":"structure",
+      "required":["settings"],
+      "members":{
+        "settings":{
+          "shape":"SettingsMap",
+          "documentation":"<p>The monitor settings as key-value pairs.</p>"
+        }
+      }
     },
     "GetQueueEnvironmentRequest":{
       "type":"structure",
@@ -6123,8 +7963,7 @@
           "location":"uri",
           "locationName":"fleetId"
         }
-      },
-      "documentation":"<p>Identifier mixin for queue-fleet association operations. Composes QueueIdentifierMixin (farmId + queueId) and adds fleetId.</p>"
+      }
     },
     "GetQueueFleetAssociationResponse":{
       "type":"structure",
@@ -6164,8 +8003,7 @@
           "shape":"UpdatedBy",
           "documentation":"<p>The user or system that updated this resource.</p>"
         }
-      },
-      "documentation":"<p>Domain fields for QueueFleetAssociation summary/response shapes, ordered before timestamps.</p>"
+      }
     },
     "GetQueueLimitAssociationRequest":{
       "type":"structure",
@@ -6233,8 +8071,7 @@
           "shape":"UpdatedBy",
           "documentation":"<p>The user identifier of the person that last updated the association.</p>"
         }
-      },
-      "documentation":"<p>Domain fields for QueueLimitAssociation summary/response shapes, ordered before timestamps.</p>"
+      }
     },
     "GetQueueRequest":{
       "type":"structure",
@@ -6283,7 +8120,7 @@
         },
         "status":{
           "shape":"QueueStatus",
-          "documentation":"<p>The status of the queue.</p> <ul> <li> <p> <code>ACTIVE</code>–The queue is active.</p> </li> <li> <p> <code>SCHEDULING</code>–The queue is scheduling.</p> </li> <li> <p> <code>SCHEDULING_BLOCKED</code>–The queue scheduling is blocked. See the provided reason.</p> </li> </ul>"
+          "documentation":"<p>The status of the queue.</p> <ul> <li> <p> <code>ACTIVE</code> - The queue is active.</p> </li> <li> <p> <code>SCHEDULING</code> - The queue is scheduling.</p> </li> <li> <p> <code>SCHEDULING_BLOCKED</code> - The queue scheduling is blocked. See the provided reason.</p> </li> </ul>"
         },
         "defaultBudgetAction":{
           "shape":"DefaultQueueBudgetAction",
@@ -6332,9 +8169,12 @@
         "jobRunAsUser":{
           "shape":"JobRunAsUser",
           "documentation":"<p>The jobs in the queue ran as this specified POSIX user.</p>"
+        },
+        "schedulingConfiguration":{
+          "shape":"SchedulingConfiguration",
+          "documentation":"<p>The scheduling configuration for the queue. This configuration determines how workers are assigned to jobs in the queue.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "GetSessionActionRequest":{
       "type":"structure",
@@ -6524,8 +8364,7 @@
           "shape":"LogConfiguration",
           "documentation":"<p>The worker log for the session.</p>"
         }
-      },
-      "documentation":"<p>Session lifecycle/status fields, ordered after IDs in session shapes.</p>"
+      }
     },
     "GetSessionsStatisticsAggregationRequest":{
       "type":"structure",
@@ -6558,8 +8397,7 @@
           "location":"querystring",
           "locationName":"aggregationId"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "GetSessionsStatisticsAggregationResponse":{
       "type":"structure",
@@ -6581,8 +8419,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "GetStepRequest":{
       "type":"structure",
@@ -6925,6 +8762,105 @@
         }
       }
     },
+    "GetVolumeRequest":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "fleetId",
+        "volumeId"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the farm that contains the fleet.</p>",
+          "location":"uri",
+          "locationName":"farmId"
+        },
+        "fleetId":{
+          "shape":"FleetId",
+          "documentation":"<p>The fleet ID of the fleet that contains the volume.</p>",
+          "location":"uri",
+          "locationName":"fleetId"
+        },
+        "volumeId":{
+          "shape":"VolumeId",
+          "documentation":"<p>The volume ID of the volume to retrieve.</p>",
+          "location":"uri",
+          "locationName":"volumeId"
+        }
+      }
+    },
+    "GetVolumeResponse":{
+      "type":"structure",
+      "required":[
+        "volumeId",
+        "farmId",
+        "fleetId",
+        "state",
+        "sizeGiB",
+        "availabilityZoneId",
+        "volumeType",
+        "createdAt"
+      ],
+      "members":{
+        "volumeId":{
+          "shape":"VolumeId",
+          "documentation":"<p>The volume ID.</p>"
+        },
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the farm that contains the fleet.</p>"
+        },
+        "fleetId":{
+          "shape":"FleetId",
+          "documentation":"<p>The fleet ID of the fleet that contains the volume.</p>"
+        },
+        "state":{
+          "shape":"VolumeState",
+          "documentation":"<p>The state of the volume.</p>"
+        },
+        "sizeGiB":{
+          "shape":"PersistentVolumeSizeGiB",
+          "documentation":"<p>The volume size in GiB.</p>"
+        },
+        "availabilityZoneId":{
+          "shape":"String",
+          "documentation":"<p>The Availability Zone ID of the volume.</p>"
+        },
+        "attachedWorkerId":{
+          "shape":"WorkerId",
+          "documentation":"<p>The worker ID of the worker the volume is attached to.</p>"
+        },
+        "volumeType":{
+          "shape":"EbsVolumeType",
+          "documentation":"<p>The EBS volume type.</p>"
+        },
+        "iops":{
+          "shape":"PersistentVolumeIops",
+          "documentation":"<p>The IOPS of the volume.</p>"
+        },
+        "throughputMiB":{
+          "shape":"PersistentVolumeThroughputMiB",
+          "documentation":"<p>The throughput of the volume in MiB.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The date and time the resource was created.</p>"
+        },
+        "lastAssignedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time the volume was last assigned to a worker.</p>"
+        },
+        "lastReleasedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time the volume was last released from a worker.</p>"
+        },
+        "expiresAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time the volume expires and will be deleted.</p>"
+        }
+      }
+    },
     "GetWorkerRequest":{
       "type":"structure",
       "required":[
@@ -7004,8 +8940,7 @@
           "shape":"UpdatedBy",
           "documentation":"<p>The user or system that updated this resource.</p>"
         }
-      },
-      "documentation":"<p>Mixin that adds an optional ARN field to response structures. Apply to SummaryMixins (flows into Get, Summary, and BatchGet) and Create outputs.</p>"
+      }
     },
     "HostConfiguration":{
       "type":"structure",
@@ -7111,6 +9046,18 @@
       "max":20,
       "min":1,
       "pattern":"[-]?(0|[1-9][0-9]*)"
+    },
+    "IntStringList":{
+      "type":"list",
+      "member":{"shape":"IntString"},
+      "max":512,
+      "min":0
+    },
+    "IntStringListList":{
+      "type":"list",
+      "member":{"shape":"NestedIntStringList"},
+      "max":512,
+      "min":0
     },
     "Integer":{
       "type":"integer",
@@ -7249,7 +9196,6 @@
     },
     "JobDescriptionOverride":{
       "type":"string",
-      "documentation":"<p>The input description for the job. Passing in an empty string removes any existing description.</p>",
       "max":2048,
       "min":0,
       "sensitive":true
@@ -7267,7 +9213,7 @@
           "documentation":"<p>The job ID.</p>"
         },
         "jobAttachmentSettings":{
-          "shape":"JobAttachmentSettings",
+          "shape":"JobDetailsJobAttachmentSettings",
           "documentation":"<p>The job attachment settings.</p>"
         },
         "jobRunAsUser":{
@@ -7289,6 +9235,10 @@
         "schemaVersion":{
           "shape":"String",
           "documentation":"<p>The schema version.</p>"
+        },
+        "extensions":{
+          "shape":"OpenjdExtensionNameList",
+          "documentation":"<p>The Open Job Description extensions that the job template uses. This value is used by the worker agent.</p>"
         },
         "pathMappingRules":{
           "shape":"PathMappingRules",
@@ -7330,6 +9280,24 @@
         }
       },
       "documentation":"<p>The identifiers for a job.</p>"
+    },
+    "JobDetailsJobAttachmentSettings":{
+      "type":"structure",
+      "required":[
+        "s3BucketName",
+        "rootPrefix"
+      ],
+      "members":{
+        "s3BucketName":{
+          "shape":"S3BucketName",
+          "documentation":"<p>The Amazon S3 bucket name.</p>"
+        },
+        "rootPrefix":{
+          "shape":"S3Prefix",
+          "documentation":"<p>The root prefix.</p>"
+        }
+      },
+      "documentation":"<p>The job attachment settings returned to workers for a job. These are the Amazon S3 bucket name and the Amazon S3 prefix.</p>"
     },
     "JobEntity":{
       "type":"structure",
@@ -7461,7 +9429,7 @@
     },
     "JobName":{
       "type":"string",
-      "max":128,
+      "max":512,
       "min":1
     },
     "JobParameter":{
@@ -7482,6 +9450,38 @@
         "path":{
           "shape":"PathString",
           "documentation":"<p>A file system path represented as a string.</p>"
+        },
+        "bool":{
+          "shape":"BooleanString",
+          "documentation":"<p>A boolean value represented as a string. Accepted values are <code>true</code>, <code>false</code>, <code>yes</code>, <code>no</code>, <code>on</code>, <code>off</code>, <code>1</code>, and <code>0</code>, case-insensitive.</p>"
+        },
+        "rangeExpr":{
+          "shape":"RangeExprString",
+          "documentation":"<p>An Open Job Description range expression represented as a string, such as <code>1-10:2</code>.</p>"
+        },
+        "stringList":{
+          "shape":"ParameterStringList",
+          "documentation":"<p>A list of UTF-8 strings.</p>"
+        },
+        "pathList":{
+          "shape":"PathStringList",
+          "documentation":"<p>A list of file system paths, each represented as a string.</p>"
+        },
+        "intList":{
+          "shape":"IntStringList",
+          "documentation":"<p>A list of signed integers, each represented as a string.</p>"
+        },
+        "floatList":{
+          "shape":"FloatStringList",
+          "documentation":"<p>A list of double precision IEEE-754 floating point numbers, each represented as a string.</p>"
+        },
+        "boolList":{
+          "shape":"BooleanStringList",
+          "documentation":"<p>A list of boolean values, each represented as a string.</p>"
+        },
+        "intListList":{
+          "shape":"IntStringListList",
+          "documentation":"<p>A list of lists of signed integers, each represented as a string.</p>"
         }
       },
       "documentation":"<p>The details of job parameters.</p>",
@@ -7500,6 +9500,8 @@
       "type":"map",
       "key":{"shape":"JobParametersKeyString"},
       "value":{"shape":"JobParameter"},
+      "max":200,
+      "min":0,
       "sensitive":true
     },
     "JobParametersKeyString":{
@@ -7561,7 +9563,7 @@
         },
         "taskRunStatus":{
           "shape":"TaskRunStatus",
-          "documentation":"<p>The task run status for the job.</p> <ul> <li> <p> <code>PENDING</code>–pending and waiting for resources.</p> </li> <li> <p> <code>READY</code>–ready to be processed.</p> </li> <li> <p> <code>ASSIGNED</code>–assigned and will run next on a worker.</p> </li> <li> <p> <code>SCHEDULED</code>–scheduled to be run on a worker.</p> </li> <li> <p> <code>INTERRUPTING</code>–being interrupted.</p> </li> <li> <p> <code>RUNNING</code>–running on a worker.</p> </li> <li> <p> <code>SUSPENDED</code>–the task is suspended.</p> </li> <li> <p> <code>CANCELED</code>–the task has been canceled.</p> </li> <li> <p> <code>FAILED</code>–the task has failed.</p> </li> <li> <p> <code>SUCCEEDED</code>–the task has succeeded.</p> </li> </ul>"
+          "documentation":"<p>The task run status for the job.</p> <ul> <li> <p> <code>PENDING</code> - pending and waiting for resources.</p> </li> <li> <p> <code>READY</code> - ready to be processed.</p> </li> <li> <p> <code>ASSIGNED</code> - assigned and will run next on a worker.</p> </li> <li> <p> <code>SCHEDULED</code> - scheduled to be run on a worker.</p> </li> <li> <p> <code>INTERRUPTING</code> - being interrupted.</p> </li> <li> <p> <code>RUNNING</code> - running on a worker.</p> </li> <li> <p> <code>SUSPENDED</code> - the task is suspended.</p> </li> <li> <p> <code>CANCELED</code> - the task has been canceled.</p> </li> <li> <p> <code>FAILED</code> - the task has failed.</p> </li> <li> <p> <code>SUCCEEDED</code> - the task has succeeded.</p> </li> </ul>"
         },
         "targetTaskRunStatus":{
           "shape":"JobTargetTaskRunStatus",
@@ -7688,7 +9690,7 @@
         },
         "taskRunStatus":{
           "shape":"TaskRunStatus",
-          "documentation":"<p>The task run status for the job.</p> <ul> <li> <p> <code>PENDING</code>–pending and waiting for resources.</p> </li> <li> <p> <code>READY</code>–ready to be processed.</p> </li> <li> <p> <code>ASSIGNED</code>–assigned and will run next on a worker.</p> </li> <li> <p> <code>SCHEDULED</code>–scheduled to be run on a worker.</p> </li> <li> <p> <code>INTERRUPTING</code>–being interrupted.</p> </li> <li> <p> <code>RUNNING</code>–running on a worker.</p> </li> <li> <p> <code>SUSPENDED</code>–the task is suspended.</p> </li> <li> <p> <code>CANCELED</code>–the task has been canceled.</p> </li> <li> <p> <code>FAILED</code>–the task has failed.</p> </li> <li> <p> <code>SUCCEEDED</code>–the task has succeeded.</p> </li> </ul>"
+          "documentation":"<p>The task run status for the job.</p> <ul> <li> <p> <code>PENDING</code> - pending and waiting for resources.</p> </li> <li> <p> <code>READY</code> - ready to be processed.</p> </li> <li> <p> <code>ASSIGNED</code> - assigned and will run next on a worker.</p> </li> <li> <p> <code>SCHEDULED</code> - scheduled to be run on a worker.</p> </li> <li> <p> <code>INTERRUPTING</code> - being interrupted.</p> </li> <li> <p> <code>RUNNING</code> - running on a worker.</p> </li> <li> <p> <code>SUSPENDED</code> - the task is suspended.</p> </li> <li> <p> <code>CANCELED</code> - the task has been canceled.</p> </li> <li> <p> <code>FAILED</code> - the task has failed.</p> </li> <li> <p> <code>SUCCEEDED</code> - the task has succeeded.</p> </li> </ul>"
         },
         "targetTaskRunStatus":{
           "shape":"JobTargetTaskRunStatus",
@@ -7872,8 +9874,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListAvailableMeteredProductsResponse":{
       "type":"structure",
@@ -7887,8 +9888,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListBudgetsRequest":{
       "type":"structure",
@@ -7918,8 +9918,7 @@
           "location":"querystring",
           "locationName":"status"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListBudgetsResponse":{
       "type":"structure",
@@ -7933,8 +9932,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListFarmMembersRequest":{
       "type":"structure",
@@ -7958,8 +9956,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListFarmMembersResponse":{
       "type":"structure",
@@ -7973,8 +9970,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListFarmsRequest":{
       "type":"structure",
@@ -7997,8 +9993,7 @@
           "location":"querystring",
           "locationName":"principalId"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListFarmsResponse":{
       "type":"structure",
@@ -8012,8 +10007,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListFleetMembersRequest":{
       "type":"structure",
@@ -8046,8 +10040,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListFleetMembersResponse":{
       "type":"structure",
@@ -8061,8 +10054,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListFleetsRequest":{
       "type":"structure",
@@ -8104,8 +10096,7 @@
           "location":"querystring",
           "locationName":"status"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListFleetsResponse":{
       "type":"structure",
@@ -8119,8 +10110,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListJobMembersRequest":{
       "type":"structure",
@@ -8160,8 +10150,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListJobMembersResponse":{
       "type":"structure",
@@ -8175,8 +10164,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListJobParameterDefinitionsRequest":{
       "type":"structure",
@@ -8216,8 +10204,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListJobParameterDefinitionsResponse":{
       "type":"structure",
@@ -8231,8 +10218,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListJobsRequest":{
       "type":"structure",
@@ -8271,8 +10257,7 @@
           "location":"querystring",
           "locationName":"principalId"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListJobsResponse":{
       "type":"structure",
@@ -8286,8 +10271,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListLicenseEndpointsRequest":{
       "type":"structure",
@@ -8304,8 +10288,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListLicenseEndpointsResponse":{
       "type":"structure",
@@ -8319,8 +10302,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListLimitsRequest":{
       "type":"structure",
@@ -8344,8 +10326,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListLimitsResponse":{
       "type":"structure",
@@ -8359,8 +10340,63 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
+    },
+    "ListMembershipsRequest":{
+      "type":"structure",
+      "required":["principalId"],
+      "members":{
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to return. Use this parameter with <code>NextToken</code> to get results as a set of sequential pages.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        },
+        "principalId":{
+          "shape":"IdentityCenterPrincipalId",
+          "documentation":"<p>The ID of the IAM Identity Center principal whose Deadline Cloud resource memberships you want to list.</p>",
+          "location":"querystring",
+          "locationName":"principalId"
+        },
+        "identityStoreId":{
+          "shape":"IdentityStoreId",
+          "documentation":"<p>The identity store ID that contains the principal. This parameter is required for callers that do not use a monitor session.</p>",
+          "location":"querystring",
+          "locationName":"identityStoreId"
+        },
+        "identityCenterRegion":{
+          "shape":"Region",
+          "documentation":"<p>The Region of the IAM Identity Center instance. If not provided, the service defaults to the Amazon Web Services Region in which you make the request.</p>",
+          "location":"querystring",
+          "locationName":"identityCenterRegion"
+        },
+        "resourceTypes":{
+          "shape":"MembershipResourceTypes",
+          "documentation":"<p>The resource types to include when listing the principal's memberships. If not specified, memberships for all supported resource types are returned.</p>",
+          "location":"querystring",
+          "locationName":"resourceTypes"
+        }
+      }
+    },
+    "ListMembershipsResponse":{
+      "type":"structure",
+      "required":["memberships"],
+      "members":{
+        "memberships":{
+          "shape":"MembershipSummaries",
+          "documentation":"<p>The memberships associated with the specified principal.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
+        }
+      }
     },
     "ListMeteredProductsRequest":{
       "type":"structure",
@@ -8384,8 +10420,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListMeteredProductsResponse":{
       "type":"structure",
@@ -8399,8 +10434,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListMonitorsRequest":{
       "type":"structure",
@@ -8417,8 +10451,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListMonitorsResponse":{
       "type":"structure",
@@ -8432,8 +10465,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListQueueEnvironmentsRequest":{
       "type":"structure",
@@ -8466,8 +10498,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListQueueEnvironmentsResponse":{
       "type":"structure",
@@ -8481,8 +10512,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListQueueFleetAssociationsRequest":{
       "type":"structure",
@@ -8518,8 +10548,7 @@
           "location":"querystring",
           "locationName":"fleetId"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListQueueFleetAssociationsResponse":{
       "type":"structure",
@@ -8533,8 +10562,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListQueueLimitAssociationsRequest":{
       "type":"structure",
@@ -8570,8 +10598,7 @@
           "location":"querystring",
           "locationName":"limitId"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListQueueLimitAssociationsResponse":{
       "type":"structure",
@@ -8585,8 +10612,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListQueueMembersRequest":{
       "type":"structure",
@@ -8619,8 +10645,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListQueueMembersResponse":{
       "type":"structure",
@@ -8634,8 +10659,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListQueuesRequest":{
       "type":"structure",
@@ -8667,12 +10691,11 @@
         },
         "status":{
           "shape":"QueueStatus",
-          "documentation":"<p>The status of the queues listed.</p> <ul> <li> <p> <code>ACTIVE</code>–The queues are active.</p> </li> <li> <p> <code>SCHEDULING</code>–The queues are scheduling.</p> </li> <li> <p> <code>SCHEDULING_BLOCKED</code>–The queue scheduling is blocked for these queues.</p> </li> </ul>",
+          "documentation":"<p>The status of the queues listed.</p> <ul> <li> <p> <code>ACTIVE</code> - The queues are active.</p> </li> <li> <p> <code>SCHEDULING</code> - The queues are scheduling.</p> </li> <li> <p> <code>SCHEDULING_BLOCKED</code> - The queue scheduling is blocked for these queues.</p> </li> </ul>",
           "location":"querystring",
           "locationName":"status"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListQueuesResponse":{
       "type":"structure",
@@ -8686,8 +10709,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListSessionActionsRequest":{
       "type":"structure",
@@ -8739,8 +10761,7 @@
           "location":"querystring",
           "locationName":"taskId"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListSessionActionsResponse":{
       "type":"structure",
@@ -8754,8 +10775,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListSessionsForWorkerRequest":{
       "type":"structure",
@@ -8795,8 +10815,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListSessionsForWorkerResponse":{
       "type":"structure",
@@ -8810,8 +10829,7 @@
           "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListSessionsForWorkerSummaries":{
       "type":"list",
@@ -8855,8 +10873,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListSessionsResponse":{
       "type":"structure",
@@ -8870,8 +10887,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListStepConsumersRequest":{
       "type":"structure",
@@ -8938,8 +10954,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListStepDependenciesRequest":{
       "type":"structure",
@@ -9006,8 +11021,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListStepsRequest":{
       "type":"structure",
@@ -9047,8 +11061,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListStepsResponse":{
       "type":"structure",
@@ -9062,8 +11075,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListStorageProfilesForQueueRequest":{
       "type":"structure",
@@ -9096,8 +11108,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListStorageProfilesForQueueResponse":{
       "type":"structure",
@@ -9111,8 +11122,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListStorageProfilesRequest":{
       "type":"structure",
@@ -9136,8 +11146,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListStorageProfilesResponse":{
       "type":"structure",
@@ -9151,8 +11160,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "ListTagsForResourceRequest":{
       "type":"structure",
@@ -9220,8 +11228,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListTasksResponse":{
       "type":"structure",
@@ -9235,8 +11242,54 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
+    },
+    "ListVolumesRequest":{
+      "type":"structure",
+      "required":[
+        "farmId",
+        "fleetId"
+      ],
+      "members":{
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the farm that contains the fleet.</p>",
+          "location":"uri",
+          "locationName":"farmId"
+        },
+        "fleetId":{
+          "shape":"FleetId",
+          "documentation":"<p>The fleet ID of the fleet that contains the volumes.</p>",
+          "location":"uri",
+          "locationName":"fleetId"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to return. Use this parameter with <code>NextToken</code> to get results as a set of sequential pages.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        }
+      }
+    },
+    "ListVolumesResponse":{
+      "type":"structure",
+      "required":["volumes"],
+      "members":{
+        "volumes":{
+          "shape":"VolumeSummaries",
+          "documentation":"<p>The volumes on the list.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
+        }
+      }
     },
     "ListWorkersRequest":{
       "type":"structure",
@@ -9269,8 +11322,7 @@
           "location":"querystring",
           "locationName":"maxResults"
         }
-      },
-      "documentation":"<p>Shared pagination fields for List operation inputs (nextToken + maxResults).</p>"
+      }
     },
     "ListWorkersResponse":{
       "type":"structure",
@@ -9284,8 +11336,7 @@
           "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
-      },
-      "documentation":"<p>Shared pagination field for List operation outputs (nextToken).</p>"
+      }
     },
     "LogConfiguration":{
       "type":"structure",
@@ -9432,6 +11483,50 @@
         "MANAGER"
       ]
     },
+    "MembershipResourceType":{
+      "type":"string",
+      "enum":[
+        "FARM",
+        "QUEUE",
+        "FLEET",
+        "JOB"
+      ]
+    },
+    "MembershipResourceTypes":{
+      "type":"list",
+      "member":{"shape":"MembershipResourceType"},
+      "documentation":"<p>The list of resource types to include when listing a principal's memberships.</p>",
+      "max":4,
+      "min":1
+    },
+    "MembershipSummaries":{
+      "type":"list",
+      "member":{"shape":"MembershipSummary"},
+      "documentation":"<p>The list of membership records for the principal.</p>"
+    },
+    "MembershipSummary":{
+      "type":"structure",
+      "members":{
+        "farm":{
+          "shape":"FarmMember",
+          "documentation":"<p>A membership on a farm.</p>"
+        },
+        "queue":{
+          "shape":"QueueMember",
+          "documentation":"<p>A membership on a queue.</p>"
+        },
+        "fleet":{
+          "shape":"FleetMember",
+          "documentation":"<p>A membership on a fleet.</p>"
+        },
+        "job":{
+          "shape":"JobMember",
+          "documentation":"<p>A membership on a job.</p>"
+        }
+      },
+      "documentation":"<p>A membership record for a principal on a single Deadline Cloud resource. The summary identifies the resource that the principal is a member of and the principal's membership level for that resource.</p>",
+      "union":true
+    },
     "MemoryAmountMiB":{
       "type":"integer",
       "box":true,
@@ -9553,6 +11648,10 @@
           "shape":"IdentityCenterInstanceArn",
           "documentation":"<p>The Amazon Resource Name of the IAM Identity Center instance responsible for authenticating monitor users.</p>"
         },
+        "identityCenterRegion":{
+          "shape":"Region",
+          "documentation":"<p>The Region where IAM Identity Center is enabled.</p>"
+        },
         "identityCenterApplicationArn":{
           "shape":"IdentityCenterApplicationArn",
           "documentation":"<p>The Amazon Resource Name that the IAM Identity Center assigned to the monitor when it was created.</p>"
@@ -9576,6 +11675,17 @@
       },
       "documentation":"<p>Provides information about a monitor in Deadline Cloud.</p>"
     },
+    "MountPath":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "NestedIntStringList":{
+      "type":"list",
+      "member":{"shape":"IntString"},
+      "max":64,
+      "min":0
+    },
     "NextItemOffset":{
       "type":"integer",
       "box":true,
@@ -9585,6 +11695,18 @@
     "NextToken":{
       "type":"string",
       "max":4096,
+      "min":0
+    },
+    "OpenjdExtensionName":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"[A-Z][A-Z0-9_]*"
+    },
+    "OpenjdExtensionNameList":{
+      "type":"list",
+      "member":{"shape":"OpenjdExtensionName"},
+      "max":32,
       "min":0
     },
     "OutputRelativeDirectoriesList":{
@@ -9659,6 +11781,12 @@
       "max":1024,
       "min":0
     },
+    "ParameterStringList":{
+      "type":"list",
+      "member":{"shape":"ParameterString"},
+      "max":64,
+      "min":0
+    },
     "ParameterValue":{
       "type":"string",
       "max":256,
@@ -9704,6 +11832,12 @@
       "max":1024,
       "min":0
     },
+    "PathStringList":{
+      "type":"list",
+      "member":{"shape":"PathString"},
+      "max":64,
+      "min":0
+    },
     "Period":{
       "type":"string",
       "enum":[
@@ -9712,6 +11846,57 @@
         "WEEKLY",
         "MONTHLY"
       ]
+    },
+    "PersistentVolumeConfiguration":{
+      "type":"structure",
+      "required":["mountPath"],
+      "members":{
+        "sizeGiB":{
+          "shape":"PersistentVolumeSizeGiB",
+          "documentation":"<p>The persistent volume size in GiB. The default is 250.</p>"
+        },
+        "iops":{
+          "shape":"PersistentVolumeIops",
+          "documentation":"<p>The IOPS per persistent volume. The default is 3000.</p>"
+        },
+        "throughputMiB":{
+          "shape":"PersistentVolumeThroughputMiB",
+          "documentation":"<p>The throughput per persistent volume in MiB. The default is 125.</p>"
+        },
+        "mountPath":{
+          "shape":"MountPath",
+          "documentation":"<p>The file system path where the persistent volume is mounted on the worker instance.</p>"
+        },
+        "lastUsedTtlHours":{
+          "shape":"PersistentVolumeTtlHours",
+          "documentation":"<p>The number of hours a persistent volume can remain unused before it is deleted. The default is 12.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the persistent EBS volume configuration for workers in a service managed fleet.</p>"
+    },
+    "PersistentVolumeIops":{
+      "type":"integer",
+      "box":true,
+      "max":80000,
+      "min":100
+    },
+    "PersistentVolumeSizeGiB":{
+      "type":"integer",
+      "box":true,
+      "max":65536,
+      "min":1
+    },
+    "PersistentVolumeThroughputMiB":{
+      "type":"integer",
+      "box":true,
+      "max":2000,
+      "min":125
+    },
+    "PersistentVolumeTtlHours":{
+      "type":"integer",
+      "box":true,
+      "max":8760,
+      "min":1
     },
     "PortNumber":{
       "type":"integer",
@@ -9761,6 +11946,21 @@
       "box":true,
       "max":10000,
       "min":0
+    },
+    "PriorityBalancedSchedulingConfiguration":{
+      "type":"structure",
+      "members":{
+        "renderingTaskBuffer":{
+          "shape":"SchedulingRenderingTaskBuffer",
+          "documentation":"<p>The rendering task buffer controls worker stickiness. A worker only switches from its current job to another job at the same priority if the other job has fewer rendering tasks by more than this buffer value. Higher values make workers stickier to their current jobs. The default value is <code>1</code>.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for priority balanced scheduling. Workers are distributed evenly across all jobs at the highest priority level.</p>"
+    },
+    "PriorityFifoSchedulingConfiguration":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Configuration for priority first-in, first-out (FIFO) scheduling. Workers are assigned to the highest-priority job first. When multiple jobs share the same priority, the job submitted earliest receives workers first.</p>"
     },
     "ProcessExitCode":{
       "type":"integer",
@@ -9864,7 +12064,7 @@
         },
         "status":{
           "shape":"QueueFleetAssociationStatus",
-          "documentation":"<p>The status of task scheduling in the queue-fleet association.</p> <ul> <li> <p> <code>ACTIVE</code>–Association is active.</p> </li> <li> <p> <code>STOP_SCHEDULING_AND_COMPLETE_TASKS</code>–Association has stopped scheduling new tasks and is completing current tasks.</p> </li> <li> <p> <code>STOP_SCHEDULING_AND_CANCEL_TASKS</code>–Association has stopped scheduling new tasks and is canceling current tasks.</p> </li> <li> <p> <code>STOPPED</code>–Association has been stopped.</p> </li> </ul>"
+          "documentation":"<p>The status of task scheduling in the queue-fleet association.</p> <ul> <li> <p> <code>ACTIVE</code> - Association is active.</p> </li> <li> <p> <code>STOP_SCHEDULING_AND_COMPLETE_TASKS</code> - Association has stopped scheduling new tasks and is completing current tasks.</p> </li> <li> <p> <code>STOP_SCHEDULING_AND_CANCEL_TASKS</code> - Association has stopped scheduling new tasks and is canceling current tasks.</p> </li> <li> <p> <code>STOPPED</code> - Association has been stopped.</p> </li> </ul>"
         },
         "createdAt":{
           "shape":"CreatedAt",
@@ -10059,6 +12259,17 @@
         "NONCONTIGUOUS"
       ]
     },
+    "RangeExprString":{
+      "type":"string",
+      "max":1024,
+      "min":1
+    },
+    "Region":{
+      "type":"string",
+      "max":25,
+      "min":1,
+      "pattern":"[a-z0-9-]+"
+    },
     "RequiredFileSystemLocationNames":{
       "type":"list",
       "member":{"shape":"FileSystemLocationName"},
@@ -10168,6 +12379,92 @@
       "min":1,
       "pattern":"[a-zA-Z0-9-_/]+"
     },
+    "SchedulingConfiguration":{
+      "type":"structure",
+      "members":{
+        "priorityFifo":{
+          "shape":"PriorityFifoSchedulingConfiguration",
+          "documentation":"<p>Workers are assigned to the highest-priority job first. When multiple jobs share the same priority, the job submitted earliest receives workers first. This is the default scheduling configuration for new queues.</p>"
+        },
+        "priorityBalanced":{
+          "shape":"PriorityBalancedSchedulingConfiguration",
+          "documentation":"<p>Workers are distributed evenly across all jobs at the highest priority level. When workers cannot be evenly divided, the extra workers are assigned to the jobs submitted earliest. If a job has fewer remaining tasks than its share of workers, the surplus workers are redistributed to other jobs at the same priority level.</p>"
+        },
+        "weightedBalanced":{
+          "shape":"WeightedBalancedSchedulingConfiguration",
+          "documentation":"<p>Workers are assigned to jobs based on a weighted formula that considers job priority, error count, submission time, and the number of tasks currently rendering. Each factor has a configurable weight that determines its influence on scheduling decisions.</p>"
+        }
+      },
+      "documentation":"<p>The scheduling configuration for a queue. Defines the strategy used to assign workers to jobs.</p>",
+      "union":true
+    },
+    "SchedulingErrorWeight":{
+      "type":"double",
+      "documentation":"<p>The weight applied to the number of errors on a job in the weighted balanced scheduling formula.</p>",
+      "box":true,
+      "max":10000,
+      "min":-10000
+    },
+    "SchedulingMaxPriorityOverride":{
+      "type":"structure",
+      "members":{
+        "alwaysScheduleFirst":{
+          "shape":"SchedulingMaxPriorityOverrideAlwaysScheduleFirst",
+          "documentation":"<p>Jobs at the maximum priority (100) are always scheduled before other jobs, regardless of the weighted scheduling formula. If multiple jobs have priority 100, ties are broken using the standard weighted formula.</p>"
+        }
+      },
+      "documentation":"<p>Defines the override behavior for jobs at the maximum priority (100) in weighted balanced scheduling.</p>",
+      "union":true
+    },
+    "SchedulingMaxPriorityOverrideAlwaysScheduleFirst":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Specifies that jobs at the maximum priority (100) are always scheduled first.</p>"
+    },
+    "SchedulingMinPriorityOverride":{
+      "type":"structure",
+      "members":{
+        "alwaysScheduleLast":{
+          "shape":"SchedulingMinPriorityOverrideAlwaysScheduleLast",
+          "documentation":"<p>Jobs at the minimum priority (0) are always scheduled after all other jobs, regardless of the weighted scheduling formula. If multiple jobs have priority 0, ties are broken using the standard weighted formula.</p>"
+        }
+      },
+      "documentation":"<p>Defines the override behavior for jobs at the minimum priority (0) in weighted balanced scheduling.</p>",
+      "union":true
+    },
+    "SchedulingMinPriorityOverrideAlwaysScheduleLast":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Specifies that jobs at the minimum priority (0) are always scheduled last.</p>"
+    },
+    "SchedulingPriorityWeight":{
+      "type":"double",
+      "documentation":"<p>The weight applied to job priority in the weighted balanced scheduling formula.</p>",
+      "box":true,
+      "max":10000,
+      "min":0
+    },
+    "SchedulingRenderingTaskBuffer":{
+      "type":"integer",
+      "documentation":"<p>The rendering task buffer used in balanced scheduling.</p>",
+      "box":true,
+      "max":1000,
+      "min":0
+    },
+    "SchedulingRenderingTaskWeight":{
+      "type":"double",
+      "documentation":"<p>The weight applied to the number of rendering tasks in the weighted balanced scheduling formula.</p>",
+      "box":true,
+      "max":10000,
+      "min":-10000
+    },
+    "SchedulingSubmissionTimeWeight":{
+      "type":"double",
+      "documentation":"<p>The weight applied to job submission time in the weighted balanced scheduling formula.</p>",
+      "box":true,
+      "max":10000,
+      "min":0
+    },
     "SearchFilterExpression":{
       "type":"structure",
       "members":{
@@ -10257,8 +12554,7 @@
           "shape":"SearchJobsRequestQueueIdsList",
           "documentation":"<p>The queue ID to use in the job search.</p>"
         }
-      },
-      "documentation":"<p>Shared input fields for all Search operations (filterExpressions, sortExpressions, itemOffset, pageSize).</p>"
+      }
     },
     "SearchJobsRequestItemOffsetInteger":{
       "type":"integer",
@@ -10297,8 +12593,7 @@
           "shape":"TotalResults",
           "documentation":"<p>The total number of results in the search.</p>"
         }
-      },
-      "documentation":"<p>Shared output fields for all Search operations (nextItemOffset, totalResults).</p>"
+      }
     },
     "SearchSortExpression":{
       "type":"structure",
@@ -10363,8 +12658,7 @@
           "shape":"JobId",
           "documentation":"<p>The job ID to use in the step search.</p>"
         }
-      },
-      "documentation":"<p>Shared input fields for all Search operations (filterExpressions, sortExpressions, itemOffset, pageSize).</p>"
+      }
     },
     "SearchStepsRequestItemOffsetInteger":{
       "type":"integer",
@@ -10403,8 +12697,7 @@
           "shape":"TotalResults",
           "documentation":"<p>The total number of results in the search.</p>"
         }
-      },
-      "documentation":"<p>Shared output fields for all Search operations (nextItemOffset, totalResults).</p>"
+      }
     },
     "SearchTasksRequest":{
       "type":"structure",
@@ -10444,8 +12737,7 @@
           "shape":"JobId",
           "documentation":"<p>The job ID for the task search.</p>"
         }
-      },
-      "documentation":"<p>Shared input fields for all Search operations (filterExpressions, sortExpressions, itemOffset, pageSize).</p>"
+      }
     },
     "SearchTasksRequestItemOffsetInteger":{
       "type":"integer",
@@ -10484,8 +12776,7 @@
           "shape":"TotalResults",
           "documentation":"<p>The total number of results in the search.</p>"
         }
-      },
-      "documentation":"<p>Shared output fields for all Search operations (nextItemOffset, totalResults).</p>"
+      }
     },
     "SearchTerm":{
       "type":"string",
@@ -10548,8 +12839,7 @@
           "shape":"SearchWorkersRequestFleetIdsList",
           "documentation":"<p>The fleet ID of the workers to search for.</p>"
         }
-      },
-      "documentation":"<p>Shared input fields for all Search operations (filterExpressions, sortExpressions, itemOffset, pageSize).</p>"
+      }
     },
     "SearchWorkersRequestFleetIdsList":{
       "type":"list",
@@ -10588,8 +12878,7 @@
           "shape":"TotalResults",
           "documentation":"<p>The total number of results in the search.</p>"
         }
-      },
-      "documentation":"<p>Shared output fields for all Search operations (nextItemOffset, totalResults).</p>"
+      }
     },
     "SecretAccessKey":{
       "type":"string",
@@ -10599,23 +12888,28 @@
       "type":"string",
       "pattern":"sg-[\\w]{1,120}"
     },
+    "SerializedSymbolTable":{
+      "type":"string",
+      "max":1000000,
+      "min":1
+    },
     "ServiceManagedEc2AutoScalingConfiguration":{
       "type":"structure",
       "members":{
         "standbyWorkerCount":{
           "shape":"MinZeroMaxInteger",
-          "documentation":"<p>The number of standby workers to maintain for the fleet.</p>"
+          "documentation":"<p>The number of idle workers maintained and ready to process incoming tasks. The default is 0.</p>"
         },
         "workerIdleDurationSeconds":{
           "shape":"ServiceManagedEc2WorkerIdleDurationSeconds",
-          "documentation":"<p>The duration in seconds that a worker can be idle before it is scaled down.</p>"
+          "documentation":"<p>The number of seconds that a worker can remain idle before it is shut down. The default is 300 seconds (5 minutes).</p>"
         },
         "scaleOutWorkersPerMinute":{
           "shape":"MinOneMaxInteger",
-          "documentation":"<p>The number of workers that can be scaled out per minute.</p>"
+          "documentation":"<p>The number of workers that can be added per minute to the fleet. The default is 10 workers per minute.</p>"
         }
       },
-      "documentation":"<p>The auto scaling configuration options for a service managed EC2 fleet.</p>"
+      "documentation":"<p>The auto scaling configuration settings for a service managed EC2 fleet.</p>"
     },
     "ServiceManagedEc2FleetConfiguration":{
       "type":"structure",
@@ -10640,9 +12934,13 @@
           "shape":"StorageProfileId",
           "documentation":"<p>The storage profile ID for the service managed EC2 fleet.</p>"
         },
+        "persistentVolumeConfiguration":{
+          "shape":"PersistentVolumeConfiguration",
+          "documentation":"<p>The persistent volume configuration for the service managed EC2 fleet.</p>"
+        },
         "autoScalingConfiguration":{
           "shape":"ServiceManagedEc2AutoScalingConfiguration",
-          "documentation":"<p>The auto scaling configuration options for the service managed EC2 fleet.</p>"
+          "documentation":"<p>The auto scaling configuration settings for the service managed EC2 fleet.</p>"
         }
       },
       "documentation":"<p>The configuration details for a service managed EC2 fleet.</p>"
@@ -10682,11 +12980,11 @@
         },
         "allowedInstanceTypes":{
           "shape":"InstanceTypes",
-          "documentation":"<p>The allowable Amazon EC2 instance types.</p>"
+          "documentation":"<p>The allowable Amazon EC2 instance types.</p> <note> <p>If you specify <code>allowedInstanceTypes</code>, you can't specify <code>excludedInstanceTypes</code>.</p> </note>"
         },
         "excludedInstanceTypes":{
           "shape":"InstanceTypes",
-          "documentation":"<p>The instance types to exclude from the fleet.</p>"
+          "documentation":"<p>The instance types to exclude from the fleet.</p> <note> <p>If you specify <code>excludedInstanceTypes</code>, you can't specify <code>allowedInstanceTypes</code>.</p> </note>"
         },
         "customAmounts":{
           "shape":"CustomFleetAmountCapabilities",
@@ -10695,6 +12993,10 @@
         "customAttributes":{
           "shape":"CustomFleetAttributeCapabilities",
           "documentation":"<p>The custom capability attributes to require for instances in this fleet.</p>"
+        },
+        "softwareAddOns":{
+          "shape":"FleetSoftwareAddOns",
+          "documentation":"<p>The software add-ons that the service installs on worker hosts when they launch.</p>"
         }
       },
       "documentation":"<p>The Amazon EC2 instance capabilities.</p>"
@@ -10924,6 +13226,23 @@
       "type":"string",
       "enum":["ENDED"]
     },
+    "SessionMetadata":{
+      "type":"map",
+      "key":{"shape":"SessionMetadataKey"},
+      "value":{"shape":"SessionMetadataValue"},
+      "max":10,
+      "min":0
+    },
+    "SessionMetadataKey":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
+    "SessionMetadataValue":{
+      "type":"string",
+      "max":128,
+      "min":0
+    },
     "SessionSummaries":{
       "type":"list",
       "member":{"shape":"SessionSummary"}
@@ -11017,6 +13336,24 @@
       "max":10,
       "min":1
     },
+    "SettingKey":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"[a-zA-Z][a-zA-Z0-9_.:-]*"
+    },
+    "SettingValue":{
+      "type":"string",
+      "max":8192,
+      "min":0
+    },
+    "SettingsMap":{
+      "type":"map",
+      "key":{"shape":"SettingKey"},
+      "value":{"shape":"SettingValue"},
+      "max":64,
+      "min":0
+    },
     "SortOrder":{
       "type":"string",
       "enum":[
@@ -11055,7 +13392,7 @@
         },
         "timezone":{
           "shape":"Timezone",
-          "documentation":"<p>The timezone to use for the statistics. Use UTC notation such as \"UTC+8.\"</p>"
+          "documentation":"<p>The time zone to use for the statistics. Use UTC notation such as \"UTC+8.\"</p>"
         },
         "period":{
           "shape":"Period",
@@ -11316,6 +13653,14 @@
         "dependencies":{
           "shape":"DependenciesList",
           "documentation":"<p>The dependencies for a step.</p>"
+        },
+        "extensions":{
+          "shape":"OpenjdExtensionNameList",
+          "documentation":"<p>The Open Job Description extensions that the step uses. This value is used by the worker agent.</p>"
+        },
+        "resolvedSymbolTable":{
+          "shape":"SerializedSymbolTable",
+          "documentation":"<p>The resolved symbol table for the step's expressions, serialized as JSON. This value is used by the worker agent.</p>"
         }
       },
       "documentation":"<p>The details of a step entity.</p>"
@@ -11381,7 +13726,7 @@
     },
     "StepName":{
       "type":"string",
-      "max":64,
+      "max":512,
       "min":1
     },
     "StepParameter":{
@@ -11434,7 +13779,7 @@
     },
     "StepParameterName":{
       "type":"string",
-      "max":64,
+      "max":512,
       "min":1
     },
     "StepParameterType":{
@@ -11498,7 +13843,7 @@
         },
         "taskRunStatus":{
           "shape":"TaskRunStatus",
-          "documentation":"<p>The task run status for the job.</p> <ul> <li> <p> <code>PENDING</code>–pending and waiting for resources.</p> </li> <li> <p> <code>READY</code>–ready to be processed.</p> </li> <li> <p> <code>ASSIGNED</code>–assigned and will run next on a worker.</p> </li> <li> <p> <code>SCHEDULED</code>–scheduled to be run on a worker.</p> </li> <li> <p> <code>INTERRUPTING</code>–being interrupted.</p> </li> <li> <p> <code>RUNNING</code>–running on a worker.</p> </li> <li> <p> <code>SUSPENDED</code>–the task is suspended.</p> </li> <li> <p> <code>CANCELED</code>–the task has been canceled.</p> </li> <li> <p> <code>FAILED</code>–the task has failed.</p> </li> <li> <p> <code>SUCCEEDED</code>–the task has succeeded.</p> </li> </ul>"
+          "documentation":"<p>The task run status for the job.</p> <ul> <li> <p> <code>PENDING</code> - pending and waiting for resources.</p> </li> <li> <p> <code>READY</code> - ready to be processed.</p> </li> <li> <p> <code>ASSIGNED</code> - assigned and will run next on a worker.</p> </li> <li> <p> <code>SCHEDULED</code> - scheduled to be run on a worker.</p> </li> <li> <p> <code>INTERRUPTING</code> - being interrupted.</p> </li> <li> <p> <code>RUNNING</code> - running on a worker.</p> </li> <li> <p> <code>SUSPENDED</code> - the task is suspended.</p> </li> <li> <p> <code>CANCELED</code> - the task has been canceled.</p> </li> <li> <p> <code>FAILED</code> - the task has failed.</p> </li> <li> <p> <code>SUCCEEDED</code> - the task has succeeded.</p> </li> </ul>"
         },
         "targetTaskRunStatus":{
           "shape":"StepTargetTaskRunStatus",
@@ -11577,7 +13922,7 @@
         },
         "taskRunStatus":{
           "shape":"TaskRunStatus",
-          "documentation":"<p>The task run status for the job.</p> <ul> <li> <p> <code>PENDING</code>–pending and waiting for resources.</p> </li> <li> <p> <code>READY</code>–ready to process.</p> </li> <li> <p> <code>ASSIGNED</code>–assigned and will run next on a worker.</p> </li> <li> <p> <code>SCHEDULED</code>–scheduled to run on a worker.</p> </li> <li> <p> <code>INTERRUPTING</code>–being interrupted.</p> </li> <li> <p> <code>RUNNING</code>–running on a worker.</p> </li> <li> <p> <code>SUSPENDED</code>–the task is suspended.</p> </li> <li> <p> <code>CANCELED</code>–the task has been canceled.</p> </li> <li> <p> <code>FAILED</code>–the task has failed.</p> </li> <li> <p> <code>SUCCEEDED</code>–the task has succeeded.</p> </li> </ul>"
+          "documentation":"<p>The task run status for the job.</p> <ul> <li> <p> <code>PENDING</code> - pending and waiting for resources.</p> </li> <li> <p> <code>READY</code> - ready to process.</p> </li> <li> <p> <code>ASSIGNED</code> - assigned and will run next on a worker.</p> </li> <li> <p> <code>SCHEDULED</code> - scheduled to run on a worker.</p> </li> <li> <p> <code>INTERRUPTING</code> - being interrupted.</p> </li> <li> <p> <code>RUNNING</code> - running on a worker.</p> </li> <li> <p> <code>SUSPENDED</code> - the task is suspended.</p> </li> <li> <p> <code>CANCELED</code> - the task has been canceled.</p> </li> <li> <p> <code>FAILED</code> - the task has failed.</p> </li> <li> <p> <code>SUCCEEDED</code> - the task has succeeded.</p> </li> </ul>"
         },
         "taskRunStatusCounts":{
           "shape":"TaskRunStatusCounts",
@@ -11692,7 +14037,7 @@
         },
         "operator":{
           "shape":"ComparisonOperator",
-          "documentation":"<p>The type of comparison to use for this search.</p>"
+          "documentation":"<p>The type of comparison to use for this search. Only <code>EQUAL</code> and <code>NOT_EQUAL</code> are supported.</p>"
         },
         "value":{
           "shape":"StringFilter",
@@ -11725,7 +14070,7 @@
         },
         "operator":{
           "shape":"ComparisonOperator",
-          "documentation":"<p>The type of comparison to use for this search.</p>"
+          "documentation":"<p>The type of comparison to use for this search. Only <code>ANY_EQUALS</code> and <code>ALL_NOT_EQUALS</code> are supported.</p>"
         },
         "values":{
           "shape":"StringFilterList",
@@ -12219,7 +14564,7 @@
         },
         "status":{
           "shape":"BudgetStatus",
-          "documentation":"<p>Updates the status of the budget.</p> <ul> <li> <p> <code>ACTIVE</code>–The budget is being evaluated.</p> </li> <li> <p> <code>INACTIVE</code>–The budget is inactive. This can include Expired, Canceled, or deleted Deleted statuses.</p> </li> </ul>"
+          "documentation":"<p>Updates the status of the budget.</p> <ul> <li> <p> <code>ACTIVE</code> - The budget is being evaluated.</p> </li> <li> <p> <code>INACTIVE</code> - The budget is inactive. This can include Expired, Canceled, or deleted Deleted statuses.</p> </li> </ul>"
         },
         "approximateDollarLimit":{
           "shape":"ConsumedUsageLimit",
@@ -12319,7 +14664,7 @@
         },
         "configuration":{
           "shape":"FleetConfiguration",
-          "documentation":"<p>The fleet configuration to update.</p>"
+          "documentation":"<p>The fleet configuration to update. The new configuration replaces the existing one, so include every setting you want to keep. Settings that you omit revert to their defaults.</p>"
         },
         "hostConfiguration":{
           "shape":"HostConfiguration",
@@ -12471,6 +14816,29 @@
       "type":"structure",
       "members":{}
     },
+    "UpdateMonitorSettingsRequest":{
+      "type":"structure",
+      "required":[
+        "monitorId",
+        "settings"
+      ],
+      "members":{
+        "monitorId":{
+          "shape":"MonitorId",
+          "documentation":"<p>The unique identifier of the monitor to update settings for.</p>",
+          "location":"uri",
+          "locationName":"monitorId"
+        },
+        "settings":{
+          "shape":"SettingsMap",
+          "documentation":"<p>The monitor settings to update as key-value pairs. Keys present in the request are upserted; keys absent are left unchanged. Send an empty string value to delete a key.</p>"
+        }
+      }
+    },
+    "UpdateMonitorSettingsResponse":{
+      "type":"structure",
+      "members":{}
+    },
     "UpdateQueueEnvironmentRequest":{
       "type":"structure",
       "required":[
@@ -12553,8 +14921,7 @@
           "shape":"UpdateQueueFleetAssociationStatus",
           "documentation":"<p>The status to update.</p>"
         }
-      },
-      "documentation":"<p>Identifier mixin for queue-fleet association operations. Composes QueueIdentifierMixin (farmId + queueId) and adds fleetId.</p>"
+      }
     },
     "UpdateQueueFleetAssociationResponse":{
       "type":"structure",
@@ -12678,6 +15045,10 @@
         "allowedStorageProfileIdsToRemove":{
           "shape":"AllowedStorageProfileIds",
           "documentation":"<p>The storage profile ID to remove.</p>"
+        },
+        "schedulingConfiguration":{
+          "shape":"SchedulingConfiguration",
+          "documentation":"<p>The scheduling configuration for the queue. This configuration determines how workers are assigned to jobs in the queue.</p> <p>When updating the scheduling configuration, the entire configuration is replaced.</p> <p>In-progress tasks run to completion before the new scheduling configuration takes effect.</p>"
         }
       }
     },
@@ -13114,7 +15485,8 @@
       "type":"string",
       "enum":[
         "COMPUTE",
-        "LICENSE"
+        "LICENSE",
+        "PERSISTENT_VOLUME"
       ]
     },
     "UserId":{"type":"string"},
@@ -13203,6 +15575,67 @@
         "OTHER"
       ]
     },
+    "VolumeId":{
+      "type":"string",
+      "pattern":"volume-[0-9a-f]{32}"
+    },
+    "VolumeState":{
+      "type":"string",
+      "documentation":"<p>The state of a persistent volume.</p>",
+      "enum":[
+        "PENDING_CREATION",
+        "PENDING_ATTACHMENT",
+        "IN_USE",
+        "AVAILABLE",
+        "PENDING_DELETION"
+      ]
+    },
+    "VolumeSummaries":{
+      "type":"list",
+      "member":{"shape":"VolumeSummary"}
+    },
+    "VolumeSummary":{
+      "type":"structure",
+      "required":[
+        "volumeId",
+        "farmId",
+        "fleetId",
+        "state",
+        "sizeGiB",
+        "availabilityZoneId"
+      ],
+      "members":{
+        "volumeId":{
+          "shape":"VolumeId",
+          "documentation":"<p>The volume ID.</p>"
+        },
+        "farmId":{
+          "shape":"FarmId",
+          "documentation":"<p>The farm ID of the farm that contains the fleet.</p>"
+        },
+        "fleetId":{
+          "shape":"FleetId",
+          "documentation":"<p>The fleet ID of the fleet that contains the volume.</p>"
+        },
+        "state":{
+          "shape":"VolumeState",
+          "documentation":"<p>The state of the volume.</p>"
+        },
+        "sizeGiB":{
+          "shape":"PersistentVolumeSizeGiB",
+          "documentation":"<p>The volume size in GiB.</p>"
+        },
+        "availabilityZoneId":{
+          "shape":"String",
+          "documentation":"<p>The Availability Zone ID of the volume.</p>"
+        },
+        "attachedWorkerId":{
+          "shape":"WorkerId",
+          "documentation":"<p>The worker ID of the worker the volume is attached to.</p>"
+        }
+      },
+      "documentation":"<p>The summary of a persistent volume.</p>"
+    },
     "VpcConfiguration":{
       "type":"structure",
       "members":{
@@ -13229,6 +15662,40 @@
       "member":{"shape":"VpcResourceConfigurationArn"},
       "max":10,
       "min":0
+    },
+    "WeightedBalancedSchedulingConfiguration":{
+      "type":"structure",
+      "members":{
+        "priorityWeight":{
+          "shape":"SchedulingPriorityWeight",
+          "documentation":"<p>The weight applied to job priority in the scheduling formula. Higher values give more influence to job priority. A value of <code>0</code> means priority is ignored. The default value is <code>100.0</code>.</p>"
+        },
+        "errorWeight":{
+          "shape":"SchedulingErrorWeight",
+          "documentation":"<p>The weight applied to the number of errors on a job. A negative value means jobs without errors are scheduled first. A value of <code>0</code> means errors are ignored. The default value is <code>-10.0</code>.</p>"
+        },
+        "submissionTimeWeight":{
+          "shape":"SchedulingSubmissionTimeWeight",
+          "documentation":"<p>The weight applied to job submission time. A positive value means earlier jobs are scheduled first. A value of <code>0</code> means submission time is ignored. The default value is <code>3.0</code>.</p>"
+        },
+        "renderingTaskWeight":{
+          "shape":"SchedulingRenderingTaskWeight",
+          "documentation":"<p>The weight applied to the number of tasks currently rendering on a job. A negative value means jobs that are not already rendering are scheduled next. A value of <code>0</code> means the rendering state is ignored. The default value is <code>-100.0</code>.</p>"
+        },
+        "renderingTaskBuffer":{
+          "shape":"SchedulingRenderingTaskBuffer",
+          "documentation":"<p>The rendering task buffer is subtracted from the number of rendering tasks before applying the rendering task weight. This creates a stickiness effect where workers prefer to stay with their current job. Higher values make workers stickier. The default value is <code>1</code>. The buffer is only applied in the weight calculation for a job if the worker is currently assigned to that job.</p>"
+        },
+        "maxPriorityOverride":{
+          "shape":"SchedulingMaxPriorityOverride",
+          "documentation":"<p>Overrides the weighted scheduling formula for jobs at the maximum priority (100). When set, jobs with priority 100 are always scheduled first regardless of their calculated weight. When absent, maximum priority jobs use the standard weighted formula.</p>"
+        },
+        "minPriorityOverride":{
+          "shape":"SchedulingMinPriorityOverride",
+          "documentation":"<p>Overrides the weighted scheduling formula for jobs at the minimum priority (0). When set, jobs with priority 0 are always scheduled last regardless of their calculated weight. When absent, minimum priority jobs use the standard weighted formula.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for weighted balanced scheduling. Workers are assigned to jobs based on a weighted formula:</p> <p> <code>weight = (priority * priorityWeight) + (errors * errorWeight) + ((currentTime - submissionTime) * submissionTimeWeight) + ((renderingTasks - renderingTaskBuffer) * renderingTaskWeight)</code> </p> <p>The job with the highest calculated weight is scheduled first. Workers are distributed evenly amongst jobs with the same weight.</p>"
     },
     "WindowsUser":{
       "type":"structure",

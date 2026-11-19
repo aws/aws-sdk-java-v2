@@ -107,7 +107,15 @@ public final class UpdateItemEnhancedRequest<T> {
 
     /**
      * Returns if the update operation should ignore attributes with null values, or false if it has not been set.
-     * This is deprecated in favour of ignoreNullsMode()
+     * <p>
+     * This setting does not apply to the version attribute
+     * ({@link software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute}). If the
+     * version attribute is {@code null}, the item is treated as new, so the update fails with a
+     * {@link software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException} if the item in the
+     * table already has a version. To update a versioned item, read it first and include its current version.
+     *
+     * @deprecated Use {@link #ignoreNullsMode()} instead, which provides more granular control
+     * over null handling behavior.
      */
     @Deprecated
     public Boolean ignoreNulls() {
@@ -278,14 +286,25 @@ public final class UpdateItemEnhancedRequest<T> {
         }
 
         /**
-         *  Sets if the update operation should ignore attributes with null values. By default, the value is false.
-         *  <p>
-         *  If set to true, any null values in the Java object will be ignored and not be updated on the persisted
-         *  record. This is commonly referred to as a 'partial update'.
-         *  If set to false, null values in the Java object will cause those attributes to be removed from the persisted
-         *  record on update.
+         * Sets if the update operation should ignore attributes with null values. By default, the value is false.
+         * <p>
+         * If set to true, any null values in the Java object will be ignored and not be updated on the persisted
+         * record. This is commonly referred to as a 'partial update'.
+         * If set to false, null values in the Java object will cause those attributes to be removed from the persisted
+         * record on update.
+         * <p>
+         * This setting does not apply to the version attribute
+         * ({@link software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute}). If the
+         * version attribute is {@code null}, the item is treated as new, so the update fails with a
+         * {@link software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException} if the item in the
+         * table already has a version. To update a versioned item, read it first and include its current version.
+         *
          * @param ignoreNulls the boolean value
          * @return a builder of this type
+         * @deprecated Use {@link #ignoreNullsMode(IgnoreNullsMode)} instead, which provides more granular control
+         * over null handling behavior.
+         * {@code ignoreNulls(true)} is equivalent to {@link IgnoreNullsMode#MAPS_ONLY};
+         * {@code ignoreNulls(false)} is equivalent to {@link IgnoreNullsMode#DEFAULT}.
          */
         @Deprecated
         public Builder<T> ignoreNulls(Boolean ignoreNulls) {
@@ -293,6 +312,18 @@ public final class UpdateItemEnhancedRequest<T> {
             return this;
         }
 
+        /**
+         * Sets the mode that determines how null-valued attributes are handled during the update operation.
+         * <p>
+         * No {@link IgnoreNullsMode} applies to the version attribute
+         * ({@link software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute}). If the
+         * version attribute is {@code null}, the item is treated as new, so the update fails with a
+         * {@link software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException} if the item in the
+         * table already has a version. To update a versioned item, read it first and include its current version.
+         *
+         * @param ignoreNullsMode the {@link IgnoreNullsMode} to use
+         * @return a builder of this type
+         */
         public Builder<T> ignoreNullsMode(IgnoreNullsMode ignoreNullsMode) {
             this.ignoreNullsMode = ignoreNullsMode;
             return this;

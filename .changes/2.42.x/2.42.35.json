@@ -1,0 +1,120 @@
+{
+    "version": "2.42.35",
+    "date": "2026-04-16",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed an issue where using a getObject ResponsePublisher as a putObject request body with the CRT HTTP client could cause the SDK to hang on retry when the server returns a retryable error."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DevOps Agent Service",
+            "contributor": "",
+            "description": "Deprecate the userId from the Chat operations. This update also removes support of AllowVendedLogDeliveryForResource API from AWS SDKs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "Adds support for Elemental Inference powered smart crop feature, enabling video verticalization"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add HTTP client configuration type metadata to the User-Agent header, tracking whether the HTTP client was auto-detected from the classpath, an explicit client instance or client builder configured by the customer."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "Add content redirection to Update Stack"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore",
+            "contributor": "",
+            "description": "Introducing NamespacePath in AgentCore Memory to support hierarchical prefix based memory record retrieval."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "Update documentation of alarm mute rules start and end date fields"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "Endpoint update for CloudWatch Logs Streaming APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Adds support for passkey-based multi-factor authentication in Cognito User Pools. Users can authenticate securely using FIDO2-compliant passkeys with user verification, enabling passwordless MFA flows while maintaining backward compatibility with password-based authentication"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Cases",
+            "contributor": "",
+            "description": "Added error handling for service quota limits"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "Amazon Connect Customer Profiles adds RecommenderSchema CRUD APIs for custom ML training columns. CreateRecommender and CreateRecommenderFilter now accept optional RecommenderSchemaName."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release updates the Amazon Connect Rules CRUD APIs to support a new EventSourceName - OnEmailAnalysisAvailable. Use this event source to trigger rules when conversational analytics results are available for email contacts."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Launching SMUS IAM domain SDK support"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds a new DescribeServerlessV2PlatformVersions API to describe platform version properties for Aurora Serverless v2. Also introduces a new valid maintenance action value for serverless platform version updates."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SNS Message Manager",
+            "contributor": "",
+            "description": "This change introduces the SNS Message Manager for 2.x, a library used to parse and validate messages received from SNS. This aims to provide the same functionality as [SnsMessageManager](https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/sns/message/SnsMessageManager.html) from 1.x."
+        },
+        {
+            "type": "feature",
+            "category": "Apache 5 HTTP Client",
+            "contributor": "",
+            "description": "Update `httpcore5` to `5.4.2`."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "This release adds support for specifying Availability Zone IDs as an alternative to Availability Zone names when creating or updating Auto Scaling groups."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Disaster Recovery Service",
+            "contributor": "",
+            "description": "Updating regex for identification of AWS Regions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

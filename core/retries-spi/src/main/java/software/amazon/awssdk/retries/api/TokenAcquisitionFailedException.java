@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.retries.api;
 
+import java.time.Duration;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -23,6 +25,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 @SdkPublicApi
 public final class TokenAcquisitionFailedException extends RuntimeException {
     private final transient RetryToken token;
+    private final transient Duration delay;
 
     /**
      * Exception construction accepting message with no root cause.
@@ -30,6 +33,7 @@ public final class TokenAcquisitionFailedException extends RuntimeException {
     public TokenAcquisitionFailedException(String msg) {
         super(msg);
         token = null;
+        delay = null;
     }
 
     /**
@@ -38,6 +42,7 @@ public final class TokenAcquisitionFailedException extends RuntimeException {
     public TokenAcquisitionFailedException(String msg, Throwable cause) {
         super(msg, cause);
         token = null;
+        delay = null;
     }
 
     /**
@@ -46,6 +51,23 @@ public final class TokenAcquisitionFailedException extends RuntimeException {
     public TokenAcquisitionFailedException(String msg, RetryToken token, Throwable cause) {
         super(msg, cause);
         this.token = token;
+        this.delay = null;
+    }
+
+    /**
+     * Exception constructor accepting message, retry token, a root cause, and delay.
+     */
+    public TokenAcquisitionFailedException(String msg, RetryToken token, Throwable cause, Duration delay) {
+        super(msg, cause);
+        this.token = token;
+        this.delay = delay;
+    }
+
+    /**
+     * The amount of time to wait before returning to the caller.
+     */
+    public Optional<Duration> delay() {
+        return Optional.ofNullable(delay);
     }
 
     /**

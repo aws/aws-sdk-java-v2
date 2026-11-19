@@ -1,0 +1,84 @@
+{
+    "version": "2.42.36",
+    "date": "2026-04-17",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "WillChilds-Klein",
+            "description": "Java CRT 0.39.3 enables and prefers Post Quantum TLS (PQ TLS) by default when supported by the platform and service. The `postQuantumTlsEnabled` builder option in aws-sdk-java-v2 now becomes an opt-out mechanism; setting it to false explicitly disables PQ TLS."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SSO OIDC",
+            "contributor": "",
+            "description": "Add defensive checks to ensure token cache file is created with user read only where possible and use atomic write/copy."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS Signin",
+            "contributor": "",
+            "description": "Add defensive checks to ensure token cache file is writen with user read permissions only where possible."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "This release adds support for configurable spark properties for Cleanrooms PySpark workloads."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Ground Station",
+            "contributor": "",
+            "description": "Adds support for updating contacts, listing antennas, and listing ground station reservations. New API operations - UpdateContact, ListContactVersions, DescribeContactVersion, ListAntennas, and ListGroundStationReservations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "contributor": "",
+            "description": "The STS client now supports configuring SigV4a through the auth scheme preference setting. SigV4a uses asymmetric cryptography, enabling customers using long-term IAM credentials to continue making STS API calls even when a region is isolated from the partition leader."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonConnectCampaignServiceV2",
+            "contributor": "",
+            "description": "This release adds support for campaign entry limits configuration and hourly refresh frequency in Amazon Connect Outbound Campaigns."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Fixes in SDK for customers using TestCase APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune",
+            "contributor": "",
+            "description": "Improving Documentation for Neptune"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Public release of dashboard customization summary, S3 Tables data source type, Athena cross-account connector, custom sorting for controls, and AI-powered analysis generation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Adds support for providing NetworkInterface for efa enabled instances and Simplified cluster creation for Slurm-orchestrated clusters with optional Lifecycle Script (LCS) configuration."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "ImportDiskImage API adds registerImageOptions for Secure Boot control and custom UEFI data. It adds windowsConfiguration for selecting a specific edition from multi-image .wim files during ISO import."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

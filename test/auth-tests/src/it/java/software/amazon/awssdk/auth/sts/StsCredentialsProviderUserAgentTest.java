@@ -16,9 +16,12 @@
 package software.amazon.awssdk.auth.sts;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.RETRY_MODE_STANDARD;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +70,7 @@ class StsCredentialsProviderUserAgentTest {
     @ParameterizedTest
     @MethodSource("stsCredentialsProviders")
     void stsCredentialsProvider_emitsCorrectBusinessMetrics(AwsCredentialsProvider provider, 
-                                                           String expected, 
+                                                           List<String> expectedIds,
                                                            String providerName) throws Exception {
         StsClient stsClient = StsClient.builder()
                                        .credentialsProvider(provider)
@@ -81,19 +84,21 @@ class StsCredentialsProviderUserAgentTest {
 
         List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains(expected);
+        assertUserAgentHasFeatureIds(userAgentHeaders.get(0), expectedIds);
 
         stsClient.close();
     }
 
     private static Stream<Arguments> stsCredentialsProviders() throws Exception {
         return Stream.of(
-            Arguments.of(createAssumeRoleProvider(), "m/D,i", "StsAssumeRoleCredentialsProvider"),
-            Arguments.of(createAssumeRoleWithSamlProvider(), "m/D,j", "StsAssumeRoleWithSamlCredentialsProvider"),
-            Arguments.of(createAssumeRoleWithWebIdentityProvider(), "m/D,k", "StsAssumeRoleWithWebIdentityCredentialsProvider"),
-            Arguments.of(createFederationTokenProvider(), "m/D,l", "StsGetFederationTokenCredentialsProvider"),
-            Arguments.of(createSessionTokenProvider(), "m/D,m", "StsGetSessionTokenCredentialsProvider"),
-            Arguments.of(createWebIdentityTokenFileProvider(), "m/D,k,h", "StsWebIdentityTokenFileCredentialsProvider")
+            Arguments.of(createAssumeRoleProvider(), Arrays.asList(RETRY_MODE_STANDARD.value(), "i"), "StsAssumeRoleCredentialsProvider"),
+            Arguments.of(createAssumeRoleWithSamlProvider(), Arrays.asList(RETRY_MODE_STANDARD.value(), "j"), "StsAssumeRoleWithSamlCredentialsProvider"),
+            Arguments.of(createAssumeRoleWithWebIdentityProvider(), Arrays.asList(RETRY_MODE_STANDARD.value(), "k"),
+                         "StsAssumeRoleWithWebIdentityCredentialsProvider"),
+            Arguments.of(createFederationTokenProvider(), Arrays.asList(RETRY_MODE_STANDARD.value(), "l"), "StsGetFederationTokenCredentialsProvider"),
+            Arguments.of(createSessionTokenProvider(), Arrays.asList(RETRY_MODE_STANDARD.value(), "m"), "StsGetSessionTokenCredentialsProvider"),
+            Arguments.of(createWebIdentityTokenFileProvider(), Arrays.asList(RETRY_MODE_STANDARD.value(), "k", "h"),
+                         "StsWebIdentityTokenFileCredentialsProvider")
         );
     }
 

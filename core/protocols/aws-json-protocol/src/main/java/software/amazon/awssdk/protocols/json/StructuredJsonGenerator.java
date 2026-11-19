@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.protocols.json;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.http.ContentStreamProvider;
 
 /**
  * Interface for generating a JSON
@@ -103,6 +105,11 @@ public interface StructuredJsonGenerator {
         }
 
         @Override
+        public StructuredJsonGenerator writeBinaryValue(byte[] bytes) {
+            return this;
+        }
+
+        @Override
         public StructuredJsonGenerator writeValue(Instant instant) {
             return this;
         }
@@ -169,6 +176,15 @@ public interface StructuredJsonGenerator {
 
     StructuredJsonGenerator writeValue(ByteBuffer bytes);
 
+    /**
+     * Writes binary data directly from a byte array, avoiding the overhead of wrapping in a
+     * {@link ByteBuffer}. The default implementation wraps the array and delegates to
+     * {@link #writeValue(ByteBuffer)}.
+     */
+    default StructuredJsonGenerator writeBinaryValue(byte[] bytes) {
+        return writeValue(ByteBuffer.wrap(bytes));
+    }
+
     StructuredJsonGenerator writeValue(Instant instant);
 
     StructuredJsonGenerator writeNumber(String number);
@@ -184,4 +200,28 @@ public interface StructuredJsonGenerator {
      */
     @Deprecated
     String getContentType();
+
+    /**
+     * Returns the size of the generated content in bytes without copying. The default
+     * implementation falls back to {@link #getBytes()}.length.
+     */
+    default int contentSize() {
+        byte[] bytes = getBytes();
+        return bytes == null ? 0 : bytes.length;
+    }
+
+    /**
+     * Returns a {@link ContentStreamProvider} that streams the generated content. The default
+     * implementation wraps the result of {@link #getBytes()} in a {@code ByteArrayInputStream}.
+     * Implementations may override this to stream directly from internal buffers without copying.
+     *
+     * @return a content stream provider, or {@code null} if {@link #getBytes()} returns null
+     */
+    default ContentStreamProvider contentStreamProvider() {
+        byte[] bytes = getBytes();
+        if (bytes == null) {
+            return null;
+        }
+        return () -> new ByteArrayInputStream(bytes);
+    }
 }

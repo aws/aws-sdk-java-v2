@@ -109,6 +109,11 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
     }
 
     @Override
+    public void error(Throwable error) {
+        delegate.error(error);
+    }
+
+    @Override
     public long receivedBytesLength() {
         return bufferedLength;
     }

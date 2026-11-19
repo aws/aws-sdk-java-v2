@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.async.SplittingPublisher;
 import software.amazon.awssdk.utils.Validate;
 
+
 /**
  * An {@link AsyncRequestBody} decorator that enables splitting into retryable sub-request bodies.
  *
@@ -34,11 +35,19 @@ import software.amazon.awssdk.utils.Validate;
  * If the first subscriber fails to consume all the data (e.g., due to early cancellation or errors),
  * subsequent retry attempts will fail since the complete data set is not available for resubscription.</p>
  *
- * <p><b>Usage Example:</b></p>
+ * <p><b>Usage Examples:</b></p>
  * {@snippet :
+ * // Simple usage (default behavior, immediate send):
  * AsyncRequestBody originalBody = AsyncRequestBody.fromString("Hello World");
  * BufferedSplittableAsyncRequestBody retryableBody =
  *     BufferedSplittableAsyncRequestBody.create(originalBody);
+ *
+ * // With buffer-before-send enabled for slow streaming sources:
+ * BufferedSplittableAsyncRequestBody fullBufferedBody =
+ *     BufferedSplittableAsyncRequestBody.builder()
+ *         .asyncRequestBody(originalBody)
+ *         .bufferBeforeSend(true)
+ *         .build();
  * }
  *
  * <p><b>Performance Considerations:</b></p>
@@ -54,13 +63,18 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBody {
     private final AsyncRequestBody delegate;
+    private final boolean bufferBeforeSend;
 
-    private BufferedSplittableAsyncRequestBody(AsyncRequestBody delegate) {
-        this.delegate = delegate;
+    private BufferedSplittableAsyncRequestBody(Builder builder) {
+        this.delegate = Validate.paramNotNull(builder.asyncRequestBody, "asyncRequestBody");
+        this.bufferBeforeSend = Validate.getOrDefault(builder.bufferBeforeSend, () -> false);
     }
 
     /**
      * Creates a new {@link BufferedSplittableAsyncRequestBody} that wraps the provided {@link AsyncRequestBody}.
+     *
+     * <p>Full buffering is disabled by default. Each part is sent to the downstream subscriber immediately
+     * upon initialization in the known-content-length path.
      *
      * @param delegate the {@link AsyncRequestBody} to wrap and make retryable. Must not be null.
      * @return a new {@link BufferedSplittableAsyncRequestBody} instance
@@ -68,7 +82,16 @@ public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBod
      */
     public static BufferedSplittableAsyncRequestBody create(AsyncRequestBody delegate) {
         Validate.paramNotNull(delegate, "delegate");
-        return new BufferedSplittableAsyncRequestBody(delegate);
+        return builder().asyncRequestBody(delegate).build();
+    }
+
+    /**
+     * Returns a new {@link Builder} for creating a {@link BufferedSplittableAsyncRequestBody} with configuration options.
+     *
+     * @return a new builder instance
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
@@ -98,6 +121,7 @@ public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBod
                 .asyncRequestBody(this)
                 .splitConfiguration(splitConfiguration)
                 .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(bufferBeforeSend)
                 .build();
     }
 
@@ -109,5 +133,62 @@ public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBod
     @Override
     public String body() {
         return delegate.body();
+    }
+
+    /**
+     * Builder for {@link BufferedSplittableAsyncRequestBody}.
+     */
+    public static final class Builder {
+        private AsyncRequestBody asyncRequestBody;
+        private Boolean bufferBeforeSend = null;
+
+        private Builder() {
+        }
+
+        /**
+         * Sets the {@link AsyncRequestBody} to wrap and make retryable.
+         *
+         * @param asyncRequestBody the request body to wrap. Must not be null.
+         * @return this builder for method chaining
+         */
+        public Builder asyncRequestBody(AsyncRequestBody asyncRequestBody) {
+            this.asyncRequestBody = asyncRequestBody;
+            return this;
+        }
+
+        /**
+         * Configures whether to fully buffer each part before sending it downstream.
+         *
+         * <p>When enabled, each part is fully buffered before being sent to the downstream subscriber.
+         * This guarantees that the retry buffer is always populated before the HTTP layer subscribes,
+         * making per-part retry deterministically successful for slow streaming sources (e.g., SFTP).
+         *
+         * <p>When disabled (the default), each part is sent immediately upon initialization in the
+         * known-content-length path, allowing the HTTP connection to open while data is still arriving.
+         *
+         * <p><b>Memory usage:</b> Enabling this option does not increase the maximum memory footprint.
+         * Buffered data remains bounded by the {@code bufferSizeInBytes} configured in the
+         * {@link AsyncRequestBodySplitConfiguration}. The only behavioral difference is timing: data is
+         * held in the buffer slightly longer (until the part is complete) before being sent downstream,
+         * rather than being streamed out concurrently.
+         *
+         * @param bufferBeforeSend whether to enable full buffering before sending parts downstream.
+         *                         Defaults to {@code false}.
+         * @return this builder for method chaining
+         */
+        public Builder bufferBeforeSend(Boolean bufferBeforeSend) {
+            this.bufferBeforeSend = bufferBeforeSend;
+            return this;
+        }
+
+        /**
+         * Builds a new {@link BufferedSplittableAsyncRequestBody} instance.
+         *
+         * @return a new instance configured by this builder
+         * @throws NullPointerException if asyncRequestBody is null
+         */
+        public BufferedSplittableAsyncRequestBody build() {
+            return new BufferedSplittableAsyncRequestBody(this);
+        }
     }
 }

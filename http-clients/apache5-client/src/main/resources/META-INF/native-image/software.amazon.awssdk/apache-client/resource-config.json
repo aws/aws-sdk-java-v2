@@ -1,7 +1,0 @@
-{
-  "resources": [
-    {
-      "pattern": "\\Qsoftware.amazon.awssdk.http.SdkHttpService\\E"
-    }
-  ]
-}

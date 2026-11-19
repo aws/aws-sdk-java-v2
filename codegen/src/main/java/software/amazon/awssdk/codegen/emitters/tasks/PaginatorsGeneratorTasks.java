@@ -53,7 +53,7 @@ public class PaginatorsGeneratorTasks extends BaseGeneratorTasks {
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
         return model.getPaginators().entrySet().stream()
-                    .filter(entry -> entry.getValue().isValid())
+                    .filter(entry -> entry.getValue().hasAllRequiredFields())
                     .flatMap(safeFunction(this::createSyncAndAsyncTasks))
                     .collect(Collectors.toList());
     }

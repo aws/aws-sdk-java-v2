@@ -1,0 +1,90 @@
+{
+    "version": "2.52.0",
+    "date": "2026-08-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "This feature would give customers the ability to selectively tune certain configurations of Kubernetes control plane components in an Amazon EKS cluster."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Added support for the AWS_IGNORE_CONFIGURED_ENDPOINT_URLS setting to skip endpoint URLs from environment variables and config files."
+        },
+        {
+            "type": "feature",
+            "category": "Account Access",
+            "contributor": "",
+            "description": "Adds SDK support for AWS IAM account access manager, a feature that enables mapping of IAM roles to the users and groups in AWS IAM Identity Center."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Seven new APIs for managing custom metrics, including create, describe, update, and delete. Using Custom Metrics, customers of Amazon Connect Customer can tailor analytics dashboards to their needs by applying custom thresholds, filters, and calculations to one or more out of the box measurements."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudDirectory",
+            "contributor": "",
+            "description": "Added an end-of-support notice to Amazon Cloud Directory public CLI reference documentation."
+        },
+        {
+            "type": "feature",
+            "category": "Apache HTTP Client 5",
+            "contributor": "",
+            "description": "Upgrade httpcomponents.client5 to 5.6.3 to address CVE-2026-64607"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Make individual parts retryable when an in-memory `AsyncRequestBody` (for example one created with `AsyncRequestBody.fromBytes`, `fromByteBuffer`, or `fromString`) is split, such as during an S3 multipart upload. The body in these cases is entirely in memory already so no data is copied and callers no longer need to wrap the body in `BufferedSplittableAsyncRequestBody` to get retries."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed the client-side rate limiting behavior of `AdaptiveRetryStrategy` under throttling conditions. Previously, the computed rate limit was overly aggressive, potentially allowing a request rate much lower than what the service allows, and was unstable, varying over time even when the service's allowed throughput was constant."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Update Netty to 4.1.137"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "GetSubscriptionGrant now returns materialized asset scope name for mapping Lake Formation data cell filters or Redshift views to subscription grants."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore",
+            "contributor": "",
+            "description": "Adding online eval arn as input for recommendation API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Textract",
+            "contributor": "",
+            "description": "Amazon A2I entered maintenance mode in July 2026 and now rejects StartHumanLoop requests from accounts that it does not recognize as existing customers. This update adds a corresponding note to the HumanLoopConfig parameter documentation so that the API Reference and SDK docs explain this behavior."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "contributor": "",
+            "description": "Documentation update for AWS Organizations that clarifies valid input values for the HandshakePartyType parameter in the InviteAccountToOrganization. API ORGANIZATION is valid in responses only. valid input values are ACCOUNT and EMAIL"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "Adds support for exporting redacted query execution logs in AWS Clean Rooms"
+        }
+    ]
+}

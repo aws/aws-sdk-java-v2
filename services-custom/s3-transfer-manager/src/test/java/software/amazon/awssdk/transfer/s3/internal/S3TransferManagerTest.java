@@ -19,9 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.COPY_SOURCE_CONTENT_LENGTH_LISTENER;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
@@ -30,9 +33,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
@@ -52,6 +57,8 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.progress.TransferListener;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 class S3TransferManagerTest {
     private S3CrtAsyncClient mockS3Crt;
@@ -124,6 +131,53 @@ class S3TransferManagerTest {
                                         .join();
 
         assertThat(completedCopy.response()).isEqualTo(response);
+    }
+
+    @Test
+    void copy_withTransferListener_reportsInitiatedAndComplete() {
+        CopyObjectResponse response = CopyObjectResponse.builder().build();
+        when(mockS3Crt.copyObject(any(CopyObjectRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+        TransferListener listener = mock(TransferListener.class);
+
+        CompletedCopy completedCopy = tm.copy(u -> u.copyObjectRequest(p -> p.sourceBucket("bucket")
+                                                                             .sourceKey("sourceKey")
+                                                                             .destinationBucket("bucket")
+                                                                             .destinationKey("destKey"))
+                                                    .addTransferListener(listener))
+                                        .completionFuture()
+                                        .join();
+
+        assertThat(completedCopy.response()).isEqualTo(response);
+        verify(listener, times(1)).transferInitiated(any());
+        verify(listener, times(1)).transferComplete(any());
+        verify(listener, never()).transferFailed(any());
+
+        ArgumentCaptor<CopyObjectRequest> requestCaptor = ArgumentCaptor.forClass(CopyObjectRequest.class);
+        verify(mockS3Crt).copyObject(requestCaptor.capture());
+        ExecutionAttributes attributes = requestCaptor.getValue().overrideConfiguration().get().executionAttributes();
+        assertThat(attributes.getAttribute(JAVA_PROGRESS_LISTENER)).isNotNull();
+        assertThat(attributes.getAttribute(COPY_SOURCE_CONTENT_LENGTH_LISTENER)).isNotNull();
+    }
+
+    @Test
+    void copy_withTransferListener_failedCopy_reportsTransferFailed() {
+        RuntimeException exception = new RuntimeException("copy failed");
+        when(mockS3Crt.copyObject(any(CopyObjectRequest.class)))
+            .thenReturn(CompletableFutureUtils.failedFuture(exception));
+        TransferListener listener = mock(TransferListener.class);
+
+        CompletableFuture<CompletedCopy> future = tm.copy(u -> u.copyObjectRequest(p -> p.sourceBucket("bucket")
+                                                                                         .sourceKey("sourceKey")
+                                                                                         .destinationBucket("bucket")
+                                                                                         .destinationKey("destKey"))
+                                                                .addTransferListener(listener))
+                                                    .completionFuture();
+
+        assertThatThrownBy(future::join).hasCause(exception);
+        verify(listener, times(1)).transferInitiated(any());
+        verify(listener, times(1)).transferFailed(any());
+        verify(listener, never()).transferComplete(any());
     }
 
     @Test
@@ -289,55 +343,105 @@ class S3TransferManagerTest {
     }
 
     @Test
-    void mrapArnProvided_shouldThrowException() {
+    void uploadFile_mrapArn_returnsResponse() {
         String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+        PutObjectResponse response = PutObjectResponse.builder().build();
+        when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
 
-        assertThatThrownBy(() -> tm.uploadFile(b -> b.putObjectRequest(p -> p.bucket(mrapArn).key("key"))
-                                                     .source(Paths.get(".")))
-                                   .completionFuture().join())
-            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+        CompletedFileUpload completedFileUpload = tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(mrapArn).key("key"))
+                                                                      .source(Paths.get(".")))
+                                                    .completionFuture().join();
 
-        assertThatThrownBy(() -> tm.upload(b -> b.putObjectRequest(p -> p.bucket(mrapArn).key("key"))
-                                                 .requestBody(AsyncRequestBody.fromString("foo")))
-                                   .completionFuture().join())
-            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+        assertThat(completedFileUpload.response()).isEqualTo(response);
+    }
 
-        assertThatThrownBy(() -> tm.downloadFile(b -> b.getObjectRequest(p -> p.bucket(mrapArn).key("key"))
-                                                       .destination(Paths.get(".")))
-                                   .completionFuture().join())
-            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+    @Test
+    void upload_mrapArn_returnsResponse() {
+        String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+        PutObjectResponse response = PutObjectResponse.builder().build();
+        when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        CompletedUpload completedUpload = tm.upload(u -> u.putObjectRequest(p -> p.bucket(mrapArn).key("key"))
+                                                          .requestBody(AsyncRequestBody.fromString("foo")))
+                                            .completionFuture().join();
+
+        assertThat(completedUpload.response()).isEqualTo(response);
+    }
+
+    @Test
+    void downloadFile_mrapArn_returnsResponse() {
+        String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        CompletedFileDownload completedFileDownload = tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket(mrapArn).key("key"))
+                                                                            .destination(Paths.get(".")))
+                                                        .completionFuture().join();
+
+        assertThat(completedFileDownload.response()).isEqualTo(response);
+    }
+
+    @Test
+    void download_mrapArn_returnsResponse() {
+        String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
 
         DownloadRequest<ResponseBytes<GetObjectResponse>> downloadRequest =
             DownloadRequest.builder()
                            .getObjectRequest(g -> g.bucket(mrapArn).key("key"))
                            .responseTransformer(AsyncResponseTransformer.toBytes()).build();
 
-        assertThatThrownBy(() -> tm.download(downloadRequest).completionFuture().join())
-            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+        CompletedDownload<ResponseBytes<GetObjectResponse>> completedDownload =
+            tm.download(downloadRequest).completionFuture().join();
 
-        assertThatThrownBy(() -> tm.uploadDirectory(b -> b.bucket(mrapArn)
-                                                          .source(Paths.get(".")))
-                                   .completionFuture().join())
-            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+        assertThat(completedDownload).isNotNull();
+    }
 
-        assertThatThrownBy(() -> tm.downloadDirectory(b -> b.bucket(mrapArn)
-                                                            .destination(Paths.get(".")))
-                                   .completionFuture().join())
-            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+    @Test
+    void copy_mrapArn_returnsResponse() {
+        String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+        CopyObjectResponse response = CopyObjectResponse.builder().build();
+        when(mockS3Crt.copyObject(any(CopyObjectRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
 
-        assertThatThrownBy(() -> tm.copy(b -> b.copyObjectRequest(p -> p.sourceBucket(mrapArn)
-                                                                        .sourceKey("sourceKey")
-                                                                        .destinationBucket("bucket")
-                                                                        .destinationKey("destKey")))
-                                   .completionFuture().join())
-            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+        CompletedCopy completedCopy = tm.copy(u -> u.copyObjectRequest(p -> p.sourceBucket(mrapArn)
+                                                                             .sourceKey("sourceKey")
+                                                                             .destinationBucket("bucket")
+                                                                             .destinationKey("destKey")))
+                                        .completionFuture().join();
 
-        assertThatThrownBy(() -> tm.copy(b -> b.copyObjectRequest(p -> p.sourceBucket("bucket")
-                                                                        .sourceKey("sourceKey")
-                                                                        .destinationBucket(mrapArn)
-                                                                        .destinationKey("destKey")))
-                                   .completionFuture().join())
-            .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
+        assertThat(completedCopy.response()).isEqualTo(response);
+
+        completedCopy = tm.copy(u -> u.copyObjectRequest(p -> p.sourceBucket("bucket")
+                                                               .sourceKey("sourceKey")
+                                                               .destinationBucket(mrapArn)
+                                                               .destinationKey("destKey")))
+                          .completionFuture().join();
+
+        assertThat(completedCopy.response()).isEqualTo(response);
+    }
+
+    @Test
+    void uploadDirectory_mrapArn_returnsResponse() {
+        String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+
+        tm.uploadDirectory(u -> u.source(Paths.get(".")).bucket(mrapArn));
+
+        verify(uploadDirectoryHelper).uploadDirectory(any(UploadDirectoryRequest.class));
+    }
+
+    @Test
+    void downloadDirectory_mrapArn_returnsResponse() {
+        String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+
+        tm.downloadDirectory(d -> d.destination(Paths.get(".")).bucket(mrapArn));
+
+        verify(downloadDirectoryHelper).downloadDirectory(any(DownloadDirectoryRequest.class));
     }
 
     @Test

@@ -78,6 +78,12 @@
       "output_token": "NextToken",
       "result_key": "CapacityReservationBillingRequests"
     },
+    "DescribeCapacityReservationDateChangeQuotes": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "CapacityReservationModificationQuotes"
+    },
     "DescribeCapacityReservationFleets": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -315,6 +321,12 @@
       "output_token": "NextToken",
       "result_key": "InternetGateways"
     },
+    "DescribeIpamPoolAllocations": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "IpamPoolAllocations"
+    },
     "DescribeIpamPools": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -432,6 +444,12 @@
       "output_token": "NextToken",
       "result_key": "PrefixLists"
     },
+    "DescribeMetricCategories": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "MetricCategories"
+    },
     "DescribeMovingAddresses": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -485,6 +503,18 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "NetworkInterfaces"
+    },
+    "DescribeNetworkingFlexCostAllocationPolicies": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "FlexCostAllocationPolicies"
+    },
+    "DescribeNetworkingFlexCostAllocationPolicyAssociations": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "FcaPolicyAssociations"
     },
     "DescribePlacementGroups": {
       "result_key": "PlacementGroups"
@@ -875,11 +905,23 @@
       "output_token": "NextToken",
       "result_key": "MetricDimensionResults"
     },
+    "GetCapacityManagerMonitoredTagKeys": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "CapacityManagerTagKeys"
+    },
     "GetGroupsForCapacityReservation": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "CapacityReservationGroups"
+    },
+    "GetImageFindings": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "ImageFindings"
     },
     "GetInstanceTypesFromInstanceRequirements": {
       "input_token": "NextToken",
@@ -988,6 +1030,12 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "Associations"
+    },
+    "GetTransitGatewayPolicyTableEntries": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "TransitGatewayPolicyTableEntries"
     },
     "GetTransitGatewayPrefixListReferences": {
       "input_token": "NextToken",

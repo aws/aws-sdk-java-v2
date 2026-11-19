@@ -288,6 +288,9 @@ public final class ClientOverrideConfiguration
      * execution except for marshalling. This includes request handler execution, all HTTP requests including retries,
      * unmarshalling, etc. This value should always be positive, if present.
      *
+     * <p>Because this window is narrower than the API call as a whole, the reported
+     * {@link software.amazon.awssdk.core.metrics.CoreMetric#API_CALL_DURATION} metric can exceed this timeout.
+     *
      * <p>The api call timeout feature doesn't have strict guarantees on how quickly a request is aborted when the
      * timeout is breached. The typical case aborts the request within a few milliseconds but there may occasionally be
      * requests that don't get aborted until several seconds after the timer has been breached. Because of this, the client
@@ -526,7 +529,7 @@ public final class ClientOverrideConfiguration
          * </ol>
          *
          * <p>
-         * Defaults to {@link RetryMode#LEGACY} if no configuration setting is found.
+         * Defaults to {@link RetryMode#STANDARD} if no configuration setting is found.
          * <p>
          * Note that retryStrategy options are mutually exclusive
          */
@@ -612,6 +615,9 @@ public final class ClientOverrideConfiguration
          * Configure the amount of time to allow the client to complete the execution of an API call. This timeout covers the
          * entire client execution except for marshalling. This includes request handler execution, all HTTP requests including
          * retries, unmarshalling, etc. This value should always be positive, if present.
+         *
+         * <p>Because this window is narrower than the API call as a whole, the reported
+         * {@link software.amazon.awssdk.core.metrics.CoreMetric#API_CALL_DURATION} metric can exceed this timeout.
          *
          * <p>The api call timeout feature doesn't have strict guarantees on how quickly a request is aborted when the
          * timeout is breached. The typical case aborts the request within a few milliseconds but there may occasionally be

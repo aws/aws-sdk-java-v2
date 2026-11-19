@@ -150,7 +150,7 @@ public final class SimpleTypeJsonMarshaller {
     public static final JsonMarshaller<SdkBytes> SDK_BYTES = new BaseJsonMarshaller<SdkBytes>() {
         @Override
         public void marshall(SdkBytes val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
-            jsonGenerator.writeValue(val.asByteBuffer());
+            jsonGenerator.writeBinaryValue(val.asByteArrayUnsafe());
         }
     };
 

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.profiles.ProfileFileSystemSetting.AWS_CONFIG_FILE;
 import static software.amazon.awssdk.services.s3.S3SystemSetting.AWS_S3_DISABLE_MULTIREGION_ACCESS_POINTS;
 import static software.amazon.awssdk.services.s3.S3SystemSetting.AWS_S3_USE_ARN_REGION;
@@ -47,6 +48,7 @@ public class S3ConfigurationTest {
         assertThat(config.pathStyleAccessEnabled()).isFalse();
         assertThat(config.useArnRegionEnabled()).isFalse();
         assertThat(config.expectContinueEnabled()).isTrue();
+        assertThat(config.expectContinueThresholdInBytes()).isEqualTo(1048576L);
     }
 
     @Test
@@ -116,5 +118,55 @@ public class S3ConfigurationTest {
         assertThat(config.useArnRegionEnabled()).isEqualTo(false);
     }
 
+    // -----------------------------------------------------------------------
+    // expectContinueThresholdInBytes
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void expectContinueThresholdInBytes_defaultValue_is1MB() {
+        S3Configuration config = S3Configuration.builder().build();
+        assertThat(config.expectContinueThresholdInBytes()).isEqualTo(1048576L);
+    }
+
+    @Test
+    public void expectContinueThresholdInBytes_customValue_isPreserved() {
+        S3Configuration config = S3Configuration.builder()
+                                                .expectContinueThresholdInBytes(2_097_152L)
+                                                .build();
+        assertThat(config.expectContinueThresholdInBytes()).isEqualTo(2_097_152L);
+    }
+
+    @Test
+    public void expectContinueThresholdInBytes_toBuilder_preservesUserSetValue() {
+        S3Configuration config = S3Configuration.builder()
+                                                .expectContinueThresholdInBytes(512L)
+                                                .build();
+        S3Configuration rebuilt = config.toBuilder().build();
+        assertThat(rebuilt.expectContinueThresholdInBytes()).isEqualTo(512L);
+    }
+
+    @Test
+    public void expectContinueThresholdInBytes_toBuilder_returnsNullForDefault() {
+        S3Configuration config = S3Configuration.builder().build();
+        S3Configuration.Builder builder = config.toBuilder();
+        assertThat(builder.expectContinueThresholdInBytes()).isNull();
+    }
+
+    @Test
+    public void expectContinueThresholdInBytes_negativeValue_throwsException() {
+        assertThatThrownBy(() -> S3Configuration.builder()
+                                                .expectContinueThresholdInBytes(-1L)
+                                                .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("expectContinueThresholdInBytes must not be negative");
+    }
+
+    @Test
+    public void expectContinueThresholdInBytes_zeroValue_isAccepted() {
+        S3Configuration config = S3Configuration.builder()
+                                                .expectContinueThresholdInBytes(0L)
+                                                .build();
+        assertThat(config.expectContinueThresholdInBytes()).isEqualTo(0L);
+    }
 
 }

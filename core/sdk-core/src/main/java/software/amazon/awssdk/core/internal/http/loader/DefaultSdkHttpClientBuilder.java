@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.loader;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpService;
@@ -24,7 +24,9 @@ import software.amazon.awssdk.utils.AttributeMap;
 /**
  * Utility to load the default HTTP client factory and create an instance of {@link SdkHttpClient}.
  */
-@SdkInternalApi
+// NOTE: This was previously @SdkInternalApi, which is why it's in the .internal. package. It was moved to a protected API to
+// allow usage outside of core for modules that need to use an HTTP client directly, such as sns-message-manager.
+@SdkProtectedApi
 public final class DefaultSdkHttpClientBuilder implements SdkHttpClient.Builder {
 
     private static final SdkHttpServiceProvider<SdkHttpService> DEFAULT_CHAIN = new CachingSdkHttpServiceProvider<>(

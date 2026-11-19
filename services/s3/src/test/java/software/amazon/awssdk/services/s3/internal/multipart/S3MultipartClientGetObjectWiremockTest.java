@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.lessThanOrExactly;
@@ -51,6 +52,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -190,6 +192,32 @@ public class S3MultipartClientGetObjectWiremockTest {
           .hasCauseInstanceOf(SdkClientException.class)
           .hasMessageContaining("PartsCount validation failed. Expected 2, downloaded 4 parts");
 
+    }
+
+    @Test
+    public void serialDownload_resumedAfterFirstPart_shouldSendIfMatchWithResumedETagOnRemainingParts() {
+        String eTag = "\"resumed-etag\"";
+        MultipartDownloadTestUtils resumedUtil = new MultipartDownloadTestUtils(BUCKET, KEY, eTag);
+        resumedUtil.stubForPart(BUCKET, KEY, 2, 3, 16);
+        resumedUtil.stubForPart(BUCKET, KEY, 3, 3, 16);
+
+        MultipartDownloadResumeContext resumeContext = new MultipartDownloadResumeContext();
+        resumeContext.addCompletedPart(1);
+        resumeContext.response(GetObjectResponse.builder().eTag(eTag).partsCount(3).build());
+        GetObjectRequest request = GetObjectRequest.builder()
+                                                   .bucket(BUCKET)
+                                                   .key(KEY)
+                                                   .overrideConfiguration(config -> config
+                                                       .putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT,
+                                                                              resumeContext))
+                                                   .build();
+
+        multipartClient.getObject(request, AsyncResponseTransformer.toBytes()).join();
+
+        verify(getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=2", BUCKET, KEY)))
+                   .withHeader("If-Match", equalTo(eTag)));
+        verify(getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=3", BUCKET, KEY)))
+                   .withHeader("If-Match", equalTo(eTag)));
     }
 
     @ParameterizedTest

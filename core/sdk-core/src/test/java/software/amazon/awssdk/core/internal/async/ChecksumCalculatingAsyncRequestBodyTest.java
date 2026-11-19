@@ -35,12 +35,14 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncRequestBody.BodyType;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
@@ -163,6 +165,18 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
 
         assertThat(provider.contentLength()).hasValue((long) tc.expectedBody.length());
         assertThat(sb).hasToString(tc.expectedBody);
+    }
+
+    private static Stream<Arguments> bodyTypeCases() {
+        return Stream.of(
+            Arguments.of("file source -> File", AsyncRequestBody.fromFile(path), BodyType.FILE),
+            Arguments.of("bytes source -> Bytes", AsyncRequestBody.fromString(testString), BodyType.BYTES));
+    }
+
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("bodyTypeCases")
+    public void body_forwardsWrappedBodyType(String description, AsyncRequestBody wrapped, BodyType expected) {
+        assertThat(checksumPublisher(wrapped).body()).isEqualTo(expected.getName());
     }
 
     @Test

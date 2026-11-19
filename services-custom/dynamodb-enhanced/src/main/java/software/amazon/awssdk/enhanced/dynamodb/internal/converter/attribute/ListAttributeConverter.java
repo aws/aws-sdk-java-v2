@@ -156,17 +156,17 @@ public class ListAttributeConverter<T extends Collection<?>> implements Attribut
                                          .convert(new TypeConvertingVisitor<T>(type.rawClass(), ListAttributeConverter.class) {
                                              @Override
                                              public T convertSetOfStrings(List<String> value) {
-                                                 return convertCollection(value, v -> AttributeValue.builder().s(v).build());
+                                                 return convertCollection(value, v -> AttributeValue.createS(v));
                                              }
 
                                              @Override
                                              public T convertSetOfNumbers(List<String> value) {
-                                                 return convertCollection(value, v -> AttributeValue.builder().n(v).build());
+                                                 return convertCollection(value, v -> AttributeValue.createN(v));
                                              }
 
                                              @Override
                                              public T convertSetOfBytes(List<SdkBytes> value) {
-                                                 return convertCollection(value, v -> AttributeValue.builder().b(v).build());
+                                                 return convertCollection(value, v -> AttributeValue.createB(v));
                                              }
 
                                              @Override

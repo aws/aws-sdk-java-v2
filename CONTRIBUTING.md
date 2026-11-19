@@ -9,6 +9,7 @@ __Jump To:__
 * [Feature Requests](#feature-requests)
 * [Code Contributions](#code-contributions)
 * [Running CI Checks Locally](#running-ci-checks-locally)
+* [Automated Tools](#automated-tools)
 * [Additional Resources](#additional-resources)
 
 ## Bug Reports
@@ -77,8 +78,8 @@ Open an [issue][issues] with the following:
   how it should work.
 * [Markdown][markdown] formatting as appropriate to make the request easier to
   read.
-* If you intend to implement this feature, indicate that you'd like to the
-  issue to be assigned to you
+* If you intend to implement this feature, check the "I may be able to
+  implement this feature request" option in the issue template
 
 ## Code Contributions
 Code contributions to the SDK are done through [Pull Requests][pull-requests].
@@ -94,10 +95,9 @@ Please keep the following in mind when considering a code contribution:
   by another person.
 
   If you're working on a bug fix, check to see if the bug has already been
-  reported. If it has but no one is assigned to it, ask one of the maintainers
-  to assign it to you before beginning work.  If you're confident the bug
-  hasn't been reported yet, create a new [Bug Report](#bug-reports) then ask to
-  be assigned to it.
+  reported. If it has, comment on the issue to indicate you intend to submit a
+  fix. If you're confident the bug hasn't been reported yet, create a new [Bug
+  Report](#bug-reports).
 
   If you are thinking about adding entirely new functionality, open a [Feature
   Request](#feature-requests) to ask for feedback first before beginning work;
@@ -185,6 +185,25 @@ mvn clean install -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheck
 mvn clean install -pl :dynamodb-enhanced -am -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip
 ```
 
+## Automated Tools
+
+The use of AI tooling for assisted development work is accepted and encouraged
+in this repository, but due to the volume of submissions we ask that you observe
+the following rules:
+
+- All issue and pull request submissions to this repository that are sourced by
+  AI must first be reviewed by a human before submitting to the repository.
+  Issues and pull requests must confirm this in the "AI tools" section of their
+  templates.
+- Write the pull request description yourself. Do not use AI tools to write it.
+- Please ensure that your submissions are actually improvements. While we are
+  grateful for any proposed fixes, even if they are very small, behavior that
+  looks like creating nuisance PRs or artificially inflating submission counts
+  is not acceptable.
+- We may close issues or pull requests, or limit your ability to interact with
+  this repository, for behavior that in our estimation violates these rules or
+  any of the other rules in this repository's
+  [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Additional Resources
 We maintain [docs](docs/README.md) where information like design decisions, internal

@@ -37,6 +37,10 @@ import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDisc
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import java.net.URI;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -188,6 +192,17 @@ public class DefaultsModeTest {
         }
 
         @Override
+        protected SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
+            return config.toBuilder()
+                         .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, c -> {
+                             URI endpoint = URI.create("https://" + serviceEndpointPrefix() + "."
+                                                      + c.get(AwsClientOption.AWS_REGION) + ".amazonaws.com");
+                             return ClientEndpointProvider.create(endpoint, false);
+                         })
+                         .build();
+        }
+
+        @Override
         protected String serviceEndpointPrefix() {
             return ENDPOINT_PREFIX;
         }
@@ -218,6 +233,17 @@ public class DefaultsModeTest {
         @Override
         protected TestAsyncClient buildClient() {
             return new TestAsyncClient(super.asyncClientConfiguration());
+        }
+
+        @Override
+        protected SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
+            return config.toBuilder()
+                         .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, c -> {
+                             URI endpoint = URI.create("https://" + serviceEndpointPrefix() + "."
+                                                      + c.get(AwsClientOption.AWS_REGION) + ".amazonaws.com");
+                             return ClientEndpointProvider.create(endpoint, false);
+                         })
+                         .build();
         }
 
         @Override

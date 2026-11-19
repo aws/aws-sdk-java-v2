@@ -1,5 +1,7 @@
 package software.amazon.awssdk.stability.tests.s3;
 
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
+
 import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,7 +17,7 @@ import software.amazon.awssdk.testutils.retry.RetryableTest;
  */
 public class S3AsyncWithCrtAsyncHttpClientStabilityTest extends S3AsyncBaseStabilityTest {
 
-    private static String bucketName = "s3withcrtasyncclientstabilitytests" + System.currentTimeMillis();
+    private static String bucketName = temporaryBucketName(S3AsyncWithCrtAsyncHttpClientStabilityTest.class);
 
     private static S3AsyncClient s3CrtClient;
 
@@ -39,7 +41,8 @@ public class S3AsyncWithCrtAsyncHttpClientStabilityTest extends S3AsyncBaseStabi
 
     @BeforeAll
     public static void setup() {
-        s3CrtClient.createBucket(b -> b.bucket(bucketName)).join();
+        s3CrtClient.createBucket(b -> b.bucket(bucketName)
+                                       .createBucketConfiguration(cfg -> cfg.tags(integTestTag()))).join();
     }
 
     @AfterAll

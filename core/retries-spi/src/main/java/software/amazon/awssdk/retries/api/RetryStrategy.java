@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.retries.api;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -40,9 +43,9 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  */
 @ThreadSafe
 @SdkPublicApi
-public interface RetryStrategy {
+public interface RetryStrategy extends SdkAutoCloseable {
     /**
-     * Invoked before the first request attempt.
+     * Acquire a retry token synchronously. Invoked before the first request attempt.
      *
      * <p>Callers MUST wait for the {@code delay} returned by this call before making the first attempt. Callers that wish to
      * retry a failed attempt MUST call {@link #refreshRetryToken} before doing so.
@@ -55,7 +58,27 @@ public interface RetryStrategy {
     AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request);
 
     /**
-     * Invoked before each subsequent (non-first) request attempt.
+     * Acquire a retry token asynchronously. Invoked before the first request attempt.
+     *
+     * <p>Callers MUST wait for the {@code delay} returned by this call before making the first attempt. Callers that wish to
+     * retry a failed attempt MUST call {@link #refreshRetryToken} before doing so.
+     *
+     * <p>If the attempt was successful, callers MUST call {@link #recordSuccess}.
+     *
+     * <p>The future is completed exceptionally with {@link NullPointerException} if a required parameter is {@code null}.
+     * <p>The future is completed exceptionally with {@link TokenAcquisitionFailedException} if a token cannot be acquired.
+     */
+    default CompletableFuture<AcquireInitialTokenResponse> acquireInitialTokenAsync(AcquireInitialTokenRequest request) {
+        try {
+            AcquireInitialTokenResponse response = acquireInitialToken(request);
+            return CompletableFuture.completedFuture(response);
+        } catch (Throwable t) {
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
+
+    /**
+     * Refresh a retry token synchronously. Invoked before each subsequent (non-first) request attempt.
      *
      * <p>Callers MUST wait for the {@code delay} returned by this call before making the next attempt. If the next attempt
      * fails, callers MUST re-call {@link #refreshRetryToken} before attempting another retry. This call invalidates the provided
@@ -69,6 +92,29 @@ public interface RetryStrategy {
      * @throws TokenAcquisitionFailedException if a token cannot be acquired
      */
     RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request);
+
+    /**
+     * Refresh a retry token asynchronously. Invoked before each subsequent (non-first) request attempt.
+     *
+     * <p>Callers MUST wait for the {@code delay} returned by this call before making the next attempt. If the next attempt
+     * fails, callers MUST re-call {@link #refreshRetryToken} before attempting another retry. This call invalidates the provided
+     * token, and returns a new one. Callers MUST use the new token.
+     *
+     * <p>If the attempt was successful, callers MUST call {@link #recordSuccess}.
+     *
+     * <p>The future is completed exceptionally with {@link NullPointerException} if a required parameter is not specified.
+     * <p>The future is completed exceptionally with {@link IllegalArgumentException} if the provided token was not issued by
+     * this strategy or the provided token was already used for a previous refresh or success call.
+     * <p>The future is completed exceptionally with {@link TokenAcquisitionFailedException} if a token cannot be acquired.
+     */
+    default CompletableFuture<RefreshRetryTokenResponse> refreshRetryTokenAsync(RefreshRetryTokenRequest request) {
+        try {
+            RefreshRetryTokenResponse response = refreshRetryToken(request);
+            return CompletableFuture.completedFuture(response);
+        } catch (Throwable t) {
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
 
     /**
      * Invoked after an attempt succeeds.
@@ -101,6 +147,10 @@ public interface RetryStrategy {
      * <p>This is useful for modifying the strategy's behavior, like conditions or max retries.
      */
     Builder<?, ?> toBuilder();
+
+    @Override
+    default void close() {
+    }
 
     /**
      * Builder to create immutable instances of {@link RetryStrategy}.
@@ -228,6 +278,27 @@ public interface RetryStrategy {
          */
         B treatAsThrottling(Predicate<Throwable> treatAsThrottling);
 
+        /**
+         * Configure the strategy to never retry when the provided predicate returns true, given the refresh request for the
+         * failed attempt. This takes precedence over the predicates configured with {@link #retryOnException(Predicate)} and
+         * its variants. For example, {@link RefreshRetryTokenRequest#operationName()} can be used to never retry a given
+         * operation.
+         *
+         * <p>Calling this more than once adds predicates: the request is not retried if any of them returns true.
+         *
+         * <p>{@link RefreshRetryTokenRequest#operationName()} is the operation name from the service model (for example,
+         * {@code "GetObject"}, not {@code "getObject"}). It is empty when the strategy is not used by an SDK client, so
+         * check it with {@link java.util.Optional#filter} or {@link java.util.Optional#isPresent} rather than
+         * {@link java.util.Optional#get}.
+         *
+         * <p>If the predicate throws an exception, the SDK retry strategies log it and do not retry the request, so the
+         * original failure is returned to the caller.
+         *
+         * <p>The default implementation throws {@link UnsupportedOperationException}.
+         */
+        default B doNotRetryWhen(Predicate<RefreshRetryTokenRequest> doNotRetry) {
+            throw new UnsupportedOperationException("This retry strategy builder does not support doNotRetryWhen");
+        }
 
         /**
          * Configure whether the default predicates should be used, or not. When set to false, only user-provided retry

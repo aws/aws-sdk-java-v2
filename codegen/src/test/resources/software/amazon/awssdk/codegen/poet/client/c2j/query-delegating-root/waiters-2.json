@@ -1,0 +1,80 @@
+{
+  "version": 2,
+  "waiters": {
+    "PostOperationSuccess": {
+      "delay": 1,
+      "operation": "APostOperation",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "expected": 200,
+          "matcher": "status",
+          "state": "success"
+        },
+        {
+          "state": "retry",
+          "matcher": "status",
+          "expected": 404
+        },
+        {
+          "matcher": "pathAny",
+          "expected": "baz",
+          "argument": "foo.bar",
+          "state": "success"
+        }
+      ]
+    },
+    "FloatValueTest": {
+      "delay": 15,
+      "operation": "APostOperation",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "matcher": "path",
+          "expected": 42.5,
+          "argument": "FloatValue",
+          "state": "success"
+        }
+      ]
+    },
+    "BigDecimalValueTest": {
+      "delay": 15,
+      "operation": "APostOperation",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "matcher": "path",
+          "expected": 123132.81289319837183771465876127837183719837123,
+          "argument": "BigDecimalValue",
+          "state": "success"
+        }
+      ]
+    },
+    "LongValueTest": {
+      "delay": 15,
+      "operation": "APostOperation",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "matcher": "path",
+          "expected": 9223372036854775807,
+          "argument": "LongValue",
+          "state": "success"
+        }
+      ]
+    },
+    "DoubleValueTest": {
+      "delay": 15,
+      "operation": "APostOperation",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "matcher": "path",
+          "expected": 1.7976931348623157E308,
+          "argument": "DoubleValue",
+          "state": "success"
+        }
+      ]
+    }
+  }
+}

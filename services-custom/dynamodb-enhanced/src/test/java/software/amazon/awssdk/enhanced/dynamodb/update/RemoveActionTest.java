@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.update;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Collections;
 import nl.jqno.equalsverifier.EqualsVerifier;
@@ -61,5 +62,61 @@ class RemoveActionTest {
                                           .build();
         RemoveAction copy = action.toBuilder().build();
         assertThat(action).isEqualTo(copy);
+    }
+
+    @Test
+    void build_withNullPath_throwsNullPointerException() {
+        assertThatThrownBy(() -> RemoveAction.builder()
+                                             .path(null)
+                                             .build())
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("path");
+    }
+
+    @Test
+    void builder_expressionNames_withNullMap_setsToNull() {
+        RemoveAction action = RemoveAction.builder()
+                                          .path(PATH)
+                                          .expressionNames(null)
+                                          .build();
+        assertThat(action.expressionNames()).isEmpty();
+    }
+
+    @Test
+    void builder_putExpressionName_withNullExpressionNames_createsNewMap() {
+        RemoveAction action = RemoveAction.builder()
+                                          .path(PATH)
+                                          .putExpressionName(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME)
+                                          .build();
+        assertThat(action.expressionNames()).containsEntry(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME);
+    }
+
+    @Test
+    void builder_putExpressionName_whenExpressionNamesIsNull_createsNewMap() {
+        RemoveAction action = RemoveAction.builder()
+                                          .path(PATH)
+                                          .putExpressionName(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME)
+                                          .build();
+        assertThat(action.expressionNames()).containsEntry(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME);
+    }
+
+    @Test
+    void builder_putExpressionName_whenExpressionNamesIsNotNull_addsToExistingMap() {
+        RemoveAction action = RemoveAction.builder()
+                                          .path(PATH)
+                                          .expressionNames(Collections.singletonMap("existing", "existingValue"))
+                                          .putExpressionName(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME)
+                                          .build();
+        assertThat(action.expressionNames()).containsEntry("existing", "existingValue");
+        assertThat(action.expressionNames()).containsEntry(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME);
+    }
+
+    @Test
+    void builder_putExpressionName_withInitiallyNullExpressionNames_createsNewHashMap() {
+        RemoveAction.Builder builder = RemoveAction.builder()
+                                                   .path(PATH);
+        builder.putExpressionName(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME);
+        RemoveAction action = builder.build();
+        assertThat(action.expressionNames()).containsEntry(ATTRIBUTE_TOKEN, ATTRIBUTE_NAME);
     }
 }

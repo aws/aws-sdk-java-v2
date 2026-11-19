@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.interceptor;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -38,11 +38,11 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
     private final Map<ExecutionAttribute<?>, Object> attributes;
 
     public ExecutionAttributes() {
-        this.attributes = new HashMap<>(32);
+        this.attributes = new IdentityHashMap<>(64);
     }
 
     protected ExecutionAttributes(Map<? extends ExecutionAttribute<?>, ?> attributes) {
-        this.attributes = new HashMap<>(attributes);
+        this.attributes = new IdentityHashMap<>(attributes);
     }
     
     /**
@@ -88,7 +88,7 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
      * Merge attributes of a higher precedence into the current lower precedence collection.
      */
     public ExecutionAttributes merge(ExecutionAttributes lowerPrecedenceExecutionAttributes) {
-        Map<ExecutionAttribute<?>, Object> copiedAttributes = new HashMap<>(this.attributes);
+        Map<ExecutionAttribute<?>, Object> copiedAttributes = new IdentityHashMap<>(this.attributes);
         lowerPrecedenceExecutionAttributes.getAttributes().forEach(copiedAttributes::putIfAbsent);
         return new ExecutionAttributes(copiedAttributes);
     }
@@ -167,7 +167,7 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
      * copy() if it's because of {@link #unmodifiableExecutionAttributes(ExecutionAttributes)}.
      */
     public static final class Builder implements CopyableBuilder<ExecutionAttributes.Builder, ExecutionAttributes> {
-        private final Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>(32);
+        private final Map<ExecutionAttribute<?>, Object> executionAttributes = new IdentityHashMap<>(64);
 
         private Builder() {
         }

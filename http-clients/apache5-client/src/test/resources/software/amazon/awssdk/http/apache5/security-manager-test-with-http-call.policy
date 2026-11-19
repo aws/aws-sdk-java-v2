@@ -1,0 +1,13 @@
+grant {
+    permission java.util.PropertyPermission "*", "read,write";
+    permission java.lang.RuntimePermission "modifyThread";
+    permission java.lang.RuntimePermission "setContextClassLoader";
+    permission java.lang.RuntimePermission "setSecurityManager";
+    permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+    permission java.net.SocketPermission "*", "connect,accept";
+
+    // Required by Apache HC5 for TCP socket options (not needed by Apache HC4)
+    permission jdk.net.NetworkPermission "setOption.TCP_KEEPIDLE";
+    permission jdk.net.NetworkPermission "setOption.TCP_KEEPINTERVAL";
+    permission jdk.net.NetworkPermission "setOption.TCP_KEEPCOUNT";
+};

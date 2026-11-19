@@ -20,14 +20,8 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 
 public class S3CrossRegionCrtIntegrationTest extends S3CrossRegionAsyncIntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(S3CrossRegionCrtIntegrationTest.class);
@@ -49,7 +43,7 @@ public class S3CrossRegionCrtIntegrationTest extends S3CrossRegionAsyncIntegrati
                                            .region(Region.AWS_GLOBAL)
                                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .crossRegionAccessEnabled(true)
-                                             .build();
+                                           .build();
     }
     @Override
     protected String bucketName() {

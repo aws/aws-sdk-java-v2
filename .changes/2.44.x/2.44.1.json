@@ -1,0 +1,66 @@
+{
+    "version": "2.44.1",
+    "date": "2026-05-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Location Service Routes V2",
+            "contributor": "",
+            "description": "Added support for TravelTimeExceedsDriverWorkHours, ViolatedBlockedRoad, and ViolatedVehicleRestriction notice codes to the CalculateRoutes API response."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This feature allows customers to change the tunnel bandwidth on existing VPN connections using the ModifyVpnConnectionOptions API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "Updates the type of the MediaLiveRouterOutputConnectionMap."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon VPC Lattice",
+            "contributor": "",
+            "description": "Amazon VPC Lattice now supports privately resolvable DNS resources"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Amazon Bedrock AgentCore gateways now support MCP Sessions and response streaming from MCP targets. Session timeouts can be set between 15 minutes and 8 hours, and response streaming enables forwarding stream events sent by MCP targets to gateway users."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "Adding an additional optional deliverySourceConfiguration field to PutDeliverySource API. This enables customers to pass service-specific configurations through IngestionHub such as tracing enablement or sampling rates that will be propagated to the source resource."
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Fix S3 Transfer Manager progress tracking overshoot when a multipart download part-get is retried after partial data delivery"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Optimized JSON marshalling performance for JSON RPC, REST JSON and RPCv2 Cbor protocols."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Agent",
+            "contributor": "",
+            "description": "AWS Security Agent is adding a new target domain verification method for private VPC penetration testing. Additionally, the target domain resource will now have a verification status reason field to surface additional details about domain verification"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building Service",
+            "contributor": "",
+            "description": "Lex V1 is deprecated, use Lex V2 instead"
+        }
+    ]
+}

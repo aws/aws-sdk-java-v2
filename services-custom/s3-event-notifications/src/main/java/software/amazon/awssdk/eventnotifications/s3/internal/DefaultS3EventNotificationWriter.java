@@ -19,10 +19,13 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.eventnotifications.s3.model.EventHoldDuration;
 import software.amazon.awssdk.eventnotifications.s3.model.GlacierEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.IntelligentTieringEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.LifecycleEventData;
+import software.amazon.awssdk.eventnotifications.s3.model.ObjectRetentionEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.ReplicationEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.RequestParameters;
 import software.amazon.awssdk.eventnotifications.s3.model.ResponseElements;
@@ -32,6 +35,7 @@ import software.amazon.awssdk.eventnotifications.s3.model.S3Bucket;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotificationRecord;
 import software.amazon.awssdk.eventnotifications.s3.model.S3Object;
+import software.amazon.awssdk.eventnotifications.s3.model.S3ObjectAnnotation;
 import software.amazon.awssdk.eventnotifications.s3.model.TransitionEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.UserIdentity;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
@@ -120,6 +124,29 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
             writeLifecyleEventData(writer, rec.getLifecycleEventData());
         }
 
+        if (rec.getObjectRetentionEventData() != null) {
+            writeObjectRetentionEventData(writer, rec.getObjectRetentionEventData());
+        }
+
+        writer.writeEndObject();
+    }
+
+    private void writeObjectRetentionEventData(JsonWriter writer, ObjectRetentionEventData objectRetentionEventData) {
+        writer.writeFieldName("objectRetentionEventData");
+        writer.writeStartObject();
+        writeStringField(writer, "mode", objectRetentionEventData.getMode());
+        writeStringField(writer, "retainUntilDate", objectRetentionEventData.getRetainUntilDate());
+        if (objectRetentionEventData.getEventHold() != null) {
+            writeStringField(writer, "eventHold", objectRetentionEventData.getEventHold());
+        }
+        EventHoldDuration eventHoldDuration = objectRetentionEventData.getEventHoldDuration();
+        if (eventHoldDuration != null && eventHoldDuration.getUnit() != null) {
+            writer.writeFieldName("eventHoldDuration");
+            writer.writeStartObject();
+            // Single {unit: value} pair, e.g. {"days": 90} or {"years": 1}.
+            writeNumericField(writer, eventHoldDuration.getUnit(), eventHoldDuration.getValue());
+            writer.writeEndObject();
+        }
         writer.writeEndObject();
     }
 
@@ -185,6 +212,9 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
         writeStringField(writer, "configurationId", s3.getConfigurationId());
         writeS3Bucket(writer, s3.getBucket());
         writeS3Object(writer, s3.getObject());
+        if (s3.getObjectAnnotation() != null) {
+            writeS3ObjectAnnotations(writer, s3.getObjectAnnotation());
+        }
         writer.writeEndObject();
     }
 
@@ -200,6 +230,9 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
         writeStringField(writer, "eTag", s3Object.getETag());
         writeStringField(writer, "versionId", s3Object.getVersionId());
         writeStringField(writer, "sequencer", s3Object.getSequencer());
+        if (s3Object.getHasObjectAnnotation() != null) {
+            writeBooleanField(writer, "hasObjectAnnotation", s3Object.getHasObjectAnnotation());
+        }
         writer.writeEndObject();
     }
 
@@ -220,6 +253,17 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
             writer.writeEndObject();
         }
         writeStringField(writer, "arn", bucket.getArn());
+        Map<String, String> awsGeneratedTags = bucket.getAwsGeneratedTags();
+        if (awsGeneratedTags != null && !awsGeneratedTags.isEmpty()) {
+            writeStringMap(writer, "awsGeneratedTags", awsGeneratedTags);
+        }
+        writer.writeEndObject();
+    }
+
+    private void writeStringMap(JsonWriter writer, String field, Map<String, String> map) {
+        writer.writeFieldName(field);
+        writer.writeStartObject();
+        map.forEach((k, v) -> writeStringField(writer, k, v));
         writer.writeEndObject();
     }
 
@@ -273,6 +317,26 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
         } else {
             writer.writeNumber(value.toString());
         }
+    }
+
+    private void writeS3ObjectAnnotations(JsonWriter writer, List<S3ObjectAnnotation> annotations) {
+        writer.writeFieldName("objectAnnotation");
+        writer.writeStartArray();
+        annotations.forEach(a -> writeS3ObjectAnnotation(writer, a));
+        writer.writeEndArray();
+    }
+
+    private void writeS3ObjectAnnotation(JsonWriter writer, S3ObjectAnnotation a) {
+        writer.writeStartObject();
+        writeStringField(writer, "name", a.getName());
+        writeNumericField(writer, "size", a.getSize());
+        writeStringField(writer, "eTag", a.getETag());
+        writer.writeEndObject();
+    }
+
+    private void writeBooleanField(JsonWriter writer, String field, boolean value) {
+        writer.writeFieldName(field);
+        writer.writeValue(value);
     }
 
     @Override

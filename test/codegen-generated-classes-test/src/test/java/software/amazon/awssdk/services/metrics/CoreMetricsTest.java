@@ -213,6 +213,21 @@ public class CoreMetricsTest {
     }
 
     @Test
+    public void testApiCall_operationSuccessful_apiCallDurationEnclosesItsComponents() {
+        client.allTypes();
+
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(mockPublisher).publish(collectionCaptor.capture());
+
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+
+        ApiCallDurationAssertions.assertEnclosesComponents(capturedCollection);
+        ApiCallDurationAssertions.assertEnclosesComponentSum(capturedCollection);
+    }
+
+
+
+    @Test
     public void testApiCall_serviceReturnsError_errorInfoIncludedInMetrics() throws IOException {
         AbortableInputStream content = contentStream("{}");
 
@@ -244,6 +259,7 @@ public class CoreMetricsTest {
             assertThat(capturedCollection.children()).hasSize(MAX_ATTEMPTS);
             assertThat(capturedCollection.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(MAX_RETRIES);
             assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(false);
+            ApiCallDurationAssertions.assertEnclosesComponents(capturedCollection);
 
             for (MetricCollection requestMetrics : capturedCollection.children()) {
                 // A service exception is still a successful HTTP execution so

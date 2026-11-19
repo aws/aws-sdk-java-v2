@@ -24,11 +24,10 @@ import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.ne
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.ChannelPool;
@@ -44,7 +43,7 @@ import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.ssl.SslProvider;
+import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -55,16 +54,18 @@ import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2GoAwayEventListener;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2PingHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2SettingsFrameHandler;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
  * ChannelPoolHandler to configure the client pipeline.
  */
 @SdkInternalApi
 public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(ChannelPipelineInitializer.class);
+
     private final Protocol protocol;
     private final ProtocolNegotiation protocolNegotiation;
     private final SslContext sslCtx;
-    private final SslProvider sslProvider;
     private final long clientMaxStreams;
     private final int clientInitialWindowSize;
     private final Duration healthCheckPingPeriod;
@@ -75,7 +76,6 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     public ChannelPipelineInitializer(Protocol protocol,
                                       ProtocolNegotiation protocolNegotiation,
                                       SslContext sslCtx,
-                                      SslProvider sslProvider,
                                       long clientMaxStreams,
                                       int clientInitialWindowSize,
                                       Duration healthCheckPingPeriod,
@@ -85,7 +85,6 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         this.protocol = protocol;
         this.protocolNegotiation = protocolNegotiation;
         this.sslCtx = sslCtx;
-        this.sslProvider = sslProvider;
         this.clientMaxStreams = clientMaxStreams;
         this.clientInitialWindowSize = clientInitialWindowSize;
         this.healthCheckPingPeriod = healthCheckPingPeriod;
@@ -100,28 +99,21 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         ch.attr(PROTOCOL_FUTURE).set(new CompletableFuture<>());
         ChannelPipeline pipeline = ch.pipeline();
 
-        boolean sslCtxPresent = sslCtx != null;
-        if (sslCtxPresent) {
-
-            SslHandler sslHandler = newSslHandler(sslCtx, ch.alloc(), poolKey.getHost(), poolKey.getPort(),
-                                                  configuration.tlsHandshakeTimeout());
+        SslHandler sslHandler = null;
+        if (sslCtx != null) {
+            sslHandler = newSslHandler(sslCtx, ch.alloc(), poolKey.getHost(), poolKey.getPort(),
+                                       configuration.tlsHandshakeTimeout());
 
             pipeline.addLast(sslHandler);
             pipeline.addLast(SslCloseCompletionEventHandler.getInstance());
-
-            // Use unpooled allocator to avoid increased heap memory usage from Netty 4.1.43.
-            // See https://github.com/netty/netty/issues/9768
-            if (sslProvider == SslProvider.JDK) {
-                ch.config().setOption(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
-            }
         }
 
-        configureProtocolHandlers(ch, pipeline, protocol, sslCtxPresent);
+        configureProtocolHandlers(ch, pipeline, protocol, sslHandler);
         configurePostProtocolHandlers(pipeline, protocol);
     }
 
-    private void configureProtocolHandlers(Channel ch, ChannelPipeline pipeline, Protocol protocol, boolean sslContextPresent) {
-        if (!sslContextPresent) {
+    private void configureProtocolHandlers(Channel ch, ChannelPipeline pipeline, Protocol protocol, SslHandler sslHandler) {
+        if (sslHandler == null) {
             configureAssumeProtocol(ch, pipeline, protocol);
             return;
         }
@@ -131,20 +123,20 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
                 configureAssumeProtocol(ch, pipeline, protocol);
                 break;
             case ALPN:
-                configureAlpn(pipeline, protocol);
+                configureAlpn(ch, pipeline, protocol, sslHandler);
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported ProtocolNegotiation: " + protocolNegotiation);
         }
     }
 
-    private void configureAlpn(ChannelPipeline pipeline, Protocol protocol) {
+    private void configureAlpn(Channel ch, ChannelPipeline pipeline, Protocol protocol, SslHandler sslHandler) {
         if (protocol == Protocol.HTTP1_1) {
             // TODO - remove once we implement support for ALPN with HTTP1
             throw new UnsupportedOperationException("ALPN with HTTP1 is not yet supported, use prior knowledge instead with "
                                                     + "ProtocolNegotiation.ASSUME_PROTOCOL, or use ALPN with H2.");
         } else if (protocol == Protocol.HTTP2) {
-            configureAlpnH2(pipeline);
+            configureAlpnH2(ch, pipeline, sslHandler);
         }
     }
 
@@ -190,17 +182,55 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         ch.attr(PROTOCOL_FUTURE).get().complete(Protocol.HTTP1_1);
     }
 
-    private void configureAlpnH2(ChannelPipeline pipeline) {
+    private void configureAlpnH2(Channel ch, ChannelPipeline pipeline, SslHandler sslHandler) {
+        // Fail PROTOCOL_FUTURE when TLS fails. ApplicationProtocolNegotiationHandler ignores handshake failures.
+        sslHandler.handshakeFuture().addListener(f -> {
+            if (!f.isSuccess()) {
+                failBeforeProtocolDetermined(ch, f.cause());
+            }
+        });
+
+        // Fail PROTOCOL_FUTURE on a close after the handshake succeeds but before h2 is configured.
+        // A close during the handshake is left to the listener above, which has the cause.
+        ChannelFutureListener closedAfterHandshake = f -> {
+            if (sslHandler.handshakeFuture().isSuccess()) {
+                failBeforeProtocolDetermined(ch, null);
+            }
+        };
+        ch.closeFuture().addListener(closedAfterHandshake);
+
         pipeline.addLast(new ApplicationProtocolNegotiationHandler("") {
             @Override
             protected void configurePipeline(ChannelHandlerContext ctx, String protocol) {
                 if (protocol.equals(ApplicationProtocolNames.HTTP_2)) {
                     configureHttp2(ctx.channel(), ctx.pipeline());
+                    // Http2SettingsFrameHandler handles failures from here.
+                    ch.closeFuture().removeListener(closedAfterHandshake);
                 } else {
                     ctx.channel().attr(PROTOCOL_FUTURE).get()
                        .completeExceptionally(new UnsupportedOperationException("The server does not support ALPN with H2"));
                     ctx.close();
                 }
+            }
+        });
+    }
+
+    /**
+     * Fails {@link ChannelAttributeKey#PROTOCOL_FUTURE} and closes the channel. No-op if the future is already complete.
+     *
+     * <p>Failing the future is what returns the pool permit: the pools waiting on it fail their acquire. Unlike
+     * {@code Http2SettingsFrameHandler}, this does not release the channel, because the release does not return a permit.
+     */
+    private void failBeforeProtocolDetermined(Channel ch, Throwable cause) {
+        IOException exception = new IOException("The channel was closed before the protocol could be determined.", cause);
+        if (!ch.attr(PROTOCOL_FUTURE).get().completeExceptionally(exception)) {
+            return;
+        }
+
+        log.debug(ch, () -> "ALPN negotiation did not complete, closing " + ch, exception);
+        ch.eventLoop().submit(() -> {
+            if (ch.isActive()) {
+                ch.close();
             }
         });
     }

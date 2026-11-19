@@ -46,8 +46,10 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -56,6 +58,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils;
+import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -75,6 +78,7 @@ public class MakeAsyncHttpRequestStageTest {
     private ScheduledExecutorService timeoutExecutor;
 
     private CompletableFuture<Void> clientExecuteFuture = CompletableFuture.completedFuture(null);
+    private CompletableFuture<Void> abortSignal;
 
     @Mock
     private ScheduledFuture future;
@@ -83,6 +87,7 @@ public class MakeAsyncHttpRequestStageTest {
 
     @Before
     public void setup() {
+        abortSignal = new CompletableFuture<>();
         when(sdkAsyncHttpClient.execute(any())).thenReturn(clientExecuteFuture);
         when(timeoutExecutor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(future);
     }
@@ -92,7 +97,8 @@ public class MakeAsyncHttpRequestStageTest {
         stage = new MakeAsyncHttpRequestStage<>(
             combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
                                          AsyncResponseHandlerTestUtils.noOpResponseHandler()),
-            clientDependencies(Duration.ofMillis(1000)));
+            clientDependencies(Duration.ofMillis(1000)),
+            abortSignal);
 
         CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
                 ValidSdkObjects.sdkHttpFullRequest().build());
@@ -106,7 +112,8 @@ public class MakeAsyncHttpRequestStageTest {
         stage = new MakeAsyncHttpRequestStage<>(
             combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
                                          AsyncResponseHandlerTestUtils.noOpResponseHandler()),
-            clientDependencies(null));
+            clientDependencies(null),
+            abortSignal);
 
         CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
                 ValidSdkObjects.sdkHttpFullRequest().build());
@@ -117,11 +124,50 @@ public class MakeAsyncHttpRequestStageTest {
     }
 
     @Test
+    public void execute_abortSignalFails_abortsHttpRequestWithContext() throws Exception {
+        clientExecuteFuture = new CompletableFuture<>();
+        when(sdkAsyncHttpClient.execute(any())).thenReturn(clientExecuteFuture);
+        stage = new MakeAsyncHttpRequestStage<>(
+            combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
+                                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
+            clientDependencies(null),
+            abortSignal);
+        RuntimeException requestFailure = new RuntimeException("request failure");
+
+        stage.execute(CompletableFuture.completedFuture(ValidSdkObjects.sdkHttpFullRequest().build()),
+                      requestContext());
+        abortSignal.completeExceptionally(requestFailure);
+
+        assertThatThrownBy(clientExecuteFuture::join)
+            .hasCauseExactlyInstanceOf(SdkClientException.class)
+            .hasMessageContaining("request execution failed")
+            .hasRootCause(requestFailure);
+    }
+
+    @Test
+    public void execute_abortSignalCancelled_cancelsHttpRequest() throws Exception {
+        clientExecuteFuture = new CompletableFuture<>();
+        when(sdkAsyncHttpClient.execute(any())).thenReturn(clientExecuteFuture);
+        stage = new MakeAsyncHttpRequestStage<>(
+            combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
+                                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
+            clientDependencies(null),
+            abortSignal);
+
+        stage.execute(CompletableFuture.completedFuture(ValidSdkObjects.sdkHttpFullRequest().build()),
+                      requestContext());
+        abortSignal.cancel(true);
+
+        assertThat(clientExecuteFuture.isCancelled()).isTrue();
+    }
+
+    @Test
     public void testExecute_contextContainsMetricCollector_addsChildToExecuteRequest() {
         stage = new MakeAsyncHttpRequestStage<>(
                 combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
-                clientDependencies(null));
+                clientDependencies(null),
+                abortSignal);
 
         SdkHttpFullRequest sdkHttpRequest = SdkHttpFullRequest.builder()
                 .method(SdkHttpMethod.GET)
@@ -177,7 +223,7 @@ public class MakeAsyncHttpRequestStageTest {
         CompletableFuture prepareFuture = new CompletableFuture();
         when(mockHandler.prepare()).thenReturn(prepareFuture);
 
-        stage = new MakeAsyncHttpRequestStage<>(mockHandler, dependencies);
+        stage = new MakeAsyncHttpRequestStage<>(mockHandler, dependencies, abortSignal);
 
         CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
             ValidSdkObjects.sdkHttpFullRequest().build());
@@ -212,7 +258,7 @@ public class MakeAsyncHttpRequestStageTest {
         CompletableFuture prepareFuture = spy(new CompletableFuture());
         when(mockHandler.prepare()).thenReturn(prepareFuture);
 
-        stage = new MakeAsyncHttpRequestStage<>(mockHandler, dependencies);
+        stage = new MakeAsyncHttpRequestStage<>(mockHandler, dependencies, abortSignal);
 
         CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
             ValidSdkObjects.sdkHttpFullRequest().build());
@@ -234,6 +280,49 @@ public class MakeAsyncHttpRequestStageTest {
             verify(prepareFuture, times(0)).whenComplete(any());
         } finally {
             mockExecutor.shutdown();
+        }
+    }
+
+    @Test
+    public void execute_requestHasTransferEncodingHeader_doesNotAddContentLength() {
+        stage = new MakeAsyncHttpRequestStage<>(
+            combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
+                                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
+            clientDependencies(null),
+            abortSignal);
+
+        SdkHttpFullRequest sdkHttpRequest = SdkHttpFullRequest.builder()
+                .method(SdkHttpMethod.POST)
+                .host("service.us-east-1.amazonaws.com")
+                .protocol("https")
+                .putHeader(Header.TRANSFER_ENCODING, "chunked")
+                .build();
+
+        AsyncRequestBody requestBody = AsyncRequestBody.fromString("hello world");
+
+        ExecutionContext executionContext = ExecutionContext.builder()
+                .executionAttributes(new ExecutionAttributes())
+                .build();
+
+        RequestExecutionContext context = RequestExecutionContext.builder()
+                .originalRequest(ValidSdkObjects.sdkRequest())
+                .executionContext(executionContext)
+                .requestProvider(requestBody)
+                .build();
+
+        CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(sdkHttpRequest);
+
+        try {
+            stage.execute(requestFuture, context);
+        } catch (Exception e) {
+            // ignored, we only care about the request sent to the HTTP client
+        } finally {
+            ArgumentCaptor<AsyncExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
+            verify(sdkAsyncHttpClient).execute(httpRequestCaptor.capture());
+
+            SdkHttpFullRequest capturedRequest = (SdkHttpFullRequest) httpRequestCaptor.getValue().request();
+            assertThat(capturedRequest.firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+            assertThat(capturedRequest.firstMatchingHeader(Header.TRANSFER_ENCODING)).hasValue("chunked");
         }
     }
 

@@ -1,0 +1,168 @@
+{
+    "version": "2.57.9",
+    "date": "2026-11-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Equipment",
+            "contributor": "",
+            "description": "Amazon Lookout for Equipment reached end of support on October 7, 2026. All Lookout for Equipment APIs are now marked as deprecated."
+        },
+        {
+            "type": "feature",
+            "category": "Tax Settings",
+            "contributor": "",
+            "description": "Adds Colombia additional information (responsibility codes, taxpayer type code, and RUT issue date) and a rejection reason (statusReason) to tax registration responses, and adds Argentina and Uruguay tax registration types."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Adds support for retrieving associated cases in contact responses. The Contact object now includes a Cases field containing case IDs and reference numbers linked to the contact."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Add Ubuntu 24.04, Ubuntu 26.04, RHEL 9, RHEL10, Rocky 9 and Rocky 10 to OperatingSystemName and documentation update for WorkspaceProperties Protocols."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "contributor": "",
+            "description": "Amazon Polly now supports tagging lexicons. Use the new TagResource, UntagResource and ListTagsForResource APIs, or add tags when creating a lexicon with PutLexicon, to organize lexicons and control access with tag-based (ABAC) IAM policies."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Amazon ECS Managed Instances now supports the json-file log driver in task definitions. Daemon task definition volumes also support logDriverVolumeConfiguration, letting managed daemons read those logs."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon SQS",
+            "contributor": "",
+            "description": "SqsAsyncBatchManager now removes idle batch buffers and cancels their flush tasks, and enforces the maxBatchKeys limit exactly."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Adds StartBulkPutItems, DescribeBulkOperation, ListBulkOperations, and CancelBulkOperation for asynchronously loading Amazon S3 datasets into existing DynamoDB tables."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Discovery",
+            "contributor": "",
+            "description": "GetListing and SearchListings APIs now return G2 and PeerSpot review sources in review summaries."
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "S3TransferManager copy now calls transferComplete for copies sent as a single CopyObject request, reports the source object size as the progress total, counts bytes as each part finishes, and calls transfer listeners on every S3 client."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adding support for copying and tagging option groups with cross-Region DB snapshot copies, in the same account or across accounts."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elastic Beanstalk",
+            "contributor": "",
+            "description": "Adds DefaultAmiList to DescribePlatformVersion to return the default AMI for each processor architecture that a platform version supports."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "Adds support for an optional jobName on CreateDatasetExportJob. The jobName is returned by DescribeDatasetExportJob and ListDatasetExportJobs, making dataset export jobs easier to identify and track. If jobName is omitted, a default name is generated automatically."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Add the Unsupported SupportabilityScore to GetCapacityManagerSupportabilityScores."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS Signin",
+            "contributor": "",
+            "description": "LoginCredentialsProvider now sends refresh requests to the signInRegion recorded in the cached login token."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Release Software APIs- GetSoftwareV2, GetSoftwareStatisticsV2 and GetSoftwareResourcesV2 to list software packages with aggregated resource count, get aggregated software statistics, and find the resources that contain a specific software package."
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Validate the part counts and part size of a ResumableFileUpload before resuming an upload."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon SNS Message Manager",
+            "contributor": "",
+            "description": "Improved the robustness of SnsMessageManager message parsing, certificate handling and signature validation."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fix S3Presigner leaking a background S3 Express session refresh on every presign call for a directory bucket. The presigner now calls CreateSession directly for each presign, without caching or background refresh."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMWAAServerless",
+            "contributor": "",
+            "description": "Adding support to Environment Variables in MWAA Serverless"
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "The SSE-C customer key is no longer written when a ResumableFileUpload or ResumableFileDownload is serialized, and serializeToFile now creates the file readable and writable by its owner only. Set the key on the request again before resuming a deserialized SSE-C transfer."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Contact Lens",
+            "contributor": "",
+            "description": "Rules TBAC GA (Contact Lens V1) - Adds an optional ListFilter (CategoriesAttributeFilter with OrConditions, AndCondition and TagCondition) to ListRealtimeContactAnalysisSegments. This filters matched categories by rule tags. It also adds an optional RuleId to CategoryDetails in the response."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3 Tables",
+            "contributor": "",
+            "description": "Amazon S3 Tables now supports migrating AWS Glue Data Catalog tables into S3 Table buckets. This release adds the StartTableMigration, SyncTableMigration, UpdateTableMigration, CompleteTableMigration, GetTableMigration, and ListTableMigrations APIs."
+        },
+        {
+            "type": "feature",
+            "category": "IAM Roles Anywhere",
+            "contributor": "",
+            "description": "Adds the crlDpRevocationEnabled field to enable automatic revocation checking using CRL distribution points in X.509 certificates."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "Added StepAdditionalInfo on DescribeStep and ListSteps to surface YARN application IDs for steps."
+        },
+        {
+            "type": "feature",
+            "category": "Application Migration Service",
+            "contributor": "",
+            "description": "This release adds Migration Planning artifacts as a source environment for network migration definitions, and an optional clientToken on CreateNetworkMigrationDefinition so that retried requests don't create duplicate definitions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -661,7 +661,7 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
     }
 
     private ParameterModel param(String name) {
-        return model.getEndpointRuleSetModel().getParameters().get(name);
+        return model.getEndpointParameters().get(name);
     }
 
     private boolean hasSyncClient() {

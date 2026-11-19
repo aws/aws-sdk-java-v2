@@ -38,21 +38,26 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 
 @WireMockTest
 public class DeleteObjectsFunctionalTest {
 
-    private static S3AsyncClient s3Client;
+    private static S3Client s3Client;
     private static final CapturingInterceptor CAPTURING_INTERCEPTOR = new CapturingInterceptor();
 
     @BeforeEach
     public void init(WireMockRuntimeInfo wm) {
-        s3Client = S3AsyncClient.builder()
+        CAPTURING_INTERCEPTOR.payload = null;
+        s3Client = S3Client.builder()
                                 .region(Region.US_EAST_1)
                                 .endpointOverride(URI.create(wm.getHttpBaseUrl()))
+                                .serviceConfiguration(S3Configuration.builder()
+                                    .pathStyleAccessEnabled(true)
+                                    .build())
                                 .overrideConfiguration(c -> c.addExecutionInterceptor(CAPTURING_INTERCEPTOR))
                                 .credentialsProvider(
                                     StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))

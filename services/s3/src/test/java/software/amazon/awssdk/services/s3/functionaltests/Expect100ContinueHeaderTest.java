@@ -96,6 +96,9 @@ class Expect100ContinueHeaderTest {
                              .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
                              .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
                              .forcePathStyle(true)
+                             .serviceConfiguration(S3Configuration.builder()
+                                                                  .expectContinueThresholdInBytes(0L)
+                                                                  .build())
                              .credentialsProvider(staticCredentials())
                              .build();
 
@@ -106,6 +109,9 @@ class Expect100ContinueHeaderTest {
                                    .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
                                    .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
                                    .forcePathStyle(true)
+                                   .serviceConfiguration(S3Configuration.builder()
+                                                                        .expectContinueThresholdInBytes(0L)
+                                                                        .build())
                                    .credentialsProvider(staticCredentials())
                                    .build();
     }
@@ -290,6 +296,7 @@ class Expect100ContinueHeaderTest {
                                                         .build();
         S3Configuration enabledConfig = S3Configuration.builder()
                                                        .expectContinueEnabled(true)
+                                                       .expectContinueThresholdInBytes(0L)
                                                        .build();
 
         return Stream.of(
@@ -381,7 +388,10 @@ class Expect100ContinueHeaderTest {
                        .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
                        .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
                        .forcePathStyle(true)
-                       .serviceConfiguration(config != null ? config : S3Configuration.builder().build())
+                       .serviceConfiguration(config != null ? config
+                                                      : S3Configuration.builder()
+                                                                       .expectContinueThresholdInBytes(0L)
+                                                                       .build())
                        .credentialsProvider(staticCredentials())
                        .build();
     }
@@ -406,7 +416,10 @@ class Expect100ContinueHeaderTest {
                             .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
                             .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
                             .forcePathStyle(true)
-                            .serviceConfiguration(config != null ? config : S3Configuration.builder().build())
+                            .serviceConfiguration(config != null ? config
+                                                           : S3Configuration.builder()
+                                                                            .expectContinueThresholdInBytes(0L)
+                                                                            .build())
                             .credentialsProvider(staticCredentials())
                             .build();
     }

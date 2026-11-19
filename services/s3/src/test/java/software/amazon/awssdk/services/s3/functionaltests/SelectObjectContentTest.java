@@ -42,6 +42,8 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.eventstream.HeaderValue;
+import software.amazon.awssdk.eventstream.Message;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CSVInput;
@@ -61,8 +63,6 @@ import software.amazon.awssdk.services.s3.model.SelectObjectContentResponse;
 import software.amazon.awssdk.services.s3.model.SelectObjectContentResponseHandler;
 import software.amazon.awssdk.services.s3.model.Stats;
 import software.amazon.awssdk.services.s3.model.StatsEvent;
-import software.amazon.eventstream.HeaderValue;
-import software.amazon.eventstream.Message;
 
 public class SelectObjectContentTest {
     private static final AwsCredentialsProvider TEST_CREDENTIALS = StaticCredentialsProvider.create(AwsBasicCredentials.create(

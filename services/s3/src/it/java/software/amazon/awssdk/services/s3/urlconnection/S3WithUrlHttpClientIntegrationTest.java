@@ -42,6 +42,7 @@ import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.utils.S3TestUtils;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -115,6 +116,7 @@ public class S3WithUrlHttpClientIntegrationTest {
                             .createBucketConfiguration(
                                 CreateBucketConfiguration.builder()
                                                          .locationConstraint(region.id())
+                                                         .tags(S3TestUtils.integTestTag())
                                                          .build())
                             .build());
     }

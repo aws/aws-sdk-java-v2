@@ -45,6 +45,7 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
+import software.amazon.awssdk.benchmark.utils.MockHttpServer;
 
 /**
  * V1 roundtrip benchmark for REST-XML protocol using CloudFront CreateDistribution via HTTP servlet.
@@ -57,16 +58,14 @@ import org.openjdk.jmh.infra.Blackhole;
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class V1RestXmlRoundtripBenchmark {
 
-    private ProtocolRoundtripServer server;
+    private MockHttpServer server;
     private AmazonCloudFront client;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        byte[] response = ProtocolRoundtripServer.loadFixture("rest-xml-protocol/create-distribution-response.xml");
+        byte[] response = MockHttpServer.loadFixture("rest-xml-protocol/create-distribution-response.xml");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "text/xml");
-
-        server = new ProtocolRoundtripServer(servlet);
+        server = new MockHttpServer(response, "text/xml");
         server.start();
 
         client = AmazonCloudFrontClientBuilder.standard()

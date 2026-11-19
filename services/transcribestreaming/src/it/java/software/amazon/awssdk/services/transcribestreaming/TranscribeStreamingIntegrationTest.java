@@ -19,7 +19,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
-import io.netty.handler.ssl.SslProvider;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,8 +27,10 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.condition.EnabledIf;
+import io.netty.handler.ssl.SslProvider;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Publisher;
@@ -44,6 +45,8 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.metrics.MetricCollection;
@@ -67,63 +70,88 @@ public class TranscribeStreamingIntegrationTest {
     private static final Logger log = Logger.loggerFor(TranscribeStreamingIntegrationTest.class);
     private TranscribeStreamingAsyncClient client;
     private MetricPublisher mockPublisher;
+    private SdkAsyncHttpClient httpClient;
 
-    private static Stream<ProtocolNegotiation> protocolNegotiations() {
-        return Stream.of(ProtocolNegotiation.ASSUME_PROTOCOL, ProtocolNegotiation.ALPN);
-    }
-
-    private static boolean alpnSupported(){
-        return NettyUtils.isAlpnSupported(SslProvider.JDK);
-    }
-
-    @ParameterizedTest
-    @MethodSource("protocolNegotiations")
-    @EnabledIf("alpnSupported")
-    public void testFileWith16kRate(ProtocolNegotiation protocolNegotiation) throws Exception {
-        initClient(protocolNegotiation);
-
-        CompletableFuture<Void> result = client.startStreamTranscription(
-            getRequest(16_000),
-            new AudioStreamPublisher(getInputStream("silence_16kHz_s16le.wav")),
-            TestResponseHandlers.responseHandlerBuilder_Classic());
-
-        result.join();
-        verifyMetrics();
-    }
-
-    @ParameterizedTest
-    @MethodSource("protocolNegotiations")
-    @EnabledIf("alpnSupported")
-    public void testFileWith8kRate(ProtocolNegotiation protocolNegotiation) throws Exception {
-        initClient(protocolNegotiation);
-
-        CompletableFuture<Void> result = client.startStreamTranscription(
-            getRequest(8_000),
-            new AudioStreamPublisher(getInputStream("silence_8kHz_s16le.wav")),
-            TestResponseHandlers.responseHandlerBuilder_Consumer());
-
-        result.get();
-    }
-
-    private void initClient(ProtocolNegotiation protocolNegotiation) {
-        if (client != null) {
-            client.close();
+    private static Stream<Arguments> httpClients() {
+        Stream.Builder<Arguments> builder = Stream.builder();
+        
+        // Netty with prior knowledge (ASSUME_PROTOCOL)
+        builder.add(Arguments.of("Netty-PriorKnowledge", 
+            NettyNioAsyncHttpClient.builder()
+                                   .protocol(Protocol.HTTP2)
+                                   .protocolNegotiation(ProtocolNegotiation.ASSUME_PROTOCOL)
+                                   .build()));
+        
+        // Netty with ALPN (only if supported)
+        if (NettyUtils.isAlpnSupported(SslProvider.JDK)) {
+            builder.add(Arguments.of("Netty-ALPN", 
+                NettyNioAsyncHttpClient.builder()
+                                       .protocol(Protocol.HTTP2)
+                                       .protocolNegotiation(ProtocolNegotiation.ALPN)
+                                       .build()));
         }
-        if (mockPublisher != null) {
-            mockPublisher.close();
-        }
+        
+        // CRT HTTP/2
+        builder.add(Arguments.of("CRT", AwsCrtAsyncHttpClient.builder().build()));
+        
+        return builder.build();
+    }
 
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("httpClients")
+    public void testFileWith16kRate(String clientName, SdkAsyncHttpClient httpClient) throws Exception {
+        initClient(httpClient);
+        try {
+            CompletableFuture<Void> result = client.startStreamTranscription(
+                getRequest(16_000),
+                new AudioStreamPublisher(getInputStream("silence_16kHz_s16le.wav")),
+                TestResponseHandlers.responseHandlerBuilder_Classic());
+
+            result.join();
+            verifyMetrics();
+        } finally {
+            cleanup();
+        }
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("httpClients")
+    public void testFileWith8kRate() throws Exception {
+        initClient(httpClient);
+        try {
+            CompletableFuture<Void> result = client.startStreamTranscription(
+                getRequest(8_000),
+                new AudioStreamPublisher(getInputStream("silence_8kHz_s16le.wav")),
+                TestResponseHandlers.responseHandlerBuilder_Consumer());
+
+            result.get();
+            verifyMetrics();
+        } finally {
+            cleanup();
+        }
+    }
+
+    private void initClient(SdkAsyncHttpClient httpClient) {
+        this.httpClient = httpClient;
         mockPublisher = mock(MetricPublisher.class);
         client = TranscribeStreamingAsyncClient.builder()
                                                .region(Region.US_EAST_1)
                                                .overrideConfiguration(b -> b.addExecutionInterceptor(new VerifyHeaderInterceptor())
                                                                             .addMetricPublisher(mockPublisher))
                                                .credentialsProvider(getCredentials())
-                                               .httpClient(NettyNioAsyncHttpClient.builder()
-                                                                                  .protocol(Protocol.HTTP2)
-                                                                                  .protocolNegotiation(protocolNegotiation)
-                                                                                  .build())
+                                               .httpClient(httpClient)
                                                .build();
+    }
+
+    private void cleanup() {
+        if (client != null) {
+            client.close();
+            client = null;
+        }
+        if (httpClient != null) {
+            httpClient.close();
+            httpClient = null;
+        }
     }
 
     private static AwsCredentialsProvider getCredentials() {

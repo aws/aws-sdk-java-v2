@@ -17,7 +17,9 @@ package software.amazon.awssdk.imds.internal;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.SystemUserAgent;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -58,13 +60,41 @@ public class RequestMarshaller {
     }
 
     public SdkHttpFullRequest createDataRequest(String path, String token, Duration tokenTtl) {
-        URI resourcePath = URI.create(basePath + path);
+        URI resourcePath = resolveDataUri(path);
         return defaulttHttpBuilder()
             .method(SdkHttpMethod.GET)
             .uri(resourcePath)
             .putHeader(EC2_METADATA_TOKEN_TTL_HEADER, String.valueOf(tokenTtl.getSeconds()))
             .putHeader(TOKEN_HEADER, token)
             .build();
+    }
+
+    /**
+     * Resolves the given metadata path against the configured endpoint. Throws an {@link SdkClientException} when the
+     * path is null, does not form a valid URI, or changes the scheme, host, or port of the configured endpoint.
+     */
+    private URI resolveDataUri(String path) {
+        if (path == null) {
+            throw invalidPathException(null);
+        }
+        URI resourcePath;
+        try {
+            resourcePath = URI.create(basePath + path);
+        } catch (IllegalArgumentException e) {
+            throw invalidPathException(e);
+        }
+        if (!Objects.equals(basePath.getScheme(), resourcePath.getScheme())
+            || !Objects.equals(basePath.getRawAuthority(), resourcePath.getRawAuthority())
+            || !Objects.equals(basePath.getHost(), resourcePath.getHost())
+            || basePath.getPort() != resourcePath.getPort()) {
+            throw invalidPathException(null);
+        }
+        return resourcePath;
+    }
+
+    private SdkClientException invalidPathException(Throwable cause) {
+        return SdkClientException.create("Invalid metadata path: the path must not change the scheme, host, or port "
+                                         + "of the configured IMDS endpoint " + basePath, cause);
     }
 
     private SdkHttpFullRequest.Builder defaulttHttpBuilder() {

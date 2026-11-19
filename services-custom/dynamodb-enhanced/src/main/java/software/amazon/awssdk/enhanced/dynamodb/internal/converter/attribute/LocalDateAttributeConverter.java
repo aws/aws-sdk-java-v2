@@ -84,7 +84,7 @@ public final class LocalDateAttributeConverter implements AttributeConverter<Loc
 
     @Override
     public AttributeValue transformFrom(LocalDate input) {
-        return AttributeValue.builder().s(input.toString()).build();
+        return AttributeValue.createS(input.toString());
     }
 
     @Override

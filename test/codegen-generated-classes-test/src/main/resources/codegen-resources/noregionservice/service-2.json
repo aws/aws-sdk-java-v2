@@ -1,0 +1,50 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2023-01-01",
+    "endpointPrefix": "noregionservice",
+    "protocol": "json",
+    "serviceFullName": "No Region Service",
+    "serviceId": "NoRegionService",
+    "signatureVersion": "v4",
+    "signingName": "noregionservice",
+    "jsonVersion": "1.1",
+    "targetPrefix": "NoRegionService"
+  },
+  "operations": {
+    "SomeOperation": {
+      "name": "SomeOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "SomeOperationRequest"
+      },
+      "output": {
+        "shape": "SomeOperationResponse"
+      }
+    }
+  },
+  "shapes": {
+    "SomeOperationRequest": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "SomeOperationResponse": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "String": {
+      "type": "string"
+    }
+  }
+}

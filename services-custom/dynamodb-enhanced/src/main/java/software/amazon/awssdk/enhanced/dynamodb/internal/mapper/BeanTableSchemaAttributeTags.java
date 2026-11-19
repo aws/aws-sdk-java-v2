@@ -23,10 +23,13 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSchemaAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSearchVectorsHashKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSearchVectorsInlineFilterKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdateBehavior;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbVectorAttribute;
 
 /**
  * Static provider class for core {@link BeanTableSchema} attribute tags. Each of the implemented annotations has a
@@ -61,5 +64,19 @@ public final class BeanTableSchemaAttributeTags {
 
     public static StaticAttributeTag attributeTagFor(DynamoDbAtomicCounter annotation) {
         return StaticAttributeTags.atomicCounter(annotation.delta(), annotation.startValue());
+    }
+
+    public static StaticAttributeTag attributeTagFor(DynamoDbSearchVectorsHashKey annotation) {
+        return StaticAttributeTags.searchVectorsHashKey(Arrays.asList(annotation.indexNames()));
+    }
+
+    public static StaticAttributeTag attributeTagFor(DynamoDbSearchVectorsInlineFilterKey annotation) {
+        return StaticAttributeTags.searchVectorsInlineFilterKey(Arrays.asList(annotation.indexNames()));
+    }
+
+    public static StaticAttributeTag attributeTagFor(DynamoDbVectorAttribute annotation) {
+        return StaticAttributeTags.vectorAttribute(annotation.indexName(),
+                                                   annotation.dimensions(),
+                                                   annotation.distanceFunction());
     }
 }
