@@ -756,6 +756,7 @@
       },
       "aoss" : {
         "endpoints" : {
+          "af-south-1" : { },
           "ap-east-1" : { },
           "ap-northeast-1" : { },
           "ap-northeast-2" : { },
@@ -40284,6 +40285,11 @@
         }
       },
       "application-autoscaling" : {
+        "endpoints" : {
+          "eusc-de-east-1" : { }
+        }
+      },
+      "aps" : {
         "endpoints" : {
           "eusc-de-east-1" : { }
         }

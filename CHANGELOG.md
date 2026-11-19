@@ -1,4 +1,199 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.59.4__ __2026-11-18__
+## __AWS Abuse Signal API__
+  - ### Features
+    - This release introduces the AWS Abuse Signal API, enabling customers to programmatically submit and track AWS abuse reports.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Adds support for populating intermediate tables with results from PySpark analysis templates.
+
+## __AWS CloudFormation__
+  - ### Features
+    - AWS CloudFormation StackSets now provides stage-by-stage progress for deployments that span thousands of accounts and AWS Regions, which enables you to see where each deployment stands while it runs
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Adds resource tags functionality to the AWS Health service
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Adds MaxSignInSessionDuration to IAM Roles and Login Profiles, allowing customers to configure the maximum Console sign-in session duration per principal. Affects CreateRole, UpdateRole, GetRole and LoginProfile APIs.
+
+## __AWS Resilience Hub V2__
+  - ### Features
+    - This release includes support for adding new field for the effective policy used in test runs and documentation updates.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Split the `afterTransmission` and `modifyHttpResponse` interceptor hooks into separate steps. If `modifyHttpResponse` throws, `modifyException` and `onExecutionFailure` now receive the HTTP response.
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Agent__
+  - ### Features
+    - This release adds support for resuming a paused penetration test job from its last saved checkpoint.
+
+## __AWS Sign-In Service__
+  - ### Features
+    - These APIs enable customers and administrators to list, view, and revoke AWS Sign-In Sessions programmatically using the AWS CLI and SDKs, providing greater visibility and control over authenticated access.
+
+## __AWS Support__
+  - ### Features
+    - Updated endpoint resolution for AWS Support, including FIPS and dual-stack endpoints.
+
+## __AWS WAFV2__
+  - ### Features
+    - Adds the AnalyticsConfig parameter to CreateWebACL and UpdateWebACL to enable or disable cross-Region security analytics for a WebACL. When you enable security analytics, you authorize AWS to transfer and store full request logs outside the AWS Region where the WebACL is hosted.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds s3BucketMount to mount an Amazon S3 bucket as a file system in AgentCore Runtime, with an optional per-session key prefix and adds operatingSystemConfiguration with a Linux privilegeMode (STANDARD or PRIVILEGED) to the capacity provider configuration
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add support for restoring user pool's user data to point in time.
+
+## __Amazon Neptune__
+  - ### Features
+    - Neptune Database Serverless support for graviton3 based r8g instances.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release adds support for Spillover Routing in Amazon SES.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adds exclusions and Multi-Region key resolution to S3 Replication. Rule filters support a Not element to exclude prefixes and object tags. Destination EncryptionConfiguration supports UseSourceMultiRegionKey to encrypt replicas with the related replica KMS multi-Region key in the destination Region.
+
+## __Braket__
+  - ### Features
+    - Supporting a new PAUSED device status and a DeviceStatusReason.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for the keyExchange field in CloudTrail tlsDetails, enabling customers to distinguish classical from post-quantum hybrid key exchange for TLS connections on Application Load Balancers.
+
+# __2.59.3__ __2026-11-17__
+## __AWS Billing__
+  - ### Features
+    - Adds the SplitCredit and TransferCredit APIs to split or transfer credits, and adds benefit level sharing for Reserved Instances and Savings Plans to GetBillingPreferences and UpdateBillingPreferences.
+
+## __AWS Config__
+  - ### Features
+    - Adds support for AWS Config managed conformance packs, with new Source and Scope parameters on PutConformancePack, a new Type field and type Filters on DescribeConformancePacks and DescribeConformancePackStatus, and an optional StackArn in DescribeConformancePackStatus.
+
+## __AWS Control Tower__
+  - ### Features
+    - AWS Control Tower now reports source drift when an enabled baseline no longer matches the landing zone's configuration.
+
+## __AWS DevOps Agent Service__
+  - ### Features
+    - AWS DevOps Agent adds Code Change Risk Analysis capability and task types, and GetChat and UpdateChat operations to rename, archive, and unarchive chats and filter ListChats by archive status.
+
+## __AWS Elemental Inference__
+  - ### Features
+    - AWS Elemental Inference now supports functions, for running your own analysis on feed media, and question sets, for custom decisions on contextual metadata shots and scenes.
+
+## __AWS Lambda__
+  - ### Features
+    - AWS Lambda durable functions now supports pausing, resuming, and deleting durable executions with the new PauseDurableExecution, ResumeDurableExecution, and DeleteDurableExecution APIs.
+
+## __AWS Marketplace Agreement Service__
+  - ### Features
+    - Adds buyer agreement request and approval APIs. Buyers can get, list and cancel agreement requests and start approvals, which organization administrators approve or reject. Buyers can share a contact when they create an agreement request, and sellers can retrieve it with GetAgreementContacts.
+
+## __AWS Network Manager__
+  - ### Features
+    - Adds support for Multipath Resilience change values to be delivered when reviewing a core network change set.
+
+## __AWS S3 Control__
+  - ### Features
+    - Adds support for S3 Intelligent Tiering Access Tier and publishing to AWS Billing and Cost Management in S3 Storage Lens
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Security Hub now supports Google Cloud. Use connector APIs to connect GCP organizations or projects and monitor their security posture. It also infers resource criticality from tags, CloudWatch metrics, and SBOM data to help you prioritize findings
+
+## __Amazon API Gateway__
+  - ### Features
+    - API Gateway now adds support for JWT authorizers on REST APIs.
+
+## __Amazon AppStream__
+  - ### Features
+    - Adds support for In-Session SmartCard Redirection for Windows Multi-Session fleets
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds support for continuous insights and automatic dataset generation
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for agent insight stores that help frame insight evaluators, and dataset source support for batch evaluation
+
+## __Amazon Connect Cases__
+  - ### Features
+    - PutCaseEventConfiguration now supports an optional autoIncludeFields attribute on case event included data. Set it to All, System, or Custom to automatically include a category of case fields in case event data, combined as a union with any fields you list explicitly.
+
+## __Amazon Connect Contact Lens__
+  - ### Features
+    - Amazon Connect Customer now allows conversational analytics for voice contacts to be analyzed in more than one language. The languages detected will be present in the output.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Evaluation forms can now adapt to each contact. Questions and sections can be shown or hidden, and single-select answers can be set automatically, based on answers to other questions, contact data (Contact Lens categories, sentiment, agent, queue, contact attributes and more).
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Enables creation of a serverless Valkey cache that supports write-through caching for DynamoDB table data.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds multipath resilience for inter-Region VPC peering connections and Transit Gateway peering attachments. Adds support for quantum-resistant key exchanges to Site-to-Site VPN. Allows querying multiple instance types in a single DescribeCapacityBlockOfferings request.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Adds a new image scan status for images that exceed the maximum size supported by Amazon ECR enhanced scanning.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Adds support for queues on on-demand streams with new CreateQueue, UpdateQueue, DeleteQueue, DescribeQueue, ListQueues, ReceiveQueueRecords, AcknowledgeQueueRecords, and UpdateQueueRecordsVisibility APIs, plus four dead-letter APIs, for Amazon Kinesis Data Streams.
+
+## __Amazon Route 53 Global Resolver__
+  - ### Features
+    - Adds AWS Cloud WAN support to Route 53 Global Resolver via new core network endpoint APIs to connect a global resolver to a core network, segment-based access sources, and a publicIpStatus setting to disable public IPs so a resolver is reachable only over Cloud WAN.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - For the S3 operations AbortMultipartUpload, CreateMultipartUpload, ListParts, UploadPart, UploadPartCopy, the Object Version ID is returned as a response header, if the bucket has versioning enabled. For ListMultipartUploads, it will be returned in the response body.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added the NestedVirtualization and EnableEndUserAdvisor self-service permissions. Use them with ModifySelfservicePermissions to turn nested virtualization and End User Advisor on or off for a directory, and view the settings with DescribeWorkspaceDirectories. End User Advisor is on by default.
+
+## __Application Migration Service__
+  - ### Features
+    - AWS Transform adds Express Migration for MAP, remote source actions, per-server default launch settings, F5 BIG-IP to Elastic Load Balancing migration, AWS Outposts support, greenfield network design, and replication of volumes up to 64 TB.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - This release adds Microsoft Azure connectors, third-party telemetry enrichment and StartTelemetryPipelineRefresh, to discover Azure resources, enrich their telemetry and refresh external-cloud pipelines.
+
+## __CloudWatch RUM__
+  - ### Features
+    - Add SessionMetadata to PutRumEvents for attributes that apply to every event in a batch, such as browser, device, and operating system.
+
+## __Inspector2__
+  - ### Features
+    - This release extends vulnerability management to Google Cloud Platform (GCP) Compute Engine virtual machine (VM) instances, container images in Google Artifact Registry (GAR), and Cloud Run functions.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fixed how `S3TransferManager#resumeDownloadFile` handles an object that changes during a paused download when using the CRT-based S3 client.
+
 # __2.59.2__ __2026-11-16__
 ## __AWS Health APIs and Notifications__
   - ### Features
