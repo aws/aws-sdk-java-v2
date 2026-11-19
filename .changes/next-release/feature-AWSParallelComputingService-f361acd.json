@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Parallel Computing Service",
+    "contributor": "",
+    "description": "Added support for Job Submit Plugins in AWS PCS."
+}
