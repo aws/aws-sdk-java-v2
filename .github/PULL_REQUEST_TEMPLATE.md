@@ -1,4 +1,5 @@
 <!--- Provide a general summary of your changes in the Title above -->
+<!--- Section headings and checkbox statements in this template are checked by .github/scripts/check_pr_description.py. Update both together. -->
 
 ## Motivation and Context
 <!--- Why is this change required? What problem does it solve? -->
@@ -22,6 +23,7 @@
 - [ ] Deprecation (marks existing functionality as deprecated)
 - [ ] Removal (removes previously deprecated functionality)
 - [ ] Documentation (changes to documentation only)
+- [ ] Other (tests, build, CI, or refactoring with no customer-visible change)
 
 ## Checklist
 <!--- Go over all the following points, and put an `x` in all the boxes that apply -->
