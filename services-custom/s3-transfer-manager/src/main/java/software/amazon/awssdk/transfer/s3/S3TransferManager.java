@@ -638,6 +638,18 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * object content.
      *
      * <p>
+     * Each object is first written to a temporary file in the same directory as its destination, named
+     * {@code <name>.s3tmp.<uuid>}, or {@code s3tmp.<uuid>} when that name would be too long. Once the object is complete, the
+     * temporary file is moved onto the destination, and only then is the object's download, and its
+     * {@link software.amazon.awssdk.transfer.s3.progress.TransferListener#transferComplete transferComplete}, completed. The
+     * move replaces the destination file rather than writing into it: a symbolic link at the destination is replaced instead of
+     * followed, and the file gets the default permissions of a new file. A download that fails leaves an existing destination
+     * file unchanged, and so does a cancel that arrives before the file is being moved into place. If the process stops while a
+     * download is in progress, its temporary file can be left behind.
+     * When several keys resolve to the same local file, such as {@code a/b} and {@code a//b}, the file holds the complete content
+     * of one of the objects.
+     *
+     * <p>
      * The current user must have write access to all directories and files
      *
      * <p>

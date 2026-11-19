@@ -100,6 +100,7 @@ import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 class GenericS3TransferManager implements S3TransferManager {
+    static final Runnable NO_OP = () -> { };
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
     private static final PauseResumeHelper PAUSE_RESUME_HELPER = new PauseResumeHelper();
     private final S3AsyncClient s3AsyncClient;
@@ -119,7 +120,7 @@ class GenericS3TransferManager implements S3TransferManager {
         ListObjectsHelper listObjectsHelper = new ListObjectsHelper(s3AsyncClient::listObjectsV2);
         downloadDirectoryHelper = new DownloadDirectoryHelper(transferConfiguration,
                                                               listObjectsHelper,
-                                                              this::downloadFile);
+                                                              this::downloadFileTo);
         this.isDefaultS3AsyncClient = isDefaultS3AsyncClient;
     }
 
@@ -453,6 +454,17 @@ class GenericS3TransferManager implements S3TransferManager {
      * May be overridden by subclasses to provide customized behavior
      */
     FileDownload doDownloadFile(DownloadFileRequest downloadRequest) {
+        return downloadFileTo(downloadRequest, downloadRequest.destination(), NO_OP);
+    }
+
+    /**
+     * Downloads the object into {@code writePath} while reporting {@code downloadRequest}, including its destination, to the
+     * request's transfer listeners. {@code beforeCompletion} runs after the object is written and before the download, and its
+     * listeners, complete; if it throws, the download fails with that exception. The returned download cannot be paused and
+     * resumed when {@code writePath} differs from the destination. Subclasses override this rather than {@link #doDownloadFile}.
+     */
+    FileDownload downloadFileTo(DownloadFileRequest downloadRequest, Path writePath, Runnable beforeCompletion) {
+        Validate.paramNotNull(writePath, "writePath");
         GetObjectRequest getObjectRequestWithAttributes = attachSdkAttribute(
             downloadRequest.getObjectRequest(),
             b -> b.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext()));
@@ -460,12 +472,11 @@ class GenericS3TransferManager implements S3TransferManager {
             downloadRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
 
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
-            AsyncResponseTransformer.toFile(downloadFileRequestWithAttributes.destination(),
-                                            FileTransformerConfiguration.defaultCreateOrReplaceExisting());
+            AsyncResponseTransformer.toFile(writePath, FileTransformerConfiguration.defaultCreateOrReplaceExisting());
 
         CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
         TransferProgressUpdater progressUpdater = initiateDownload(
-            downloadFileRequestWithAttributes, responseTransformer, returnFuture);
+            downloadFileRequestWithAttributes, responseTransformer, returnFuture, beforeCompletion);
 
         return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> downloadFileRequestWithAttributes, null);
     }
@@ -473,7 +484,8 @@ class GenericS3TransferManager implements S3TransferManager {
     private TransferProgressUpdater initiateDownload(
         DownloadFileRequest downloadRequest,
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer,
-        CompletableFuture<CompletedFileDownload> returnFuture) {
+        CompletableFuture<CompletedFileDownload> returnFuture,
+        Runnable beforeCompletion) {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
         try {
             progressUpdater.transferInitiated();
@@ -491,10 +503,11 @@ class GenericS3TransferManager implements S3TransferManager {
             // Forward download cancellation to future
             CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
 
-            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
-                                                              res -> CompletedFileDownload.builder()
-                                                                                          .response(res)
-                                                                                          .build());
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture, res -> {
+                CompletedFileDownload completed = CompletedFileDownload.builder().response(res).build();
+                beforeCompletion.run();
+                return completed;
+            });
         } catch (Throwable throwable) {
             returnFuture.completeExceptionally(throwable);
         }
@@ -551,7 +564,7 @@ class GenericS3TransferManager implements S3TransferManager {
 
             TransferProgressUpdater progressUpdater = initiateDownload(newDownloadFileRequest,
                                                                       requestPair.right(),
-                                                                      returnFuture);
+                                                                      returnFuture, NO_OP);
             progressFuture.complete(progressUpdater.progress());
         }).exceptionally(throwable -> {
             handleException(returnFuture, progressFuture, newDownloadFileRequestFuture, throwable);
