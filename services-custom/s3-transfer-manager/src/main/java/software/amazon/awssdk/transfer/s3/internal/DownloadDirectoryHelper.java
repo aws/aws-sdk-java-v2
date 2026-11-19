@@ -164,9 +164,15 @@ public class DownloadDirectoryHelper {
     }
 
     private void validatePath(Path destinationDirectory, Path targetPath, String key) {
-        if (!targetPath.toAbsolutePath().normalize().startsWith(destinationDirectory.toAbsolutePath().normalize())) {
+        Path normalizedDirectory = destinationDirectory.toAbsolutePath().normalize();
+        Path normalizedTarget = targetPath.toAbsolutePath().normalize();
+        if (!normalizedTarget.startsWith(normalizedDirectory)) {
             throw SdkClientException.create("Cannot download key " + key +
                                             ", its relative path resolves outside the parent directory.");
+        }
+        if (normalizedTarget.equals(normalizedDirectory)) {
+            throw SdkClientException.create("Cannot download key " + key +
+                                            ", its relative path resolves to the destination directory itself.");
         }
     }
 
