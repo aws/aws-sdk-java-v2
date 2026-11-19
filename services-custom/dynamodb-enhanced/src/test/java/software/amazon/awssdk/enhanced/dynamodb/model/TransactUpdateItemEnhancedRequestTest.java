@@ -297,4 +297,18 @@ public class TransactUpdateItemEnhancedRequestTest {
 
         assertThat(request.toBuilder().build().updateExpressionMergeStrategy(), is(PRIORITIZE_HIGHER_SOURCE));
     }
+
+    @Test
+    public void equals_whenMergeStrategyUnsetVersusExplicitLegacy_areEqual() {
+        TransactUpdateItemEnhancedRequest<FakeItem> unset =
+            TransactUpdateItemEnhancedRequest.builder(FakeItem.class).build();
+        TransactUpdateItemEnhancedRequest<FakeItem> explicitLegacy =
+            TransactUpdateItemEnhancedRequest.builder(FakeItem.class)
+                                             .updateExpressionMergeStrategy(LEGACY)
+                                             .build();
+
+        assertThat(unset, equalTo(explicitLegacy));
+        assertThat(unset.hashCode(), equalTo(explicitLegacy.hashCode()));
+    }
+
 }

@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -45,6 +46,12 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 public final class UpdateExpressionUtils {
 
     private static final Pattern PATTERN = Pattern.compile(NESTED_OBJECT_UPDATE);
+
+    /**
+     * Expression attribute name placeholders are {@code #} followed by one or more word characters. Matching whole tokens
+     * avoids prefix collisions such as {@code #attr} vs {@code #attribute}.
+     */
+    private static final Pattern EXPRESSION_NAME_TOKEN = Pattern.compile("#[\\w]+");
 
     private UpdateExpressionUtils() {
     }
@@ -116,17 +123,28 @@ public final class UpdateExpressionUtils {
     }
 
     /**
-     * Resolves an update path by substituting expression attribute name placeholders (e.g. {@code #a} → logical name). The result
-     * is the full DynamoDB document path as used for overlap detection.
+     * Resolves an update path by substituting whole expression attribute name placeholders (e.g. {@code #a} → logical name).
+     * Only complete {@code #[\\w]+} tokens are replaced, so a shorter placeholder such as {@code #attr} cannot corrupt a longer
+     * one such as {@code #attribute}. The result is the full DynamoDB document path as used for overlap detection.
      */
     static String resolveDocumentPath(String fullAttributePath, Map<String, String> expressionNames) {
-        String resolvedPath = fullAttributePath;
-        Map<String, String> names = expressionNames == null ? Collections.emptyMap() : expressionNames;
-
-        for (Map.Entry<String, String> entry : names.entrySet()) {
-            resolvedPath = resolvedPath.replace(entry.getKey(), entry.getValue());
+        if (fullAttributePath == null) {
+            return null;
         }
-        return resolvedPath;
+        Map<String, String> names = expressionNames == null ? Collections.emptyMap() : expressionNames;
+        if (names.isEmpty()) {
+            return fullAttributePath;
+        }
+
+        Matcher matcher = EXPRESSION_NAME_TOKEN.matcher(fullAttributePath);
+        StringBuffer resolved = new StringBuffer();
+        while (matcher.find()) {
+            String token = matcher.group();
+            String replacement = names.getOrDefault(token, token);
+            matcher.appendReplacement(resolved, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(resolved);
+        return resolved.toString();
     }
 
     /**

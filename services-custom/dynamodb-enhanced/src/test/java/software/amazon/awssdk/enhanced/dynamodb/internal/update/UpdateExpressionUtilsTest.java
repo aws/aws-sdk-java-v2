@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -325,6 +326,36 @@ public class UpdateExpressionUtilsTest {
         UpdateExpression result = UpdateExpressionUtils.generateItemRemoveExpression(itemMap, Collections.emptySet());
 
         assertThat(result.removeActions()).isEmpty();
+    }
+
+    @Test
+    public void resolveDocumentPath_whenShorterTokenIsPrefixOfLongerToken_replacesWholeTokensOnly() {
+        Map<String, String> names = new LinkedHashMap<>();
+        names.put("#attr", "x");
+        names.put("#attribute", "attribute");
+
+        assertThat(UpdateExpressionUtils.resolveDocumentPath("#attribute", names)).isEqualTo("attribute");
+        assertThat(UpdateExpressionUtils.resolveDocumentPath("#attribute.#attr", names)).isEqualTo("attribute.x");
+    }
+
+    @Test
+    public void resolveDocumentPath_whenMultiSegmentPathWithListIndex_resolvesEachToken() {
+        Map<String, String> names = new HashMap<>();
+        names.put("#nested", "nested");
+        names.put("#name", "name");
+
+        assertThat(UpdateExpressionUtils.resolveDocumentPath("#nested[0].#name", names)).isEqualTo("nested[0].name");
+    }
+
+    @Test
+    public void resolveDocumentPath_whenExpressionNamesNullOrEmpty_returnsPathUnchanged() {
+        assertThat(UpdateExpressionUtils.resolveDocumentPath("#attribute", null)).isEqualTo("#attribute");
+        assertThat(UpdateExpressionUtils.resolveDocumentPath("#attribute", Collections.emptyMap())).isEqualTo("#attribute");
+    }
+
+    @Test
+    public void resolveDocumentPath_whenPathNull_returnsNull() {
+        assertThat(UpdateExpressionUtils.resolveDocumentPath(null, Collections.singletonMap("#a", "a"))).isNull();
     }
 }
 

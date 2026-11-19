@@ -230,8 +230,13 @@ public class UpdateItemEnhancedRequestTest {
     @Test
     public void hashCode_minimal() {
         UpdateItemEnhancedRequest<FakeItem> emptyRequest = UpdateItemEnhancedRequest.builder(FakeItem.class).build();
+        UpdateItemEnhancedRequest<FakeItem> explicitLegacy =
+            UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                     .updateExpressionMergeStrategy(LEGACY)
+                                     .build();
 
-        assertThat(emptyRequest.hashCode(), equalTo(0));
+        // Default merge strategy is LEGACY; unset and explicit LEGACY must share the same hash.
+        assertThat(emptyRequest.hashCode(), equalTo(explicitLegacy.hashCode()));
     }
 
     @Test
@@ -316,5 +321,18 @@ public class UpdateItemEnhancedRequestTest {
                                      .build();
 
         assertThat(request.toBuilder().build().updateExpressionMergeStrategy(), is(PRIORITIZE_HIGHER_SOURCE));
+    }
+
+    @Test
+    public void equals_whenMergeStrategyUnsetVersusExplicitLegacy_areEqual() {
+        UpdateItemEnhancedRequest<FakeItem> unset =
+            UpdateItemEnhancedRequest.builder(FakeItem.class).build();
+        UpdateItemEnhancedRequest<FakeItem> explicitLegacy =
+            UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                     .updateExpressionMergeStrategy(LEGACY)
+                                     .build();
+
+        assertThat(unset, equalTo(explicitLegacy));
+        assertThat(unset.hashCode(), equalTo(explicitLegacy.hashCode()));
     }
 }

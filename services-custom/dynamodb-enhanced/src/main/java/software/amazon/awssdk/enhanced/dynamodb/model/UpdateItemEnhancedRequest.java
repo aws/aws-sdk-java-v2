@@ -243,7 +243,7 @@ public final class UpdateItemEnhancedRequest<T> {
                && Objects.equals(ignoreNulls, that.ignoreNulls)
                && Objects.equals(conditionExpression, that.conditionExpression)
                && Objects.equals(updateExpression, that.updateExpression)
-               && Objects.equals(updateExpressionMergeStrategy, that.updateExpressionMergeStrategy)
+               && Objects.equals(updateExpressionMergeStrategy(), that.updateExpressionMergeStrategy())
                && Objects.equals(returnValues, that.returnValues)
                && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity)
                && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics)
@@ -256,7 +256,7 @@ public final class UpdateItemEnhancedRequest<T> {
         result = 31 * result + (ignoreNulls != null ? ignoreNulls.hashCode() : 0);
         result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
         result = 31 * result + (updateExpression != null ? updateExpression.hashCode() : 0);
-        result = 31 * result + (updateExpressionMergeStrategy != null ? updateExpressionMergeStrategy.hashCode() : 0);
+        result = 31 * result + updateExpressionMergeStrategy().hashCode();
         result = 31 * result + (returnValues != null ? returnValues.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);

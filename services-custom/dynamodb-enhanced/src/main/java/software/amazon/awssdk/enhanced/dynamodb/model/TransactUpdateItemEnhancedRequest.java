@@ -181,7 +181,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
         if (!Objects.equals(updateExpression, that.updateExpression)) {
             return false;
         }
-        if (updateExpressionMergeStrategy != that.updateExpressionMergeStrategy) {
+        if (updateExpressionMergeStrategy() != that.updateExpressionMergeStrategy()) {
             return false;
         }
         return Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
@@ -193,7 +193,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
         result = 31 * result + Objects.hashCode(ignoreNulls);
         result = 31 * result + Objects.hashCode(conditionExpression);
         result = 31 * result + Objects.hashCode(updateExpression);
-        result = 31 * result + Objects.hashCode(updateExpressionMergeStrategy);
+        result = 31 * result + Objects.hashCode(updateExpressionMergeStrategy());
         result = 31 * result + Objects.hashCode(returnValuesOnConditionCheckFailure);
         return result;
     }

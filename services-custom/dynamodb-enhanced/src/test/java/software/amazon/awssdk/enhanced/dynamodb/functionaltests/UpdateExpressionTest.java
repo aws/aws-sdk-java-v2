@@ -21,6 +21,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.ImmutableRecordForUpdateExpressions;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedRecordForUpdateExpressions;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecordForUpdateExpressions;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
@@ -881,6 +882,39 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
     }
 
     // --- Transact update with request-level UpdateExpression ---
+
+    @Test
+    public void updateItem_givenImmutableSchema_whenPrioritizeHigherSourceOverlapsPojo_thenRequestValuePersists() {
+        DynamoDbEnhancedClient client = DynamoDbEnhancedClient.builder()
+                                                              .dynamoDbClient(getDynamoDbClient())
+                                                              .build();
+        TableSchema<ImmutableRecordForUpdateExpressions> immutableSchema =
+            TableSchema.fromImmutableClass(ImmutableRecordForUpdateExpressions.class);
+        DynamoDbTable<ImmutableRecordForUpdateExpressions> immutableTable =
+            client.table(getConcreteTableName("immutable-update-expression"), immutableSchema);
+        immutableTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        getDynamoDbClient().waiter().waitUntilTableExists(
+            r -> r.tableName(getConcreteTableName("immutable-update-expression")));
+
+        try {
+            ImmutableRecordForUpdateExpressions seed =
+                ImmutableRecordForUpdateExpressions.builder().id("imm-1").counterValue(1L).build();
+            immutableTable.putItem(seed);
+
+            ImmutableRecordForUpdateExpressions update =
+                ImmutableRecordForUpdateExpressions.builder().id("imm-1").counterValue(100L).build();
+            immutableTable.updateItem(
+                r -> r.item(update)
+                      .updateExpression(updateExpressionSetLongAttribute("counterValue", 200L))
+                      .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE));
+
+            ImmutableRecordForUpdateExpressions persisted =
+                immutableTable.getItem(ImmutableRecordForUpdateExpressions.builder().id("imm-1").build());
+            assertThat(persisted.getCounterValue()).isEqualTo(200L);
+        } finally {
+            getDynamoDbClient().deleteTable(r -> r.tableName(getConcreteTableName("immutable-update-expression")));
+        }
+    }
 
     @Test
     public void transactWriteItems_givenTransactUpdateWithRequestExpression_whenExecute_thenListElementUpdated() {

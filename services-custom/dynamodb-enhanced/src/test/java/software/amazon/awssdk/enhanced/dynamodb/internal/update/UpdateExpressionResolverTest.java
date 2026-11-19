@@ -1556,4 +1556,46 @@ public class UpdateExpressionResolverTest {
                      .putExpressionValue(":v", AttributeValue.builder().l(AttributeValue.builder().s("req").build()).build())
                      .build());
     }
+
+    @Test
+    public void resolve_prioritizeHigherSource_whenShortPlaceholderPrefixesLongerToken_stillDetectsOverlap() {
+        // LinkedHashMap puts the shorter token first so a naive String.replace would corrupt "#attribute" before
+        // overlap detection; whole-token resolution must still drop the extension action.
+        Map<String, String> extensionNames = new LinkedHashMap<>();
+        extensionNames.put("#attr", "unused");
+        extensionNames.put("#attribute", "attribute");
+
+        UpdateExpression extensionExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("#attribute")
+                                                .value(":ext")
+                                                .expressionNames(extensionNames)
+                                                .putExpressionValue(":ext", AttributeValue.builder().s("from-ext").build())
+                                                .build())
+                            .build();
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("attribute")
+                                                .value(":req")
+                                                .putExpressionValue(":req", AttributeValue.builder().s("from-req").build())
+                                                .build())
+                            .build();
+
+        UpdateExpression result = UpdateExpressionResolver.builder()
+                                                          .tableMetadata(TABLE_METADATA)
+                                                          .extensionExpression(extensionExpression)
+                                                          .requestExpression(requestExpression)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
+                                                          .build()
+                                                          .resolve();
+
+        assertThat(result.setActions()).containsExactly(
+            SetAction.builder()
+                     .path("attribute")
+                     .value(":req")
+                     .putExpressionValue(":req", AttributeValue.builder().s("from-req").build())
+                     .build());
+    }
 }

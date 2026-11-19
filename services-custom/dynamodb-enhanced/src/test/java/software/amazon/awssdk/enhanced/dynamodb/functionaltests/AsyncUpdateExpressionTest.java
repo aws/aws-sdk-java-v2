@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.PRIORITIZE_HIGHER_SOURCE;
 
 import java.util.Collections;
 import org.junit.After;
@@ -26,6 +27,8 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecordForUpdateExpressions;
+import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class AsyncUpdateExpressionTest extends LocalDynamoDbAsyncTestBase {
@@ -68,5 +71,35 @@ public class AsyncUpdateExpressionTest extends LocalDynamoDbAsyncTestBase {
 
         RecordForUpdateExpressions persisted = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id1"))).join();
         assertThat(persisted.getStringAttribute()).isEqualTo("init");
+    }
+
+    @Test
+    public void updateItem_givenPrioritizeHigherSourceMerge_whenPojoAndRequestSetSameScalar_thenRequestValuePersists() {
+        RecordForUpdateExpressions seed = new RecordForUpdateExpressions();
+        seed.setId("async-prioritize");
+        seed.setExtensionNumberAttribute(1L);
+        mappedTable.putItem(seed).join();
+
+        RecordForUpdateExpressions update = new RecordForUpdateExpressions();
+        update.setId("async-prioritize");
+        update.setExtensionNumberAttribute(100L);
+
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("extensionNumberAttribute")
+                                                .value(":req")
+                                                .putExpressionValue(":req", AttributeValue.builder().n("200").build())
+                                                .build())
+                            .build();
+
+        mappedTable.updateItem(r -> r.item(update)
+                                     .updateExpression(requestExpression)
+                                     .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE))
+                   .join();
+
+        RecordForUpdateExpressions persisted =
+            mappedTable.getItem(r -> r.key(k -> k.partitionValue("async-prioritize"))).join();
+        assertThat(persisted.getExtensionNumberAttribute()).isEqualTo(200L);
     }
 }
