@@ -7,6 +7,9 @@ This directory contains comprehensive guidelines for developing with the AWS SDK
 ### [General Guidelines](aws-sdk-java-v2-general.md)
 Core development principles, code style standards, design patterns, and performance considerations that apply to all AWS SDK Java v2 development. Includes naming conventions, proper use of Optional, object method implementations, and exception handling patterns.
 
+### [Building and Testing](building-and-testing.md)
+Commands and rules for building, testing and verifying changes quickly: building a module's dependencies, iterating on one module with the `dev` profile, running a single test, verifying after upstream or code generator changes, the final pre-PR check, and common pitfalls.
+
 ### [Asynchronous Programming Guidelines](async-programming-guidelines.md)
 Best practices for CompletableFuture usage, thread safety considerations, and proper handling of asynchronous operations. Covers cancellation, exception handling, and testing patterns for async code.
 
