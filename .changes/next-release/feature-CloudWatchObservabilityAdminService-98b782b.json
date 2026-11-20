@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "CloudWatch Observability Admin Service",
-    "contributor": "",
-    "description": "Enablement for Network Firewall and Omni Events via Observability Admin Telemetry Rule for account and organization level"
-}
