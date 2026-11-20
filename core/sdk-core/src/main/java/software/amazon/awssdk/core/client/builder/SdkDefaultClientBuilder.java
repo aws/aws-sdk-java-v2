@@ -202,13 +202,13 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         configuration = mergeChildDefaults(configuration);
         configuration = mergeGlobalDefaults(configuration);
 
+        // Invoke the plugins
+        configuration = invokePlugins(configuration);
+
         // Create additional configuration from the default-applied configuration
         configuration = finalizeChildConfiguration(configuration);
         configuration = finalizeSyncConfiguration(configuration);
         configuration = finalizeConfiguration(configuration);
-
-        // Invoke the plugins
-        configuration = invokePlugins(configuration);
 
         return configuration;
     }
@@ -233,13 +233,13 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         configuration = mergeChildDefaults(configuration);
         configuration = mergeGlobalDefaults(configuration);
 
+        // Invoke the plugins
+        configuration = invokePlugins(configuration);
+
         // Create additional configuration from the default-applied configuration
         configuration = finalizeChildConfiguration(configuration);
         configuration = finalizeAsyncConfiguration(configuration);
         configuration = finalizeConfiguration(configuration);
-
-        // Invoke the plugins
-        configuration = invokePlugins(configuration);
 
         return configuration;
     }
