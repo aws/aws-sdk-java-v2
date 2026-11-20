@@ -33,7 +33,7 @@ import software.amazon.awssdk.profiles.ProfileProperty;
 @SdkInternalApi
 public final class CredentialDaemonUtils {
 
-    static final String CREDENTIAL_DAEMON_DOC = "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-credential-daemon.html";
+    static final String CREDENTIAL_DAEMON_DOC = "https://docs.aws.amazon.com/cli/latest/userguide/cli-authentication-credsd.html";
 
     static final String START_HINT = "Start the credential daemon and sign in; see " + CREDENTIAL_DAEMON_DOC + ".";
 

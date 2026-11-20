@@ -29,7 +29,7 @@ import software.amazon.awssdk.auth.credentials.CredentialDaemonException;
 
 class CredentialDaemonPlatformTest {
     private static final String ADDRESS_CLASS = "java.net.UnixDomainSocketAddress";
-    private static final String DOC = "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-credential-daemon.html";
+    private static final String DOC = "https://docs.aws.amazon.com/cli/latest/userguide/cli-authentication-credsd.html";
 
     static Stream<Arguments> unsupportedPlatforms() {
         return Stream.of(
