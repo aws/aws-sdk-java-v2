@@ -15,19 +15,23 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior.WRITE_IF_NOT_EXISTS;
-
+import java.util.List;
 import java.util.Set;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdateBehavior;
 
 @DynamoDbBean
-public class RecordForUpdateExpressions {
+public final class RecordForUpdateExpressions {
     private String id;
     private String stringAttribute1;
+    private List<String> requestAttributeList;
     private Long extensionAttribute1;
     private Set<String> extensionAttribute2;
+    private Long incrementedAttribute;
+    private NestedRecordForUpdateExpressions objectAttribute;
+    private List<NestedRecordForUpdateExpressions> objectListAttribute;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -38,13 +42,21 @@ public class RecordForUpdateExpressions {
         this.id = id;
     }
 
-    @DynamoDbUpdateBehavior(WRITE_IF_NOT_EXISTS)
+    @DynamoDbUpdateBehavior(UpdateBehavior.WRITE_IF_NOT_EXISTS)
     public String getStringAttribute() {
         return stringAttribute1;
     }
 
     public void setStringAttribute(String stringAttribute1) {
         this.stringAttribute1 = stringAttribute1;
+    }
+
+    public List<String> getRequestAttributeList() {
+        return requestAttributeList;
+    }
+
+    public void setRequestAttributeList(List<String> requestAttributeList) {
+        this.requestAttributeList = requestAttributeList;
     }
 
     public Long getExtensionNumberAttribute() {
@@ -61,5 +73,30 @@ public class RecordForUpdateExpressions {
 
     public void setExtensionSetAttribute(Set<String> extensionAttribute2) {
         this.extensionAttribute2 = extensionAttribute2;
+    }
+
+    public Long getIncrementedAttribute() {
+        return incrementedAttribute;
+    }
+
+    public RecordForUpdateExpressions setIncrementedAttribute(Long incrementedAttribute) {
+        this.incrementedAttribute = incrementedAttribute;
+        return this;
+    }
+
+    public NestedRecordForUpdateExpressions getObjectAttribute() {
+        return objectAttribute;
+    }
+
+    public void setObjectAttribute(NestedRecordForUpdateExpressions objectAttribute) {
+        this.objectAttribute = objectAttribute;
+    }
+
+    public List<NestedRecordForUpdateExpressions> getObjectListAttribute() {
+        return objectListAttribute;
+    }
+
+    public void setObjectListAttribute(List<NestedRecordForUpdateExpressions> objectListAttribute) {
+        this.objectListAttribute = objectListAttribute;
     }
 }
