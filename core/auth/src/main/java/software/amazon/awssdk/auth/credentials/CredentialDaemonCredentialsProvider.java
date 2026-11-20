@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.auth.credentials;
 
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -38,12 +39,14 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
  * Loads short-lived credentials from a local credential daemon over a Unix domain socket. This is used to support the
- * {@code daemon_credential} setting in the shared config file.
+ * {@code credential_daemon} setting in the shared config file.
  *
  * <p>
  * Each fetch opens a new connection to the daemon and sends one JSON-RPC 2.0 {@code credential/get} request. The socket is
  * looked up again on every fetch, in this order:
  * <ol>
+ *     <li>The {@link Builder#socketPath(Path)} setting, when it is an absolute path.</li>
+ *     <li>The {@code aws.credentialDaemonSocket} system property, when it holds an absolute path.</li>
  *     <li>The {@code AWS_CREDENTIAL_DAEMON_SOCKET} environment variable, when it holds an absolute path.</li>
  *     <li>{@code $HOME/.aws/credential-daemon.sock}, when anything is there: a socket, a symbolic link, or a link whose
  *     target is missing. {@code HOME} is read from the environment, and this location is skipped when {@code HOME} is
@@ -64,12 +67,12 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  *
  * <p>
  * On such a platform, an application can still use the daemon's credentials through the AWS CLI. Give it a separate profile
- * that does not set {@code daemon_credential} and runs the CLI as a credential process, for example:
+ * that does not set {@code credential_daemon} and runs the CLI as a credential process, for example:
  * <pre>
  * [profile daemon-via-cli]
  * credential_process = aws configure export-credentials --profile my-daemon-profile --format process
  * </pre>
- * where {@code my-daemon-profile} is the profile that sets {@code daemon_credential}.
+ * where {@code my-daemon-profile} is the profile that sets {@code credential_daemon}.
  *
  * <p>
  * Failures are raised as {@link CredentialDaemonException}, whose {@link CredentialDaemonException#errorCode()} identifies
@@ -95,6 +98,7 @@ public final class CredentialDaemonCredentialsProvider
     private final String credentialName;
     private final String accountId;
     private final String roleName;
+    private final Path socketPath;
     private final Duration connectTimeout;
     private final Duration callTimeout;
     private final Boolean asyncCredentialUpdateEnabled;
@@ -116,13 +120,14 @@ public final class CredentialDaemonCredentialsProvider
         this.accountId = builder.accountId;
         this.roleName = builder.roleName;
         Validate.isTrue((accountId == null) == (roleName == null), "accountId and roleName must be set together.");
+        this.socketPath = builder.socketPath;
         this.connectTimeout = Validate.isPositive(builder.connectTimeout, "connectTimeout");
         this.callTimeout = Validate.isPositive(builder.callTimeout, "callTimeout");
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.sourceChain = builder.sourceChain;
         String providerName = StringUtils.isEmpty(sourceChain) ? PROVIDER_NAME : sourceChain + "," + PROVIDER_NAME;
         this.request = new CredentialDaemonRequest(credentialName, accountId, roleName);
-        this.client = CredentialDaemonClient.create(connectTimeout, callTimeout, providerName);
+        this.client = CredentialDaemonClient.create(socketPath, connectTimeout, callTimeout, providerName);
         this.clock = builder.clock;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refresh)
@@ -193,6 +198,17 @@ public final class CredentialDaemonCredentialsProvider
         Builder roleName(String roleName);
 
         /**
+         * Sets the path of the daemon's socket. When this is an absolute path, it is dialed instead of the
+         * {@code aws.credentialDaemonSocket} system property, the {@code AWS_CREDENTIAL_DAEMON_SOCKET} environment variable
+         * and {@code $HOME/.aws/credential-daemon.sock}, and no other location is tried if that dial fails. A relative path
+         * counts as unset.
+         *
+         * <p>
+         * Default: not set.
+         */
+        Builder socketPath(Path socketPath);
+
+        /**
          * Sets how long to wait for the daemon to accept the connection.
          *
          * <p>
@@ -241,6 +257,7 @@ public final class CredentialDaemonCredentialsProvider
         private String credentialName;
         private String accountId;
         private String roleName;
+        private Path socketPath;
         private Duration connectTimeout = DEFAULT_CONNECT_TIMEOUT;
         private Duration callTimeout = DEFAULT_CALL_TIMEOUT;
         private Boolean asyncCredentialUpdateEnabled = false;
@@ -254,6 +271,7 @@ public final class CredentialDaemonCredentialsProvider
             this.credentialName = provider.credentialName;
             this.accountId = provider.accountId;
             this.roleName = provider.roleName;
+            this.socketPath = provider.socketPath;
             this.connectTimeout = provider.connectTimeout;
             this.callTimeout = provider.callTimeout;
             this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
@@ -281,6 +299,12 @@ public final class CredentialDaemonCredentialsProvider
         @Override
         public Builder roleName(String roleName) {
             this.roleName = roleName;
+            return this;
+        }
+
+        @Override
+        public Builder socketPath(Path socketPath) {
+            this.socketPath = socketPath;
             return this;
         }
 

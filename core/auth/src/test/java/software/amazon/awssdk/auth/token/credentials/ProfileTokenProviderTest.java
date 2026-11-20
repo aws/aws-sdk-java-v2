@@ -77,7 +77,7 @@ class ProfileTokenProviderTest {
     @Test
     void resolveToken_whenDaemonHoldsSsoSession_raisesBearerTokenError() {
         ProfileFile file = profileFile("[profile dev]\n"
-                                       + "daemon_credential = dev\n"
+                                       + "credential_daemon = dev\n"
                                        + "sso_session = s\n"
                                        + "sso_account_id = 123456789012\n"
                                        + "sso_role_name = Admin\n"
@@ -91,7 +91,7 @@ class ProfileTokenProviderTest {
         assertThatThrownBy(provider::resolveToken)
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Profile dev does not have a usable sso_session: its SSO session is held in the credential daemon "
-                        + "(daemon_credential). Services that use bearer tokens need an SSO session stored in files; configure "
+                        + "(credential_daemon). Services that use bearer tokens need an SSO session stored in files; configure "
                         + "a profile with sso_session and sign in with a file-based SSO login.");
     }
 

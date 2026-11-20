@@ -76,7 +76,7 @@ class CredentialDaemonChainTest {
 
     @Test
     void resolveCredentials_whenConfigProfileSetsDaemonCredential_returnsDaemonCredentials() throws Exception {
-        config("[profile dev]\ndaemon_credential = dev\n");
+        config("[profile dev]\ncredential_daemon = dev\n");
 
         AwsCredentials credentials = DefaultCredentialsProvider.builder().build().resolveCredentials();
 
@@ -89,7 +89,7 @@ class CredentialDaemonChainTest {
 
     @Test
     void resolveCredentials_whenEnvironmentHasCredentials_doesNotCallDaemon() throws Exception {
-        config("[profile dev]\ndaemon_credential = dev\n");
+        config("[profile dev]\ncredential_daemon = dev\n");
         env.set("AWS_ACCESS_KEY_ID", "akid");
         env.set("AWS_SECRET_ACCESS_KEY", "skid");
 
@@ -101,7 +101,7 @@ class CredentialDaemonChainTest {
 
     @Test
     void resolveCredentials_whenWebIdentityEnvironmentAndDaemonProfile_returnsDaemonCredentials() throws Exception {
-        config("[profile dev]\ndaemon_credential = dev\n");
+        config("[profile dev]\ncredential_daemon = dev\n");
         env.set("AWS_ROLE_ARN", "arn:aws:iam::123456789012:role/r");
         env.set("AWS_WEB_IDENTITY_TOKEN_FILE", "/nonexistent/aws-web-identity-token");
 
@@ -113,7 +113,7 @@ class CredentialDaemonChainTest {
 
     @Test
     void resolveCredentials_whenDaemonNotRunning_movesOnAndReportsDaemonFailureInChainAggregate() throws Exception {
-        config("[profile dev]\ndaemon_credential = dev\n");
+        config("[profile dev]\ncredential_daemon = dev\n");
         Path missing = configDirectory.resolve("missing.sock");
         env.set("AWS_CREDENTIAL_DAEMON_SOCKET", missing.toString());
 
@@ -126,12 +126,12 @@ class CredentialDaemonChainTest {
 
     @Test
     void resolveCredentials_whenProfileNameInvalid_raisesInvalidConfig() throws Exception {
-        config("[profile dev]\ndaemon_credential = .dev\naws_access_key_id = akid\naws_secret_access_key = skid\n");
+        config("[profile dev]\ncredential_daemon = .dev\naws_access_key_id = akid\naws_secret_access_key = skid\n");
 
         assertThatThrownBy(() -> DefaultCredentialsProvider.builder().build().resolveCredentials())
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("any of the providers in the chain")
-            .hasMessageContaining("daemon_credential");
+            .hasMessageContaining("credential_daemon");
         assertThat(daemon.requests()).isEmpty();
     }
 
@@ -139,7 +139,7 @@ class CredentialDaemonChainTest {
     void resolveCredentials_whenDaemonCredentialOnlyInCredentialsFile_ignoresIt() throws Exception {
         config("[profile other]\nregion = us-west-2\n");
         Path credentialsFile = configDirectory.resolve("credentials");
-        Files.write(credentialsFile, ("[dev]\ndaemon_credential = dev\naws_access_key_id = akid\n"
+        Files.write(credentialsFile, ("[dev]\ncredential_daemon = dev\naws_access_key_id = akid\n"
                                       + "aws_secret_access_key = skid\n").getBytes(StandardCharsets.UTF_8));
         env.set("AWS_SHARED_CREDENTIALS_FILE", credentialsFile.toString());
 

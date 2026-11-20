@@ -811,14 +811,14 @@ public class ProfileFileTest {
     @Test
     public void daemonCredential_inConfigFile_isKept() {
         assertThat(configFileProfiles("[profile dev]\n"
-                                      + "daemon_credential = dev\n"))
-            .isEqualTo(profiles(profile("dev", property("daemon_credential", "dev"))));
+                                      + "credential_daemon = dev\n"))
+            .isEqualTo(profiles(profile("dev", property("credential_daemon", "dev"))));
     }
 
     @Test
     public void daemonCredential_inCredentialsFile_isDroppedWithContinuations() {
         assertThat(credentialFileProfiles("[dev]\n"
-                                          + "daemon_credential =\n"
+                                          + "credential_daemon =\n"
                                           + "  sub = value\n"
                                           + "aws_access_key_id = akid\n"
                                           + "region = us-west-2\n"
@@ -833,7 +833,7 @@ public class ProfileFileTest {
         assertThat(aggregateFileProfiles("[profile dev]\n"
                                          + "region = us-west-2\n",
                                          "[dev]\n"
-                                         + "daemon_credential = dev\n"))
+                                         + "credential_daemon = dev\n"))
             .isEqualTo(profiles(profile("dev", property("region", "us-west-2"))));
     }
 

@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -36,11 +37,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 class CredentialDaemonCredentialsProviderTest {
-    private static final String DOC = "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-credential-daemon.html";
+    private static final String DOC = "https://docs.aws.amazon.com/cli/latest/userguide/cli-authentication-credsd.html";
     private static final String START_HINT = "Start the credential daemon and sign in; see " + DOC + ".";
     private static final String HEAD = "{\"jsonrpc\":\"2.0\",\"id\":1,";
 
@@ -53,6 +55,8 @@ class CredentialDaemonCredentialsProviderTest {
      * For credentials that expire 15 minutes after the clock starts: after the jittered prefetch time and before stale.
      */
     private static final Duration IN_PREFETCH_WINDOW = Duration.ofMinutes(13).plusSeconds(30);
+
+    private static final String SOCKET_PROPERTY = "aws.credentialDaemonSocket";
 
     private final EnvironmentVariableHelper env = new EnvironmentVariableHelper();
     private final List<AutoCloseable> closeables = new ArrayList<>();
@@ -68,6 +72,7 @@ class CredentialDaemonCredentialsProviderTest {
     @AfterEach
     void teardown() throws Exception {
         env.reset();
+        System.clearProperty(SOCKET_PROPERTY);
         for (AutoCloseable closeable : closeables) {
             closeable.close();
         }
@@ -217,6 +222,103 @@ class CredentialDaemonCredentialsProviderTest {
 
         assertThat(e.errorCode()).isEqualTo(CredentialDaemonException.NOT_RUNNING);
         assertThat(e.getMessage()).contains("Connection refused").contains(stale.toString());
+    }
+
+    /**
+     * Returns the path of a socket in a new temporary folder that nothing listens on.
+     */
+    private Path missingSocket() throws Exception {
+        Path directory = FakeCredentialDaemon.newSocketDirectory();
+        closeables.add(() -> Files.deleteIfExists(directory));
+        return directory.resolve("missing.sock");
+    }
+
+    @Test
+    void resolveCredentials_withSystemProperty_dialsItBeforeTheEnvironmentVariableAndTheLink() throws Exception {
+        Files.createSymbolicLink(linkLocation(), daemon.socketPath());
+        env.set("AWS_CREDENTIAL_DAEMON_SOCKET", daemon.socketPath().toString());
+        FakeCredentialDaemon fromProperty = startDaemon(FakeCredentialDaemon.successReply("ASIAPROPERTY", inMinutes(15)));
+        System.setProperty(SOCKET_PROPERTY, fromProperty.socketPath().toString());
+
+        assertThat(provider().resolveCredentials().accessKeyId()).isEqualTo("ASIAPROPERTY");
+        assertThat(fromProperty.requests()).hasSize(1);
+        assertThat(daemon.requests()).isEmpty();
+    }
+
+    @Test
+    void resolveCredentials_withSystemPropertyNotListening_raisesNotRunningWithoutTryingTheEnvironmentVariable()
+            throws Exception {
+        Path missing = missingSocket();
+        System.setProperty(SOCKET_PROPERTY, missing.toString());
+
+        CredentialDaemonException e = failure();
+
+        assertThat(e.errorCode()).isEqualTo(CredentialDaemonException.NOT_RUNNING);
+        assertThat(e.getMessage()).contains(missing.toString());
+        assertThat(daemon.requests()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "relative/daemon.sock"})
+    void resolveCredentials_withEmptyOrRelativeSystemProperty_dialsTheEnvironmentVariable(String value) {
+        System.setProperty(SOCKET_PROPERTY, value);
+
+        assertThat(provider().resolveCredentials().accessKeyId()).isEqualTo("ASIADAEMON");
+        assertThat(daemon.requests()).hasSize(1);
+    }
+
+    @Test
+    void resolveCredentials_withSocketPath_dialsItBeforeTheSystemPropertyAndTheEnvironmentVariable() throws Exception {
+        FakeCredentialDaemon fromProperty = startDaemon(FakeCredentialDaemon.successReply("ASIAPROPERTY", inMinutes(15)));
+        System.setProperty(SOCKET_PROPERTY, fromProperty.socketPath().toString());
+        FakeCredentialDaemon fromCode = startDaemon(FakeCredentialDaemon.successReply("ASIACODE", inMinutes(15)));
+
+        CredentialDaemonCredentialsProvider provider =
+            provider(CredentialDaemonCredentialsProvider.builder().credentialName("dev").socketPath(fromCode.socketPath()));
+
+        assertThat(provider.resolveCredentials().accessKeyId()).isEqualTo("ASIACODE");
+        assertThat(fromProperty.requests()).isEmpty();
+        assertThat(daemon.requests()).isEmpty();
+    }
+
+    @Test
+    void resolveCredentials_withSocketPathNotListening_raisesNotRunningWithoutTryingTheSystemProperty() throws Exception {
+        FakeCredentialDaemon fromProperty = startDaemon(FakeCredentialDaemon.successReply("ASIAPROPERTY", inMinutes(15)));
+        System.setProperty(SOCKET_PROPERTY, fromProperty.socketPath().toString());
+        Path missing = missingSocket();
+
+        CredentialDaemonCredentialsProvider provider =
+            provider(CredentialDaemonCredentialsProvider.builder().credentialName("dev").socketPath(missing));
+
+        assertThatThrownBy(provider::resolveCredentials)
+            .isInstanceOfSatisfying(CredentialDaemonException.class, e -> {
+                assertThat(e.errorCode()).isEqualTo(CredentialDaemonException.NOT_RUNNING);
+                assertThat(e.getMessage()).contains(missing.toString());
+            });
+        assertThat(fromProperty.requests()).isEmpty();
+        assertThat(daemon.requests()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "relative/daemon.sock"})
+    void resolveCredentials_withRelativeSocketPath_dialsTheSystemProperty(String value) throws Exception {
+        FakeCredentialDaemon fromProperty = startDaemon(FakeCredentialDaemon.successReply("ASIAPROPERTY", inMinutes(15)));
+        System.setProperty(SOCKET_PROPERTY, fromProperty.socketPath().toString());
+
+        CredentialDaemonCredentialsProvider provider =
+            provider(CredentialDaemonCredentialsProvider.builder().credentialName("dev").socketPath(Paths.get(value)));
+
+        assertThat(provider.resolveCredentials().accessKeyId()).isEqualTo("ASIAPROPERTY");
+        assertThat(daemon.requests()).isEmpty();
+    }
+
+    @Test
+    void toBuilder_keepsTheSocketPath() throws Exception {
+        FakeCredentialDaemon fromCode = startDaemon(FakeCredentialDaemon.successReply("ASIACODE", inMinutes(15)));
+        CredentialDaemonCredentialsProvider original =
+            provider(CredentialDaemonCredentialsProvider.builder().credentialName("dev").socketPath(fromCode.socketPath()));
+
+        assertThat(provider(original.toBuilder()).resolveCredentials().accessKeyId()).isEqualTo("ASIACODE");
     }
 
     /**
