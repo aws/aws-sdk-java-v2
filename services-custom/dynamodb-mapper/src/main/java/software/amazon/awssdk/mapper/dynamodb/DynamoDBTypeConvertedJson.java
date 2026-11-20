@@ -20,9 +20,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
@@ -30,6 +27,10 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
  *
  * <p>It shares all limitations of that library. For more information about
  * Jackson, see: http://wiki.fasterxml.com/JacksonHome</p>
+ *
+ * <p>jackson-databind is not a dependency of the mapper. Applications that use this annotation must add
+ * {@code com.fasterxml.jackson.core:jackson-databind} 2.x to their classpath. Without it, the mapper throws a
+ * {@link DynamoDBMappingException} when it builds the model for a class that uses this annotation.</p>
  *
  * {@snippet :
  * @DynamoDBTypeConvertedJson
@@ -74,17 +75,17 @@ public @interface DynamoDBTypeConvertedJson {
      * JSON type converter.
      */
     final class Converter<T> implements DynamoDBTypeConverter<String,T> {
-        private static final ObjectMapper mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         private final Class<T> targetType;
 
         public Converter(Class<T> targetType, DynamoDBTypeConvertedJson annotation) {
             this.targetType = annotation.targetType() == void.class ? targetType : (Class<T>)annotation.targetType();
+            JacksonDatabindSupport.initialize();
         }
 
         @Override
         public final String convert(final T object) {
             try {
-                return mapper.writeValueAsString(object);
+                return JacksonDatabindSupport.writeValueAsString(object);
             } catch (final Exception e) {
                 throw new DynamoDBMappingException("Unable to write object to JSON", e);
             }
@@ -93,7 +94,7 @@ public @interface DynamoDBTypeConvertedJson {
         @Override
         public final T unconvert(final String object) {
             try {
-                return mapper.readValue(object, targetType);
+                return JacksonDatabindSupport.readValue(object, targetType);
             } catch (final Exception e) {
                 throw new DynamoDBMappingException("Unable to read JSON string", e);
             }
