@@ -89,6 +89,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private final HttpMonitoringOptions monitoringOptions;
     private final long maxConnectionIdleInMilliseconds;
     private final int maxStreamsPerEndpoint;
+    private final Integer maxPendingConnectionAcquires;
     private final long connectionAcquisitionTimeout;
     private final TlsContextOptions tlsContextOptions;
     private final Duration tlsNegotiationTimeout;
@@ -142,6 +143,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
             this.readBufferSize = builder.getReadBufferSizeInBytes() == null ?
                                   DEFAULT_STREAM_WINDOW_SIZE : builder.getReadBufferSizeInBytes();
             this.maxStreamsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
+            this.maxPendingConnectionAcquires = builder.getMaxPendingConnectionAcquires();
             this.monitoringOptions = resolveMonitoringOptions(
                 builder.getConnectionHealthConfiguration(),
                 config.get(SdkHttpConfigurationOption.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT));
@@ -220,6 +222,10 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
                 .withMonitoringOptions(monitoringOptions)
                 .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds)
                 .withConnectionAcquisitionTimeoutInMilliseconds(connectionAcquisitionTimeout);
+
+        if (maxPendingConnectionAcquires != null) {
+            h1Options.withMaxPendingConnectionAcquisitions(maxPendingConnectionAcquires);
+        }
 
         HttpStreamManagerOptions options = new HttpStreamManagerOptions()
             .withHTTP1ConnectionManagerOptions(h1Options);
