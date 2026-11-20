@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Partner Central Channel API",
+    "contributor": "",
+    "description": "Adds MSP program relationships support in AWS Partner Central. Partners can now create, update, list, and delete MSP relationships using the new MSP program type on the CreateProgramManagementAccount, CreateRelationship, UpdateRelationship, and ListRelationships operations."
+}
