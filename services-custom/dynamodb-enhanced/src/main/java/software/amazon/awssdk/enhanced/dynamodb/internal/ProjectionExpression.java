@@ -93,6 +93,7 @@ import software.amazon.awssdk.utils.Pair;
 public class ProjectionExpression {
 
     private static final String AMZN_MAPPED = "#AMZN_MAPPED_";
+    // Placeholder keys are built from base attribute names only (list-index suffixes already removed).
     private static final UnaryOperator<String> PROJECTION_EXPRESSION_KEY_MAPPER = k -> AMZN_MAPPED + cleanAttributeName(k);
 
     private final Optional<String> projectionExpressionAsString;
@@ -123,6 +124,10 @@ public class ProjectionExpression {
      * If different original attribute names end up having the same placeholder name, a disambiguator is added to those
      * placeholders to make them unique and the number of map entries expand with the length of that list; however this is
      * a rare use-case and normally it's a 1:1 relation.
+     * <p>
+     * Trailing list-dereference suffixes such as {@code [0]} or {@code [1][2]} are stripped before placeholder generation
+     * so ExpressionAttributeNames map only the base attribute name. The suffixes are re-attached when building the
+     * projection expression string.
      */
     private static Map<String, String> createAttributePlaceholders(List<NestedAttributeName> nestedAttributeNames) {
         if (CollectionUtils.isNullOrEmpty(nestedAttributeNames)) {
@@ -132,6 +137,7 @@ public class ProjectionExpression {
         Map<String, List<String>> placeholderToAttributeNames =
             nestedAttributeNames.stream()
                                 .flatMap(n -> n.elements().stream())
+                                .map(element -> parseTrailingListDereferences(element).left())
                                 .distinct()
                                 .collect(Collectors.groupingBy(PROJECTION_EXPRESSION_KEY_MAPPER, Collectors.toList()));
 
@@ -180,8 +186,58 @@ public class ProjectionExpression {
                                                   Map<String, String> attributeToSanitizedMap) {
         return nestedAttributeName.elements()
                                   .stream()
-                                  .map(attributeToSanitizedMap::get)
+                                  .map(element -> {
+                                      // left = base attribute name; right = trailing list-index suffix (e.g. "[1][2]", or "").
+                                      Pair<String, String> baseNameAndSuffix = parseTrailingListDereferences(element);
+                                      return attributeToSanitizedMap.get(baseNameAndSuffix.left())
+                                             + baseNameAndSuffix.right();
+                                  })
                                   .collect(Collectors.joining("."));
+    }
+
+    /**
+     * Parses a path element into its base attribute name and any trailing list-dereference suffix such as {@code [0]}
+     * or {@code [1][2]}.
+     *
+     * @return a {@link Pair} where {@link Pair#left()} is the base attribute name and {@link Pair#right()} is the
+     *         list-dereference suffix (empty when the element has no trailing list indexes)
+     */
+    private static Pair<String, String> parseTrailingListDereferences(String attributeName) {
+        int suffixStart = trailingListDereferenceStart(attributeName);
+        if (suffixStart == -1) {
+            return Pair.of(attributeName, "");
+        }
+        return Pair.of(attributeName.substring(0, suffixStart), attributeName.substring(suffixStart));
+    }
+
+    /**
+     * Finds the start index of a trailing sequence of list dereferences such as {@code [0]} or {@code [1][2]}.
+     * Returns -1 if the name does not end in a valid list-dereference suffix.
+     */
+    private static int trailingListDereferenceStart(String attributeName) {
+        int position = attributeName.length();
+        int suffixStart = position;
+
+        while (position > 0 && attributeName.charAt(position - 1) == ']') {
+            int openBracketIndex = attributeName.lastIndexOf('[', position - 1);
+            if (openBracketIndex == -1 || openBracketIndex == position - 1 ||
+                !containsOnlyDigits(attributeName, openBracketIndex + 1, position - 1)) {
+                return -1;
+            }
+            suffixStart = openBracketIndex;
+            position = openBracketIndex;
+        }
+
+        return suffixStart == attributeName.length() ? -1 : suffixStart;
+    }
+
+    private static boolean containsOnlyDigits(String value, int beginIndex, int endIndex) {
+        for (int i = beginIndex; i < endIndex; i++) {
+            if (!Character.isDigit(value.charAt(i))) {
+                return false;
+            }
+        }
+        return beginIndex < endIndex;
     }
 
 }
