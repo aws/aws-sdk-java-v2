@@ -59,6 +59,8 @@ import software.amazon.awssdk.utils.IoUtils;
 public class AwsCrtMaxPendingConnectionAcquiresTest {
     private static final int CONNECTION_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED = 2094;
     private static final int STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED = 2096;
+    private static final String MAX_PENDING_MESSAGE =
+        "Maximum pending connection acquisitions exceeded. The request rate is too high for the client to keep up.";
 
     private static DeferredResponseServer h1Server;
     private static DeferredResponseServer h2Server;
@@ -107,7 +109,7 @@ public class AwsCrtMaxPendingConnectionAcquiresTest {
     }
 
     @Test
-    void asyncExecute_overLimit_failsFutureWithHttpException() throws Exception {
+    void asyncExecute_overLimit_failsFutureWithMaxPendingAcquisitionsExceeded() throws Exception {
         try (SdkAsyncHttpClient client = limitedAsyncClient()) {
             CompletableFuture<Void> first = execute(client, h1Server, new RecordingResponseHandler());
             CompletableFuture<Void> second = execute(client, h1Server, new RecordingResponseHandler());
@@ -116,7 +118,7 @@ public class AwsCrtMaxPendingConnectionAcquiresTest {
 
             assertThatThrownBy(() -> rejected.get(5, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
-                .satisfies(e -> assertMaxPendingAcquisitionsExceeded(e.getCause()));
+                .satisfies(e -> assertHttp1MaxPendingAcquisitionsExceeded(e.getCause()));
             h1Server.releaseResponses();
             CompletableFuture.allOf(first, second).get(5, TimeUnit.SECONDS);
         }
@@ -126,7 +128,7 @@ public class AwsCrtMaxPendingConnectionAcquiresTest {
     // so the third request waits for a stream instead of being rejected, and the bounded get times out. With #1032 the
     // rejection completes the future before execute returns, so the short bound only limits the failing case.
     @Test
-    void asyncExecuteH2_overLimit_failsFutureWithCrtRuntimeException() throws Exception {
+    void asyncExecuteH2_overLimit_failsFutureWithMaxPendingAcquisitionsExceeded() throws Exception {
         try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.builder()
                                                               .protocol(Protocol.HTTP2)
                                                               .maxConcurrency(1)
@@ -139,9 +141,7 @@ public class AwsCrtMaxPendingConnectionAcquiresTest {
 
             assertThatThrownBy(() -> rejected.get(250, TimeUnit.MILLISECONDS))
                 .isInstanceOf(ExecutionException.class)
-                .satisfies(e -> assertThat(e.getCause())
-                    .isInstanceOfSatisfying(CrtRuntimeException.class, c -> assertThat(c.errorCode)
-                        .isEqualTo(STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED)));
+                .satisfies(e -> assertHttp2MaxPendingAcquisitionsExceeded(e.getCause()));
             h2Server.releaseResponses();
             CompletableFuture.allOf(first, second).get(5, TimeUnit.SECONDS);
         }
@@ -157,7 +157,7 @@ public class AwsCrtMaxPendingConnectionAcquiresTest {
             execute(client, h1Server, rejectedHandler);
 
             assertThatThrownBy(() -> rejectedHandler.completeFuture().get(5, TimeUnit.SECONDS))
-                .hasCauseInstanceOf(HttpException.class);
+                .hasCauseExactlyInstanceOf(IllegalStateException.class);
             h1Server.releaseResponses();
             CompletableFuture.allOf(first, second).get(5, TimeUnit.SECONDS);
         }
@@ -196,7 +196,7 @@ public class AwsCrtMaxPendingConnectionAcquiresTest {
     }
 
     @Test
-    void syncCall_overLimit_throwsHttpException() throws Exception {
+    void syncCall_overLimit_throwsMaxPendingAcquisitionsExceeded() throws Exception {
         try (SdkHttpClient client = AwsCrtHttpClient.builder().maxConcurrency(1).maxPendingConnectionAcquires(1).build()) {
             List<CompletableFuture<Throwable>> outcomes = startConcurrentSyncCalls(client, 3);
 
@@ -209,7 +209,7 @@ public class AwsCrtMaxPendingConnectionAcquiresTest {
                                                .collect(Collectors.toList());
 
             assertThat(failures).hasSize(1);
-            assertMaxPendingAcquisitionsExceeded(failures.get(0));
+            assertHttp1MaxPendingAcquisitionsExceeded(failures.get(0));
         }
     }
 
@@ -217,9 +217,21 @@ public class AwsCrtMaxPendingConnectionAcquiresTest {
         return AwsCrtAsyncHttpClient.builder().maxConcurrency(1).maxPendingConnectionAcquires(1).build();
     }
 
-    private static void assertMaxPendingAcquisitionsExceeded(Throwable failure) {
-        assertThat(failure).isInstanceOfSatisfying(HttpException.class, e -> assertThat(e.getErrorCode())
-                               .isEqualTo(CONNECTION_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED));
+    private static void assertHttp1MaxPendingAcquisitionsExceeded(Throwable failure) {
+        assertMaxPendingAcquisitionsExceededMessage(failure);
+        assertThat(failure.getCause()).isInstanceOfSatisfying(HttpException.class, e -> assertThat(e.getErrorCode())
+                                          .isEqualTo(CONNECTION_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED));
+    }
+
+    private static void assertHttp2MaxPendingAcquisitionsExceeded(Throwable failure) {
+        assertMaxPendingAcquisitionsExceededMessage(failure);
+        assertThat(failure.getCause()).isInstanceOfSatisfying(CrtRuntimeException.class, e -> assertThat(e.errorCode)
+                                          .isEqualTo(STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED));
+    }
+
+    private static void assertMaxPendingAcquisitionsExceededMessage(Throwable failure) {
+        assertThat(failure).isExactlyInstanceOf(IllegalStateException.class)
+                           .hasMessageStartingWith(MAX_PENDING_MESSAGE);
     }
 
     private static List<CompletableFuture<Void>> executeThree(SdkAsyncHttpClient client) {
