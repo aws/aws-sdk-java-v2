@@ -750,4 +750,61 @@ public class SsoProfileCredentialsProviderFactoryTest {
         // Verify close works properly on the fully-constructed provider
         ((SdkAutoCloseable) credentialsProvider).close();
     }
+
+    @Test
+    public void close_closesCloseableTokenProvider() {
+        SsoClient mockSsoClient = mock(SsoClient.class);
+        CloseableTokenProvider closeableTokenProvider = mock(CloseableTokenProvider.class);
+
+        ProfileFile profileFile = configFile("[profile test]\n" +
+                                             "sso_account_id=accountId\n" +
+                                             "sso_role_name=roleName\n" +
+                                             "sso_region=region\n" +
+                                             "sso_session=foo\n" +
+                                             "[sso-session foo]\n" +
+                                             "sso_region=region\n" +
+                                             "sso_start_url=https//d-abc123.awsapps.com/start");
+
+        SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
+        AwsCredentialsProvider credentialsProvider = factory.create(
+            ProfileProviderCredentialsContext.builder()
+                                            .profile(profileFile.profile("test").get())
+                                            .profileFile(profileFile)
+                                            .build(),
+            closeableTokenProvider,
+            mockSsoClient);
+
+        ((SdkAutoCloseable) credentialsProvider).close();
+
+        Mockito.verify(closeableTokenProvider, times(1)).close();
+    }
+
+    @Test
+    public void close_doesNotFailWhenTokenProviderIsNotCloseable() {
+        SsoClient mockSsoClient = mock(SsoClient.class);
+        SdkTokenProvider nonCloseableTokenProvider = mock(SdkTokenProvider.class);
+
+        ProfileFile profileFile = configFile("[profile test]\n" +
+                                             "sso_account_id=accountId\n" +
+                                             "sso_role_name=roleName\n" +
+                                             "sso_region=region\n" +
+                                             "sso_session=foo\n" +
+                                             "[sso-session foo]\n" +
+                                             "sso_region=region\n" +
+                                             "sso_start_url=https//d-abc123.awsapps.com/start");
+
+        SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
+        AwsCredentialsProvider credentialsProvider = factory.create(
+            ProfileProviderCredentialsContext.builder()
+                                            .profile(profileFile.profile("test").get())
+                                            .profileFile(profileFile)
+                                            .build(),
+            nonCloseableTokenProvider,
+            mockSsoClient);
+
+        ((SdkAutoCloseable) credentialsProvider).close();
+    }
+
+    private interface CloseableTokenProvider extends SdkTokenProvider, SdkAutoCloseable {
+    }
 }
