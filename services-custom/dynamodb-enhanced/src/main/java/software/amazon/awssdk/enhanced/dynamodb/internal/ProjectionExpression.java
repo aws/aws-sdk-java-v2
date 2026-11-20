@@ -93,7 +93,8 @@ import software.amazon.awssdk.utils.Pair;
 public class ProjectionExpression {
 
     private static final String AMZN_MAPPED = "#AMZN_MAPPED_";
-    private static final UnaryOperator<String> PROJECTION_EXPRESSION_KEY_MAPPER = k -> AMZN_MAPPED + cleanAttributeName(k);
+    private static final UnaryOperator<String> PROJECTION_EXPRESSION_KEY_MAPPER =
+        k -> AMZN_MAPPED + cleanAttributeName(attributeNameWithoutListDereference(k));
 
     private final Optional<String> projectionExpressionAsString;
     private final Map<String, String> expressionAttributeNames;
@@ -132,6 +133,7 @@ public class ProjectionExpression {
         Map<String, List<String>> placeholderToAttributeNames =
             nestedAttributeNames.stream()
                                 .flatMap(n -> n.elements().stream())
+                                .map(ProjectionExpression::attributeNameWithoutListDereference)
                                 .distinct()
                                 .collect(Collectors.groupingBy(PROJECTION_EXPRESSION_KEY_MAPPER, Collectors.toList()));
 
@@ -180,8 +182,45 @@ public class ProjectionExpression {
                                                   Map<String, String> attributeToSanitizedMap) {
         return nestedAttributeName.elements()
                                   .stream()
-                                  .map(attributeToSanitizedMap::get)
+                                  .map(element -> attributeToSanitizedMap.get(attributeNameWithoutListDereference(element))
+                                                  + listDereferenceSuffix(element))
                                   .collect(Collectors.joining("."));
+    }
+
+    private static String attributeNameWithoutListDereference(String attributeName) {
+        int firstListDereferenceIndex = firstListDereferenceIndex(attributeName);
+        return firstListDereferenceIndex == -1 ? attributeName : attributeName.substring(0, firstListDereferenceIndex);
+    }
+
+    private static String listDereferenceSuffix(String attributeName) {
+        int firstListDereferenceIndex = firstListDereferenceIndex(attributeName);
+        return firstListDereferenceIndex == -1 ? "" : attributeName.substring(firstListDereferenceIndex);
+    }
+
+    private static int firstListDereferenceIndex(String attributeName) {
+        int position = attributeName.length();
+        int firstListDereferenceIndex = position;
+
+        while (position > 0 && attributeName.charAt(position - 1) == ']') {
+            int openBracketIndex = attributeName.lastIndexOf('[', position - 1);
+            if (openBracketIndex == -1 || openBracketIndex == position - 1 ||
+                !containsOnlyDigits(attributeName, openBracketIndex + 1, position - 1)) {
+                return -1;
+            }
+            firstListDereferenceIndex = openBracketIndex;
+            position = openBracketIndex;
+        }
+
+        return firstListDereferenceIndex == attributeName.length() ? -1 : firstListDereferenceIndex;
+    }
+
+    private static boolean containsOnlyDigits(String value, int beginIndex, int endIndex) {
+        for (int i = beginIndex; i < endIndex; i++) {
+            if (!Character.isDigit(value.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }
