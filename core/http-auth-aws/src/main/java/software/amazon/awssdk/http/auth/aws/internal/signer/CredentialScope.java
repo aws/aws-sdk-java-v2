@@ -32,6 +32,12 @@ public final class CredentialScope {
     private final String service;
     private final Instant instant;
 
+    // Formatted on first use and reused, since one signing reads each of these several times. A racing first use only
+    // formats the same immutable String twice.
+    private String date;
+    private String datetime;
+    private String scope;
+
     public CredentialScope(String region, String service, Instant instant) {
         this.region = region;
         this.service = service;
@@ -51,15 +57,30 @@ public final class CredentialScope {
     }
 
     public String getDate() {
-        return formatDate(instant);
+        String result = date;
+        if (result == null) {
+            result = formatDate(instant);
+            date = result;
+        }
+        return result;
     }
 
     public String getDatetime() {
-        return formatDateTime(instant);
+        String result = datetime;
+        if (result == null) {
+            result = formatDateTime(instant);
+            datetime = result;
+        }
+        return result;
     }
 
     public String scope() {
-        return getDate() + "/" + region + "/" + service + "/" + AWS4_TERMINATOR;
+        String result = scope;
+        if (result == null) {
+            result = getDate() + "/" + region + "/" + service + "/" + AWS4_TERMINATOR;
+            scope = result;
+        }
+        return result;
     }
 
     public String scope(AwsCredentialsIdentity credentials) {

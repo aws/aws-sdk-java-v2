@@ -80,13 +80,16 @@ public final class DefaultV4RequestSigner implements V4RequestSigner {
     private String createSignString(String canonicalRequestHash) {
         LOG.debug(() -> "AWS4 Canonical Request Hash: " + canonicalRequestHash);
 
-        String stringToSign = AWS4_SIGNING_ALGORITHM +
-                              SignerConstant.LINE_SEPARATOR +
-                              properties.getCredentialScope().getDatetime() +
-                              SignerConstant.LINE_SEPARATOR +
-                              properties.getCredentialScope().scope() +
-                              SignerConstant.LINE_SEPARATOR +
-                              canonicalRequestHash;
+        String datetime = properties.getCredentialScope().getDatetime();
+        String scope = properties.getCredentialScope().scope();
+        String stringToSign = new StringBuilder(AWS4_SIGNING_ALGORITHM.length() + datetime.length() + scope.length()
+                                                + canonicalRequestHash.length()
+                                                + 3 * SignerConstant.LINE_SEPARATOR.length())
+            .append(AWS4_SIGNING_ALGORITHM).append(SignerConstant.LINE_SEPARATOR)
+            .append(datetime).append(SignerConstant.LINE_SEPARATOR)
+            .append(scope).append(SignerConstant.LINE_SEPARATOR)
+            .append(canonicalRequestHash)
+            .toString();
 
         LOG.debug(() -> "AWS4 String to sign: " + stringToSign);
         return stringToSign;

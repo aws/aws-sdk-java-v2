@@ -19,7 +19,7 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.V4CanonicalRe
 import static software.amazon.awssdk.http.auth.aws.internal.signer.V4CanonicalRequest.getSignedHeadersString;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.addDateHeader;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.addHostHeader;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.formatDateTime;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.authorizationHeader;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.getContentHash;
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.AWS4_SIGNING_ALGORITHM;
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
@@ -56,16 +56,15 @@ public interface V4RequestSigner {
                                          ((AwsSessionCredentialsIdentity) properties.getCredentials()).sessionToken());
             }
             addHostHeader(requestBuilder);
-            addDateHeader(requestBuilder, formatDateTime(properties.getCredentialScope().getInstant()));
+            addDateHeader(requestBuilder, properties.getCredentialScope().getDatetime());
 
             V4RequestSigningResult result = create(properties, getContentHash(requestBuilder)).sign(requestBuilder);
 
             // Add the signature within an authorization header
-            String authHeader = AWS4_SIGNING_ALGORITHM
-                                + " Credential=" + properties.getCredentialScope().scope(properties.getCredentials())
-                                + ", SignedHeaders=" + result.getCanonicalRequest().getSignedHeadersString()
-                                + ", Signature=" + result.getSignature();
-
+            String authHeader = authorizationHeader(properties.getCredentials().accessKeyId(),
+                                                    properties.getCredentialScope().scope(),
+                                                    result.getCanonicalRequest().getSignedHeadersString(),
+                                                    result.getSignature());
             requestBuilder.putHeader(SignerConstant.AUTHORIZATION, authHeader);
             return result;
         };

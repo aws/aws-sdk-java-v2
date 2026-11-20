@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.AWS4_SIGNING_ALGORITHM;
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
 
@@ -23,7 +24,9 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -51,6 +54,10 @@ public final class SignerUtils {
 
     private static final Logger LOG = Logger.loggerFor(SignerUtils.class);
 
+    private static final String CREDENTIAL_PREFIX = " Credential=";
+    private static final String SIGNED_HEADERS_PREFIX = ", SignedHeaders=";
+    private static final String SIGNATURE_PREFIX = ", Signature=";
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter
         .ofPattern("yyyyMMdd").withZone(ZoneId.of("UTC"));
 
@@ -66,7 +73,13 @@ public final class SignerUtils {
      * For example, given an Instant with millis-value of 1416863450581, this method returns "20141124"
      */
     public static String formatDate(Instant instant) {
-        return DATE_FORMATTER.format(instant);
+        LocalDateTime utc = toUtcDateTime(instant);
+        if (!hasFourDigitYear(utc)) {
+            return DATE_FORMATTER.format(instant);
+        }
+        char[] result = new char[8];
+        writeDate(utc, result);
+        return new String(result);
     }
 
     /**
@@ -76,7 +89,44 @@ public final class SignerUtils {
      * For example, given an Instant with millis-value of 1416863450581, this method returns "20141124T211050Z"
      */
     public static String formatDateTime(Instant instant) {
-        return TIME_FORMATTER.format(instant);
+        LocalDateTime utc = toUtcDateTime(instant);
+        if (!hasFourDigitYear(utc)) {
+            return TIME_FORMATTER.format(instant);
+        }
+        char[] result = new char[16];
+        writeDate(utc, result);
+        result[8] = 'T';
+        writeTwoDigits(utc.getHour(), result, 9);
+        writeTwoDigits(utc.getMinute(), result, 11);
+        writeTwoDigits(utc.getSecond(), result, 13);
+        result[15] = 'Z';
+        return new String(result);
+    }
+
+    private static LocalDateTime toUtcDateTime(Instant instant) {
+        return LocalDateTime.ofEpochSecond(instant.getEpochSecond(), 0, ZoneOffset.UTC);
+    }
+
+    /**
+     * Returns true when the year prints as exactly four digits, the only case the hand-written formatting covers. Other
+     * years fall back to the formatter so their output does not change.
+     */
+    private static boolean hasFourDigitYear(LocalDateTime utc) {
+        int year = utc.getYear();
+        return year >= 1000 && year <= 9999;
+    }
+
+    private static void writeDate(LocalDateTime utc, char[] result) {
+        int year = utc.getYear();
+        writeTwoDigits(year / 100, result, 0);
+        writeTwoDigits(year % 100, result, 2);
+        writeTwoDigits(utc.getMonthValue(), result, 4);
+        writeTwoDigits(utc.getDayOfMonth(), result, 6);
+    }
+
+    private static void writeTwoDigits(int value, char[] result, int offset) {
+        result[offset] = (char) ('0' + value / 10);
+        result[offset + 1] = (char) ('0' + value % 10);
     }
 
     /**
@@ -160,6 +210,22 @@ public final class SignerUtils {
     public static byte[] computeSignature(String stringToSign, byte[] signingKey) {
         return sign(stringToSign.getBytes(StandardCharsets.UTF_8), signingKey,
                     SigningAlgorithm.HMAC_SHA256);
+    }
+
+    /**
+     * Returns the value of the {@code Authorization} header for a request signed with the given credential scope,
+     * signed headers, and signature.
+     */
+    public static String authorizationHeader(String accessKeyId, String scope, String signedHeaders, String signature) {
+        int length = AWS4_SIGNING_ALGORITHM.length() + CREDENTIAL_PREFIX.length() + accessKeyId.length() + 1
+                     + scope.length() + SIGNED_HEADERS_PREFIX.length() + signedHeaders.length()
+                     + SIGNATURE_PREFIX.length() + signature.length();
+        return new StringBuilder(length)
+            .append(AWS4_SIGNING_ALGORITHM)
+            .append(CREDENTIAL_PREFIX).append(accessKeyId).append('/').append(scope)
+            .append(SIGNED_HEADERS_PREFIX).append(signedHeaders)
+            .append(SIGNATURE_PREFIX).append(signature)
+            .toString();
     }
 
     /**
