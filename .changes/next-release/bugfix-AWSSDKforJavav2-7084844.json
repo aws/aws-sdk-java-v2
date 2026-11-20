@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "description": "Async clients no longer block the calling thread while credentials are loading. The credential provider business metric is left out of the User-Agent when the identity has not yet resolved.",
+    "contributor": "steinybot"
+}
