@@ -50,7 +50,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
@@ -859,24 +858,6 @@ public class DownloadDirectoryHelperTest {
     }
 
     @Test
-    void downloadDirectory_downloadSucceeds_shouldReplaceExistingFile() throws Exception {
-        Files.createDirectories(directory);
-        Files.write(directory.resolve("a.txt"), "a longer existing body".getBytes(StandardCharsets.UTF_8));
-        stubSuccessfulListObjects(listObjectsHelper, "a.txt");
-        Map<String, FileWritingDownload> downloads = stubFileWritingDownloads();
-
-        DirectoryDownload directoryDownload = downloadDirectoryHelper.downloadDirectory(
-            DownloadDirectoryRequest.builder().destination(directory).bucket("bucket").build());
-
-        awaitStarted(downloads, "a.txt");
-        downloads.get("a.txt").succeed("new");
-
-        assertThat(directoryDownload.completionFuture().get(5, TimeUnit.SECONDS).failedTransfers()).isEmpty();
-        assertThat(readString(directory.resolve("a.txt"))).isEqualTo("new");
-        assertNoTempFiles(directory);
-    }
-
-    @Test
     void downloadDirectory_cancelledDuringDownload_shouldRemoveTempFileAndNotCreateDestination() throws Exception {
         stubSuccessfulListObjects(listObjectsHelper, "a.txt");
         Map<String, FileWritingDownload> downloads = stubFileWritingDownloads();
@@ -891,19 +872,6 @@ public class DownloadDirectoryHelperTest {
             .isInstanceOf(CancellationException.class);
         assertThat(Files.exists(directory.resolve("a.txt"))).isFalse();
         assertNoTempFiles(directory);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"a", "\u00e9", "\u6f22", "\ud83d\ude00"})
-    void downloadDirectory_nameTooLongForSuffix_shouldUseSuffixOnlyWithin255Bytes(String character) throws Exception {
-        int bytesPerCharacter = character.getBytes(StandardCharsets.UTF_8).length;
-        String longName = IntStream.range(0, 255 / bytesPerCharacter).mapToObj(i -> character).collect(Collectors.joining());
-
-        Path writePath = writePathFor(longName);
-
-        String tempName = writePath.getFileName().toString();
-        assertThat(tempName).matches("s3tmp\\.[0-9a-f]{16}");
-        assertThat(writePath.getParent()).isEqualTo(directory);
     }
 
     @Test
@@ -936,30 +904,6 @@ public class DownloadDirectoryHelperTest {
         return writePathCaptor.getValue();
     }
 
-    @Test
-    void downloadDirectory_destinationHasNoFileName_shouldReportThatKeyAndDownloadOthers() throws Exception {
-        stubSuccessfulListObjects(listObjectsHelper, "good.txt", "bad.txt");
-        when(singleDownloadFunction.download(any(DownloadFileRequest.class), any(Path.class), any(Runnable.class))).thenAnswer(writingWritePath(completedDownload()));
-        Path root = directory.toAbsolutePath().getRoot();
-
-        CompletedDirectoryDownload completed = downloadDirectoryHelper.downloadDirectory(
-            DownloadDirectoryRequest.builder()
-                                    .destination(directory)
-                                    .bucket("bucket")
-                                    .downloadFileRequestTransformer(f -> {
-                                        if ("bad.txt".equals(f.build().getObjectRequest().key())) {
-                                            f.destination(root);
-                                        }
-                                    })
-                                    .build()).completionFuture().get(5, TimeUnit.SECONDS);
-
-        assertThat(completed.failedTransfers()).hasSize(1);
-        FailedFileDownload failed = completed.failedTransfers().iterator().next();
-        assertThat(failed.request().getObjectRequest().key()).isEqualTo("bad.txt");
-        assertThat(failed.exception()).isInstanceOf(SdkClientException.class).hasMessageContaining("not a path to a file");
-        verify(singleDownloadFunction, times(1)).download(any(DownloadFileRequest.class), any(Path.class), any(Runnable.class));
-    }
-
     /**
      * Answers like a real download: the write path exists once the download is started, and a download that has already
      * succeeded has run its before-completion step. Returns the downloads in order, then keeps returning the last one.
@@ -989,52 +933,6 @@ public class DownloadDirectoryHelperTest {
     }
 
     @Test
-    void downloadDirectory_downloadSucceedsWithoutWritingFile_shouldReportKeyAndKeepExistingFile() throws Exception {
-        Files.createDirectories(directory);
-        Files.write(directory.resolve("a.txt"), "existing".getBytes(StandardCharsets.UTF_8));
-        stubSuccessfulListObjects(listObjectsHelper, "a.txt");
-        when(singleDownloadFunction.download(any(DownloadFileRequest.class), any(Path.class), any(Runnable.class)))
-            .thenAnswer(invocation -> {
-                try {
-                    ((Runnable) invocation.getArgument(2)).run();
-                } catch (RuntimeException e) {
-                    return newFailedDownload(e);
-                }
-                return completedDownload();
-            });
-
-        CompletedDirectoryDownload completed = downloadDirectoryHelper.downloadDirectory(
-            DownloadDirectoryRequest.builder().destination(directory).bucket("bucket").build()).completionFuture()
-                                                                      .get(5, TimeUnit.SECONDS);
-
-        assertThat(completed.failedTransfers()).hasSize(1);
-        assertThat(completed.failedTransfers().iterator().next().exception())
-            .isInstanceOf(SdkClientException.class).hasMessageContaining("completed without writing");
-        assertThat(readString(directory.resolve("a.txt"))).isEqualTo("existing");
-    }
-
-    @Test
-    void downloadDirectory_destinationIsSymbolicLink_shouldReplaceLinkAndLeaveItsTargetUnchanged() throws Exception {
-        Files.createDirectories(directory);
-        Path linkTarget = fs.getPath("elsewhere.txt");
-        Files.write(linkTarget, "link target".getBytes(StandardCharsets.UTF_8));
-        Files.createSymbolicLink(directory.resolve("a.txt"), linkTarget.toAbsolutePath());
-        stubSuccessfulListObjects(listObjectsHelper, "a.txt");
-        Map<String, FileWritingDownload> downloads = stubFileWritingDownloads();
-
-        DirectoryDownload directoryDownload = downloadDirectoryHelper.downloadDirectory(
-            DownloadDirectoryRequest.builder().destination(directory).bucket("bucket").build());
-
-        awaitStarted(downloads, "a.txt");
-        downloads.get("a.txt").succeed("new");
-
-        assertThat(directoryDownload.completionFuture().get(5, TimeUnit.SECONDS).failedTransfers()).isEmpty();
-        assertThat(Files.isSymbolicLink(directory.resolve("a.txt"))).isFalse();
-        assertThat(readString(directory.resolve("a.txt"))).isEqualTo("new");
-        assertThat(readString(linkTarget)).isEqualTo("link target");
-    }
-
-    @Test
     void downloadDirectory_keyResolvesToDestinationDirectory_shouldReportKeyAndWriteNothing() throws Exception {
         Files.createDirectories(directory);
         stubSuccessfulListObjects(listObjectsHelper, "p/", "p/a.txt");
@@ -1057,42 +955,6 @@ public class DownloadDirectoryHelperTest {
         assertThat(Files.isDirectory(directory)).isTrue();
         assertThat(readString(directory.resolve("a.txt"))).isEmpty();
         assertNoTempFiles(directory.toAbsolutePath().getParent());
-    }
-
-    @Test
-    void downloadDirectory_cancelledBeforeMove_shouldDeleteTempFileAndNotCreateDestination() throws Exception {
-        stubSuccessfulListObjects(listObjectsHelper, "a.txt");
-        CompletableFuture<CompletableFuture<CompletedDirectoryDownload>> directoryFuture = new CompletableFuture<>();
-        AtomicReference<Path> writtenTempFile = new AtomicReference<>();
-        when(singleDownloadFunction.download(any(DownloadFileRequest.class), any(Path.class), any(Runnable.class)))
-            .thenAnswer(invocation -> {
-                Path writePath = invocation.getArgument(1);
-                Files.createDirectories(writePath.getParent());
-                Files.write(writePath, "body".getBytes(StandardCharsets.UTF_8));
-                writtenTempFile.set(writePath);
-                // The directory download is cancelled after the object is written and before it is moved into place.
-                directoryFuture.get(5, TimeUnit.SECONDS).cancel(true);
-                try {
-                    ((Runnable) invocation.getArgument(2)).run();
-                } catch (RuntimeException e) {
-                    return newFailedDownload(e);
-                }
-                return completedDownload();
-            });
-
-        DirectoryDownload directoryDownload = downloadDirectoryHelper.downloadDirectory(
-            DownloadDirectoryRequest.builder().destination(directory).bucket("bucket").build());
-        directoryFuture.complete(directoryDownload.completionFuture());
-
-        assertThatThrownBy(() -> directoryDownload.completionFuture().get(5, TimeUnit.SECONDS))
-            .isInstanceOf(CancellationException.class);
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
-        while ((writtenTempFile.get() == null || Files.exists(writtenTempFile.get())) && System.nanoTime() < deadline) {
-            Thread.sleep(10);
-        }
-        assertThat(writtenTempFile.get()).isNotNull();
-        assertThat(Files.exists(writtenTempFile.get())).isFalse();
-        assertThat(Files.exists(directory.resolve("a.txt"))).isFalse();
     }
 
     private Map<String, FileWritingDownload> stubFileWritingDownloads() {

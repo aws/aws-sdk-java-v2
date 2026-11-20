@@ -20,7 +20,6 @@ import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationO
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -254,9 +253,7 @@ public class DownloadDirectoryHelper {
     }
 
     /**
-     * Returns {@code <name>.s3tmp.<16 hex digits>} next to the destination, or {@code s3tmp.<16 hex digits>} when that name would
-     * exceed 255 UTF-8 bytes, the file name limit on common file systems. The digits come from a {@link SecureRandom}, so the
-     * name can't be predicted and planted in advance.
+     * Returns {@code <name>.s3tmp.<16 hex>} next to the destination, or {@code s3tmp.<16 hex>} if that exceeds 255 bytes.
      */
     private static Path tempFileNextTo(Path destination) {
         Path fileName = destination.getFileName();
@@ -272,8 +269,7 @@ public class DownloadDirectoryHelper {
     }
 
     /**
-     * Moves a completed download onto its destination, replacing any file already there. Returns the failure to report for the
-     * key, or null when the key succeeded.
+     * Moves a completed download onto its destination, returning the failure to report for the key, or null on success.
      */
     private static SdkClientException moveIntoPlace(CompletableFuture<CompletedDirectoryDownload> returnFuture,
                                            Path tempFile,
@@ -283,17 +279,8 @@ public class DownloadDirectoryHelper {
             return SdkClientException.create("Download was cancelled before the file could be moved to " + destination);
         }
 
-        if (!Files.exists(tempFile)) {
-            return SdkClientException.create("The download completed without writing " + tempFile + ", so " + destination
-                                             + " was not updated");
-        }
-
         try {
-            try {
-                Files.move(tempFile, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-            } catch (AtomicMoveNotSupportedException e) {
-                Files.move(tempFile, destination, StandardCopyOption.REPLACE_EXISTING);
-            }
+            Files.move(tempFile, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             return null;
         } catch (IOException | RuntimeException e) {
             deleteQuietly(tempFile);
@@ -384,8 +371,7 @@ public class DownloadDirectoryHelper {
     }
 
     /**
-     * Starts the download of one object into {@code writePath}. {@code beforeCompletion} runs once the object is written and
-     * before the download completes; if it throws, the download fails with that exception.
+     * Downloads one object into {@code writePath}, running {@code beforeCompletion} before the download completes.
      */
     @FunctionalInterface
     interface FileDownloader {

@@ -458,10 +458,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     /**
-     * Downloads the object into {@code writePath} while reporting {@code downloadRequest}, including its destination, to the
-     * request's transfer listeners. {@code beforeCompletion} runs after the object is written and before the download, and its
-     * listeners, complete; if it throws, the download fails with that exception. The returned download cannot be paused and
-     * resumed when {@code writePath} differs from the destination. Subclasses override this rather than {@link #doDownloadFile}.
+     * Downloads the object into {@code writePath}, running {@code beforeCompletion} before the download and listeners complete.
      */
     FileDownload downloadFileTo(DownloadFileRequest downloadRequest, Path writePath, Runnable beforeCompletion) {
         Validate.paramNotNull(writePath, "writePath");

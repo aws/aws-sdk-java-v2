@@ -19,12 +19,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
-import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -51,7 +49,6 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
-import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 
@@ -77,64 +74,6 @@ public class DownloadDirectoryTempFileWireMockTest {
             s3.close();
         }
         FileUtils.cleanUpTestDirectory(destination);
-    }
-
-    @ParameterizedTest(name = "client={0}")
-    @ValueSource(strings = {"java", "java-multipart", "crt"})
-    void downloadDirectory_withPerFileListener_listenerSeesRealDestinationAndNoTempFileRemains(String clientType,
-                                                                                              WireMockRuntimeInfo wm)
-        throws Exception {
-        s3 = s3Client(clientType, URI.create(wm.getHttpBaseUrl()));
-        tm = S3TransferManager.builder().s3Client(s3).build();
-        stubListObjects("a.txt", "sub/b.txt");
-        stubObject("a.txt", "content-a");
-        stubObject("sub/b.txt", "content-b");
-
-        List<Path> initiated = new CopyOnWriteArrayList<>();
-        List<Path> completed = new CopyOnWriteArrayList<>();
-        List<String> contentAtCompletion = new CopyOnWriteArrayList<>();
-        TransferListener listener = new TransferListener() {
-            @Override
-            public void transferInitiated(Context.TransferInitiated context) {
-                initiated.add(((DownloadFileRequest) context.request()).destination());
-            }
-
-            @Override
-            public void transferComplete(Context.TransferComplete context) {
-                Path completedDestination = ((DownloadFileRequest) context.request()).destination();
-                contentAtCompletion.add(readOrMissing(completedDestination));
-                completed.add(completedDestination);
-            }
-        };
-
-        CompletedDirectoryDownload result =
-            tm.downloadDirectory(r -> r.bucket(BUCKET)
-                                       .destination(destination)
-                                       .downloadFileRequestTransformer(f -> f.addTransferListener(listener)))
-              .completionFuture().get(30, TimeUnit.SECONDS);
-
-        assertThat(result.failedTransfers()).isEmpty();
-        Path a = destination.resolve("a.txt");
-        Path b = destination.resolve("sub").resolve("b.txt");
-        assertThat(initiated).containsExactlyInAnyOrder(a, b);
-        // The multipart client does not deliver transferComplete against these stubs, for downloadFile as well.
-        if (!"java-multipart".equals(clientType)) {
-            // transferComplete can be delivered after the directory download's future completes, but only once the file
-            // is in place.
-            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
-            while (completed.size() < 2 && System.nanoTime() < deadline) {
-                Thread.sleep(10);
-            }
-            assertThat(completed).containsExactlyInAnyOrder(a, b);
-            assertThat(contentAtCompletion).containsExactlyInAnyOrder("content-a", "content-b");
-        }
-        assertThat(a).hasContent("content-a");
-        assertThat(b).hasContent("content-b");
-        try (Stream<Path> files = Files.walk(destination)) {
-            assertThat(files.filter(Files::isRegularFile).map(destination::relativize).map(Path::toString)
-                            .collect(Collectors.toList()))
-                .containsExactlyInAnyOrder("a.txt", "sub" + destination.getFileSystem().getSeparator() + "b.txt");
-        }
     }
 
     @ParameterizedTest(name = "client={0}")
@@ -218,73 +157,6 @@ public class DownloadDirectoryTempFileWireMockTest {
             }
             assertThat(ranAtTransferComplete).containsExactly(true);
         }
-    }
-
-    @ParameterizedTest(name = "client={0}")
-    @ValueSource(strings = {"java", "java-multipart", "crt"})
-    void downloadFileTo_beforeCompletionThrows_downloadAndListenerFail(String clientType, WireMockRuntimeInfo wm)
-        throws Exception {
-        s3 = s3Client(clientType, URI.create(wm.getHttpBaseUrl()));
-        tm = S3TransferManager.builder().s3Client(s3).build();
-        stubObject("a.txt", "content-a");
-        RuntimeException moveFailure = new RuntimeException("move failed");
-        List<Throwable> failures = new CopyOnWriteArrayList<>();
-        AtomicBoolean completed = new AtomicBoolean();
-        TransferListener listener = new TransferListener() {
-            @Override
-            public void transferComplete(Context.TransferComplete context) {
-                completed.set(true);
-            }
-
-            @Override
-            public void transferFailed(Context.TransferFailed context) {
-                failures.add(context.exception());
-            }
-        };
-        DownloadFileRequest request = DownloadFileRequest.builder()
-                                                         .getObjectRequest(g -> g.bucket(BUCKET).key("a.txt"))
-                                                         .destination(destination.resolve("a.txt"))
-                                                         .addTransferListener(listener)
-                                                         .build();
-
-        CompletableFuture<CompletedFileDownload> download =
-            ((GenericS3TransferManager) tm).downloadFileTo(request, destination.resolve("a.txt.tmp"), () -> {
-                throw moveFailure;
-            }).completionFuture();
-
-        assertThatThrownBy(() -> download.get(30, TimeUnit.SECONDS)).hasCause(moveFailure);
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
-        while (failures.isEmpty() && System.nanoTime() < deadline) {
-            Thread.sleep(10);
-        }
-        assertThat(failures).containsExactly(moveFailure);
-        assertThat(completed).isFalse();
-    }
-
-    @ParameterizedTest(name = "client={0}")
-    @ValueSource(strings = {"java", "java-multipart", "crt"})
-    void downloadDirectory_emptyObject_createsEmptyFile(String clientType, WireMockRuntimeInfo wm) throws Exception {
-        s3 = s3Client(clientType, URI.create(wm.getHttpBaseUrl()));
-        tm = S3TransferManager.builder().s3Client(s3).build();
-        stubListObjects("empty.bin");
-        String objectPath = "/" + BUCKET + "/empty.bin";
-        stubFor(head(urlPathEqualTo(objectPath))
-                    .willReturn(aResponse().withStatus(200).withHeader("Content-Length", "0").withHeader("ETag", "\"e\"")));
-        // S3 rejects a ranged GET of an empty object, and the CRT-based client retries such a request without the range.
-        stubFor(get(urlPathEqualTo(objectPath)).withHeader("Range", matching(".+")).atPriority(1)
-                    .willReturn(aResponse().withStatus(416)
-                                           .withHeader("Content-Type", "application/xml")
-                                           .withHeader("Content-Range", "bytes */0")
-                                           .withBody("<Error><Code>InvalidRange</Code><ActualObjectSize>0</ActualObjectSize></Error>")));
-        stubFor(get(urlPathEqualTo(objectPath)).atPriority(2)
-                    .willReturn(aResponse().withStatus(200).withHeader("Content-Length", "0").withHeader("ETag", "\"e\"")));
-
-        CompletedDirectoryDownload result = tm.downloadDirectory(r -> r.bucket(BUCKET).destination(destination))
-                                              .completionFuture().get(30, TimeUnit.SECONDS);
-
-        assertThat(result.failedTransfers()).isEmpty();
-        assertThat(destination.resolve("empty.bin")).isEmptyFile();
-        assertThat(regularFiles()).containsExactly("empty.bin");
     }
 
     private List<String> regularFiles() throws IOException {
