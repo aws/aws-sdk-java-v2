@@ -18,6 +18,7 @@ package software.amazon.awssdk.metrics;
 import static software.amazon.awssdk.utils.StringUtils.repeat;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import org.slf4j.event.Level;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -77,6 +78,11 @@ import software.amazon.awssdk.utils.Validate;
  * [18e5092e]         │ HttpClientName=NettyNio                │
  * [18e5092e]         └────────────────────────────────────────┘
  * </pre>
+ * {@link Format#COMPACT} prints the collection hierarchy and metric values on a single line without the repeated
+ * class and field names used by {@link Format#PLAIN}. E.g.,
+ * <pre>
+ * Metrics published: ApiCall{RetryCount=0,ApiCallAttempt{HttpStatusCode=200}}
+ * </pre>
  * Note that the output format may be subject to small changes in future versions and should not be relied upon as a strict public
  * contract.
  */
@@ -85,7 +91,8 @@ public final class LoggingMetricPublisher implements MetricPublisher {
 
     public enum Format {
         PLAIN,
-        PRETTY
+        PRETTY,
+        COMPACT
     }
 
     private static final Logger LOGGER = Logger.loggerFor(LoggingMetricPublisher.class);
@@ -129,9 +136,42 @@ public final class LoggingMetricPublisher implements MetricPublisher {
                 String guid = Integer.toHexString(metrics.hashCode());
                 logPretty(guid, metrics, 0);
                 break;
+            case COMPACT:
+                LOGGER.log(logLevel, () -> "Metrics published: " + toCompactString(metrics));
+                break;
             default:
                 throw new IllegalStateException("Unsupported format: " + format);
         }
+    }
+
+    private static String toCompactString(MetricCollection metrics) {
+        StringBuilder result = new StringBuilder();
+        appendCompact(metrics, result);
+        return result.toString();
+    }
+
+    private static void appendCompact(MetricCollection metrics, StringBuilder result) {
+        result.append(metrics.name()).append('{');
+        List<MetricCollection> children = metrics.children();
+
+        Iterator<MetricRecord<?>> records = metrics.iterator();
+        while (records.hasNext()) {
+            MetricRecord<?> record = records.next();
+            result.append(record.metric().name()).append('=').append(record.value());
+            if (records.hasNext() || !children.isEmpty()) {
+                result.append(',');
+            }
+        }
+
+        Iterator<MetricCollection> childIterator = children.iterator();
+        while (childIterator.hasNext()) {
+            appendCompact(childIterator.next(), result);
+            if (childIterator.hasNext()) {
+                result.append(',');
+            }
+        }
+
+        result.append('}');
     }
 
     private void logPretty(String guid, MetricCollection metrics, int indent) {

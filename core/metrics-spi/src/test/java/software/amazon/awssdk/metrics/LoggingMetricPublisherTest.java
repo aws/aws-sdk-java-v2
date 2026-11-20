@@ -20,6 +20,7 @@ import static org.apache.logging.log4j.Level.INFO;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,6 +92,41 @@ class LoggingMetricPublisherTest {
             assertLogged(events, DEBUG, "[%s]     │ LoggingMetricPublisherTest=2 │", guid);
             assertLogged(events, DEBUG, "[%s]     │ LoggingMetricPublisherTest=3 │", guid);
             assertLogged(events, DEBUG, "[%s]     └──────────────────────────────┘", guid);
+            assertThat(events).isEmpty();
+        }
+    }
+
+    @Test
+    void compactFormatPreservesMetricsAndHierarchyWithLessOutput() {
+        MetricCollection baz = metrics("baz");
+        MetricCollection bar = metrics("bar", baz);
+        MetricCollection foo = metrics("foo", bar, metrics("qux"));
+        LoggingMetricPublisher publisher = LoggingMetricPublisher.create(Level.DEBUG, Format.COMPACT);
+
+        try (LogCaptor logCaptor = LogCaptor.create()) {
+            publisher.publish(foo);
+            List<LogEvent> events = logCaptor.loggedEvents();
+            String message = events.get(0).getMessage().getFormattedMessage();
+            assertThat(message.length()).isLessThan(("Metrics published: " + foo).length());
+            assertLogged(events, DEBUG, "Metrics published: foo{LoggingMetricPublisherTest=1,LoggingMetricPublisherTest=2,"
+                                        + "LoggingMetricPublisherTest=3,bar{LoggingMetricPublisherTest=1,"
+                                        + "LoggingMetricPublisherTest=2,LoggingMetricPublisherTest=3,"
+                                        + "baz{LoggingMetricPublisherTest=1,LoggingMetricPublisherTest=2,"
+                                        + "LoggingMetricPublisherTest=3}},qux{LoggingMetricPublisherTest=1,"
+                                        + "LoggingMetricPublisherTest=2,LoggingMetricPublisherTest=3}}");
+            assertThat(events).isEmpty();
+        }
+    }
+
+    @Test
+    void compactFormatHandlesEmptyCollection() {
+        MetricCollection empty = new DefaultMetricCollection("empty", Collections.emptyMap(), Collections.emptyList());
+        LoggingMetricPublisher publisher = LoggingMetricPublisher.create(Level.DEBUG, Format.COMPACT);
+
+        try (LogCaptor logCaptor = LogCaptor.create()) {
+            publisher.publish(empty);
+            List<LogEvent> events = logCaptor.loggedEvents();
+            assertLogged(events, DEBUG, "Metrics published: empty{}");
             assertThat(events).isEmpty();
         }
     }
