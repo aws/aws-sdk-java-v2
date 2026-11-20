@@ -27,10 +27,15 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -53,12 +58,77 @@ class DefaultPollyPresignerTest {
             .outputFormat(OutputFormat.PCM)
             .text("Hello presigners!")
             .build();
+    private static final Instant SIGNING_INSTANT = Instant.parse("2024-02-20T22:00:00Z");
+    private static final Duration REQUESTED_DURATION = Duration.ofHours(2);
 
     private IdentityProvider<AwsCredentialsIdentity> credentialsProvider;
 
     @BeforeEach
     public void methodSetup() {
         credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("credentialExpirations")
+    void presign_sessionCredentials_capsExpirationAndSignedWindow(String scenario,
+                                                                  Instant credentialExpiration,
+                                                                  Duration expectedDuration) {
+        assertCappedExpiration(BASIC_SYNTHESIZE_SPEECH_REQUEST, credentialExpiration, expectedDuration);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("credentialExpirations")
+    void presign_requestLevelSigner_sessionCredentials_capsExpirationAndSignedWindow(String scenario,
+                                                                                     Instant credentialExpiration,
+                                                                                     Duration expectedDuration) {
+        SynthesizeSpeechRequest legacySignerRequest =
+            BASIC_SYNTHESIZE_SPEECH_REQUEST.toBuilder()
+                                           .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                                                 .signer(Aws4Signer.create())
+                                                                                                 .build())
+                                           .build();
+        assertCappedExpiration(legacySignerRequest, credentialExpiration, expectedDuration);
+    }
+
+    private static Stream<Arguments> credentialExpirations() {
+        return Stream.of(
+            Arguments.of("expires before requested end, capped", SIGNING_INSTANT.plus(Duration.ofHours(1)), Duration.ofHours(1)),
+            Arguments.of("fractional remaining, truncated to whole seconds",
+                         SIGNING_INSTANT.plus(Duration.ofMinutes(90)).plusMillis(700), Duration.ofMinutes(90)),
+            Arguments.of("expires at requested end, not capped", SIGNING_INSTANT.plus(REQUESTED_DURATION), REQUESTED_DURATION),
+            Arguments.of("expires after requested end, not capped", SIGNING_INSTANT.plus(Duration.ofHours(5)), REQUESTED_DURATION),
+            Arguments.of("no expiration, not capped", null, REQUESTED_DURATION),
+            Arguments.of("Instant.MAX expiration, not capped", Instant.MAX, REQUESTED_DURATION),
+            Arguments.of("under one second remaining, not capped", SIGNING_INSTANT.plusMillis(500), REQUESTED_DURATION),
+            Arguments.of("expires at signing instant, not capped", SIGNING_INSTANT, REQUESTED_DURATION),
+            Arguments.of("already expired, not capped", SIGNING_INSTANT.minus(Duration.ofMinutes(30)), REQUESTED_DURATION));
+    }
+
+    private static void assertCappedExpiration(SynthesizeSpeechRequest request,
+                                               Instant credentialExpiration,
+                                               Duration expectedDuration) {
+        AwsSessionCredentials sessionCredentials = AwsSessionCredentials.builder()
+                                                                        .accessKeyId("akid")
+                                                                        .secretAccessKey("skid")
+                                                                        .sessionToken("token")
+                                                                        .expirationTime(credentialExpiration)
+                                                                        .build();
+
+        PollyPresigner presigner = DefaultPollyPresigner.builder(Clock.fixed(SIGNING_INSTANT, ZoneId.of("UTC")))
+                                                        .region(Region.US_EAST_1)
+                                                        .credentialsProvider(StaticCredentialsProvider.create(sessionCredentials))
+                                                        .build();
+
+        SynthesizeSpeechPresignRequest presignRequest = SynthesizeSpeechPresignRequest.builder()
+                                                                                      .synthesizeSpeechRequest(request)
+                                                                                      .signatureDuration(REQUESTED_DURATION)
+                                                                                      .build();
+
+        PresignedSynthesizeSpeechRequest presigned = presigner.presignSynthesizeSpeech(presignRequest);
+
+        assertThat(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0))
+            .isEqualTo(Long.toString(expectedDuration.getSeconds()));
+        assertThat(presigned.expiration()).isEqualTo(SIGNING_INSTANT.plus(expectedDuration));
     }
 
     @Test
