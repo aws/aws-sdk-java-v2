@@ -121,7 +121,7 @@ public final class ProfileCredentialsUtils {
      * Internal method that returns both the credentials provider and its feature ID.
      */
     private Optional<CredentialsWithFeatureId> credentialsProviderWithFeatureID(Set<String> children) {
-        if (properties.containsKey(ProfileProperty.DAEMON_CREDENTIAL)) {
+        if (properties.containsKey(ProfileProperty.CREDENTIAL_DAEMON)) {
             Optional<CredentialsWithFeatureId> daemonProvider = daemonProfileCredentialsProvider();
             if (daemonProvider.isPresent()) {
                 return daemonProvider;
@@ -176,8 +176,8 @@ public final class ProfileCredentialsUtils {
     }
 
     /**
-     * Load the credential daemon provider configured with {@code daemon_credential} in this profile. This is empty only for an
-     * SSO profile that sets neither sso_account_id nor sso_role_name, which is then resolved as if daemon_credential were
+     * Load the credential daemon provider configured with {@code credential_daemon} in this profile. This is empty only for an
+     * SSO profile that sets neither sso_account_id nor sso_role_name, which is then resolved as if credential_daemon were
      * absent.
      */
     private Optional<CredentialsWithFeatureId> daemonProfileCredentialsProvider() {
@@ -188,11 +188,11 @@ public final class ProfileCredentialsUtils {
             return Optional.empty();
         }
 
-        String credentialName = properties.get(ProfileProperty.DAEMON_CREDENTIAL);
+        String credentialName = properties.get(ProfileProperty.CREDENTIAL_DAEMON);
         if (!CredentialDaemonUtils.isValidCredentialName(credentialName)) {
             throw CredentialDaemonUtils.error(
                 CredentialDaemonException.INVALID_CONFIG,
-                "Profile '" + name + "' sets an invalid " + ProfileProperty.DAEMON_CREDENTIAL + ". A credential name is 1 to 64 "
+                "Profile '" + name + "' sets an invalid " + ProfileProperty.CREDENTIAL_DAEMON + ". A credential name is 1 to 64 "
                 + "characters from A-Z, a-z, 0-9, '.', '_' and '-', and does not start with '.'.",
                 null);
         }
@@ -200,7 +200,7 @@ public final class ProfileCredentialsUtils {
         if (properties.containsKey(ProfileProperty.WEB_IDENTITY_TOKEN_FILE)) {
             throw CredentialDaemonUtils.error(
                 CredentialDaemonException.INVALID_CONFIG,
-                "Profile '" + name + "' has two credential sources, " + ProfileProperty.DAEMON_CREDENTIAL + " and "
+                "Profile '" + name + "' has two credential sources, " + ProfileProperty.CREDENTIAL_DAEMON + " and "
                 + ProfileProperty.WEB_IDENTITY_TOKEN_FILE + ". Remove one of them.",
                 null);
         }
@@ -208,7 +208,7 @@ public final class ProfileCredentialsUtils {
         if (properties.containsKey(ProfileProperty.ROLE_ARN)) {
             throw CredentialDaemonUtils.error(
                 CredentialDaemonException.INVALID_CONFIG,
-                "Profile '" + name + "' sets both " + ProfileProperty.DAEMON_CREDENTIAL + " and " + ProfileProperty.ROLE_ARN
+                "Profile '" + name + "' sets both " + ProfileProperty.CREDENTIAL_DAEMON + " and " + ProfileProperty.ROLE_ARN
                 + ". Move " + ProfileProperty.ROLE_ARN + " into its own profile that sets " + ProfileProperty.SOURCE_PROFILE
                 + " = " + name + ".",
                 null);

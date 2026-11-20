@@ -222,7 +222,7 @@ public final class ProfileProperty {
     /**
      * The name of a credential held by a local credential daemon. Read only from the shared config file.
      */
-    public static final String DAEMON_CREDENTIAL = "daemon_credential";
+    public static final String CREDENTIAL_DAEMON = "credential_daemon";
 
     private ProfileProperty() {
     }

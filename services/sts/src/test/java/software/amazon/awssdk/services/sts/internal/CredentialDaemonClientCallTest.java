@@ -80,7 +80,7 @@ class CredentialDaemonClientCallTest {
         + "<Arn>arn:aws:sts::123456789012:assumed-role/r/s</Arn><AssumedRoleId>AROA:s</AssumedRoleId></AssumedRoleUser>"
         + "</AssumeRoleResult></AssumeRoleResponse>";
     private static final String CONFIG = "[profile dev]\n"
-                                         + "daemon_credential = dev\n"
+                                         + "credential_daemon = dev\n"
                                          + "[profile role]\n"
                                          + "region = us-west-2\n"
                                          + "role_arn = arn:aws:iam::123456789012:role/r\n"

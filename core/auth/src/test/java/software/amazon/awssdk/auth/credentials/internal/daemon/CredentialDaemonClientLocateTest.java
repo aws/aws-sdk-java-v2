@@ -52,6 +52,8 @@ class CredentialDaemonClientLocateTest {
     private static final String DOC = "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-credential-daemon.html";
 
     private final Map<String, String> env = new HashMap<>();
+    private final Map<String, String> systemProperties = new HashMap<>();
+    private Path socketPath;
     private final List<AutoCloseable> closeables = new ArrayList<>();
     private Path home;
     private Path location;
@@ -77,7 +79,8 @@ class CredentialDaemonClientLocateTest {
     }
 
     private CredentialDaemonClient client(CredentialDaemonPlatform platform) {
-        return new CredentialDaemonClient(platform, k -> Optional.ofNullable(env.get(k)), Duration.ofSeconds(1),
+        return new CredentialDaemonClient(platform, socketPath, k -> Optional.ofNullable(systemProperties.get(k)),
+                                           k -> Optional.ofNullable(env.get(k)), Duration.ofSeconds(1),
                                            Duration.ofSeconds(5), platform::openChannel, "Aq");
     }
 
@@ -109,6 +112,67 @@ class CredentialDaemonClientLocateTest {
         Files.createSymbolicLink(location, bindSocket(home.resolve("real.sock")));
 
         assertLocates(Paths.get("/some/where/d.sock"));
+    }
+
+    @Test
+    void locate_socketPath_returnsItBeforeTheSystemPropertyAndTheEnvironmentVariable() {
+        socketPath = Paths.get("/some/where/code.sock");
+        systemProperties.put("aws.credentialDaemonSocket", "/some/where/property.sock");
+        env.put("AWS_CREDENTIAL_DAEMON_SOCKET", "/some/where/env.sock");
+
+        assertLocates(socketPath);
+    }
+
+    @Test
+    void locate_withRelativeSocketPath_skipsIt() {
+        socketPath = Paths.get("relative/code.sock");
+        systemProperties.put("aws.credentialDaemonSocket", "/some/where/property.sock");
+
+        assertLocates(Paths.get("/some/where/property.sock"));
+
+        socketPath = Paths.get("");
+        assertLocates(Paths.get("/some/where/property.sock"));
+    }
+
+    @Test
+    void locate_systemProperty_returnsItBeforeTheEnvironmentVariableAndTheLink() throws IOException {
+        systemProperties.put("aws.credentialDaemonSocket", "/some/where/property.sock");
+        env.put("AWS_CREDENTIAL_DAEMON_SOCKET", "/some/where/env.sock");
+        env.put("HOME", home.toString());
+        Files.createSymbolicLink(location, bindSocket(home.resolve("real.sock")));
+
+        assertLocates(Paths.get("/some/where/property.sock"));
+    }
+
+    @Test
+    void locate_withEmptyOrRelativeSystemProperty_skipsIt() {
+        env.put("AWS_CREDENTIAL_DAEMON_SOCKET", "/some/where/env.sock");
+
+        systemProperties.put("aws.credentialDaemonSocket", "");
+        assertLocates(Paths.get("/some/where/env.sock"));
+
+        systemProperties.put("aws.credentialDaemonSocket", "relative/property.sock");
+        assertLocates(Paths.get("/some/where/env.sock"));
+    }
+
+    @Test
+    void locate_withEmptyOrRelativeSystemPropertyAndNoEnvironmentVariable_usesTheLink() throws IOException {
+        env.put("HOME", home.toString());
+        Files.createSymbolicLink(location, bindSocket(home.resolve("real.sock")));
+
+        systemProperties.put("aws.credentialDaemonSocket", "");
+        assertLocates(location);
+
+        systemProperties.put("aws.credentialDaemonSocket", "relative/property.sock");
+        assertLocates(location);
+    }
+
+    @Test
+    void locate_noLocation_namesTheSystemPropertyAndTheEnvironmentVariable() {
+        env.put("HOME", home.toString());
+
+        assertNoLocation("neither the aws.credentialDaemonSocket system property nor AWS_CREDENTIAL_DAEMON_SOCKET is set to "
+                         + "an absolute path");
     }
 
     @Test

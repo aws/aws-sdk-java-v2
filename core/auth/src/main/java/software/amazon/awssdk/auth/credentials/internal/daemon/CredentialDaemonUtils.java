@@ -99,7 +99,7 @@ public final class CredentialDaemonUtils {
             return false;
         }
         Map<String, String> properties = profile.properties();
-        return properties.containsKey(ProfileProperty.DAEMON_CREDENTIAL)
+        return properties.containsKey(ProfileProperty.CREDENTIAL_DAEMON)
                && properties.containsKey(ProfileProperty.SSO_ACCOUNT_ID)
                && properties.containsKey(ProfileProperty.SSO_ROLE_NAME);
     }
@@ -110,7 +110,7 @@ public final class CredentialDaemonUtils {
      */
     public static String bearerTokenUnavailableMessage(String profileName) {
         return "Profile " + profileName + " does not have a usable sso_session: its SSO session is held in the credential "
-               + "daemon (daemon_credential). Services that use bearer tokens need an SSO session stored in files; configure a "
+               + "daemon (credential_daemon). Services that use bearer tokens need an SSO session stored in files; configure a "
                + "profile with sso_session and sign in with a file-based SSO login.";
     }
 

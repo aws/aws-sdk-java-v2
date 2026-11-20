@@ -53,6 +53,7 @@ import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.SystemSetting;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
@@ -69,6 +70,7 @@ import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 @SdkInternalApi
 public final class CredentialDaemonClient {
     static final int MAX_LINE = 64_000;
+    static final String SOCKET_SYSTEM_PROPERTY = "aws.credentialDaemonSocket";
     static final String SOCKET_ENVIRONMENT_VARIABLE = "AWS_CREDENTIAL_DAEMON_SOCKET";
     static final String LINK_LOCATION = "$HOME/.aws/credential-daemon.sock";
 
@@ -76,6 +78,8 @@ public final class CredentialDaemonClient {
     private static final JsonNodeParser PARSER = JsonNodeParser.builder().removeErrorLocations(true).build();
 
     private final CredentialDaemonPlatform platform;
+    private final Path socketPath;
+    private final Function<String, Optional<String>> systemProperties;
     private final Function<String, Optional<String>> environment;
     private final Duration connectTimeout;
     private final Duration callTimeout;
@@ -89,7 +93,21 @@ public final class CredentialDaemonClient {
                             Duration callTimeout,
                             ChannelOpener channelOpener,
                             String providerName) {
+        this(platform, null, k -> Optional.empty(), environment, connectTimeout, callTimeout, channelOpener, providerName);
+    }
+
+    @SdkTestInternalApi
+    CredentialDaemonClient(CredentialDaemonPlatform platform,
+                            Path socketPath,
+                            Function<String, Optional<String>> systemProperties,
+                            Function<String, Optional<String>> environment,
+                            Duration connectTimeout,
+                            Duration callTimeout,
+                            ChannelOpener channelOpener,
+                            String providerName) {
         this.platform = platform;
+        this.socketPath = socketPath;
+        this.systemProperties = systemProperties;
         this.environment = environment;
         this.connectTimeout = connectTimeout;
         this.callTimeout = callTimeout;
@@ -98,11 +116,14 @@ public final class CredentialDaemonClient {
     }
 
     /**
-     * Creates a client for this platform. The provider name is put on the credentials the daemon returns.
+     * Creates a client for this platform. The socket path, if not null, is the first location looked up. The provider name is
+     * put on the credentials the daemon returns.
      */
-    public static CredentialDaemonClient create(Duration connectTimeout, Duration callTimeout, String providerName) {
+    public static CredentialDaemonClient create(Path socketPath, Duration connectTimeout, Duration callTimeout,
+                                                String providerName) {
         CredentialDaemonPlatform platform = CredentialDaemonPlatform.current();
-        return new CredentialDaemonClient(platform, SystemSettingUtils::resolveEnvironmentVariable,
+        return new CredentialDaemonClient(platform, socketPath, CredentialDaemonClient::systemProperty,
+                                           SystemSettingUtils::resolveEnvironmentVariable,
                                            connectTimeout, callTimeout, platform::openChannel, providerName);
     }
 
@@ -121,13 +142,21 @@ public final class CredentialDaemonClient {
     }
 
     /**
-     * Returns the one socket path the client dials: {@code AWS_CREDENTIAL_DAEMON_SOCKET} when it holds an absolute path,
-     * and otherwise {@code $HOME/.aws/credential-daemon.sock} when anything is there.
+     * Returns the one socket path the client dials, from the first location that applies: the socket path given in code, the
+     * {@code aws.credentialDaemonSocket} system property and {@code AWS_CREDENTIAL_DAEMON_SOCKET}, each when it holds an
+     * absolute path, and otherwise {@code $HOME/.aws/credential-daemon.sock} when anything is there.
      *
      * @throws CredentialDaemonException with {@link CredentialDaemonException#NOT_RUNNING} when no location applies, or when
      * the link at {@code $HOME/.aws/credential-daemon.sock} points to a target that is missing.
      */
     Path locate() {
+        if (socketPath != null && socketPath.isAbsolute()) {
+            return socketPath;
+        }
+        Path fromSystemProperty = absolutePath(systemProperties.apply(SOCKET_SYSTEM_PROPERTY).orElse(null));
+        if (fromSystemProperty != null) {
+            return fromSystemProperty;
+        }
         Path fromEnvironment = absolutePath(env(SOCKET_ENVIRONMENT_VARIABLE));
         if (fromEnvironment != null) {
             return fromEnvironment;
@@ -421,6 +450,30 @@ public final class CredentialDaemonClient {
         return environment.apply(name).orElse(null);
     }
 
+    /**
+     * Reads a system property on its own, without its environment variable, so that an empty or relative value moves on to
+     * the environment variable instead of hiding it.
+     */
+    private static Optional<String> systemProperty(String name) {
+        SystemSetting property = new SystemSetting() {
+            @Override
+            public String property() {
+                return name;
+            }
+
+            @Override
+            public String environmentVariable() {
+                return null;
+            }
+
+            @Override
+            public String defaultValue() {
+                return null;
+            }
+        };
+        return property.getNonDefaultStringValue();
+    }
+
     private static Path absolutePath(String value) {
         if (value == null || value.isEmpty()) {
             return null;
@@ -454,8 +507,9 @@ public final class CredentialDaemonClient {
 
     private static CredentialDaemonException noLocation(String reason) {
         return CredentialDaemonUtils.error(CredentialDaemonException.NOT_RUNNING,
-                                            "No credential daemon socket was found: " + SOCKET_ENVIRONMENT_VARIABLE
-                                            + " is not set to an absolute path, and " + reason + ". Install the credential "
+                                            "No credential daemon socket was found: neither the "
+                                            + SOCKET_SYSTEM_PROPERTY + " system property nor " + SOCKET_ENVIRONMENT_VARIABLE
+                                            + " is set to an absolute path, and " + reason + ". Install the credential "
                                             + "daemon or link its socket to " + LINK_LOCATION + ", or set "
                                             + SOCKET_ENVIRONMENT_VARIABLE + ". See " + CredentialDaemonUtils.CREDENTIAL_DAEMON_DOC
                                             + ".",

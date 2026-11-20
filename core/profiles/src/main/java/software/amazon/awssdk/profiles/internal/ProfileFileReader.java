@@ -139,7 +139,7 @@ public final class ProfileFileReader {
 
         Pair<String, String> property = propertyDefinition.get();
 
-        if (state.fileType == ProfileFile.Type.CREDENTIALS && ProfileProperty.DAEMON_CREDENTIAL.equals(property.left())) {
+        if (state.fileType == ProfileFile.Type.CREDENTIALS && ProfileProperty.CREDENTIAL_DAEMON.equals(property.left())) {
             int lineNumber = state.currentLineNumber;
             log.warn(() -> "Ignoring property '" + property.left() + "' on line " + lineNumber + " of the shared "
                            + "credentials file; it is read only from the shared config file.");

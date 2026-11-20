@@ -83,14 +83,14 @@ class ProfileCredentialsUtilsDaemonTest {
     @ParameterizedTest
     @ValueSource(strings = {".x", "a b", "ü", "a/b", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"})
     void credentialsProvider_withInvalidName_raisesInvalidConfig(String name) {
-        CredentialDaemonException e = invalidConfig("[profile dev]\ndaemon_credential = " + name + "\n");
+        CredentialDaemonException e = invalidConfig("[profile dev]\ncredential_daemon = " + name + "\n");
 
-        assertThat(e.getMessage()).contains("daemon_credential").contains("'dev'");
+        assertThat(e.getMessage()).contains("credential_daemon").contains("'dev'");
     }
 
     @Test
     void credentialsProvider_withEmptyName_raisesInvalidConfig() {
-        invalidConfig("[profile dev]\ndaemon_credential =\n");
+        invalidConfig("[profile dev]\ncredential_daemon =\n");
     }
 
     @Test
@@ -98,7 +98,7 @@ class ProfileCredentialsUtilsDaemonTest {
         String name = "Ab-_.0123456789012345678901234567890123456789012345678901234567Z";
         assertThat(name).hasSize(64);
 
-        AwsCredentialsProvider provider = provider("[profile dev]\ndaemon_credential = " + name + "\n", "dev").get();
+        AwsCredentialsProvider provider = provider("[profile dev]\ncredential_daemon = " + name + "\n", "dev").get();
         provider.resolveCredentials();
 
         assertThat(provider).isInstanceOf(CredentialDaemonCredentialsProvider.class);
@@ -108,7 +108,7 @@ class ProfileCredentialsUtilsDaemonTest {
     @Test
     void credentialsProvider_withKeysAndProcessAndDaemon_usesDaemon() {
         String content = "[profile dev]\n"
-                         + "daemon_credential = dev\n"
+                         + "credential_daemon = dev\n"
                          + "aws_access_key_id = akid\n"
                          + "aws_secret_access_key = skid\n"
                          + "credential_process = /bin/false\n"
@@ -125,7 +125,7 @@ class ProfileCredentialsUtilsDaemonTest {
         Path directory = FakeCredentialDaemon.newSocketDirectory();
         env.set("AWS_CREDENTIAL_DAEMON_SOCKET", directory.resolve("missing.sock").toString());
         String content = "[profile dev]\n"
-                         + "daemon_credential = dev\n"
+                         + "credential_daemon = dev\n"
                          + "aws_access_key_id = akid\n"
                          + "aws_secret_access_key = skid\n";
         try {
@@ -141,18 +141,18 @@ class ProfileCredentialsUtilsDaemonTest {
 
     @Test
     void credentialsProvider_withRoleArn_raisesInvalidConfigWithSourceProfileHint() {
-        CredentialDaemonException e = invalidConfig("[profile dev]\ndaemon_credential = dev\n"
+        CredentialDaemonException e = invalidConfig("[profile dev]\ncredential_daemon = dev\n"
                                                      + "role_arn = arn:aws:iam::123456789012:role/r\n"
                                                      + "source_profile = other\n");
 
-        assertThat(e.getMessage()).contains("Profile 'dev' sets both daemon_credential and role_arn")
+        assertThat(e.getMessage()).contains("Profile 'dev' sets both credential_daemon and role_arn")
                                   .contains("Move role_arn into its own profile that sets source_profile = dev.");
         assertThat(daemon.requests()).isEmpty();
     }
 
     @Test
     void credentialsProvider_withWebIdentityTokenFile_raisesInvalidConfigNamingTwoSources() {
-        CredentialDaemonException e = invalidConfig("[profile dev]\ndaemon_credential = dev\n"
+        CredentialDaemonException e = invalidConfig("[profile dev]\ncredential_daemon = dev\n"
                                                      + "web_identity_token_file = /tmp/token\n");
 
         assertWebIdentityConflictMessage(e);
@@ -161,7 +161,7 @@ class ProfileCredentialsUtilsDaemonTest {
 
     @Test
     void credentialsProvider_withRoleArnAndWebIdentityTokenFile_raisesWebIdentityConflict() {
-        CredentialDaemonException e = invalidConfig("[profile dev]\ndaemon_credential = dev\n"
+        CredentialDaemonException e = invalidConfig("[profile dev]\ncredential_daemon = dev\n"
                                                      + "role_arn = arn:aws:iam::123456789012:role/r\n"
                                                      + "web_identity_token_file = /tmp/token\n");
 
@@ -171,7 +171,7 @@ class ProfileCredentialsUtilsDaemonTest {
 
     private static void assertWebIdentityConflictMessage(CredentialDaemonException e) {
         assertThat(e.getMessage()).contains("Profile 'dev' has two credential sources")
-                                  .contains("daemon_credential")
+                                  .contains("credential_daemon")
                                   .contains("web_identity_token_file")
                                   .contains("Remove one")
                                   .doesNotContain("source_profile");
@@ -183,7 +183,7 @@ class ProfileCredentialsUtilsDaemonTest {
                          + "role_arn = arn:aws:iam::123456789012:role/r\n"
                          + "source_profile = dev\n"
                          + "[profile dev]\n"
-                         + "daemon_credential = dev\n";
+                         + "credential_daemon = dev\n";
 
         assertThatThrownBy(() -> provider(content, "role"))
             .isInstanceOf(IllegalStateException.class)
@@ -196,7 +196,7 @@ class ProfileCredentialsUtilsDaemonTest {
                          + "role_arn = arn:aws:iam::123456789012:role/r\n"
                          + "source_profile = dev\n"
                          + "[profile dev]\n"
-                         + "daemon_credential = .bad\n";
+                         + "credential_daemon = .bad\n";
 
         assertThatThrownBy(() -> provider(content, "role"))
             .isInstanceOfSatisfying(CredentialDaemonException.class,
@@ -206,7 +206,7 @@ class ProfileCredentialsUtilsDaemonTest {
     @Test
     void credentialsProvider_withSsoProfileAndBothKeys_sendsAccountAndRole() {
         String content = "[profile dev]\n"
-                         + "daemon_credential = dev\n"
+                         + "credential_daemon = dev\n"
                          + "sso_session = s\n"
                          + "sso_account_id = 123456789012\n"
                          + "sso_role_name = Admin\n"
@@ -223,7 +223,7 @@ class ProfileCredentialsUtilsDaemonTest {
     @Test
     void credentialsProvider_withSsoProfileAndOneKey_raisesMissingPropertyWithoutCallingDaemon() {
         String content = "[profile dev]\n"
-                         + "daemon_credential = dev\n"
+                         + "credential_daemon = dev\n"
                          + "sso_start_url = https://example.awsapps.com/start\n"
                          + "sso_account_id = 123456789012\n";
 
@@ -236,7 +236,7 @@ class ProfileCredentialsUtilsDaemonTest {
     @Test
     void credentialsProvider_withSsoProfileAndNeitherKey_resolvesAsIfDaemonAbsent() {
         String content = "[profile dev]\n"
-                         + "daemon_credential = .not-checked\n"
+                         + "credential_daemon = .not-checked\n"
                          + "sso_session = s\n";
 
         assertThatThrownBy(() -> provider(content, "dev"))
@@ -246,9 +246,23 @@ class ProfileCredentialsUtilsDaemonTest {
     }
 
     @Test
+    void credentialsProvider_withOldDaemonCredentialKey_isNotADaemonProfile() {
+        String content = "[profile dev]\n"
+                         + "daemon_credential = dev\n"
+                         + "aws_access_key_id = akid\n"
+                         + "aws_secret_access_key = skid\n";
+
+        AwsCredentialsProvider provider = provider(content, "dev").get();
+
+        assertThat(provider).isNotInstanceOf(CredentialDaemonCredentialsProvider.class);
+        assertThat(provider.resolveCredentials().accessKeyId()).isEqualTo("akid");
+        assertThat(daemon.requests()).isEmpty();
+    }
+
+    @Test
     void credentialsProvider_withoutSsoSettings_doesNotSendAccountAndRole() {
         String content = "[profile dev]\n"
-                         + "daemon_credential = dev\n";
+                         + "credential_daemon = dev\n";
 
         provider(content, "dev").get().resolveCredentials();
 
