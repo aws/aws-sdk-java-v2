@@ -22,13 +22,16 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.core.rules.testing.model.Expect;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class BaseEndpointProviderTest {
     protected final void verify(EndpointProviderTestCase tc) {
         Expect expect = tc.getExpect();
         Supplier<Endpoint> testMethod = tc.getTestMethod();
         if (expect.error() != null) {
-            assertThatThrownBy(testMethod::get).hasMessageContaining(expect.error());
+            assertThatThrownBy(testMethod::get).satisfiesAnyOf(
+                e -> assertThat(e).hasMessageContaining(expect.error()),
+                e -> assertThat(decodeOrSelf(e.getMessage())).contains(expect.error()));
         } else {
             Endpoint actualEndpoint = testMethod.get();
             Endpoint expectedEndpoint = expect.endpoint();
@@ -41,6 +44,17 @@ public class BaseEndpointProviderTest {
                     assertThat(actualEndpoint.attribute(attr)).isNull();
                 }
             });
+        }
+    }
+
+    private static String decodeOrSelf(String message) {
+        if (message == null) {
+            return null;
+        }
+        try {
+            return SdkHttpUtils.urlDecode(message);
+        } catch (IllegalArgumentException e) {
+            return message;
         }
     }
 }
