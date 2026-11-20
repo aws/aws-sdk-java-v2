@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -79,6 +80,8 @@ import org.apache.hc.core5.util.Timeout;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.ConnectionPoolShutdownException;
+import software.amazon.awssdk.http.ConnectionPoolShutdownException.Reason;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -92,7 +95,10 @@ import software.amazon.awssdk.http.apache5.internal.Apache5HttpRequestConfig;
 import software.amazon.awssdk.http.apache5.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache5.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache5.internal.conn.ClientConnectionManagerFactory;
+import software.amazon.awssdk.http.apache5.internal.conn.IdleConnectionCloser;
 import software.amazon.awssdk.http.apache5.internal.conn.IdleConnectionReaper;
+import software.amazon.awssdk.http.apache5.internal.conn.RecreatingHttpClientConnectionManager;
+import software.amazon.awssdk.http.apache5.internal.conn.SafePoolingHttpClientConnectionManager;
 import software.amazon.awssdk.http.apache5.internal.conn.SafePoolingHttpClientConnectionManagerBuilder;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkTlsSocketFactory;
@@ -134,11 +140,20 @@ public final class Apache5HttpClient implements SdkHttpClient {
     private static final String CLIENT_NAME = "Apache5";
 
     private static final Logger log = Logger.loggerFor(Apache5HttpClient.class);
+
+    /** The exact message of Apache's IllegalStateException for a lease on a shut-down pool. */
+    private static final String POOL_SHUT_DOWN_MESSAGE = "Connection pool shut down";
+    private static final String TRANSIENT_POOL_SHUT_DOWN_MESSAGE =
+        "The connection pool was shut down by a java.lang.Error raised on another request while this request was "
+        + "acquiring a connection. The pool is rebuilt on the next attempt.";
     private static final HostnameVerifier DEFAULT_HOSTNAME_VERIFIER = new DefaultHostnameVerifier();
     private final Apache5HttpRequestFactory apacheHttpRequestFactory = new Apache5HttpRequestFactory();
     private final ConnectionManagerAwareHttpClient httpClient;
     private final Apache5HttpRequestConfig requestConfig;
     private final AttributeMap resolvedOptions;
+
+    /** Set first thing in {@link #close()}, so that a request failing on the shut-down pool reports why. */
+    private volatile boolean closed;
 
     @SdkTestInternalApi
     Apache5HttpClient(ConnectionManagerAwareHttpClient httpClient,
@@ -168,16 +183,53 @@ public final class Apache5HttpClient implements SdkHttpClient {
         return new DefaultBuilder().build();
     }
 
+    /**
+     * Builds a client whose connection pool recovery backoff (if recovery is enabled) uses the given clock.
+     */
+    @SdkTestInternalApi
+    static SdkHttpClient buildWithRecoveryClock(Builder builder, LongSupplier recoveryNanoClock) {
+        ((DefaultBuilder) builder).recoveryNanoClock = recoveryNanoClock;
+        return builder.build();
+    }
+
+    @SdkTestInternalApi
+    HttpClientConnectionManager connectionManager() {
+        return httpClient.getHttpClientConnectionManager();
+    }
+
     private ConnectionManagerAwareHttpClient createClient(Apache5HttpClient.DefaultBuilder configuration,
                                                           AttributeMap standardOptions) {
         ApacheConnectionManagerFactory cmFactory = new ApacheConnectionManagerFactory();
 
         HttpClientBuilder builder = HttpClients.custom();
 
-        // Note that it is important we register the original connection manager with the
-        // IdleConnectionReaper as it's required for the successful deregistration of managers
-        // from the reaper. See https://github.com/aws/aws-sdk-java/issues/722.
-        PoolingHttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
+        ConnectionPoolRecoveryMode recoveryMode = configuration.connectionPoolRecoveryMode == null
+                                                  ? ConnectionPoolRecoveryMode.DISABLED
+                                                  : configuration.connectionPoolRecoveryMode;
+        HttpClientConnectionManager cm;
+        IdleConnectionCloser reapable;
+        if (recoveryMode == ConnectionPoolRecoveryMode.DISABLED) {
+            // Note that it is important we register the original connection manager with the
+            // IdleConnectionReaper as it's required for the successful deregistration of managers
+            // from the reaper. See https://github.com/aws/aws-sdk-java/issues/722.
+            SafePoolingHttpClientConnectionManager poolingCm = cmFactory.create(configuration, standardOptions);
+            cm = poolingCm;
+            reapable = poolingCm;
+        } else {
+            // Apache destroys the connection manager if a java.lang.Error escapes a request, which would otherwise leave
+            // this client permanently unusable even when the application itself recovered. This wrapper rebuilds the
+            // pool instead. See RecreatingHttpClientConnectionManager.
+            //
+            // Note that it is important we register this same instance with the IdleConnectionReaper, rather than the
+            // pool it currently holds, as it's required for the successful deregistration of managers from the reaper
+            // in close(). See https://github.com/aws/aws-sdk-java/issues/722.
+            RecreatingHttpClientConnectionManager recreatingCm =
+                RecreatingHttpClientConnectionManager.create(() -> cmFactory.create(configuration, standardOptions),
+                                                             configuration.recoveryNanoClock,
+                                                             recoveryBackoff(recoveryMode));
+            cm = recreatingCm;
+            reapable = recreatingCm;
+        }
 
         Registry<AuthSchemeFactory> authSchemeRegistry = configuration.authSchemeRegistry ;
         if (authSchemeRegistry != null) {
@@ -199,10 +251,22 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
         if (useIdleConnectionReaper(standardOptions)) {
             IdleConnectionReaper.getInstance().registerConnectionManager(
-                cm, standardOptions.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis());
+                reapable, standardOptions.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis());
         }
 
         return new Apache5SdkHttpClient(builder.build(), cm);
+    }
+
+    /** The recovery backoff window for a mode that installs the recreating connection manager. */
+    private static Duration recoveryBackoff(ConnectionPoolRecoveryMode mode) {
+        switch (mode) {
+            case WITH_BACKOFF:
+                return RecreatingHttpClientConnectionManager.DEFAULT_RECOVERY_BACKOFF;
+            case ALWAYS:
+                return Duration.ZERO;
+            default:
+                throw new IllegalStateException("Unsupported connection pool recovery mode: " + mode);
+        }
     }
 
     private void addProxyConfig(HttpClientBuilder builder,
@@ -282,9 +346,28 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
     @Override
     public void close() {
+        // First, so that a request failing because of the close below reports that the client was closed.
+        closed = true;
         HttpClientConnectionManager cm = httpClient.getHttpClientConnectionManager();
-        IdleConnectionReaper.getInstance().deregisterConnectionManager(cm);
-        cm.close(CloseMode.IMMEDIATE);
+        if (cm instanceof IdleConnectionCloser) {
+            IdleConnectionReaper.getInstance().deregisterConnectionManager((IdleConnectionCloser) cm);
+        }
+        if (cm instanceof RecreatingHttpClientConnectionManager) {
+            RecreatingHttpClientConnectionManager recreatingCm = (RecreatingHttpClientConnectionManager) cm;
+            // Closing is intentional and permanent, unlike Apache closing the pool on an Error, so the pool must not be
+            // rebuilt afterwards. Both go through close(CloseMode) otherwise, which is why the wrapper needs a separate
+            // entry point at all.
+            //
+            // Ordering matters here, and is the reason this method does not close the underlying CloseableHttpClient:
+            // HttpClientBuilder#build adds a non-shared connection manager to the client's closeables, so closing the
+            // Apache client would reach this wrapper through the same close(CloseMode) that an Error takes, and be
+            // treated as "rebuild on the next request". closePermanently() must run first, because it marks the wrapper
+            // closed and makes every later close a no-op. If this method ever needs to close the Apache client itself,
+            // do it after this call, never before.
+            recreatingCm.closePermanently();
+        } else {
+            cm.close(CloseMode.IMMEDIATE);
+        }
     }
 
     private HttpExecuteResponse execute(HttpUriRequestBase apacheRequest, MetricCollector metricCollector) throws IOException {
@@ -302,10 +385,43 @@ public final class Apache5HttpClient implements SdkHttpClient {
             if ("Endpoint not acquired / already released".equals(e.getMessage())) {
                 throw new IOException("Failed to execute HTTP request", e);
             }
-            throw e;
+            if (e instanceof ConnectionPoolShutdownException || !POOL_SHUT_DOWN_MESSAGE.equals(e.getMessage())) {
+                // Never double-wrap, and leave any other IllegalStateException unchanged.
+                throw e;
+            }
+            ConnectionPoolShutdownException typed = typedOrNull(e);
+            if (typed != null) {
+                throw typed;
+            }
+            // Recovery is enabled and the client is not in backoff: the pool was lost during this request's lease and the
+            // next attempt rebuilds it, so report it as retryable.
+            throw new IOException(TRANSIENT_POOL_SHUT_DOWN_MESSAGE, e);
         } finally {
             THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.remove();
+            HttpClientConnectionManager cm = httpClient.getHttpClientConnectionManager();
+            if (cm instanceof RecreatingHttpClientConnectionManager) {
+                ((RecreatingHttpClientConnectionManager) cm).clearCurrentThreadLease();
+            }
         }
+    }
+
+    /**
+     * @return the typed exception if this client cannot serve requests right now, or null if the next lease rebuilds the
+     *         pool.
+     */
+    private ConnectionPoolShutdownException typedOrNull(IllegalStateException e) {
+        if (closed) {
+            return ConnectionPoolShutdownException.create(Reason.CLIENT_CLOSED, e);
+        }
+        HttpClientConnectionManager cm = httpClient.getHttpClientConnectionManager();
+        if (!(cm instanceof RecreatingHttpClientConnectionManager)) {
+            // Recovery is disabled, and nothing but Apache's Error path closes the pool in an SDK-built client.
+            return ConnectionPoolShutdownException.create(Reason.SHUT_DOWN_AFTER_ERROR, e);
+        }
+        if (((RecreatingHttpClientConnectionManager) cm).inRecoveryBackoff()) {
+            return ConnectionPoolShutdownException.create(Reason.RECOVERY_BACKOFF, e);
+        }
+        return null;
     }
 
     /**
@@ -390,15 +506,30 @@ public final class Apache5HttpClient implements SdkHttpClient {
     }
 
     private void collectPoolMetric(MetricCollector metricCollector) {
-        HttpClientConnectionManager cm = httpClient.getHttpClientConnectionManager();
-        if (cm instanceof PoolingHttpClientConnectionManager && !(metricCollector instanceof NoOpMetricCollector)) {
-            PoolingHttpClientConnectionManager poolingCm = (PoolingHttpClientConnectionManager) cm;
-            PoolStats totalStats = poolingCm.getTotalStats();
-            metricCollector.reportMetric(MAX_CONCURRENCY, totalStats.getMax());
-            metricCollector.reportMetric(AVAILABLE_CONCURRENCY, totalStats.getAvailable());
-            metricCollector.reportMetric(LEASED_CONCURRENCY, totalStats.getLeased());
-            metricCollector.reportMetric(PENDING_CONCURRENCY_ACQUIRES, totalStats.getPending());
+        if (metricCollector instanceof NoOpMetricCollector) {
+            return;
         }
+
+        PoolStats totalStats = poolStats(httpClient.getHttpClientConnectionManager());
+        if (totalStats == null) {
+            return;
+        }
+
+        metricCollector.reportMetric(MAX_CONCURRENCY, totalStats.getMax());
+        metricCollector.reportMetric(AVAILABLE_CONCURRENCY, totalStats.getAvailable());
+        metricCollector.reportMetric(LEASED_CONCURRENCY, totalStats.getLeased());
+        metricCollector.reportMetric(PENDING_CONCURRENCY_ACQUIRES, totalStats.getPending());
+    }
+
+    private static PoolStats poolStats(HttpClientConnectionManager cm) {
+        if (cm instanceof RecreatingHttpClientConnectionManager) {
+            // Reports the pool currently in use, which may be a replacement for one Apache destroyed.
+            return ((RecreatingHttpClientConnectionManager) cm).poolStats();
+        }
+        if (cm instanceof PoolingHttpClientConnectionManager) {
+            return ((PoolingHttpClientConnectionManager) cm).getTotalStats();
+        }
+        return null;
     }
 
     @Override
@@ -543,6 +674,32 @@ public final class Apache5HttpClient implements SdkHttpClient {
          * implementation for a given type of authorization challenge.
          */
         Builder authSchemeRegistry(Registry<AuthSchemeFactory> authSchemeRegistry) ;
+
+        /**
+         * Configure whether this client rebuilds its connection pool after the underlying Apache HTTP client shuts it down
+         * because a {@link java.lang.Error}, such as an {@link OutOfMemoryError} or {@link StackOverflowError}, escaped a
+         * request. See {@link ConnectionPoolRecoveryMode} for what each mode does.
+         *
+         * <p>When the pool is rebuilt, the shut-down pool and its connections are discarded. Requests in flight at the time
+         * fail, usually with an {@link java.io.IOException}. Requests that fail before a response is returned are retried
+         * by the SDK; requests waiting for a connection may wait up to the connection acquisition timeout first. Building
+         * a new pool also builds a new TLS context, which adds a small one-time latency to the first new connection.
+         * Closing the client is always permanent.
+         *
+         * <p>By default, this is {@link ConnectionPoolRecoveryMode#DISABLED}. {@code null} also means
+         * {@link ConnectionPoolRecoveryMode#DISABLED}.
+         *
+         * <pre class="brush: java">
+         * SdkHttpClient httpClient =
+         *     Apache5HttpClient.builder()
+         *                      .connectionPoolRecoveryMode(ConnectionPoolRecoveryMode.WITH_BACKOFF)
+         *                      .build();
+         * </pre>
+         *
+         * @param connectionPoolRecoveryMode the connection pool recovery mode, or null for the default
+         * @return this builder for method chaining.
+         */
+        Builder connectionPoolRecoveryMode(ConnectionPoolRecoveryMode connectionPoolRecoveryMode);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -561,6 +718,8 @@ public final class Apache5HttpClient implements SdkHttpClient {
         private CredentialsProvider credentialsProvider;
         private DnsResolver dnsResolver;
         private TlsSocketStrategy tlsStrategy;
+        private ConnectionPoolRecoveryMode connectionPoolRecoveryMode;
+        private LongSupplier recoveryNanoClock = System::nanoTime;
 
         private DefaultBuilder() {
         }
@@ -748,6 +907,16 @@ public final class Apache5HttpClient implements SdkHttpClient {
             authSchemeRegistry(authSchemeRegistry);
         }
 
+        @Override
+        public Builder connectionPoolRecoveryMode(ConnectionPoolRecoveryMode connectionPoolRecoveryMode) {
+            this.connectionPoolRecoveryMode = connectionPoolRecoveryMode;
+            return this;
+        }
+
+        public void setConnectionPoolRecoveryMode(ConnectionPoolRecoveryMode connectionPoolRecoveryMode) {
+            connectionPoolRecoveryMode(connectionPoolRecoveryMode);
+        }
+
 
         @Override
         public SdkHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
@@ -797,8 +966,8 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
     private static class ApacheConnectionManagerFactory {
 
-        public PoolingHttpClientConnectionManager create(Apache5HttpClient.DefaultBuilder configuration,
-                                                 AttributeMap standardOptions) {
+        public SafePoolingHttpClientConnectionManager create(Apache5HttpClient.DefaultBuilder configuration,
+                                                             AttributeMap standardOptions) {
 
             TlsSocketStrategy tlsStrategy = getPreferredTlsStrategy(configuration, standardOptions);
 

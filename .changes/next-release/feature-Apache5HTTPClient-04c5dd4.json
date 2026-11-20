@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Apache 5 HTTP Client",
+    "contributor": "",
+    "description": "Add `connectionPoolRecoveryMode` to `Apache5HttpClient.Builder`. Apache shuts its connection pool down when a `java.lang.Error`, such as an `OutOfMemoryError` or `StackOverflowError`, escapes a request, which leaves the client unable to make further requests. With `WITH_BACKOFF` the client builds a new pool on the next request, at most once every 5 minutes; with `ALWAYS` it rebuilds after every such Error. The default, `DISABLED`, keeps the current behavior. Requests on a client whose connection pool is shut down now fail with the new `ConnectionPoolShutdownException`, an `IllegalStateException` with the same message as before, whose `reason()` reports why."
+}
