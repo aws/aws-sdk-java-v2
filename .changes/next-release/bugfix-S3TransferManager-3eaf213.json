@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Fixed an issue in `downloadDirectory` where keys that resolve to the same local file could produce a file that mixes the bytes of several objects, by writing each object to a temporary file next to its destination and moving it into place once complete, which also leaves an existing file unchanged when its download fails."
+}
