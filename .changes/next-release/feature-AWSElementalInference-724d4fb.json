@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental Inference",
+    "contributor": "",
+    "description": "Adds Arabic (ara) as a supported language for subtitling transcription and custom vocabulary dictionaries."
+}
