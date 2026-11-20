@@ -35,6 +35,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.crt.internal.AwsCrtClientBuilderBase;
 import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
 import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
+import software.amazon.awssdk.http.crt.internal.CrtUtils;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -135,6 +136,10 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
 
                 if (cause instanceof HttpException) {
                     throw (HttpException) cause;
+                }
+
+                if (CrtUtils.isMaxPendingAcquisitionsExceeded(cause)) {
+                    throw (IllegalStateException) cause;
                 }
 
                 if (cause instanceof InterruptedException) {

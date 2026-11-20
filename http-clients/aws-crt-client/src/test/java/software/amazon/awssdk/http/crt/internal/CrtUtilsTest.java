@@ -33,6 +33,8 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 public class CrtUtilsTest {
+    private static final String MAX_PENDING_MESSAGE =
+        "Maximum pending connection acquisitions exceeded. The request rate is too high for the client to keep up.";
 
     /**
      * Locks in retryability of HTTP error codes that are NOT classified as transient by the native
@@ -133,13 +135,41 @@ public class CrtUtilsTest {
     }
 
     @Test
-    public void wrapCrtException_streamManagerMaxPendingAcquisitionsExceeded_returnsCrtRuntimeExceptionUnchanged() {
+    public void wrapCrtException_connectionManagerMaxPendingAcquisitionsExceeded_wrapsWithMaxPendingMessage() {
+        HttpException httpException = new HttpException(CrtUtils.CRT_CONNECTION_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED);
+
+        Throwable result = CrtUtils.wrapCrtException(httpException);
+
+        assertThat(result).isExactlyInstanceOf(IllegalStateException.class)
+                          .hasMessageStartingWith(MAX_PENDING_MESSAGE)
+                          .hasCause(httpException);
+    }
+
+    @Test
+    public void wrapCrtException_streamManagerMaxPendingAcquisitionsExceeded_wrapsWithMaxPendingMessage() {
         CrtRuntimeException crtException =
             new CrtRuntimeException(CrtUtils.CRT_STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED);
 
         Throwable result = CrtUtils.wrapCrtException(new CompletionException(crtException));
 
-        assertThat(result).isSameAs(crtException);
+        assertThat(result).isExactlyInstanceOf(IllegalStateException.class)
+                          .hasMessageStartingWith(MAX_PENDING_MESSAGE)
+                          .hasCause(crtException);
+    }
+
+    @Test
+    public void isMaxPendingAcquisitionsExceeded_wrappedRejection_returnsTrue() {
+        Throwable rejection = CrtUtils.wrapCrtException(
+            new HttpException(CrtUtils.CRT_CONNECTION_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED));
+
+        assertThat(CrtUtils.isMaxPendingAcquisitionsExceeded(rejection)).isTrue();
+    }
+
+    @Test
+    public void isMaxPendingAcquisitionsExceeded_otherIllegalStateException_returnsFalse() {
+        IllegalStateException other = new IllegalStateException("Client is closed", new HttpException(2087));
+
+        assertThat(CrtUtils.isMaxPendingAcquisitionsExceeded(other)).isFalse();
     }
 
     @Test
