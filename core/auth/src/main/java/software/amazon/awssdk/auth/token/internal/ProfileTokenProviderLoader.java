@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.internal.daemon.CredentialDaemonUtils;
 import software.amazon.awssdk.auth.token.credentials.ChildProfileTokenProviderFactory;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -101,6 +102,9 @@ public final class ProfileTokenProviderLoader {
     }
 
     private String profileSsoSectionName(Profile profile) {
+        if (CredentialDaemonUtils.daemonHoldsSsoSession(profile)) {
+            throw new IllegalArgumentException(CredentialDaemonUtils.bearerTokenUnavailableMessage(profileName));
+        }
         return Optional.ofNullable(profile)
                        .flatMap(p -> p.property(ProfileSection.SSO_SESSION.getPropertyKeyName()))
                        .orElseThrow(() -> new IllegalArgumentException(

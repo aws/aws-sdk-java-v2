@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Add CredentialDaemonCredentialsProvider, which resolves credentials from a local credential daemon over a Unix domain socket for profiles that set daemon_credential in the shared config file. Compatibility note: the provider requires Java 16 or later on Linux or macOS. On Java 8 to 15 it fails with UNSUPPORTED_PLATFORM, and a profile that runs `aws configure export-credentials` as its credential_process can be used instead."
+}
