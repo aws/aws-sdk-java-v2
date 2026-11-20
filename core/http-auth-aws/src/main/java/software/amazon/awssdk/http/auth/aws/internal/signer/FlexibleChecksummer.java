@@ -23,10 +23,10 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
@@ -52,13 +52,19 @@ public final class FlexibleChecksummer implements Checksummer {
     public FlexibleChecksummer(PayloadChecksumStore cache, Option... options) {
         this.cache = cache;
         this.options = Arrays.asList(options);
-        this.optionToSdkChecksum = this.options.stream().collect(
-            Collectors.toMap(Function.identity(), o -> fromChecksumAlgorithm(o.algorithm))
-        );
+        this.optionToSdkChecksum = new HashMap<>();
+        for (Option option : options) {
+            optionToSdkChecksum.put(option, fromChecksumAlgorithm(option.algorithm));
+        }
     }
 
     @Override
     public void checksum(ContentStreamProvider payload, SdkHttpRequest.Builder request) {
+        if (payload == null) {
+            addChecksums(request);
+            return;
+        }
+
         InputStream payloadStream = getBinaryRequestPayloadStream(payload);
 
         ChecksumInputStream computingStream = new ChecksumInputStream(

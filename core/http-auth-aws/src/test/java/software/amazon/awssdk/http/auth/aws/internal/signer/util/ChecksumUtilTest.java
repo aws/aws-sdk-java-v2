@@ -73,6 +73,29 @@ public class ChecksumUtilTest {
     }
 
     @Test
+    void readAll_whenStreamUnderreportsAvailable_consumesEntireStream() {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(new byte[10_000]) {
+            @Override
+            public synchronized int available() {
+                return super.available() > 0 ? 1 : 0;
+            }
+        };
+
+        readAll(inputStream);
+
+        assertEquals(-1, inputStream.read());
+    }
+
+    @Test
+    void readAll_whenBodyIsSmallerThanDefaultBuffer_consumesEntireStream() {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(new byte[100]);
+
+        readAll(inputStream);
+
+        assertEquals(-1, inputStream.read());
+    }
+
+    @Test
     public void readAll_throwIoException_shouldWrapWithIoException() throws IOException {
         IOException ioException = new IOException();
         InputStream mock = Mockito.mock(InputStream.class);

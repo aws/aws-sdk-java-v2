@@ -66,6 +66,19 @@ public class FlexibleChecksummerTest {
     }
 
     @Test
+    void checksum_withNullPayload_shouldAddChecksumOfEmptyPayload() {
+        FlexibleChecksummer checksummer = new FlexibleChecksummer(
+            PayloadChecksumStore.create(),
+            option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toHex).build()
+        );
+
+        checksummer.checksum((ContentStreamProvider) null, request);
+
+        assertThat(request.firstMatchingHeader("sha256"))
+            .hasValue("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+    }
+
+    @Test
     public void checksummer_withOneChecksum_shouldAddOneChecksum() {
         FlexibleChecksummer checksummer = new FlexibleChecksummer(
             PayloadChecksumStore.create(),
