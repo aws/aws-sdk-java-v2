@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -140,6 +141,29 @@ public class PublisherAdapterTest {
         verify(channelPool).release(channel);
         executeFuture.join();
         assertThat(executeFuture).isCompleted();
+    }
+
+    @Test
+    public void successfulStreaming_keepAlive_shouldClearRequestContextBeforeRelease() {
+        AtomicReference<RequestContext> contextAtRelease = new AtomicReference<>(requestContext);
+        when(channelPool.release(channel)).thenAnswer(invocation -> {
+            contextAtRelease.set(channel.attr(REQUEST_CONTEXT_KEY).get());
+            return null;
+        });
+        StreamedHttpResponse streamedHttpResponse = new DefaultStreamedHttpResponse(HttpVersion.HTTP_1_1,
+                                                                                    HttpResponseStatus.ACCEPTED,
+                                                                                    Flowable.just(fullHttpResponse));
+        ResponseHandler.PublisherAdapter publisherAdapter = new ResponseHandler.PublisherAdapter(streamedHttpResponse,
+                                                                                                 ctx,
+                                                                                                 requestContext,
+                                                                                                 executeFuture);
+
+        publisherAdapter.subscribe(new TestSubscriber());
+
+        verify(ctx, times(0)).close();
+        verify(channelPool).release(channel);
+        assertThat(contextAtRelease.get()).isNull();
+        assertThat(channel.attr(REQUEST_CONTEXT_KEY).get()).isNull();
     }
 
     @Test

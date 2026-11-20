@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO HTTP Client",
+    "contributor": "morazow",
+    "description": "Fixed an issue where an idle pooled connection kept its last request, including the request body, reachable until the connection was reused or closed."
+}
