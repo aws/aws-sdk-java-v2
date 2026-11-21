@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.59.7__ __2026-11-20__
+## __Amazon QuickSight__
+  - ### Features
+    - Quicksight public SDK release for November 20
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker AI adds APIs to view capacity reservations and their usage.
+
 # __2.59.6__ __2026-11-20__
 ## __APIPortal__
   - ### Features
