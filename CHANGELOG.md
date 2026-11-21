@@ -1,4 +1,331 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.59.7__ __2026-11-20__
+## __Amazon QuickSight__
+  - ### Features
+    - Quicksight public SDK release for November 20
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker AI adds APIs to view capacity reservations and their usage.
+
+# __2.59.6__ __2026-11-20__
+## __APIPortal__
+  - ### Features
+    - Adds support for API Portal, a new Amazon API Gateway feature that discovers the APIs running behind API Gateway, Application Load Balancer, and CloudFront across an AWS Organization, evaluates their security posture, and publishes documentation portals for them.
+
+## __AWS Backup__
+  - ### Features
+    - This release adds ResourceTypeOptInIncremental to the UpdateRegionSettings request and the DescribeRegionSettings response, so customers can opt in to or out of incremental backups. It currently applies only to Amazon DynamoDB table backups.
+
+## __AWS Device Farm__
+  - ### Features
+    - Add support for the use of virtual devices on Device Farm.
+
+## __AWS Elemental Inference__
+  - ### Features
+    - Adds Arabic (ara) as a supported language for subtitling transcription and custom vocabulary dictionaries.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for the DTS-X and DTS audio codecs, AV1 encoding improvements including Fast decode, GOP size in seconds, and temporal adaptive quantization, and Dynamic Multiview for H.264 and H.265 outputs.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports converting captions from non-embedded sources, such as Teletext and Smart Subtitles, into CEA-608 and CEA-708 embedded captions, and supports WebVTT subtitle renditions from HLS inputs as a caption source.
+
+## __AWS Glue__
+  - ### Features
+    - Minor updates to the Glue Business Context APIs
+
+## __AWS Marketplace Discovery__
+  - ### Features
+    - AWS Marketplace Discovery adds ListListingAttributes, an API for trust center, case study, and specialization details. SearchListings adds summaries, seller engagements and filters. GetListing and GetProduct return purchase indicators when products cannot be subscribed to or require no subscription.
+
+## __AWS Network Firewall__
+  - ### Features
+    - Adds read-only support for internet gateway firewalls, which are created and managed by AWS Network Security Manager. Adds FirewallType to firewall operations and IgwFirewallConfiguration to Firewall.
+
+## __AWS Network Security Manager Customer API__
+  - ### Features
+    - Adds support for Network Firewall automated internet firewall to Network Security Manager
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Added support for Instance Health Checks in AWS PCS.
+
+## __AWS Payments__
+  - ### Features
+    - Initial release of AWS Payments API, which lets you view your account balance, invoices, credit memos, and payment instruments.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - This release adds AI Security AMR configuration and five read-only APIs for AWS WAF API Security events. Use ListEvents and ListEventsByWebACL to list events, GetEvent to get event details including the timeline, and ListEventActors and GetEventActor to view the clients attributed to events
+
+## __Agent Discovery__
+  - ### Features
+    - Adds the SearchPublicRecords API, which searches public registry records for AI agents, tools, and skills that their publishers have made discoverable.
+
+## __Agent Registry__
+  - ### Features
+    - Adds support for the WEBBOT registry record type
+
+## __Agent Registry Control__
+  - ### Features
+    - Adds APIs to create publishers, verify that a publisher owns a domain, and associate registry records with a publisher. Publishers can approve or reject each association.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock adds APIs to manage projects, discover and apply to Trusted Access Programs, manage enrollments, and configure data retention storage for accounts, organizations, and projects. Model and inference profile discovery now supports project context.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds responseInterceptionMode and responseStreamingConfiguration to gateway interceptor configurations. Set responseInterceptionMode to STREAM to have the response interceptor process streaming responses from HTTP and inference targets in batches of events.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Amazon Bedrock Runtime adds an optional projectIdentifier parameter to InvokeModel, InvokeModelWithResponseStream, Converse, and ConverseStream, allowing requests to specify a project by ID or ARN.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Amazon CloudFront now supports HTTP2 connections to custom and VPC origins, so you can multiplex many requests over fewer origin connections, including WebSocket connections to HTTP2 origins that support extended CONNECT.
+
+## __Amazon DataZone__
+  - ### Features
+    - Amazon DataZone now supports detaching a project from its project profile via UpdateProject, specifying the environment blueprint ID in environment configuration user parameters, and transferring asset ownership from a source project to a target project via UpdateAssetOwner.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds documentation for the T9g instance family to the EC2 ModifyDefaultCreditSpecification and GetDefaultCreditSpecification APIs, adds the disable-complete state for IPAM routing policy registrations, and adds Network Firewall automated Internet firewall API changes.
+
+## __Amazon FSx__
+  - ### Features
+    - Adds support for FSx for NetApp ONTAP 3rd Generation file systems and API operations for new FSx for NetApp ONTAP resources
+
+## __Amazon Omics__
+  - ### Features
+    - Adds the parametersUri field to StartRun, which lets you provide run parameters in a JSON file in Amazon S3 instead of inline. GetRun returns parametersUri for runs started this way.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 support for advanced hosted zones. Including change guardrails, public dns fallback, change history. Also support for AZAffinityRouting.
+
+## __Amazon SageMaker Gateway Runtime__
+  - ### Features
+    - Adds the InvokeGlobalInferenceGateway and InvokeGlobalInferenceGatewayWithResponseStream APIs for sending inference requests to a SageMaker HyperPod Global Inference Gateway.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds HyperPod Global Inference Gateway APIs to route inference across HyperPod clusters in multiple Regions. Adds the MoveClusterNodes API, which moves running nodes between instance groups, within a cluster or between clusters in the same region, account and subnet, without releasing the instances.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release adds a CloudProviders field to SSM documents. Specify the cloud providers (AWS, Azure, GCP) a document can run on in CreateDocument and UpdateDocument, view it in DescribeDocument, ListDocuments and ListDocumentVersions, and filter ListDocuments by cloud provider.
+
+## __Amazon Textract__
+  - ### Features
+    - Amazon Textract Insights uses generative AI to split, classify, and extract data from documents with one asynchronous API. Get text, layout, and tables as Markdown, HTML, or CSV, plus summaries and figure captions, and extract the fields you define in a blueprint with confidence scores and locations
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds the TranscribeAudio API for synchronous transcription. Send a media file inline or from Amazon S3 and receive the transcript in the same response, with support for speaker, channel identification, language identification, custom vocabularies, vocabulary filters, and PII redaction.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Enablement for Network Firewall and Omni Events via Observability Admin Telemetry Rule for account and organization level
+
+## __Compute Optimizer Automation__
+  - ### Features
+    - Adds organization enrollment configurations, which enable Automation and set the organization rule mode for the organization root, organizational units (OUs), and accounts. Organization rules can include and exclude OUs, and recommended actions and automation events can be filtered by OU.
+
+## __Inspector2__
+  - ### Features
+    - This release adds runtimeReachability, runtimeReachabilityReason, and purl fields to vulnerable packages in the finding model. It also adds runtimeReachability, runtimeReachabilityReason and purlQualifier package filters for listing findings, suppression rules, and findings reports.
+
+## __Lambda MicroVMs__
+  - ### Features
+    - AWS Lambda MicroVMs now supports customer managed keys (CMK) in AWS Key Management Service (AWS KMS), enabling you to encrypt Lambda MicroVM data at rest using keys you control.
+
+## __Partner Central Channel API__
+  - ### Features
+    - Adds MSP program relationships support in AWS Partner Central. Partners can now create, update, list, and delete MSP relationships using the new MSP program type on the CreateProgramManagementAccount, CreateRelationship, UpdateRelationship, and ListRelationships operations.
+
+## __Tax Settings__
+  - ### Features
+    - Adds support for Norway, New Zealand and United Arab Emirates additional tax information, and the Vietnam VAT credit method and 20-digit payment voucher number.
+
+## __odb__
+  - ### Features
+    - Adds the ListAutonomousDatabaseRefreshableClones and StartAutonomousDatabaseRefresh APIs for listing and refreshing refreshable clones of Autonomous Database Serverless.
+
+# __2.59.5__ __2026-11-19__
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Adding new API, GetUsageLinesEstimatedCost which can be used to estimate the cost of usage lines.
+
+## __AWS Certificate Manager__
+  - ### Features
+    - AWS Certificate Manager now supports the ability to issue certificates from the Amazon N2 certificate authorities (CAs), an Amazon-operated CA hierarchy.
+
+## __AWS CloudFormation__
+  - ### Features
+    - Adds parameters to support custom execution roles for service-managed stack sets to CreateStackSet, UpdateStackSet, and DescribeStackSet, enabling the use of Macros, Transforms, and Nested Stacks.
+
+## __AWS CodeConnections__
+  - ### Features
+    - AWS CodeConnections now supports GitHub Enterprise Cloud with data residency (GHEC-DR) via the new GitHubEnterpriseCloudDataResidency provider type and ProviderEndpoint parameter in CreateConnection. This release also tightens connection ARN validation to enforce the expected ARN format.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release adds five standardized cost metrics to the Cost Explorer API BilledCost, ListCost, ContractedCost, PublicEquivalentBilledCost and PublicOnDemandCost. Use these metrics with GetCostAndUsage and GetCostAndUsageWithResources. The metrics return values for usage from November 2026 onwards.
+
+## __AWS DevOps Agent Service__
+  - ### Features
+    - AWS DevOps Agent adds AWS Organizations support so that agent spaces can monitor member accounts across an organizational unit.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This feature adds a new codec "JPEGXS" to the Input Specification Codec field. It adds a new "MAX 500 MBPS" maximum bitrate to the maximum bitrate Input Specification field. These input spec changes are used to enable TR-07 inputs and are also tied to metering of JPEGXS inputs.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - This release adds API support for configuring trusted identity propagation for IAM SAML and OpenIDConnect providers.
+
+## __AWS Lake Formation__
+  - ### Features
+    - Adds Status and StatusReason to RLSPolicy in GetRLSPolicy and ListRLSPolicies, indicating whether a row-level security policy is valid or references a deleted lookup table or user-defined function
+
+## __AWS Lambda__
+  - ### Features
+    - Increase function timeout limit to 30 minutes for Lambda Event Functions.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - AI Listing Experience that provides listing quality, content and feature recommendations through ListAssessments and DescribeAssessment APIs. Adds a new API StartAssessment to trigger Seller testing for Metering and Entitlement integration for products.
+
+## __AWS Marketplace Deployment Service__
+  - ### Features
+    - Add support for deployment configurations for Data as a Service products in AWS Marketplace
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Added support for Job Submit Plugins in AWS PCS.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Agent__
+  - ### Features
+    - This release exposes additional per-job metadata within code remediation tasks.
+
+## __AWS Security Token Service__
+  - ### Features
+    - AWS STS adds GetScopedCredentials and expands Trusted Identity Propagation (TIP) to IAM federation and IAM Roles Anywhere. GetScopedCredentials reduces an existing session's permissions and duration. TIP carries verified user or workload identity for authorization and CloudTrail auditing.
+
+## __Agent Registry__
+  - ### Features
+    - BatchGetDiscoverableRegistryRecord returns a short-lived download URL and SHA-256 checksum for approved skill packages. SearchDiscoverableRegistryRecords adds searchType (KEYWORD, SEMANTIC, HYBRID) and pagination. Adds bearer token authentication for registries that use JWT authorization.
+
+## __Agent Registry Control__
+  - ### Features
+    - Adds skill packages and skill source sync for agent skill records. Upload a skill package (ZIP) or sync SKILL.md or the full package from Amazon S3 or GitHub. GetRegistryRecord returns a short-lived download URL and SHA-256 checksum. GitHub sources use OAuth 2.0 user authorization.
+
+## __Amazon AppStream__
+  - ### Features
+    - Enable stack-level WebAuthn redirection to relay passkey and security-key authentication from a WorkSpaces Applications streaming session to the user's local device.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds the AWS Billing x402 payment type to ProcessPayment. Agents can purchase x402-enabled AWS Marketplace products and have the charges billed to the AWS account, without a wallet. Requests use the service-managed payment instrument ID aws.agentcorepayments.awsbilling.v1.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds AWS Billing payments to ProcessPayment. Agents can pay x402 sellers that accept AWS Marketplace billing, and the charge goes on the buyer's AWS bill. Adds support for nested virtualization in Runtime Instances. When you turn on nested virtualization, Runtime launches instances with KVM enabled.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Amazon CloudFront adds configuration for SNI-less clients on Anycast static IPs, introduces Anycast IP based domain routing for Distribution Tenants, provides automatic domain ownership validation when creating or updating Distribution Tenants, and enables HTTP traffic via DNS validation.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Adds support for storing user pool app client secrets in AWS Secrets Manager and adds support OAuth Client ID Metadata Document (CIMD) which lets a client use an HTTPS URL as its client ID instead of registering in advance.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds support for SLAs that track any single-select field, including custom fields, and for updating the target duration of an SLA with the UpdateRelatedItem API.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect adds voicemail support, with new reference types, file use case types, contact details, and a voicemail task contact subtype for managing voicemail recordings and transcripts.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Improve missing converter error handling in DynamoDB Enhanced Client
+
+## __Amazon EventBridgeV2__
+  - ### Features
+    - This release adds Webhook event sources, which receive events from third-party providers over HTTPS and authenticate them with a static token, HTTP Basic authentication, or an HMAC signature, and Amazon MSK subscribers, which deliver events to a topic in an Amazon MSK and MSK Serverless cluster.
+
+## __Amazon Polly__
+  - ### Features
+    - Adds voice cloning to Amazon Polly. The new CreateVoice, GetVoice and DeleteVoice operations create and manage a custom voice from a speaker's recording, usable with the generative engine in all synthesis operations.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds the PrimaryEndpoint structure to DBInstance. It returns the connection endpoint for the current primary instance, so no need to reconnect to a different DNS name after the switchover. Create Aurora clusters with express configuration in a VPC, and move clusters into, out of, or between VPCs.
+
+## __Amazon Route 53__
+  - ### Features
+    - Route 53 Private Endpoint Health Checks support
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Route 53 Resolver DNS Firewall adds the AutoAllowlist firewall rule type, which observes the domains your VPCs resolve and allows the ones you approve, and the ListFirewallRuleDomains API.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - Adds support for disassociating replica tables in S3 Tables replication with the new DisassociateTableReplication API, which promotes a read-only replica table to a standalone table.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Network Load Balancer now supports mutual TLS (mTLS), letting you authenticate client certificates before granting access. You can configure a trust store of certificate authorities on your Network Load Balancer, which will then verify the client certificate on each inbound connection.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - Adds the tipConfiguration field to profiles to turn on trusted identity propagation, which adds the identity from an X.509 certificate to sessions as origin identity condition keys.
+
+## __Inspector2__
+  - ### Features
+    - Amazon Inspector Code Security now supports GitHub Enterprise Server integrations. For GitHub Enterprise Server and GitLab Self-Managed, you can connect over a private network by adding a VPC configuration when you create an integration.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK now supports in-place migration of provisioned clusters from Standard to Express brokers. This release adds APIs to assess a cluster before migration and to reassign topics, and returns broker type upgrade details in cluster operations.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fixed three HTTP/2 issues: (1) A read timeout or other I/O error on one request ended the other requests on its connection. Some of them returned a truncated response with no error. With this fix, the other requests continue. (2) A server GOAWAY that rejected a new request also ended the requests the server had accepted. With this fix, the accepted requests complete. (3) Closing the client during requests sometimes returned a truncated response with no error. With this fix, those requests fail with an IOException.
+
+## __Partner Central Marketing API__
+  - ### Features
+    - Initial release of AWS Partner Central Marketing, which AWS Partners use to create co-branded marketing campaigns from AWS-authored templates, tailor and activate their emails, landing pages, documents and social posts, and export campaign assets.
+
+## __Partner Central Revenue Measurement API__
+  - ### Features
+    - Marketplace revenue shares are now identified by a marketplace revenue share ID. Adds the UpdateMarketplaceRevenueShare API, optional grouping of AWS Marketplace products that run on the same backend AWS infrastructure, and context attributes for revenue attributions.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Adds the Leads APIs (SearchEngagements, ListEngagementGroups), customer account APIs with statistics and bulk jobs, SearchOpportunities, opportunity bulk jobs, account planning invitations, co-sell motion reason on AWS opportunity summaries, and channel recommendations on lead insights.
+
+## __RTBFabric__
+  - ### Features
+    - AWS RTB Fabric now lets you discover modules and attach them to your links. Find modules and their versions with ListAvailableModules, GetAvailableModule, ListAvailableModuleVersions and GetAvailableModuleVersion, attach them with PutLinkFlows and track each change with GetUpdate and ListUpdates.
+
 # __2.59.4__ __2026-11-18__
 ## __AWS Abuse Signal API__
   - ### Features

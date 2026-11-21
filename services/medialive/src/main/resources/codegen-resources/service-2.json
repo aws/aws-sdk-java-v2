@@ -7345,6 +7345,10 @@
         "SmartSubtitleSourceSettings": {
           "shape": "SmartSubtitleSourceSettings",
           "locationName": "smartSubtitleSourceSettings"
+        },
+        "WebvttSourceSettings": {
+          "shape": "WebvttSourceSettings",
+          "locationName": "webvttSourceSettings"
         }
       },
       "documentation": "Caption Selector Settings"
@@ -7485,6 +7489,11 @@
           "shape": "DescribeInferenceSettings",
           "locationName": "inferenceSettings",
           "documentation": "Include this setting to include Elemental Inference features in this channel."
+        },
+        "JpegXsInputSpecification": {
+          "shape": "JpegXsInputSpecification",
+          "locationName": "jpegXsInputSpecification",
+          "documentation": "Specification of JPEG XS inputs for this channel"
         }
       },
       "documentation": "Placeholder documentation for Channel"
@@ -7651,6 +7660,11 @@
           "shape": "DescribeInferenceSettings",
           "locationName": "inferenceSettings",
           "documentation": "Include this setting to include Elemental Inference features in this channel."
+        },
+        "JpegXsInputSpecification": {
+          "shape": "JpegXsInputSpecification",
+          "locationName": "jpegXsInputSpecification",
+          "documentation": "Specification of JPEG XS inputs for this channel"
         }
       },
       "documentation": "Placeholder documentation for ChannelSummary"
@@ -7841,6 +7855,11 @@
           "shape": "InferenceSettings",
           "locationName": "inferenceSettings",
           "documentation": "Include this setting to include Elemental Inference features in this channel."
+        },
+        "JpegXsInputSpecification": {
+          "shape": "JpegXsInputSpecification",
+          "locationName": "jpegXsInputSpecification",
+          "documentation": "Specification of JPEG XS inputs for this channel"
         }
       },
       "documentation": "Placeholder documentation for CreateChannel"
@@ -7946,6 +7965,11 @@
           "shape": "InferenceSettings",
           "locationName": "inferenceSettings",
           "documentation": "Include this setting to include Elemental Inference features in this channel."
+        },
+        "JpegXsInputSpecification": {
+          "shape": "JpegXsInputSpecification",
+          "locationName": "jpegXsInputSpecification",
+          "documentation": "Specification of JPEG XS inputs for this channel"
         }
       },
       "documentation": "A request to create a channel"
@@ -8594,6 +8618,11 @@
           "shape": "DescribeInferenceSettings",
           "locationName": "inferenceSettings",
           "documentation": "Include this setting to include Elemental Inference features in this channel."
+        },
+        "JpegXsInputSpecification": {
+          "shape": "JpegXsInputSpecification",
+          "locationName": "jpegXsInputSpecification",
+          "documentation": "Specification of JPEG XS inputs for this channel"
         }
       },
       "documentation": "Placeholder documentation for DeleteChannelResponse"
@@ -9074,6 +9103,11 @@
           "shape": "DescribeInferenceSettings",
           "locationName": "inferenceSettings",
           "documentation": "Include this setting to include Elemental Inference features in this channel."
+        },
+        "JpegXsInputSpecification": {
+          "shape": "JpegXsInputSpecification",
+          "locationName": "jpegXsInputSpecification",
+          "documentation": "Specification of JPEG XS inputs for this channel"
         }
       },
       "documentation": "Placeholder documentation for DescribeChannelResponse"
@@ -10499,6 +10533,16 @@
           "shape": "EmbeddedDestinationStyleControl",
           "locationName": "styleControl",
           "documentation": "Controls the source of position and style information for the output captions.\n\n- \"passthrough\": Carry the caption position and style from the source captions. When the source captions are embedded, SCTE-20, or ancillary, the position and style are preserved exactly. When the source captions are another format, the position and any supported style are carried over.\n- \"manual\": Applies the specified styling and positioning. All other styling and positioning is given default values."
+        },
+        "CaptionServiceChannel": {
+          "shape": "__integerMin1Max63",
+          "locationName": "captionServiceChannel",
+          "documentation": "CC Channel / Service number for 608/708 encode mode. Serves as both the 608 CC channel\nand the 708 service number (e.g., 1 = CC1 + Service 1). Only takes effect when the source\nis non-embedded (teletext, smart captions, etc.) — ignored in passthrough mode.\n\nRange 1-4: valid for embedded608Only, embedded708Only, or embedded608And708.\nRange 5-63: valid for embedded708Only."
+        },
+        "EmbeddedMode": {
+          "shape": "EmbeddedModeType",
+          "locationName": "embeddedMode",
+          "documentation": "Controls what the encoder generates when in encode mode (non-embedded source → embedded destination).\nIgnored in passthrough mode (embedded source → embedded destination).\n\n- \"embedded608Only\": Generate CEA-608 CC pairs only (channel must be 1-4)\n- \"embedded708Only\": Generate CEA-708 service blocks only (channel 1-63)\n- \"embedded608And708\": Generate both 608 CC pairs and 708 service blocks (channel 1-4 gets both, 5-63 gets 708 only)"
         }
       },
       "documentation": "Embedded Destination Settings"
@@ -12909,7 +12953,8 @@
       "enum": [
         "MPEG2",
         "AVC",
-        "HEVC"
+        "HEVC",
+        "JPEGXS"
       ]
     },
     "InputDeblockFilter": {
@@ -17190,7 +17235,8 @@
         "HEVC",
         "AUDIO",
         "LINK",
-        "AV1"
+        "AV1",
+        "JPEGXS"
       ]
     },
     "ReservationMaximumBitrate": {
@@ -17199,7 +17245,8 @@
       "enum": [
         "MAX_10_MBPS",
         "MAX_20_MBPS",
-        "MAX_50_MBPS"
+        "MAX_50_MBPS",
+        "MAX_500_MBPS"
       ]
     },
     "ReservationMaximumFramerate": {
@@ -18213,6 +18260,11 @@
           "shape": "DescribeInferenceSettings",
           "locationName": "inferenceSettings",
           "documentation": "Include this setting to include Elemental Inference features in this channel."
+        },
+        "JpegXsInputSpecification": {
+          "shape": "JpegXsInputSpecification",
+          "locationName": "jpegXsInputSpecification",
+          "documentation": "Specification of JPEG XS inputs for this channel"
         }
       },
       "documentation": "Placeholder documentation for StartChannelResponse"
@@ -18652,6 +18704,11 @@
           "shape": "DescribeInferenceSettings",
           "locationName": "inferenceSettings",
           "documentation": "Include this setting to include Elemental Inference features in this channel."
+        },
+        "JpegXsInputSpecification": {
+          "shape": "JpegXsInputSpecification",
+          "locationName": "jpegXsInputSpecification",
+          "documentation": "Specification of JPEG XS inputs for this channel"
         }
       },
       "documentation": "Placeholder documentation for StopChannelResponse"
@@ -19348,6 +19405,11 @@
           "shape": "SpecialRouterSettings",
           "locationName": "specialRouterSettings",
           "documentation": "When using MediaConnect Router as the source of a MediaLive input there's a special handoff that occurs when a router output\nis created. This group of settings is set on your behalf by the MediaConnect Router service using this set of settings. This\nsetting object can only by used by that service."
+        },
+        "JpegXsInputSpecification": {
+          "shape": "JpegXsInputSpecification",
+          "locationName": "jpegXsInputSpecification",
+          "documentation": "Specification of JPEG XS inputs for this channel"
         }
       },
       "documentation": "Placeholder documentation for UpdateChannel"
@@ -19493,6 +19555,11 @@
           "shape": "SpecialRouterSettings",
           "locationName": "specialRouterSettings",
           "documentation": "When using MediaConnect Router as the source of a MediaLive input there's a special handoff that occurs when a router output\nis created. This group of settings is set on your behalf by the MediaConnect Router service using this set of settings. This\nsetting object can only by used by that service."
+        },
+        "JpegXsInputSpecification": {
+          "shape": "JpegXsInputSpecification",
+          "locationName": "jpegXsInputSpecification",
+          "documentation": "Specification of JPEG XS inputs for this channel"
         }
       },
       "documentation": "A request to update a channel.",
@@ -20379,7 +20446,7 @@
         "StyleControl": {
           "shape": "WebvttDestinationStyleControl",
           "locationName": "styleControl",
-          "documentation": "Controls whether the color and position of the source captions is passed through to the WebVTT output captions.  PASSTHROUGH - Valid only if the source captions are EMBEDDED, TELETEXT, or SMART SUBTITLES.  NO_STYLE_DATA - Don't pass through the style. The output captions will not contain any font styling information. MANUAL - Applies the specified styling and positioning. All other styling and positioning is given default values."
+          "documentation": "Controls whether the color and position of the source captions is passed through to the WebVTT output captions.  PASSTHROUGH - Valid only if the source captions are EMBEDDED, TELETEXT, SMART SUBTITLES, or WEBVTT.  NO_STYLE_DATA - Don't pass through the style. The output captions will not contain any font styling information. MANUAL - Applies the specified styling and positioning. All other styling and positioning is given default values."
         },
         "Position": {
           "shape": "TextCaptionPositionSettings",
@@ -21361,6 +21428,11 @@
           "shape": "DescribeInferenceSettings",
           "locationName": "inferenceSettings",
           "documentation": "Include this setting to include Elemental Inference features in this channel."
+        },
+        "JpegXsInputSpecification": {
+          "shape": "JpegXsInputSpecification",
+          "locationName": "jpegXsInputSpecification",
+          "documentation": "Specification of JPEG XS inputs for this channel"
         }
       },
       "documentation": "Placeholder documentation for RestartChannelPipelinesResponse"
@@ -31330,6 +31402,70 @@
         "AUTO",
         "NONE"
       ]
+    },
+    "JpegXsInputMaximumBitrate": {
+      "type": "string",
+      "documentation": "Maximum JPEG XS input bitrate in megabits per second",
+      "enum": [
+        "MAX_500_MBPS"
+      ]
+    },
+    "JpegXsInputResolution": {
+      "type": "string",
+      "documentation": "Maximum JPEG XS input resolution; HD is 720 to 1080 lines of vertical resolution",
+      "enum": [
+        "HD"
+      ]
+    },
+    "JpegXsInputSpecification": {
+      "type": "structure",
+      "members": {
+        "Codec": {
+          "shape": "InputCodec",
+          "locationName": "codec",
+          "documentation": "Input codec. Must be JPEGXS."
+        },
+        "MaximumBitrate": {
+          "shape": "JpegXsInputMaximumBitrate",
+          "locationName": "maximumBitrate",
+          "documentation": "Maximum JPEG XS input bitrate"
+        },
+        "Resolution": {
+          "shape": "JpegXsInputResolution",
+          "locationName": "resolution",
+          "documentation": "Maximum JPEG XS input resolution"
+        }
+      },
+      "documentation": "Specification of the JPEG XS input for this channel. Use instead of inputSpecification when the input codec is JPEG XS."
+    },
+    "EmbeddedModeType": {
+      "type": "string",
+      "documentation": "Controls what the embedded encoder generates.\n- \"embedded_608_only\": CEA-608 CC pairs only\n- \"embedded_708_only\": CEA-708 service blocks only\n- \"embedded_608_and_708\": Both 608 and 708",
+      "enum": [
+        "EMBEDDED_608_AND_708",
+        "EMBEDDED_608_ONLY",
+        "EMBEDDED_708_ONLY"
+      ]
+    },
+    "WebvttSourceSettings": {
+      "type": "structure",
+      "members": {
+        "GroupId": {
+          "shape": "__stringMin1",
+          "locationName": "groupId",
+          "documentation": "Optional. The \"GROUP-ID\" attribute of the #EXT-X-MEDIA subtitle rendition to use from the HLS source. Specify it\ntogether with name; the pair must exactly match one rendition, otherwise this caption selector produces no\ncaptions. If neither groupId nor name is specified, MediaLive selects the rendition whose LANGUAGE matches the\ncaption selector's language code (case-insensitive), then the DEFAULT=YES rendition, then the first subtitle\nrendition listed in the master playlist."
+        },
+        "Name": {
+          "shape": "__stringMin1",
+          "locationName": "name",
+          "documentation": "Optional. The \"NAME\" attribute of the #EXT-X-MEDIA subtitle rendition to use from the HLS source. Specify it\ntogether with groupId; the pair must exactly match one rendition, otherwise this caption selector produces no\ncaptions. If neither groupId nor name is specified, MediaLive selects the rendition whose LANGUAGE matches the\ncaption selector's language code (case-insensitive), then the DEFAULT=YES rendition, then the first subtitle\nrendition listed in the master playlist."
+        }
+      },
+      "documentation": "Webvtt Source Settings"
+    },
+    "__integerMin1Max63": {
+      "type": "integer",
+      "documentation": "Placeholder documentation for __integerMin1Max63"
     }
   },
   "documentation": "API for AWS Elemental MediaLive"

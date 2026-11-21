@@ -1,0 +1,31 @@
+name: PR Description Verification
+
+permissions:
+  contents: read
+
+on:
+  merge_group:
+  pull_request:
+    types: [ opened, edited, synchronize, reopened, ready_for_review ]
+    branches:
+      - master
+
+concurrency:
+  group: pr-description-verification-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-description-verification:
+    if: >-
+      github.event_name == 'pull_request' &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+      - name: Check the PR description against the PR template
+        run: python3 .github/scripts/check_pr_description.py
