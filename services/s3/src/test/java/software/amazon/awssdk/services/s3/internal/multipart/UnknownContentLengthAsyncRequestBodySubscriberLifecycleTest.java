@@ -63,7 +63,7 @@ class UnknownContentLengthAsyncRequestBodySubscriberLifecycleTest {
     private static final Consumer<Fixture> PART_1_CANCELLED = f -> assertThat(f.parts.get(1)).isCancelled();
 
     enum FailurePoint {
-        CMPU_RESPONSE_PENDING_IN_CALLBACK(f -> {
+        CMPU_IN_FLIGHT(f -> {
             f.deliverParts(2);
             f.subscriber.onError(BODY_ERROR);
             f.completeCreateMultipartUpload();
@@ -111,6 +111,11 @@ class UnknownContentLengthAsyncRequestBodySubscriberLifecycleTest {
     }
 
     enum CancelPoint {
+        CMPU_IN_FLIGHT(f -> {
+            f.deliverParts(2);
+            f.returnFuture.cancel(true);
+            f.completeCreateMultipartUpload();
+        }),
         BETWEEN_CMPU_RESPONSE_AND_PARTS(f -> {
             f.deliverParts(2);
             f.onUploadPart = partNumber -> {
@@ -149,7 +154,7 @@ class UnknownContentLengthAsyncRequestBodySubscriberLifecycleTest {
 
     @ParameterizedTest(name = "{0}")
     @EnumSource(FailurePoint.class)
-    void onError_whenBodyFailsAfterCreateMultipartUpload_shouldAbortOnceAndNeverComplete(FailurePoint failurePoint) {
+    void onError_whenMultipartUploadStarted_shouldAbortOnceAndNeverComplete(FailurePoint failurePoint) {
         Fixture f = new Fixture();
         failurePoint.scenario.accept(f);
         assertAbortedOnceAndNeverCompleted(f);
@@ -175,6 +180,57 @@ class UnknownContentLengthAsyncRequestBodySubscriberLifecycleTest {
         verify(f.s3, never()).createMultipartUpload(any(CreateMultipartUploadRequest.class));
         verify(f.s3, never()).abortMultipartUpload(any(AbortMultipartUploadRequest.class));
         verify(f.s3, never()).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+    }
+
+    @Test
+    void cancel_whenCreateMultipartUploadFailsAfterCancel_shouldNotAbortAndShouldCloseBodies() {
+        Fixture f = new Fixture();
+        f.deliverParts(2);
+        f.returnFuture.cancel(true);
+        assertThat(f.createMultipartUploadFuture).isNotDone();
+
+        f.createMultipartUploadFuture.completeExceptionally(
+            S3Exception.builder().message("CreateMultipartUpload failed").build());
+
+        assertThat(f.returnFuture).isCancelled();
+        verify(f.s3, never()).abortMultipartUpload(any(AbortMultipartUploadRequest.class));
+        verify(f.s3, never()).uploadPart(any(UploadPartRequest.class), any(AsyncRequestBody.class));
+        f.bodies.forEach(body -> verify(body).close());
+    }
+
+    @Test
+    void cancel_whenCompleteMultipartUploadInFlight_shouldAbort() {
+        Fixture f = new Fixture();
+        when(f.s3.completeMultipartUpload(any(CompleteMultipartUploadRequest.class))).thenReturn(new CompletableFuture<>());
+        f.deliverParts(2);
+        f.completeCreateMultipartUpload();
+        f.completeSentParts();
+        f.subscriber.onComplete();
+
+        f.returnFuture.cancel(true);
+
+        verify(f.s3, times(1)).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+        ArgumentCaptor<AbortMultipartUploadRequest> abort = ArgumentCaptor.forClass(AbortMultipartUploadRequest.class);
+        verify(f.s3, times(1)).abortMultipartUpload(abort.capture());
+        assertThat(abort.getValue().uploadId()).isEqualTo(UPLOAD_ID);
+    }
+
+    @Test
+    void onComplete_whenCompleteMultipartUploadFails_shouldAbortOnce() {
+        Fixture f = new Fixture();
+        CompletableFuture<CompleteMultipartUploadResponse> complete = new CompletableFuture<>();
+        when(f.s3.completeMultipartUpload(any(CompleteMultipartUploadRequest.class))).thenReturn(complete);
+        f.deliverParts(2);
+        f.completeCreateMultipartUpload();
+        f.completeSentParts();
+        f.subscriber.onComplete();
+
+        complete.completeExceptionally(S3Exception.builder().message("CompleteMultipartUpload failed").build());
+
+        assertThat(f.returnFuture).isCompletedExceptionally();
+        ArgumentCaptor<AbortMultipartUploadRequest> abort = ArgumentCaptor.forClass(AbortMultipartUploadRequest.class);
+        verify(f.s3, times(1)).abortMultipartUpload(abort.capture());
+        assertThat(abort.getValue().uploadId()).isEqualTo(UPLOAD_ID);
     }
 
     @Test
@@ -205,7 +261,7 @@ class UnknownContentLengthAsyncRequestBodySubscriberLifecycleTest {
     private static final class Fixture {
         private final S3AsyncClient s3 = mock(S3AsyncClient.class);
         private final CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
-            new RespondedCreateMultipartUploadFuture();
+            new CompletableFuture<>();
         private final Map<Integer, CompletableFuture<UploadPartResponse>> parts = new ConcurrentHashMap<>();
         private final List<CloseableAsyncRequestBody> bodies = new ArrayList<>();
         private final AtomicInteger partsStartedAfterFailure = new AtomicInteger();
@@ -269,16 +325,6 @@ class UnknownContentLengthAsyncRequestBodySubscriberLifecycleTest {
 
         void completeSentParts() {
             parts.keySet().forEach(this::completePart);
-        }
-    }
-
-    /**
-     * Models a CreateMultipartUpload whose response has already arrived, so a failure forwarded to it is ignored.
-     */
-    private static final class RespondedCreateMultipartUploadFuture extends CompletableFuture<CreateMultipartUploadResponse> {
-        @Override
-        public boolean completeExceptionally(Throwable ex) {
-            return false;
         }
     }
 }

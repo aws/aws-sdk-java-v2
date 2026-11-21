@@ -44,7 +44,7 @@ public class UnknownContentLengthAsyncRequestBodySubscriberTckTest
         super(new TestEnvironment());
         multipartUploadHelper = mock(MultipartUploadHelper.class);
         genericMultipartHelper = mock(GenericMultipartHelper.class);
-        when(multipartUploadHelper.createMultipartUpload(any(), any()))
+        when(multipartUploadHelper.createMultipartUpload(any()))
             .thenAnswer(i -> CompletableFuture.completedFuture(CreateMultipartUploadResponse.builder()
                                                                                             .uploadId("uploadId")
                                                                                             .build()));

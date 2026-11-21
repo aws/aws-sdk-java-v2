@@ -226,7 +226,7 @@ public class UnknownContentLengthAsyncRequestBodySubscriberTest {
     }
 
     private void stubSuccessfulCreateMultipartCall() {
-        when(multipartUploadHelper.createMultipartUpload(any(), any()))
+        when(multipartUploadHelper.createMultipartUpload(any()))
                 .thenReturn(CompletableFuture.completedFuture(
                         software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse.builder()
                                 .uploadId(UPLOAD_ID)

@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,7 +42,6 @@ import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
-import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
@@ -122,6 +122,9 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
                 if (tryMarkFailing()) {
                     MultipartUploadHelper.cancelingOtherOngoingRequests(futures, t);
                     abortWhenUploadIdKnown();
+                } else if (state.get() == State.COMPLETING && t instanceof CancellationException) {
+                    // GenericMultipartHelper already aborts a failed CompleteMultipartUpload, so abort here only on cancel.
+                    abortWhenUploadIdKnown();
                 }
             }
         });
@@ -170,7 +173,7 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
         if (createMultipartUploadInitiated.compareAndSet(false, true)) {
             log.debug(() -> "Starting the upload as multipart upload request");
             CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture = multipartUploadHelper
-                .createMultipartUpload(putObjectRequest, returnFuture);
+                .createMultipartUpload(putObjectRequest);
 
             createMultipartUploadFuture.whenComplete((createMultipartUploadResponse, throwable) -> {
                 if (throwable != null) {
@@ -185,7 +188,7 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
                 } else {
                     uploadId = createMultipartUploadResponse.uploadId();
                     log.debug(() -> "Initiated a new multipart upload, uploadId: " + uploadId);
-                    // Complete uploadIdFuture before checking state: a failure's abort waits on it, even when we return below.
+                    // Complete uploadIdFuture before checking state. A failure's abort waits on it, even when we return below.
                     uploadIdFuture.complete(uploadId);
                     if (state.get() != State.RUNNING) {
                         discard(firstRequestBody);
@@ -205,7 +208,6 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
                     }
                 }
             });
-            CompletableFutureUtils.forwardExceptionTo(returnFuture, createMultipartUploadFuture);
         } else {
             uploadIdFuture.whenComplete((r, t) -> {
                 if (t != null) {
