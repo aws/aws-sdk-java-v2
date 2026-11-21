@@ -19,10 +19,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
+import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.lessThanOrExactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.moreThan;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -35,6 +39,7 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import io.reactivex.rxjava3.core.Flowable;
 import java.io.InputStream;
@@ -46,6 +51,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,13 +72,23 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
+import software.amazon.awssdk.core.async.BlockingOutputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.async.BufferedSplittableAsyncRequestBody;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.exception.NonRetryableException;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.utils.CancellableOutputStream;
 
 @WireMockTest
 @Timeout(120)
@@ -81,6 +101,10 @@ public class S3MultipartClientPutObjectWiremockTest {
                                                            + "   <Key>string</Key>\n"
                                                            + "   <UploadId>string</UploadId>\n"
                                                            + "</InitiateMultipartUploadResult>";
+    private static final String ACCESS_DENIED_ERROR_PAYLOAD = "<Error>\n"
+                                                              + "   <Code>AccessDenied</Code>\n"
+                                                              + "   <Message>Access Denied</Message>\n"
+                                                              + "</Error>";
     private S3AsyncClient s3AsyncClient;
 
     public static Stream<Arguments> retryableErrorTestCase() {
@@ -98,15 +122,18 @@ public class S3MultipartClientPutObjectWiremockTest {
 
     @BeforeEach
     public void setup(WireMockRuntimeInfo wiremock) {
-        s3AsyncClient = S3AsyncClient.builder()
-                                     .region(Region.US_EAST_1)
-                                     .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
-                                     .credentialsProvider(
-                                         StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
-                                     .multipartEnabled(true)
-                                     .multipartConfiguration(b -> b.minimumPartSizeInBytes(10L).apiCallBufferSizeInBytes(20L))
-                                     .httpClientBuilder(NettyNioAsyncHttpClient.builder())
-                                     .build();
+        s3AsyncClient = clientBuilder(wiremock).build();
+    }
+
+    private static S3AsyncClientBuilder clientBuilder(WireMockRuntimeInfo wiremock) {
+        return S3AsyncClient.builder()
+                            .region(Region.US_EAST_1)
+                            .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
+                            .credentialsProvider(
+                                StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
+                            .multipartEnabled(true)
+                            .multipartConfiguration(b -> b.minimumPartSizeInBytes(10L).apiCallBufferSizeInBytes(20L))
+                            .httpClientBuilder(NettyNioAsyncHttpClient.builder());
     }
 
     private void stubPutObject404Calls() {
@@ -131,6 +158,160 @@ public class S3MultipartClientPutObjectWiremockTest {
         }).isInstanceOf(CancellationException.class);
 
         assertThatThrownBy(() -> putObjectResponse.join()).hasRootCauseInstanceOf(S3Exception.class);
+    }
+
+    @Test
+    void uploadWithUnknownContentLength_whenCancelledAfterAllPartsAnswered_shouldAbortMultipartUpload(
+        WireMockRuntimeInfo wiremock) throws Exception {
+        stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withBody(CREATE_MULTIPART_PAYLOAD)));
+        stubFor(put(anyUrl()).willReturn(aResponse().withStatus(200)));
+        stubFor(delete(anyUrl()).willReturn(aResponse().withStatus(204)));
+
+        ThreadLocal<Boolean> partAnsweredInThisTask = ThreadLocal.withInitial(() -> false);
+        CountDownLatch partsCompleted = new CountDownLatch(2);
+        CountDownLatch abortAnswered = new CountDownLatch(1);
+        ExecutionInterceptor interceptor = new ExecutionInterceptor() {
+            @Override
+            public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
+                if (context.request() instanceof UploadPartRequest) {
+                    partAnsweredInThisTask.set(true);
+                } else if (context.request() instanceof AbortMultipartUploadRequest) {
+                    abortAnswered.countDown();
+                }
+            }
+        };
+        // afterExecution runs before the UploadPart future completes. Count a part only after the completion task that
+        // ran its afterExecution has returned, so the multipart client has handled the response before the cancel.
+        ExecutorService completionThreads = Executors.newFixedThreadPool(2);
+        Executor completionExecutor = task -> completionThreads.execute(() -> {
+            task.run();
+            if (partAnsweredInThisTask.get()) {
+                partAnsweredInThisTask.set(false);
+                partsCompleted.countDown();
+            }
+        });
+
+        try (S3AsyncClient client = clientBuilder(wiremock)
+            .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
+            .asyncConfiguration(b -> b.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
+                                                      completionExecutor))
+            .build()) {
+            BlockingOutputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingOutputStream(null);
+            CompletableFuture<PutObjectResponse> upload = client.putObject(r -> r.bucket(BUCKET).key(KEY), body);
+            CancellableOutputStream outputStream = body.outputStream();
+            try {
+                outputStream.write(new byte[20]);
+                assertThat(partsCompleted.await(10, TimeUnit.SECONDS)).isTrue();
+
+                upload.cancel(true);
+
+                assertThat(abortAnswered.await(10, TimeUnit.SECONDS)).isTrue();
+                verify(1, deleteRequestedFor(anyUrl()).withQueryParam("uploadId", equalTo("string")));
+                verify(0, postRequestedFor(anyUrl()).withQueryParam("uploadId", equalTo("string")));
+            } finally {
+                outputStream.cancel();
+            }
+        } finally {
+            completionThreads.shutdownNow();
+        }
+    }
+
+    private enum StopTrigger {
+        CANCEL_FUTURE {
+            @Override
+            void stop(CompletableFuture<PutObjectResponse> upload, CancellableOutputStream outputStream) {
+                upload.cancel(true);
+            }
+        },
+        FAIL_BODY {
+            @Override
+            void stop(CompletableFuture<PutObjectResponse> upload, CancellableOutputStream outputStream) {
+                outputStream.cancel();
+            }
+        };
+
+        abstract void stop(CompletableFuture<PutObjectResponse> upload, CancellableOutputStream outputStream);
+    }
+
+    private static Stream<Arguments> stopBeforeCreateMultipartUploadResponds() {
+        return Stream.of(StopTrigger.values()).flatMap(trigger -> Stream.of(
+            Arguments.of(trigger, "CreateMultipartUpload succeeds, upload id known",
+                         aResponse().withStatus(200).withBody(CREATE_MULTIPART_PAYLOAD), 1),
+            Arguments.of(trigger, "CreateMultipartUpload fails, no upload id",
+                         aResponse().withStatus(403).withBody(ACCESS_DENIED_ERROR_PAYLOAD), 0)));
+    }
+
+    @ParameterizedTest(name = "{0}, {1}")
+    @MethodSource("stopBeforeCreateMultipartUploadResponds")
+    void uploadWithUnknownContentLength_whenStoppedBeforeCreateMultipartUploadResponds_shouldAbortOnlyIfUploadIdKnown(
+        StopTrigger trigger, String scenario, ResponseDefinitionBuilder createMultipartUploadResponse, int expectedAborts,
+        WireMockRuntimeInfo wiremock) throws Exception {
+        stubFor(post(anyUrl()).willReturn(createMultipartUploadResponse.withFixedDelay(2000)));
+        stubFor(put(anyUrl()).willReturn(aResponse().withStatus(200)));
+        stubFor(delete(anyUrl()).willReturn(aResponse().withStatus(204)));
+
+        ThreadLocal<Boolean> createAnsweredInThisTask = ThreadLocal.withInitial(() -> false);
+        CountDownLatch createHandled = new CountDownLatch(1);
+        ExecutionInterceptor interceptor = new ExecutionInterceptor() {
+            @Override
+            public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
+                if (context.request() instanceof CreateMultipartUploadRequest) {
+                    createAnsweredInThisTask.set(true);
+                }
+            }
+
+            @Override
+            public void onExecutionFailure(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
+                if (context.request() instanceof CreateMultipartUploadRequest) {
+                    createAnsweredInThisTask.set(true);
+                }
+            }
+        };
+        // The interceptor runs before the CreateMultipartUpload future completes. Count down only after the completion
+        // task has returned, so the multipart client has handled the response before the assertions run.
+        ExecutorService completionThreads = Executors.newFixedThreadPool(2);
+        Executor completionExecutor = task -> completionThreads.execute(() -> {
+            task.run();
+            if (createAnsweredInThisTask.get()) {
+                createAnsweredInThisTask.set(false);
+                createHandled.countDown();
+            }
+        });
+
+        try (S3AsyncClient client = clientBuilder(wiremock)
+            .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
+            .asyncConfiguration(b -> b.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
+                                                      completionExecutor))
+            .build()) {
+            BlockingOutputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingOutputStream(null);
+            CompletableFuture<PutObjectResponse> upload = client.putObject(r -> r.bucket(BUCKET).key(KEY), body);
+            CancellableOutputStream outputStream = body.outputStream();
+            try {
+                outputStream.write(new byte[20]);
+                awaitRequests(1, postRequestedFor(urlEqualTo("/Example-Bucket/Example-Object?uploads")));
+
+                trigger.stop(upload, outputStream);
+
+                assertThat(createHandled.await(10, TimeUnit.SECONDS)).as("CreateMultipartUpload response handled").isTrue();
+                assertThat(upload).isCompletedExceptionally();
+                awaitRequests(expectedAborts, deleteRequestedFor(anyUrl()).withQueryParam("uploadId", equalTo("string")));
+                verify(1, postRequestedFor(urlEqualTo("/Example-Bucket/Example-Object?uploads")));
+                verify(0, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(".*")));
+                verify(0, postRequestedFor(anyUrl()).withQueryParam("uploadId", equalTo("string")));
+            } finally {
+                outputStream.cancel();
+            }
+        } finally {
+            completionThreads.shutdownNow();
+        }
+    }
+
+    private static void awaitRequests(int count, RequestPatternBuilder pattern) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (findAll(pattern).size() < count && System.nanoTime() < deadline) {
+            Thread.sleep(10);
+        }
+        verify(count, pattern);
     }
 
     @Test
