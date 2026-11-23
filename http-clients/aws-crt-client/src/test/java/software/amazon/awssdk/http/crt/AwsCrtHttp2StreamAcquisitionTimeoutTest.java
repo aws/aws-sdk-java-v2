@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.http.HttpTestUtils.createProvider;
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createRequest;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.URI;
@@ -43,7 +44,6 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
  */
 public class AwsCrtHttp2StreamAcquisitionTimeoutTest {
     private static final int STREAM_MANAGER_ACQUISITION_TIMEOUT = 2097;
-    private static final String ACQUIRE_TIMEOUT_MESSAGE = "Acquire operation took longer than the configured maximum time.";
     private static final Duration ACQUISITION_TIMEOUT = Duration.ofMillis(200);
 
     private static DeferredResponseServer h2Server;
@@ -110,8 +110,9 @@ public class AwsCrtHttp2StreamAcquisitionTimeoutTest {
         assertThatThrownBy(() -> request.get(5, TimeUnit.SECONDS))
             .isInstanceOf(ExecutionException.class)
             .satisfies(e -> {
-                assertThat(e.getCause()).isExactlyInstanceOf(IllegalStateException.class)
-                                        .hasMessageStartingWith(ACQUIRE_TIMEOUT_MESSAGE);
+                assertThat(e.getCause())
+                    .isExactlyInstanceOf(IOException.class)
+                    .hasMessageContaining("Stream Manager failed to acquire a stream within the defined timeout");
                 assertThat(e.getCause().getCause()).isInstanceOfSatisfying(CrtRuntimeException.class, c -> assertThat(c.errorCode)
                     .isEqualTo(STREAM_MANAGER_ACQUISITION_TIMEOUT));
             });

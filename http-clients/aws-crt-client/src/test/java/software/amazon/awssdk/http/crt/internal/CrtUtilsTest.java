@@ -173,13 +173,13 @@ public class CrtUtilsTest {
     }
 
     @Test
-    public void wrapCrtException_streamManagerAcquisitionTimeout_wrapsWithAcquireTimeoutMessage() {
+    public void wrapCrtException_streamManagerAcquisitionTimeout_wrapsInIOExceptionWithCrtMessage() {
         CrtRuntimeException crtException = new CrtRuntimeException(CrtUtils.CRT_STREAM_MANAGER_ACQUISITION_TIMEOUT);
 
         Throwable result = CrtUtils.wrapCrtException(new CompletionException(crtException));
 
-        assertThat(result).isExactlyInstanceOf(IllegalStateException.class)
-                          .hasMessageStartingWith("Acquire operation took longer than the configured maximum time.")
+        assertThat(result).isExactlyInstanceOf(IOException.class)
+                          .hasMessageContaining(crtException.getMessage())
                           .hasCause(crtException);
     }
 

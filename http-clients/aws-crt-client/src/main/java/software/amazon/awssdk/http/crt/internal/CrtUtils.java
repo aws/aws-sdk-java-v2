@@ -80,23 +80,6 @@ public final class CrtUtils {
         + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
         + "AWS, or by increasing the number of hosts sending requests.";
 
-    private static final String STREAM_ACQUISITION_TIMEOUT_MESSAGE =
-        "Acquire operation took longer than the configured maximum time. This indicates that a request cannot get a "
-        + "connection or stream from the pool within connectionAcquisitionTimeout. This can be due to high request rate.\n"
-
-        + "Consider taking any of the following actions to mitigate the issue: increase maxConcurrency, "
-        + "increase connectionAcquisitionTimeout, or slow the request rate.\n"
-
-        + "Increasing maxConcurrency can increase client throughput (unless the network interface is already fully "
-        + "utilized), but can eventually start to hit operating system limitations on the number of file descriptors "
-        + "used by the process. If you are already fully utilizing your network interface or cannot further increase "
-        + "maxConcurrency, increasing connectionAcquisitionTimeout gives requests more time to acquire a connection or "
-        + "stream before timing out. If connections and streams don't free up, later requests will still time out.\n"
-
-        + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
-        + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
-        + "AWS, or by increasing the number of hosts sending requests.";
-
     // HTTP error codes that the native CRT classifier (CRT.awsIsTransientError) does NOT mark as transient
     // but that the SDK considers recoverable. See enum aws_http_errors in aws-c-http/include/aws/http/http.h
     // for symbolic names.
@@ -162,9 +145,18 @@ public final class CrtUtils {
         }
 
         if (throwable instanceof CrtRuntimeException) {
-            IllegalStateException nonRetryable = nonRetryableStreamManagerError((CrtRuntimeException) throwable);
-            if (nonRetryable != null) {
-                return nonRetryable;
+            int crtErrorCode = ((CrtRuntimeException) throwable).errorCode;
+
+            // The HTTP/2 stream manager reports its over-limit rejection as a CrtRuntimeException. Handle it like the HTTP/1.1
+            // rejection, instead of wrapping it in the retryable IOException below.
+            if (crtErrorCode == CRT_STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED) {
+                return maxPendingAcquisitionsExceeded(throwable);
+            }
+
+            // Surface the HTTP/2 stream acquisition timeout like the HTTP/1.1 acquisition timeout, with the CRT text in the
+            // IOException's message.
+            if (crtErrorCode == CRT_STREAM_MANAGER_ACQUISITION_TIMEOUT) {
+                return new IOException(throwable);
             }
         }
 
@@ -174,25 +166,6 @@ public final class CrtUtils {
         }
 
         return throwable;
-    }
-
-    /**
-     * Maps the HTTP/2 stream manager errors that the SDK does not retry. The CRT reports them as a
-     * {@link CrtRuntimeException}, which {@link #wrapCrtException} would otherwise wrap in a retryable {@link IOException}.
-     *
-     * @param crtException the CRT exception from the HTTP/2 stream manager
-     * @return the {@link IllegalStateException} to surface, with the CRT exception as its cause, or {@code null} if the error
-     * is not one of them
-     */
-    private static IllegalStateException nonRetryableStreamManagerError(CrtRuntimeException crtException) {
-        switch (crtException.errorCode) {
-            case CRT_STREAM_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED:
-                return maxPendingAcquisitionsExceeded(crtException);
-            case CRT_STREAM_MANAGER_ACQUISITION_TIMEOUT:
-                return new IllegalStateException(STREAM_ACQUISITION_TIMEOUT_MESSAGE, crtException);
-            default:
-                return null;
-        }
     }
 
     /**
