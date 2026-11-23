@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -37,6 +36,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -85,6 +85,7 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
     private Subscription subscription;
     private CloseableAsyncRequestBody firstRequestBody;
     private volatile String uploadId;
+    private volatile CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUploadFuture;
     private volatile boolean isDone;
     private final AtomicReference<State> state = new AtomicReference<>(State.RUNNING);
 
@@ -122,8 +123,8 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
                 if (tryMarkFailing()) {
                     MultipartUploadHelper.cancelingOtherOngoingRequests(futures, t);
                     abortWhenUploadIdKnown();
-                } else if (state.get() == State.COMPLETING && t instanceof CancellationException) {
-                    // GenericMultipartHelper already aborts a failed CompleteMultipartUpload, so abort here only on cancel.
+                } else if (state.get() == State.COMPLETING && !isCompleteMultipartUploadDone()) {
+                    // GenericMultipartHelper aborts a failed CompleteMultipartUpload, so abort here only while it is in flight.
                     abortWhenUploadIdKnown();
                 }
             }
@@ -320,8 +321,18 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
                 return;
             }
 
-            multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest, totalLength);
+            completeMultipartUploadFuture =
+                multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest, totalLength);
         }
+    }
+
+    /**
+     * Returns whether CompleteMultipartUpload has finished, or false if completeMultipartUploadIfFinish has not assigned
+     * its future yet.
+     */
+    private boolean isCompleteMultipartUploadDone() {
+        CompletableFuture<CompleteMultipartUploadResponse> future = completeMultipartUploadFuture;
+        return future != null && future.isDone();
     }
 
     private boolean tryMarkFailing() {

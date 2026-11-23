@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -152,6 +153,17 @@ class UnknownContentLengthAsyncRequestBodySubscriberLifecycleTest {
         }
     }
 
+    enum CallerFailure {
+        CANCEL(future -> future.cancel(true)),
+        TIMEOUT(future -> future.completeExceptionally(new TimeoutException("caller timed out")));
+
+        private final Consumer<CompletableFuture<PutObjectResponse>> failure;
+
+        CallerFailure(Consumer<CompletableFuture<PutObjectResponse>> failure) {
+            this.failure = failure;
+        }
+    }
+
     @ParameterizedTest(name = "{0}")
     @EnumSource(FailurePoint.class)
     void onError_whenMultipartUploadStarted_shouldAbortOnceAndNeverComplete(FailurePoint failurePoint) {
@@ -198,8 +210,9 @@ class UnknownContentLengthAsyncRequestBodySubscriberLifecycleTest {
         f.bodies.forEach(body -> verify(body).close());
     }
 
-    @Test
-    void cancel_whenCompleteMultipartUploadInFlight_shouldAbort() {
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(CallerFailure.class)
+    void failReturnFuture_whenCompleteMultipartUploadInFlight_shouldAbort(CallerFailure callerFailure) {
         Fixture f = new Fixture();
         when(f.s3.completeMultipartUpload(any(CompleteMultipartUploadRequest.class))).thenReturn(new CompletableFuture<>());
         f.deliverParts(2);
@@ -207,7 +220,7 @@ class UnknownContentLengthAsyncRequestBodySubscriberLifecycleTest {
         f.completeSentParts();
         f.subscriber.onComplete();
 
-        f.returnFuture.cancel(true);
+        callerFailure.failure.accept(f.returnFuture);
 
         verify(f.s3, times(1)).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
         ArgumentCaptor<AbortMultipartUploadRequest> abort = ArgumentCaptor.forClass(AbortMultipartUploadRequest.class);
