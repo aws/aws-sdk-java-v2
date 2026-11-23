@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.59.8__ __2026-11-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Launch CloudFront in AWS European Sovereign Cloud.
+
+## __Amazon CloudFront KeyValueStore__
+  - ### Features
+    - This release adds support for KVSHQ API in the AWS European Sovereign Cloud. Requests for key value stores in the aws-eusc partition are now routed to account-based endpoints under cloudfront-kvs.global.api.amazonwebservices.eu.
+
+## __Amazon FSx__
+  - ### Features
+    - Adds support for new FSx for NetApp ONTAP resources
+
+## __CloudWatch Omni__
+  - ### Features
+    - Release of the new integration type in CreateIntegration API - Used to add Microsoft Azure resources to the Amazon CloudWatch Omni context graph through an AWS Config connector for your Azure tenant.
+
 # __2.59.7__ __2026-11-20__
 ## __Amazon QuickSight__
   - ### Features

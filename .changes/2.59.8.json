@@ -1,0 +1,36 @@
+{
+    "version": "2.59.8",
+    "date": "2026-11-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "Adds support for new FSx for NetApp ONTAP resources"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront KeyValueStore",
+            "contributor": "",
+            "description": "This release adds support for KVSHQ API in the AWS European Sovereign Cloud. Requests for key value stores in the aws-eusc partition are now routed to account-based endpoints under cloudfront-kvs.global.api.amazonwebservices.eu."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Launch CloudFront in AWS European Sovereign Cloud."
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch Omni",
+            "contributor": "",
+            "description": "Release of the new integration type in CreateIntegration API - Used to add Microsoft Azure resources to the Amazon CloudWatch Omni context graph through an AWS Config connector for your Azure tenant."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
