@@ -33,6 +33,7 @@ public final class ControlledSubscription implements Subscription {
     private boolean streamComplete;
     private boolean onCompleteDelivered;
     private boolean draining;
+    private volatile boolean cancelled;
 
     public ControlledSubscription(Subscriber<? super CloseableAsyncRequestBody> subscriber) {
         this.subscriber = subscriber;
@@ -46,6 +47,11 @@ public final class ControlledSubscription implements Subscription {
 
     @Override
     public void cancel() {
+        cancelled = true;
+    }
+
+    public boolean isCancelled() {
+        return cancelled;
     }
 
     public void enqueueBodyAndDeliver(CloseableAsyncRequestBody body) {

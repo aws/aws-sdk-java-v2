@@ -106,7 +106,9 @@ public final class UploadWithKnownContentLengthHelper {
     private void initiateNewUpload(PutObjectRequest putObjectRequest, long contentLength, AsyncRequestBody asyncRequestBody,
                                    CompletableFuture<PutObjectResponse> returnFuture) {
         CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
-            multipartUploadHelper.createMultipartUpload(putObjectRequest, returnFuture);
+            multipartUploadHelper.createMultipartUpload(putObjectRequest);
+
+        CompletableFutureUtils.forwardExceptionTo(returnFuture, createMultipartUploadFuture);
 
         createMultipartUploadFuture.whenComplete((createMultipartUploadResponse, throwable) -> {
             if (throwable != null) {

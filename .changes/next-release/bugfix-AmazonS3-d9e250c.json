@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Fixed `putObject` with an unknown content length on a multipart-enabled `S3AsyncClient` so that a failed request body or a cancelled `putObject` future aborts the multipart upload, instead of completing a partial object or leaving the upload open."
+}

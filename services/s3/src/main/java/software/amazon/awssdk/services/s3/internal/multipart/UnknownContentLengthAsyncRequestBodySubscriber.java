@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -35,14 +36,15 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
-import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscriber<CloseableAsyncRequestBody> {
@@ -59,16 +61,9 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
     private final AtomicBoolean createMultipartUploadInitiated = new AtomicBoolean(false);
 
     /**
-     * Indicates whether CompleteMultipart has been initiated or not.
-     */
-    private final AtomicBoolean completedMultipartInitiated = new AtomicBoolean(false);
-
-    /**
      * The number of AsyncRequestBody has been received but yet to be processed
      */
     private final AtomicInteger asyncRequestBodyInFlight = new AtomicInteger(0);
-
-    private final AtomicBoolean failureActionInitiated = new AtomicBoolean(false);
 
     private final AtomicInteger partNumber = new AtomicInteger(0);
     private final AtomicLong contentLength = new AtomicLong(0);
@@ -89,8 +84,10 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
     private final Object subscriptionLock = new Object();
     private Subscription subscription;
     private CloseableAsyncRequestBody firstRequestBody;
-    private String uploadId;
+    private volatile String uploadId;
+    private volatile CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUploadFuture;
     private volatile boolean isDone;
+    private final AtomicReference<State> state = new AtomicReference<>(State.RUNNING);
 
     UnknownContentLengthAsyncRequestBodySubscriber(
         long partSizeInBytes,
@@ -112,9 +109,10 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
 
     @Override
     public void onSubscribe(Subscription s) {
+        Validate.paramNotNull(s, "subscription");
         if (this.subscription != null) {
             log.warn(() -> "The subscriber has already been subscribed. Cancelling the incoming subscription");
-            subscription.cancel();
+            s.cancel();
             return;
         }
         this.subscription = s;
@@ -122,7 +120,13 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
         returnFuture.whenComplete((r, t) -> {
             if (t != null) {
                 s.cancel();
-                MultipartUploadHelper.cancelingOtherOngoingRequests(futures, t);
+                if (tryMarkFailing()) {
+                    MultipartUploadHelper.cancelingOtherOngoingRequests(futures, t);
+                    abortWhenUploadIdKnown();
+                } else if (state.get() == State.COMPLETING && !isCompleteMultipartUploadDone()) {
+                    // GenericMultipartHelper aborts a failed CompleteMultipartUpload, so abort here only while it is in flight.
+                    abortWhenUploadIdKnown();
+                }
             }
         });
     }
@@ -131,11 +135,14 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
     public void onNext(CloseableAsyncRequestBody asyncRequestBody) {
         if (asyncRequestBody == null) {
             NullPointerException exception = new NullPointerException("asyncRequestBody passed to onNext MUST NOT be null.");
-            multipartUploadHelper.failRequestsElegantly(futures, exception, uploadId, returnFuture, putObjectRequest);
+            if (tryMarkFailing()) {
+                failUpload(exception);
+            }
             throw exception;
         }
 
-        if (isDone) {
+        if (state.get() != State.RUNNING || isDone) {
+            discard(asyncRequestBody);
             return;
         }
 
@@ -145,8 +152,10 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
 
         Optional<SdkClientException> sdkClientException = validatePart(asyncRequestBody, currentPartNum);
         if (sdkClientException.isPresent()) {
-            multipartUploadHelper.failRequestsElegantly(
-                futures, sdkClientException.get(), uploadId, returnFuture, putObjectRequest);
+            if (tryMarkFailing()) {
+                failUpload(sdkClientException.get());
+            }
+            discard(asyncRequestBody);
             subscription.cancel();
             return;
         }
@@ -165,19 +174,31 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
         if (createMultipartUploadInitiated.compareAndSet(false, true)) {
             log.debug(() -> "Starting the upload as multipart upload request");
             CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture = multipartUploadHelper
-                .createMultipartUpload(putObjectRequest, returnFuture);
+                .createMultipartUpload(putObjectRequest);
 
             createMultipartUploadFuture.whenComplete((createMultipartUploadResponse, throwable) -> {
                 if (throwable != null) {
-                    genericMultipartHelper.handleException(returnFuture, () -> "Failed to initiate multipart upload", throwable);
+                    uploadIdFuture.completeExceptionally(throwable);
+                    if (tryMarkFailing()) {
+                        genericMultipartHelper.handleException(returnFuture, () -> "Failed to initiate multipart upload",
+                                                               throwable);
+                    }
                     subscription.cancel();
+                    discard(firstRequestBody);
+                    discard(asyncRequestBody);
                 } else {
                     uploadId = createMultipartUploadResponse.uploadId();
                     log.debug(() -> "Initiated a new multipart upload, uploadId: " + uploadId);
+                    // Complete uploadIdFuture before checking state. A failure's abort waits on it, even when we return below.
+                    uploadIdFuture.complete(uploadId);
+                    if (state.get() != State.RUNNING) {
+                        discard(firstRequestBody);
+                        discard(asyncRequestBody);
+                        return;
+                    }
 
                     sendUploadPartRequest(uploadId, firstRequestBody, 1);
                     sendUploadPartRequest(uploadId, asyncRequestBody, 2);
-                    uploadIdFuture.complete(uploadId);
 
                     // 2 parts already in flight, request the rest of our max in flight
                     int additionalDemand = maxInFlightParts - 2;
@@ -188,9 +209,12 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
                     }
                 }
             });
-            CompletableFutureUtils.forwardExceptionTo(returnFuture, createMultipartUploadFuture);
         } else {
             uploadIdFuture.whenComplete((r, t) -> {
+                if (t != null) {
+                    discard(asyncRequestBody);
+                    return;
+                }
                 sendUploadPartRequest(uploadId, asyncRequestBody, currentPartNum);
             });
         }
@@ -212,29 +236,36 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
     private void sendUploadPartRequest(String uploadId,
             CloseableAsyncRequestBody asyncRequestBody,
             int currentPartNum) {
+        if (state.get() != State.RUNNING) {
+            discard(asyncRequestBody);
+            return;
+        }
         Long contentLengthCurrentPart = asyncRequestBody.contentLength().get();
         this.contentLength.getAndAdd(contentLengthCurrentPart);
 
-        multipartUploadHelper
-            .sendIndividualUploadPartRequest(uploadId, completedParts::add, futures,
-                                             uploadPart(asyncRequestBody, currentPartNum), progressListener)
-            .whenComplete((r, t) -> {
-                asyncRequestBody.close();
-                if (t != null) {
-                    if (failureActionInitiated.compareAndSet(false, true)) {
-                        multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture,
-                                                                    putObjectRequest);
-                    }
-                } else {
-                    int inFlight = asyncRequestBodyInFlight.decrementAndGet();
-                    if (!isDone && inFlight < maxInFlightParts) {
-                        synchronized (subscriptionLock) {
-                            subscription.request(1);
-                        }
-                    }
-                    completeMultipartUploadIfFinish();
+        CompletableFuture<CompletedPart> partFuture = multipartUploadHelper.sendIndividualUploadPartRequest(
+            uploadId, completedParts::add, futures, uploadPart(asyncRequestBody, currentPartNum), progressListener);
+        partFuture.whenComplete((r, t) -> {
+            asyncRequestBody.close();
+            if (t != null) {
+                if (tryMarkFailing()) {
+                    failUpload(t);
                 }
-            });
+            } else {
+                int inFlight = asyncRequestBodyInFlight.decrementAndGet();
+                if (!isDone && inFlight < maxInFlightParts) {
+                    synchronized (subscriptionLock) {
+                        subscription.request(1);
+                    }
+                }
+                completeMultipartUploadIfFinish();
+            }
+        });
+
+        // A failure that ran before this part's future was registered could not cancel it.
+        if (state.get() != State.RUNNING) {
+            partFuture.cancel(true);
+        }
     }
 
     private Pair<UploadPartRequest, AsyncRequestBody> uploadPart(AsyncRequestBody asyncRequestBody, int partNum) {
@@ -248,9 +279,9 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
     @Override
     public void onError(Throwable t) {
         log.debug(() -> "Received onError() ", t);
-        if (failureActionInitiated.compareAndSet(false, true)) {
+        if (tryMarkFailing()) {
             isDone = true;
-            multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture, putObjectRequest);
+            failUpload(t);
         }
     }
 
@@ -272,7 +303,7 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
 
     private void completeMultipartUploadIfFinish() {
         // All atomics including asyncRequestBodyInFlight MUST be re-read here rather than passed in by the caller.
-        if (isDone && asyncRequestBodyInFlight.get() == 0 && completedMultipartInitiated.compareAndSet(false, true)) {
+        if (isDone && asyncRequestBodyInFlight.get() == 0 && state.compareAndSet(State.RUNNING, State.COMPLETING)) {
             CompletedPart[] parts = completedParts.stream()
                                                   .sorted(Comparator.comparingInt(CompletedPart::partNumber))
                                                   .toArray(CompletedPart[]::new);
@@ -285,11 +316,53 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
                         "The number of UploadParts requests is not equal to the expected number of parts. "
                         + "Expected: %d, Actual: %d",
                         expectedNumParts, parts.length));
-                multipartUploadHelper.failRequestsElegantly(futures, exception, uploadId, returnFuture, putObjectRequest);
+                state.set(State.FAILING);
+                failUpload(exception);
                 return;
             }
 
-            multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest, totalLength);
+            // Assign before attaching the handler, so an already-failed future is not aborted twice.
+            completeMultipartUploadFuture =
+                genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId, parts, totalLength);
+            multipartUploadHelper.handleCompleteMultipartUploadResult(completeMultipartUploadFuture, returnFuture, uploadId,
+                                                                      putObjectRequest);
         }
+    }
+
+    /**
+     * Returns false until CompleteMultipartUpload has been sent and has finished.
+     */
+    private boolean isCompleteMultipartUploadDone() {
+        CompletableFuture<CompleteMultipartUploadResponse> future = completeMultipartUploadFuture;
+        return future != null && future.isDone();
+    }
+
+    private boolean tryMarkFailing() {
+        return state.compareAndSet(State.RUNNING, State.FAILING);
+    }
+
+    /**
+     * Must only be called by the caller that moved the state to {@link State#FAILING}. The upload id may not be known yet,
+     * so the abort waits for it.
+     */
+    private void failUpload(Throwable t) {
+        multipartUploadHelper.failRequestsElegantly(futures, t, null, returnFuture, putObjectRequest);
+        abortWhenUploadIdKnown();
+    }
+
+    private void abortWhenUploadIdKnown() {
+        uploadIdFuture.thenAccept(id -> genericMultipartHelper.cleanUpParts(
+            id, SdkPojoConversionUtils.toAbortMultipartUploadRequest(putObjectRequest)));
+    }
+
+    private static void discard(CloseableAsyncRequestBody asyncRequestBody) {
+        asyncRequestBody.subscribe(new CancelledSubscriber<>());
+        asyncRequestBody.close();
+    }
+
+    private enum State {
+        RUNNING,
+        COMPLETING,
+        FAILING
     }
 }
