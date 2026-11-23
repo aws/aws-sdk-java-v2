@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon FSx",
-    "contributor": "",
-    "description": "Adds support for new FSx for NetApp ONTAP resources"
-}
