@@ -321,14 +321,16 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
                 return;
             }
 
+            // Assign before attaching the handler, so an already-failed future is not aborted twice.
             completeMultipartUploadFuture =
-                multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest, totalLength);
+                genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId, parts, totalLength);
+            multipartUploadHelper.handleCompleteMultipartUploadResult(completeMultipartUploadFuture, returnFuture, uploadId,
+                                                                      putObjectRequest);
         }
     }
 
     /**
-     * Returns whether CompleteMultipartUpload has finished, or false if completeMultipartUploadIfFinish has not assigned
-     * its future yet.
+     * Returns false until CompleteMultipartUpload has been sent and has finished.
      */
     private boolean isCompleteMultipartUploadDone() {
         CompletableFuture<CompleteMultipartUploadResponse> future = completeMultipartUploadFuture;

@@ -78,14 +78,19 @@ public final class MultipartUploadHelper {
                                  long contentLength) {
         CompletableFuture<CompleteMultipartUploadResponse> future =
             genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId, completedParts, contentLength);
+        handleCompleteMultipartUploadResult(future, returnFuture, uploadId, putObjectRequest);
+        return future;
+    }
 
+    void handleCompleteMultipartUploadResult(CompletableFuture<CompleteMultipartUploadResponse> future,
+                                             CompletableFuture<PutObjectResponse> returnFuture,
+                                             String uploadId,
+                                             PutObjectRequest putObjectRequest) {
         future.handle(genericMultipartHelper.handleExceptionOrResponse(putObjectRequest, returnFuture, uploadId))
               .exceptionally(throwable -> {
                   genericMultipartHelper.handleException(returnFuture, () -> "Unexpected exception occurred", throwable);
                   return null;
               });
-
-        return future;
     }
 
     CompletableFuture<CompletedPart> sendIndividualUploadPartRequest(String uploadId,

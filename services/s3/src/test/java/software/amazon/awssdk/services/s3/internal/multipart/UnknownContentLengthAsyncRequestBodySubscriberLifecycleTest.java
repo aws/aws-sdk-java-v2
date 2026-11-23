@@ -247,6 +247,24 @@ class UnknownContentLengthAsyncRequestBodySubscriberLifecycleTest {
     }
 
     @Test
+    void onComplete_whenCompleteMultipartUploadAlreadyFailed_shouldAbortOnce() {
+        Fixture f = new Fixture();
+        CompletableFuture<CompleteMultipartUploadResponse> failed = new CompletableFuture<>();
+        failed.completeExceptionally(S3Exception.builder().message("CompleteMultipartUpload failed").build());
+        when(f.s3.completeMultipartUpload(any(CompleteMultipartUploadRequest.class))).thenReturn(failed);
+        f.deliverParts(2);
+        f.completeCreateMultipartUpload();
+        f.completeSentParts();
+
+        f.subscriber.onComplete();
+
+        assertThat(f.returnFuture).isCompletedExceptionally();
+        ArgumentCaptor<AbortMultipartUploadRequest> abort = ArgumentCaptor.forClass(AbortMultipartUploadRequest.class);
+        verify(f.s3, times(1)).abortMultipartUpload(abort.capture());
+        assertThat(abort.getValue().uploadId()).isEqualTo(UPLOAD_ID);
+    }
+
+    @Test
     void onComplete_whenSinglePartUploadFails_shouldLeaveExceptionUnchanged() {
         Fixture f = new Fixture();
         CompletableFuture<PutObjectResponse> putObject = new CompletableFuture<>();

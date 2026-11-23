@@ -207,14 +207,16 @@ public class UnknownContentLengthAsyncRequestBodySubscriberTest {
 
         // verify we haven't called CompleteMultipartUpload yet.
         verify(multipartUploadHelper, never()).failRequestsElegantly(any(), any(), any(), any(), any());
-        verify(multipartUploadHelper, never()).completeMultipartUpload(any(), any(), any(), any(), anyLong());
+        verify(genericMultipartHelper, never()).completeMultipartUpload(any(), any(), any(), anyLong());
 
         // Part 5's upload finishes; only now should CompleteMultipartUpload be sent, with all 5 parts.
         recorder.completePart(5);
 
         ArgumentCaptor<CompletedPart[]> partsCaptor = ArgumentCaptor.forClass(CompletedPart[].class);
-        verify(multipartUploadHelper).completeMultipartUpload(eq(returnFuture), eq(UPLOAD_ID), partsCaptor.capture(),
-                                                              eq(putObjectRequest), eq(numParts * PART_SIZE));
+        verify(genericMultipartHelper).completeMultipartUpload(eq(putObjectRequest), eq(UPLOAD_ID), partsCaptor.capture(),
+                                                               eq(numParts * PART_SIZE));
+        verify(multipartUploadHelper).handleCompleteMultipartUploadResult(any(), eq(returnFuture), eq(UPLOAD_ID),
+                                                                          eq(putObjectRequest));
         assertThat(partsCaptor.getValue()).hasSize(numParts).doesNotContainNull();
         verify(multipartUploadHelper, never()).failRequestsElegantly(any(), any(), any(), any(), any());
     }
