@@ -29,6 +29,7 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBIndexRangeKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBKeyed;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBNamed;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConvertedJson;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConvertedEpochDate;
 
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
@@ -52,6 +53,7 @@ public class AllSupportedAnnotationsClass extends TestDocClass {
     private String gsiHashKey;
     private String gsiRangeKey;
     private String namedAttribute;
+    private Currency currencyAttribute;
     private Date epochDate;
     private DateRange dateRange;
 
@@ -154,6 +156,15 @@ public class AllSupportedAnnotationsClass extends TestDocClass {
         this.namedAttribute = namedAttribute;
     }
 
+    @DynamoDBTypeConvertedJson
+    public Currency getCurrencyAttribute() {
+        return currencyAttribute;
+    }
+
+    public void setCurrencyAttribute(Currency currencyAttribute) {
+        this.currencyAttribute = currencyAttribute;
+    }
+
     @DynamoDBTypeConvertedEpochDate
     public Date getEpochDate() {
         return epochDate;
@@ -189,6 +200,7 @@ public class AllSupportedAnnotationsClass extends TestDocClass {
                 && eq(gsiHashKey, other.gsiHashKey)
                 && eq(gsiRangeKey, other.gsiRangeKey)
                 && eq(namedAttribute, other.namedAttribute)
+                && eq(currencyAttribute, other.currencyAttribute)
                 && eq(epochDate, other.epochDate)
                 && eq(dateRange, other.dateRange)
                 && super.equals(other)
@@ -201,7 +213,7 @@ public class AllSupportedAnnotationsClass extends TestDocClass {
                 + ", mapOfLists=" + super.getMapOfLists() + ", integerAttribute=" + integerAttribute + ", uuid=" + uuid + ", date=" + date
                 + ", defaultAttribute=" + defaultAttribute + ", booleanAttribute=" + booleanAttribute + ", phoneNumber=" + phoneNumber
                 + ", ignoredAttribute=" + ignoredAttribute + ", gsiHashKey=" + gsiHashKey + ", gsiRangeKey=" + gsiRangeKey
-                + ", namedAttribute=" + namedAttribute + ", epochDate=" + epochDate +", dateRange=" + dateRange
+                + ", namedAttribute=" + namedAttribute + ", currencyAttribute=" + currencyAttribute + ", epochDate=" + epochDate +", dateRange=" + dateRange
                 + "}";
     }
 }

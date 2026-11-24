@@ -91,6 +91,7 @@
                             <configuration>
                                 <excludes combine.children="append">
                                     <exclude>**/*WithoutJodaTimeTest.java</exclude>
+                                    <exclude>**/*WithoutJacksonDatabindTest.java</exclude>
                                 </excludes>
                             </configuration>
                         </execution>
@@ -113,6 +114,28 @@
                                 <systemPropertyVariables>
                                     <mapper.test.jodaTimeExcluded>true</mapper.test.jodaTimeExcluded>
                                     <mapper.test.jodaTimeJar>${joda-time:joda-time:jar}</mapper.test.jodaTimeJar>
+                                </systemPropertyVariables>
+                            </configuration>
+                        </execution>
+                        <!-- The mapper doesn't depend on jackson-databind; @DynamoDBTypeConvertedJson uses the
+                             application's. Run the tests that check the mapper works without it in a separate JVM, with
+                             jackson-databind removed from the classpath. -->
+                        <execution>
+                            <id>without-jackson-databind</id>
+                            <goals>
+                                <goal>test</goal>
+                            </goals>
+                            <configuration>
+                                <includes combine.self="override">
+                                    <include>**/*WithoutJacksonDatabindTest.java</include>
+                                </includes>
+                                <!-- Set explicitly so that -Dtest=... doesn't run other tests here without databind. -->
+                                <test>*WithoutJacksonDatabindTest</test>
+                                <classpathDependencyExcludes>
+                                    <classpathDependencyExclude>com.fasterxml.jackson.core:jackson-databind</classpathDependencyExclude>
+                                </classpathDependencyExcludes>
+                                <systemPropertyVariables>
+                                    <mapper.test.jacksonDatabindExcluded>true</mapper.test.jacksonDatabindExcluded>
                                 </systemPropertyVariables>
                             </configuration>
                         </execution>
@@ -179,6 +202,13 @@
         </dependency>
 
         <!-- Test dependencies -->
+        <!-- Used by @DynamoDBTypeConvertedJson at runtime when the application provides it; the mapper itself
+             doesn't depend on it. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
