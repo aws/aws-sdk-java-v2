@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed an issue where a failed async API call also failed the HTTP client's request future after the response had been fully received. With the Netty HTTP client, this could close a pooled connection that another request was using."
+}

@@ -24,7 +24,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
@@ -175,6 +177,30 @@ public class AsyncClientHandlerTest {
 
         // Then
         verifyNoMoreInteractions(responseHandler); // Response handler is not called
+    }
+
+    @Test
+    public void serviceErrorResponseFullyReceived_doesNotAbortHttpRequest() throws Exception {
+        SdkServiceException exception = SdkServiceException.builder().message("InternalError injected").statusCode(500).build();
+        CompletableFuture<Void> activeHttpRequest = new CompletableFuture<>();
+        ArgumentCaptor<AsyncExecuteRequest> executeRequest = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
+
+        expectRetrievalFromMocks();
+        when(httpClient.execute(executeRequest.capture())).thenReturn(activeHttpRequest);
+        when(errorResponseHandler.handle(any(), any())).thenReturn(exception);
+
+        CompletableFuture<SdkResponse> responseFuture = asyncClientHandler.execute(clientExecutionParams());
+        SdkAsyncHttpResponseHandler capturedHandler = executeRequest.getValue().responseHandler();
+        capturedHandler.onHeaders(SdkHttpFullResponse.builder()
+                                                     .statusCode(500)
+                                                     .putHeader("Content-Type", "application/xml")
+                                                     .build());
+        capturedHandler.onStream(Flowable.just(ByteBuffer.wrap(
+            "<Error><Code>InternalError</Code><Message>InternalError injected</Message></Error>"
+                .getBytes(StandardCharsets.UTF_8))));
+
+        assertThatThrownBy(() -> responseFuture.get(1, TimeUnit.SECONDS)).hasCause(exception);
+        assertThat(activeHttpRequest).isNotDone();
     }
 
     @Test
