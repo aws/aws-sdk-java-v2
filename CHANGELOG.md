@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.59.9__ __2026-11-24__
+## __AWS Global Accelerator__
+  - ### Features
+    - AWS Global Accelerator supports Client IP Preservation for NLBs with TLS Listener endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue where a failed async API call also failed the HTTP client's request future after the response had been fully received. With the Netty HTTP client, this could close a pooled connection that another request was using.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds the optional userLocation parameter to InvokeWebSearch. Specify a two-letter ISO 3166-1 alpha-2 country code to refine web search results for that country. InvokeWebSearch also accepts search queries in languages other than English.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed `putObject` with an unknown content length on a multipart-enabled `S3AsyncClient` so that a failed request body or a cancelled `putObject` future aborts the multipart upload, instead of completing a partial object or leaving the upload open.
+
 # __2.59.8__ __2026-11-23__
 ## __AWS SDK for Java v2__
   - ### Features
