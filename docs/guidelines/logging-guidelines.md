@@ -6,6 +6,7 @@
 - [Structured Logging](#structured-logging)
 - [Sensitive Data Handling](#sensitive-data-handling)
 - [Error Logging](#error-logging)
+- [Control Characters](#control-characters)
 - [Testing Logging](#testing-logging)
 
 ## General Principles
@@ -143,6 +144,8 @@ Never log sensitive information.
 - Operation names, status codes
 - Timing and performance metrics
 
+## Error Logging
+
 ### Error Context
 Provide sufficient context for debugging:
 
@@ -150,10 +153,32 @@ Provide sufficient context for debugging:
 // Good: Rich error context
 s3AsyncClient.abortMultipartUpload(request)
              .exceptionally(throwable -> {
-                 logger.warn(() -> String.format("Failed to abort previous multipart upload. You may need to call S3AsyncClient#abortMultiPartUpload to "
-                 + "free all storage consumed by all parts. [id=%s]", uploadId), throwable);
+                 if (logger.logger().isWarnEnabled()) {
+                     logger.warn(() -> String.format("Failed to abort previous multipart upload. You may need to call S3AsyncClient#abortMultiPartUpload to "
+                     + "free all storage consumed by all parts. [id=%s]", LogSanitizer.escapeControlCharacters(uploadId)),
+                                 LogSanitizer.sanitize(throwable));
+                 }
                  return null;
             });
+```
+
+## Control Characters
+
+Values the SDK does not control can contain CR, LF, other control characters, or the Unicode line and paragraph separators U+2028 and U+2029. Examples are file paths, object keys, queue URLs, upload IDs, provider names, request fields, and exception messages. Logged as is, a line break in one of these values starts a new log line. Escape them with `software.amazon.awssdk.utils.LogSanitizer`:
+
+- **Strings**: Wrap the value with `LogSanitizer.escapeControlCharacters(value)` inside the message supplier. When the message renders a whole object from outside the SDK, such as an HTTP request, escape the complete message.
+- **Exceptions**: Attach `LogSanitizer.sanitize(e)` instead of `e`. It runs eagerly, outside the message supplier, so check the log level first.
+- **Safe values**: String literals and values that cannot contain control characters, such as numbers the SDK formats, do not need escaping. When unsure, escape.
+
+```java
+// Good: Escape the path and the attached exception
+if (logger.logger().isWarnEnabled()) {
+    logger.warn(() -> "Failed to delete file '" + LogSanitizer.escapeControlCharacters(path.toString()) + "'",
+                LogSanitizer.sanitize(e));
+}
+
+// BAD: A line break in the path or the exception message starts a new log line
+logger.warn(() -> "Failed to delete file '" + path + "'", e);
 ```
 
 ## Testing Logging
