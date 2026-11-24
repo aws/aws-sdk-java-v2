@@ -111,6 +111,9 @@ public final class V4SigningKeyCache {
     /**
      * Composite cache key. Holds references rather than copies because the underlying values come from
      * {@link software.amazon.awssdk.identity.spi.AwsCredentialsIdentity}, which is immutable.
+     *
+     * <p>This class must never get a {@code toString()}: it holds the secret access key, which must not appear in logs,
+     * exception messages, or debugger output.
      */
     public static final class CacheKey {
         private final String secretKey;
@@ -122,10 +125,10 @@ public final class V4SigningKeyCache {
             this.secretKey = secretKey;
             this.region = region;
             this.service = service;
-            this.hashCode = computeHashCode(secretKey, region, service);
+            this.hashCode = computeHashCode();
         }
 
-        private static int computeHashCode(String secretKey, String region, String service) {
+        private int computeHashCode() {
             int result = 1;
             result = 31 * result + secretKey.hashCode();
             result = 31 * result + region.hashCode();

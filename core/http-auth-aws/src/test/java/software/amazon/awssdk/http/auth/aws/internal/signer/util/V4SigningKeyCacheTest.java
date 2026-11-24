@@ -17,10 +17,21 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.REGION_NAME;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.http.auth.spi.signer.HttpSigner.SIGNING_CLOCK;
 
+import java.net.URI;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 class V4SigningKeyCacheTest {
@@ -94,6 +105,39 @@ class V4SigningKeyCacheTest {
         assertThatThrownBy(() -> new V4SigningKeyCache(0))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("maxSize must be positive");
+    }
+
+    @Test
+    void cacheKey_equalsAndHashCode_useAllComponents() {
+        EqualsVerifier.forClass(V4SigningKeyCache.CacheKey.class)
+                      .withNonnullFields("secretKey", "region", "service")
+                      .withCachedHashCode("hashCode", "computeHashCode", key("secret"))
+                      .verify();
+    }
+
+    @Test
+    void sign_calledTwiceWithSameCredentials_doesNotMutateCachedSigningKey() {
+        String secret = "V4SigningKeyCacheTest-sign-twice-secret";
+        SignRequest<AwsCredentialsIdentity> request =
+            SignRequest.builder(AwsCredentialsIdentity.create("akid", secret))
+                       .request(SdkHttpRequest.builder()
+                                              .method(SdkHttpMethod.GET)
+                                              .uri(URI.create("https://dynamodb.us-east-1.amazonaws.com/"))
+                                              .build())
+                       .putProperty(REGION_NAME, "us-east-1")
+                       .putProperty(SERVICE_SIGNING_NAME, "dynamodb")
+                       .putProperty(SIGNING_CLOCK, Clock.fixed(DAY_ONE, ZoneOffset.UTC))
+                       .build();
+        V4SigningKeyCache.CacheKey cacheKey = new V4SigningKeyCache.CacheKey(secret, "us-east-1", "dynamodb");
+        AwsV4HttpSigner signer = AwsV4HttpSigner.create();
+
+        signer.sign(request);
+        byte[] cachedAfterFirstSign = V4SigningKeyCache.sharedGet(cacheKey, DAY_ONE);
+        assertThat(cachedAfterFirstSign).isNotNull();
+        byte[] contentsAfterFirstSign = cachedAfterFirstSign.clone();
+        signer.sign(request);
+
+        assertThat(V4SigningKeyCache.sharedGet(cacheKey, DAY_ONE)).containsExactly(contentsAfterFirstSign);
     }
 
     @Test

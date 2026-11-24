@@ -29,6 +29,13 @@ public final class V4RequestSigningResult {
     private final V4CanonicalRequest canonicalRequest;
     private final SdkHttpRequest.Builder signedRequest;
 
+    /**
+     * Creates a signing result.
+     *
+     * <p>{@code signingKey} is usually the {@code byte[]} owned by the shared signing-key cache, as returned by
+     * {@link software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils#deriveSigningKey}. Callers must not
+     * mutate it; doing so corrupts the cached entry. This constructor stores a copy.
+     */
     public V4RequestSigningResult(String contentHash, byte[] signingKey, String signature,
                                   V4CanonicalRequest canonicalRequest, SdkHttpRequest.Builder signedRequest) {
         this.contentHash = contentHash;
