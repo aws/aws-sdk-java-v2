@@ -432,8 +432,11 @@
                      tooling reads the SDK minor version (for example 2.56.x) from this output directory and from the jar,
                      so do not change the output directory, resource path, key, or value format without coordinating with
                      that tooling. The parse-sdk-version, generate-version-properties, and require-version-properties
-                     executions are unbound (phase none) here; core/pom.xml and services/pom.xml bind them in profiles so
-                     that only those module families produce the file. -->
+                     executions are unbound (phase none) here so that only the modules that bind them produce the file:
+                     core, services, http-clients and metric-publishers bind them in their aggregator poms, and codegen,
+                     utils, utils-lite, http-client-spi and the services-custom modules bind them in their own poms. A new
+                     module outside those aggregators must bind the three executions itself (copy the block in
+                     utils/pom.xml) and add its artifactId to VersionPropertiesTest in test/architecture-tests. -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
@@ -483,7 +486,7 @@
                                     </requireFilesExist>
                                     <requireProperty>
                                         <property>parsedVersion.minorVersion</property>
-                                        <message>The SDK minor version could not be parsed from ${awsjavasdk.version}, so version.properties would contain an unresolved placeholder. Check that the parse-sdk-version execution is bound in the same profile as generate-version-properties.</message>
+                                        <message>The SDK minor version could not be parsed from ${awsjavasdk.version}, so version.properties would contain an unresolved placeholder. Check that the parse-sdk-version execution is bound in the same profile or build section as generate-version-properties.</message>
                                         <regex>\d+</regex>
                                         <regexMessage>The SDK minor version parsed from ${awsjavasdk.version} is "${parsedVersion.minorVersion}", not a number, so version.properties would contain an invalid version.</regexMessage>
                                     </requireProperty>
