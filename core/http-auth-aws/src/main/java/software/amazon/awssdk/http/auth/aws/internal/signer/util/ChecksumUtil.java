@@ -87,14 +87,21 @@ public final class ChecksumUtil {
     public static void readAll(InputStream inputStream) {
         FunctionalUtils.invokeSafely(() -> {
             byte[] buffer = new byte[readBufferSize(inputStream)];
+            boolean firstRead = true;
             while (inputStream.read(buffer) > -1) {
+                // Data after the first read means available() under-reported (InflaterInputStream always reports 1), so
+                // drain the rest with a full-size buffer instead of in available()-sized reads.
+                if (!firstRead && buffer.length < READ_BUFFER_SIZE) {
+                    buffer = new byte[READ_BUFFER_SIZE];
+                }
+                firstRead = false;
             }
         });
     }
 
     /**
-     * Sizes the drain buffer to the stream's remaining bytes when it reports fewer than {@link #READ_BUFFER_SIZE}, which
-     * is what in-memory request bodies do, so a small body does not pay for a full-size buffer.
+     * Sizes the first drain buffer to the stream's remaining bytes when it reports fewer than {@link #READ_BUFFER_SIZE},
+     * which is what in-memory request bodies do, so a small body does not pay for a full-size buffer.
      */
     private static int readBufferSize(InputStream inputStream) throws IOException {
         int available = inputStream.available();

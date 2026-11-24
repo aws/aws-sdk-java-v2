@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -32,6 +33,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.checksums.SdkChecksum;
@@ -87,12 +90,31 @@ public class ChecksumUtilTest {
     }
 
     @Test
+    void readAll_whenStreamUnderreportsAvailable_switchesToFullSizeBuffer() {
+        ReadRecordingInputStream inputStream = new ReadRecordingInputStream(new byte[10_000], true);
+
+        readAll(inputStream);
+
+        // Two 1-byte reads, then the remaining 9,998 bytes in 4 KiB reads, then end of stream
+        assertThat(inputStream.readLengths).containsExactly(1, 1, 4096, 4096, 4096, 4096);
+    }
+
+    @Test
     void readAll_whenBodyIsSmallerThanDefaultBuffer_consumesEntireStream() {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(new byte[100]);
 
         readAll(inputStream);
 
         assertEquals(-1, inputStream.read());
+    }
+
+    @Test
+    void readAll_whenBodyIsSmallerThanDefaultBuffer_readsWithAvailableSizedBuffer() {
+        ReadRecordingInputStream inputStream = new ReadRecordingInputStream(new byte[100], false);
+
+        readAll(inputStream);
+
+        assertThat(inputStream.readLengths).containsExactly(100, 100);
     }
 
     @Test
@@ -109,5 +131,31 @@ public class ChecksumUtilTest {
         InputStream mock = Mockito.mock(InputStream.class);
         Mockito.when(mock.read(Mockito.any(byte[].class))).thenThrow(npe);
         assertThatThrownBy(() -> readAll(mock)).isEqualTo(npe);
+    }
+
+    /**
+     * Records the buffer length of each bulk read. When {@code underreportAvailable} is set, {@code available()} reports 1
+     * while data remains, as {@code InflaterInputStream} does.
+     */
+    private static final class ReadRecordingInputStream extends ByteArrayInputStream {
+        private final boolean underreportAvailable;
+        private final List<Integer> readLengths = new ArrayList<>();
+
+        ReadRecordingInputStream(byte[] data, boolean underreportAvailable) {
+            super(data);
+            this.underreportAvailable = underreportAvailable;
+        }
+
+        @Override
+        public synchronized int available() {
+            int available = super.available();
+            return underreportAvailable && available > 0 ? 1 : available;
+        }
+
+        @Override
+        public synchronized int read(byte[] b, int off, int len) {
+            readLengths.add(len);
+            return super.read(b, off, len);
+        }
     }
 }
