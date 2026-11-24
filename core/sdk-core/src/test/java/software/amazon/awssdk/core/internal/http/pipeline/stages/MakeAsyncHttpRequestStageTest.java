@@ -181,6 +181,23 @@ public class MakeAsyncHttpRequestStageTest {
     }
 
     @Test
+    public void execute_abortSignalFailsWhileResponseBodyInProgress_abortsHttpRequest() {
+        SdkAsyncHttpResponseHandler responseHandler = executeWithPendingHttpRequest();
+        responseHandler.onHeaders(SdkHttpFullResponse.builder().statusCode(200).build());
+        responseHandler.onStream(Flowable.just(ByteBuffer.wrap("partial body".getBytes(StandardCharsets.UTF_8)))
+                                         .concatWith(Flowable.never()));
+        RuntimeException requestFailure = new RuntimeException("request failure");
+
+        abortSignal.completeExceptionally(requestFailure);
+
+        assertThat(clientExecuteFuture).isCompletedExceptionally();
+        assertThatThrownBy(clientExecuteFuture::join)
+            .hasCauseExactlyInstanceOf(SdkClientException.class)
+            .hasMessageContaining("request execution failed")
+            .hasRootCause(requestFailure);
+    }
+
+    @Test
     public void testExecute_contextContainsMetricCollector_addsChildToExecuteRequest() {
         stage = new MakeAsyncHttpRequestStage<>(
                 combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),

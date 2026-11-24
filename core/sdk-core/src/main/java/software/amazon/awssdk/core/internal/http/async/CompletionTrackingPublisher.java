@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.DelegatingSubscriber;
 
 /**
@@ -40,6 +41,7 @@ public final class CompletionTrackingPublisher implements Publisher<ByteBuffer> 
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+        Validate.paramNotNull(subscriber, "subscriber");
         upstream.subscribe(new CompletionTracker(subscriber, complete));
     }
 

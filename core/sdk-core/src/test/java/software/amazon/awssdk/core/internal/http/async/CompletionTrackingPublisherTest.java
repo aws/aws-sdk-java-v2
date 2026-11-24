@@ -16,11 +16,13 @@
 package software.amazon.awssdk.core.internal.http.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -44,6 +46,17 @@ class CompletionTrackingPublisherTest {
         assertThat(complete).isTrue();
     }
 
+    @Test
+    void subscribe_nullSubscriber_throwsNullPointerExceptionWithoutSubscribingUpstream() {
+        AtomicBoolean upstreamSubscribed = new AtomicBoolean(false);
+        Publisher<ByteBuffer> silentUpstream = s -> upstreamSubscribed.set(true);
+        CompletionTrackingPublisher publisher = new CompletionTrackingPublisher(silentUpstream, new AtomicBoolean(false));
+
+        assertThatThrownBy(() -> publisher.subscribe(null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("subscriber must not be null");
+        assertThat(upstreamSubscribed).isFalse();
+    }
 
     private static class RequestAllSubscriber implements Subscriber<ByteBuffer> {
         @Override
