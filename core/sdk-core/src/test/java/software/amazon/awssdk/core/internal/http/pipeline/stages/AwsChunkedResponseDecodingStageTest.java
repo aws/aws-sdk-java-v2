@@ -109,6 +109,17 @@ class AwsChunkedResponseDecodingStageTest {
     }
 
     @Test
+    void execute_whenDecodedBodyAborted_abortsOriginalBody() throws Exception {
+        attributes.putAttribute(SdkInternalExecutionAttribute.AWS_CHUNKED_RESPONSE_DECODING, true);
+        AtomicBoolean aborted = new AtomicBoolean();
+
+        SdkHttpFullResponse result = execute(awsChunkedResponse().content(trackedBody(ENCODED, aborted)).build());
+        result.content().get().abort();
+
+        assertThat(aborted).isTrue();
+    }
+
+    @Test
     void execute_whenEarlierAttemptLeftTrailers_clearsThem() throws Exception {
         attributes.putAttribute(SdkInternalExecutionAttribute.AWS_CHUNKED_RESPONSE_TRAILERS, Collections::emptyMap);
 

@@ -106,6 +106,25 @@ class AsyncAwsChunkedResponseDecodingHandlerTest {
     }
 
     @Test
+    void onHeaders_whenRetryGetsPlainResponseAfterAwsChunked_doesNotDecodeIt() {
+        attributes.putAttribute(SdkInternalExecutionAttribute.AWS_CHUNKED_RESPONSE_DECODING, true);
+
+        // First attempt: aws-chunked response
+        handler.onHeaders(awsChunkedResponse().build());
+        handler.onStream(Flowable.just(utf8(ENCODED)));
+
+        // Retry through the same handler: plain 503 response
+        SdkHttpFullResponse plain = SdkHttpFullResponse.builder().statusCode(503).build();
+        Publisher<ByteBuffer> raw = Flowable.just(utf8("<Error/>"));
+        handler.onHeaders(plain);
+        handler.onStream(raw);
+
+        assertThat(delegate.headers).isSameAs(plain);
+        assertThat(delegate.stream).isSameAs(raw);
+        assertThat(attributes.getAttribute(SdkInternalExecutionAttribute.AWS_CHUNKED_RESPONSE_TRAILERS)).isNull();
+    }
+
+    @Test
     void onHeaders_whenEarlierAttemptLeftTrailers_clearsThem() {
         attributes.putAttribute(SdkInternalExecutionAttribute.AWS_CHUNKED_RESPONSE_TRAILERS, Collections::emptyMap);
 
