@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 
 /**
- * A simple JSON converter that uses the Jackson JSON processor.
+ * A simple JSON converter that uses Jackson Databind.
  *
  * <p>It shares all limitations of that library. For more information about
  * Jackson, see: http://wiki.fasterxml.com/JacksonHome</p>
