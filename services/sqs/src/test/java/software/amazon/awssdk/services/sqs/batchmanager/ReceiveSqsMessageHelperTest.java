@@ -52,6 +52,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ReceiveSqsMessageHelper;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
@@ -63,6 +64,7 @@ import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.testutils.LogCaptor;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @ExtendWith(MockitoExtension.class)
 class ReceiveSqsMessageHelperTest {
@@ -320,6 +322,56 @@ class ReceiveSqsMessageHelperTest {
                               + QUEUE_URL);
             });
         }
+    }
+
+    @Test
+    void clear_whenQueueUrlAndFailureContainControlCharacters_escapesWarnLogAndThrowable() throws Exception {
+        String queueUrl = "queue\r\nFORGED\u2028";
+        ReceiveSqsMessageHelper helper = helperWithMessages(queueUrl);
+        when(sqsClient.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class)))
+            .thenReturn(CompletableFutureUtils.failedFuture(SdkClientException.create("failure\nFORGED")));
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            helper.clear();
+
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event -> {
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("queue\\r\\nFORGED\\u2028")
+                    .doesNotContain("\r", "\n", "\u2028");
+                assertThat(event.getThrown().toString())
+                    .contains("failure\\nFORGED")
+                    .doesNotContain("\n");
+            });
+        }
+    }
+
+    @Test
+    void clear_whenQueueUrlContainsControlCharacters_escapesDebugLog() throws Exception {
+        String queueUrl = "queue\r\nFORGED\u2028";
+        ReceiveSqsMessageHelper helper = helperWithMessages(queueUrl);
+        ChangeMessageVisibilityBatchResponse partialFailure =
+            ChangeMessageVisibilityBatchResponse.builder()
+                                                .failed(BatchResultErrorEntry.builder().id("0").code("Error").build())
+                                                .build();
+        when(sqsClient.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(partialFailure));
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            helper.clear();
+
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event ->
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("queue\\r\\nFORGED\\u2028")
+                    .doesNotContain("\r", "\n", "\u2028"));
+        }
+    }
+
+    private ReceiveSqsMessageHelper helperWithMessages(String queueUrl) throws Exception {
+        ReceiveSqsMessageHelper helper = new ReceiveSqsMessageHelper(queueUrl, sqsClient, visibilityTimeout, config);
+        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(generateMessageResponse(2)));
+        helper.asyncReceiveMessage().get(3, TimeUnit.SECONDS);
+        return helper;
     }
 
     @Test
