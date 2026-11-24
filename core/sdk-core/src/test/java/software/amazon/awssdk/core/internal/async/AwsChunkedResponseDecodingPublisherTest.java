@@ -26,10 +26,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -198,6 +200,36 @@ class AwsChunkedResponseDecodingPublisherTest {
         assertThat(subscriber.received).isEqualTo(1);
         assertThat(subscriber.error).isNull();
         assertThat(subscriber.completed).isFalse();
+    }
+
+    @Test
+    void onComplete_whenCalled_trailersFutureIsAlreadyComplete() {
+        AwsChunkedResponseDecodingPublisher publisher = new AwsChunkedResponseDecodingPublisher(
+            Flowable.just(utf8("5\r\nhello\r\n0\r\ntrailer-key:abc==\r\n\r\n")), -1, null);
+        AtomicReference<Map<String, String>> trailersSeenInOnComplete = new AtomicReference<>();
+
+        publisher.subscribe(new Subscriber<ByteBuffer>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+            }
+
+            @Override
+            public void onNext(ByteBuffer byteBuffer) {
+            }
+
+            @Override
+            public void onError(Throwable t) {
+            }
+
+            @Override
+            public void onComplete() {
+                // Later handlers read the trailers in their own onComplete, so they must be ready by now
+                trailersSeenInOnComplete.set(publisher.trailersFuture().getNow(null));
+            }
+        });
+
+        assertThat(trailersSeenInOnComplete.get()).containsEntry("trailer-key", "abc==");
     }
 
     @Test

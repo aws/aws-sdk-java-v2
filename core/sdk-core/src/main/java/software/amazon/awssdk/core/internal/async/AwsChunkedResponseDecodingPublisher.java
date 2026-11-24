@@ -60,7 +60,8 @@ public final class AwsChunkedResponseDecodingPublisher implements SdkPublisher<B
     }
 
     /**
-     * Completes with the trailers before downstream {@code onComplete}; fails on error or cancel.
+     * Completes with the trailers before downstream {@code onComplete}; fails on error or cancel. Stays incomplete if no
+     * subscriber attaches, or if the subscriber stops requesting before the body ends, so don't wait on it unconditionally.
      */
     public CompletableFuture<Map<String, String>> trailersFuture() {
         return trailersFuture;

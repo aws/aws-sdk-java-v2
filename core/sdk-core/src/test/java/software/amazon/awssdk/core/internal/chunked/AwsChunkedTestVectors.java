@@ -99,6 +99,8 @@ public final class AwsChunkedTestVectors {
                       trailers(CRC32_TRAILER, "abc==")));
         v.add(success("upper-case hex chunk size",
                       "A\r\n1234567890\r\n0\r\n\r\n", "1234567890", trailers()));
+        v.add(success("multi-zero last chunk",
+                      "5\r\nhello\r\n00\r\n\r\n", "hello", trailers()));
         v.add(new Vector("declared trailer is accepted",
                          "5\r\nhello\r\n0\r\nx-amz-response-checksum-crc32:abc==\r\n\r\n", 5, declared(CRC32_TRAILER),
                          "hello", trailers(CRC32_TRAILER, "abc=="), null));
@@ -154,6 +156,10 @@ public final class AwsChunkedTestVectors {
         // Truncation
         v.add(error("empty input", "", "Unexpected end of stream while in state CHUNK_SIZE"));
         v.add(error("truncated mid chunk data", "5\r\nhel", "Unexpected end of stream while in state CHUNK_DATA"));
+        v.add(error("truncated before chunk CRLF", "5\r\nhello",
+                    "Unexpected end of stream while in state CHUNK_DATA_CRLF"));
+        v.add(error("truncated in trailers", "5\r\nhello\r\n0\r\n",
+                    "Unexpected end of stream while in state TRAILER_LINES"));
         return v;
     }
 
