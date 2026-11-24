@@ -16,13 +16,18 @@
 package software.amazon.awssdk.http;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static software.amazon.awssdk.http.LongRunningRequestTestSupport.CONFIGURED_ACQUIRE_TIMEOUT;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.CONFIGURED_TIMEOUT;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.HANG_DELAY;
+import static software.amazon.awssdk.http.LongRunningRequestTestSupport.WARM_UP_PATH;
+import static software.amazon.awssdk.http.LongRunningRequestTestSupport.assertAcquireTimeoutFailure;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.assertFailsWithIoExceptionWithinTimeBound;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.assertFailsWithinTimeBound;
+import static software.amazon.awssdk.http.LongRunningRequestTestSupport.awaitReceivedRequests;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.stubHanging;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.stubLongPolling;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.stubStreamingWithPauses;
+import static software.amazon.awssdk.http.LongRunningRequestTestSupport.stubWarmUp;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.io.ByteArrayInputStream;
@@ -47,6 +52,22 @@ public abstract class SdkHttpClientLongRunningRequestTestSuite {
                                                            .build();
 
     protected abstract SdkHttpClient createSdkHttpClient(AttributeMap config);
+
+    /**
+     * The start of the message of the exception a request fails with when it cannot acquire a connection in time, or
+     * {@code null} to not check the message.
+     */
+    protected String expectedAcquireTimeoutMessagePrefix() {
+        return null;
+    }
+
+    /**
+     * The type of the cause of the exception a request fails with when it cannot acquire a connection in time, or
+     * {@code null} to not check the cause.
+     */
+    protected Class<? extends Throwable> expectedAcquireTimeoutCause() {
+        return null;
+    }
 
     @Test
     public void executeWhenReadTimeoutAndServerDelaysResponseFailsWithinTimeoutBound() {
@@ -81,19 +102,26 @@ public abstract class SdkHttpClientLongRunningRequestTestSuite {
     @Test
     public void executeWhenConnectionAcquireTimeoutAndPoolExhaustedFailsWithinTimeoutBound() throws Exception {
         stubHanging(mockServer);
+        stubWarmUp(mockServer);
 
         SdkHttpClient client = createSdkHttpClient(AttributeMap.builder()
                                                                .put(SdkHttpConfigurationOption.READ_TIMEOUT,
                                                                     HANG_DELAY.plusMinutes(1))
                                                                .put(SdkHttpConfigurationOption.MAX_CONNECTIONS, 1)
                                                                .put(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT,
-                                                                    CONFIGURED_TIMEOUT)
+                                                                    CONFIGURED_ACQUIRE_TIMEOUT)
                                                                .build());
         try {
+            // Open the connection first, so the holding request below does not set it up under the short acquire timeout.
+            executeRequest(client, WARM_UP_PATH);
             CompletableFuture<?> firstRequest = executeAsync(client);
-            Thread.sleep(500);
+            awaitReceivedRequests(mockServer, 2);
 
-            assertFailsWithIoExceptionWithinTimeBound(executeAsync(client), CONFIGURED_TIMEOUT);
+            Throwable failure = assertFailsWithIoExceptionWithinTimeBound(executeAsync(client), CONFIGURED_ACQUIRE_TIMEOUT);
+            // executeRequest wraps the IOException that call() throws in an UncheckedIOException.
+            assertAcquireTimeoutFailure(failure instanceof UncheckedIOException ? failure.getCause() : failure,
+                                        expectedAcquireTimeoutMessagePrefix(),
+                                        expectedAcquireTimeoutCause());
 
             firstRequest.cancel(true);
         } finally {
@@ -109,7 +137,11 @@ public abstract class SdkHttpClientLongRunningRequestTestSuite {
     }
 
     private void executeRequest(SdkHttpClient client) {
-        URI uri = URI.create("http://localhost:" + mockServer.getPort());
+        executeRequest(client, "");
+    }
+
+    private void executeRequest(SdkHttpClient client, String path) {
+        URI uri = URI.create("http://localhost:" + mockServer.getPort() + path);
         SdkHttpFullRequest request = SdkHttpFullRequest.builder()
                                                        .uri(uri)
                                                        .method(SdkHttpMethod.POST)

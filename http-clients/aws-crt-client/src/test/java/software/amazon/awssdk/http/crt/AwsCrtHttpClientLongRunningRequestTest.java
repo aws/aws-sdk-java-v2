@@ -29,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.crt.Log;
+import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -49,6 +50,16 @@ public class AwsCrtHttpClientLongRunningRequestTest extends SdkHttpClientLongRun
     @Override
     protected SdkHttpClient createSdkHttpClient(AttributeMap config) {
         return AwsCrtHttpClient.builder().buildWithDefaults(config);
+    }
+
+    @Override
+    protected String expectedAcquireTimeoutMessagePrefix() {
+        return "Acquire operation took longer than the configured maximum time.";
+    }
+
+    @Override
+    protected Class<? extends Throwable> expectedAcquireTimeoutCause() {
+        return HttpException.class;
     }
 
     // The CRT client enforces a read/write inactivity timeout through SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT rather than

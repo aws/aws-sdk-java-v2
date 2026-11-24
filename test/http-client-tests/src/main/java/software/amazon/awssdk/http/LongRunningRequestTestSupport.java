@@ -18,6 +18,7 @@ package software.amazon.awssdk.http;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.io.IOException;
@@ -36,6 +37,8 @@ public final class LongRunningRequestTestSupport {
     public static final Duration SERVER_DELAY = Duration.ofSeconds(10);
     public static final Duration TIME_BOUND_SAFETY_MARGIN = Duration.ofSeconds(10);
     public static final Duration HANG_DELAY = Duration.ofMinutes(1);
+    public static final Duration CONFIGURED_ACQUIRE_TIMEOUT = Duration.ofSeconds(1);
+    public static final String WARM_UP_PATH = "/warm-up";
 
     private LongRunningRequestTestSupport() {
     }
@@ -73,7 +76,30 @@ public final class LongRunningRequestTestSupport {
                                                       .withFixedDelay((int) HANG_DELAY.toMillis())));
     }
 
-    public static void assertFailsWithinTimeBound(CompletableFuture<?> future, Duration expectedTimeout) {
+    /**
+     * Answers {@link #WARM_UP_PATH} at once, so a test can open a connection before it exhausts the pool.
+     */
+    public static void stubWarmUp(WireMockExtension mockServer) {
+        mockServer.stubFor(any(urlPathEqualTo(WARM_UP_PATH)).willReturn(aResponse().withStatus(200).withBody("hello")));
+    }
+
+    /**
+     * Waits until the server has received {@code count} requests, so a request is known to hold its connection.
+     */
+    public static void awaitReceivedRequests(WireMockExtension mockServer, int count) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (mockServer.getAllServeEvents().size() < count && System.nanoTime() < deadline) {
+            Thread.sleep(5);
+        }
+        assertThat(mockServer.getAllServeEvents()).hasSize(count);
+    }
+
+    /**
+     * Asserts that the request fails within {@code expectedTimeout} plus {@link #TIME_BOUND_SAFETY_MARGIN}.
+     *
+     * @return the exception the request failed with
+     */
+    public static Throwable assertFailsWithinTimeBound(CompletableFuture<?> future, Duration expectedTimeout) {
         Duration maxWait = expectedTimeout.plus(TIME_BOUND_SAFETY_MARGIN);
 
         try {
@@ -88,7 +114,7 @@ public final class LongRunningRequestTestSupport {
             Thread.currentThread().interrupt();
             throw new AssertionError("Unexpected interruption while waiting for request to fail", e);
         } catch (ExecutionException e) {
-            // expected
+            return e.getCause();
         }
     }
 
@@ -96,8 +122,10 @@ public final class LongRunningRequestTestSupport {
      * Same time-bound check as {@link #assertFailsWithinTimeBound} but also asserts that the failure cause chain
      * contains an {@link IOException}. The SDK retry layer relies on IOException-wrapping to classify failures as
      * transient, so HTTP clients must surface acquire/connect failures as (or wrapping) {@code IOException}.
+     *
+     * @return the exception the request failed with
      */
-    public static void assertFailsWithIoExceptionWithinTimeBound(CompletableFuture<?> future, Duration expectedTimeout) {
+    public static Throwable assertFailsWithIoExceptionWithinTimeBound(CompletableFuture<?> future, Duration expectedTimeout) {
         Duration maxWait = expectedTimeout.plus(TIME_BOUND_SAFETY_MARGIN);
 
         try {
@@ -117,6 +145,21 @@ public final class LongRunningRequestTestSupport {
                     "Expected failure cause chain to contain IOException so the SDK retry layer treats the error as "
                     + "transient, but found: " + describeCauseChain(e), e);
             }
+            return e.getCause();
+        }
+    }
+
+    /**
+     * Asserts the client-specific parts of an acquire-timeout failure. A {@code null} expectation is not checked.
+     */
+    public static void assertAcquireTimeoutFailure(Throwable failure,
+                                                   String expectedMessagePrefix,
+                                                   Class<? extends Throwable> expectedCause) {
+        if (expectedMessagePrefix != null) {
+            assertThat(failure).hasMessageStartingWith(expectedMessagePrefix);
+        }
+        if (expectedCause != null) {
+            assertThat(failure).hasCauseInstanceOf(expectedCause);
         }
     }
 

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.crt;
+package software.amazon.awssdk.http.server;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -51,14 +51,14 @@ import software.amazon.awssdk.http.Protocol;
  * Plaintext HTTP/1.1 or HTTP/2 (prior knowledge) test server that defers every response until the test calls
  * {@link #releaseResponses()}, and answers immediately after that, until the next {@link #reset()}.
  */
-final class DeferredResponseServer implements AutoCloseable {
+public final class DeferredResponseServer {
     private final NioEventLoopGroup group = new NioEventLoopGroup(1);
     private final AtomicInteger receivedRequests = new AtomicInteger();
     private final List<Runnable> deferredResponses = new ArrayList<>();
     private boolean released;
     private Channel serverChannel;
 
-    static DeferredResponseServer start(Protocol protocol) throws InterruptedException {
+    public static DeferredResponseServer start(Protocol protocol) throws InterruptedException {
         DeferredResponseServer server = new DeferredResponseServer();
         server.serverChannel = new ServerBootstrap()
             .group(server.group)
@@ -112,23 +112,23 @@ final class DeferredResponseServer implements AutoCloseable {
         }
     }
 
-    synchronized void releaseResponses() {
+    public synchronized void releaseResponses() {
         released = true;
         deferredResponses.forEach(Runnable::run);
         deferredResponses.clear();
     }
 
-    synchronized void reset() {
+    public synchronized void reset() {
         released = false;
         deferredResponses.clear();
         receivedRequests.set(0);
     }
 
-    int receivedRequests() {
+    public int receivedRequests() {
         return receivedRequests.get();
     }
 
-    URI uri() {
+    public URI uri() {
         return URI.create("http://localhost:" + ((InetSocketAddress) serverChannel.localAddress()).getPort());
     }
 
@@ -148,7 +148,6 @@ final class DeferredResponseServer implements AutoCloseable {
         ctx.writeAndFlush(new DefaultHttp2DataFrame(true));
     }
 
-    @Override
     public void close() throws InterruptedException {
         serverChannel.close().sync();
         group.shutdownGracefully(0, 1, TimeUnit.SECONDS).await();
