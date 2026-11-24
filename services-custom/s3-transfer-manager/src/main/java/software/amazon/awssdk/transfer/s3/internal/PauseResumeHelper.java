@@ -22,9 +22,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.transfer.s3.internal.utils.LogSanitizer;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -65,14 +65,16 @@ public class PauseResumeHelper {
                                                                                .uploadId(id)
                                                                                .build())
                                                 .exceptionally(t -> {
-                                                    log.warn(() -> LogSanitizer.escapeControlCharacters(
-                                                        String.format("Failed to abort previous multipart upload "
-                                                                      + "(id: %s)"
-                                                                      + ". You may need to call "
-                                                                      + "S3AsyncClient#abortMultiPartUpload to "
-                                                                      + "free all storage consumed by"
-                                                                      + " all parts. ",
-                                                                      id)), t);
+                                                    if (log.logger().isWarnEnabled()) {
+                                                        log.warn(() -> LogSanitizer.escapeControlCharacters(
+                                                            String.format("Failed to abort previous multipart upload "
+                                                                          + "(id: %s)"
+                                                                          + ". You may need to call "
+                                                                          + "S3AsyncClient#abortMultiPartUpload to "
+                                                                          + "free all storage consumed by"
+                                                                          + " all parts. ",
+                                                                          id)), LogSanitizer.sanitize(t));
+                                                    }
                                                     return null;
                                                 });
                                });

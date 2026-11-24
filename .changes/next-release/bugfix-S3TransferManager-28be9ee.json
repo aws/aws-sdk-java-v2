@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Escape control characters in exceptions logged when aborting a multipart upload fails."
+}
