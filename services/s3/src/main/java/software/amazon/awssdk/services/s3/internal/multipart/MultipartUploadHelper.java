@@ -38,6 +38,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 
@@ -101,8 +102,8 @@ public final class MultipartUploadHelper {
         UploadPartRequest uploadPartRequest = requestPair.left();
         Integer partNumber = uploadPartRequest.partNumber();
         Optional<Long> contentLength = requestPair.right().contentLength();
-        log.debug(() -> "Sending uploadPartRequest: " + uploadPartRequest.partNumber() + " uploadId: " + uploadId + " "
-                        + "contentLength " + contentLength);
+        log.debug(() -> "Sending uploadPartRequest: " + uploadPartRequest.partNumber() + " uploadId: "
+                        + LogSanitizer.escapeControlCharacters(uploadId) + " contentLength " + contentLength);
 
         CompletableFuture<UploadPartResponse> uploadPartFuture = s3AsyncClient.uploadPart(uploadPartRequest,
                                                                                           requestPair.right());

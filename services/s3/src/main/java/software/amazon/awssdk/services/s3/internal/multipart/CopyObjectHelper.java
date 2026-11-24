@@ -64,6 +64,7 @@ import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 
@@ -315,9 +316,12 @@ public final class CopyObjectHelper {
                                                                 .map(Map.Entry::getKey)
                                                                 .filter(name -> !succeededAnnotations.contains(name))
                                                                 .collect(Collectors.toList());
-                        log.warn(() -> String.format("Annotation copy partial failure. SUCCEEDED (%d): %s, FAILED (%d): %s",
-                                                     succeededAnnotations.size(), succeededAnnotations,
-                                                     failedAnnotations.size(), failedAnnotations));
+                        log.warn(() -> String.format(
+                            "Annotation copy partial failure. SUCCEEDED (%d): %s, FAILED (%d): %s",
+                            succeededAnnotations.size(),
+                            LogSanitizer.escapeControlCharacters(succeededAnnotations.toString()),
+                            failedAnnotations.size(),
+                            LogSanitizer.escapeControlCharacters(failedAnnotations.toString())));
                         throw SdkClientException.create(
                             String.format("Failed to copy %d of %d annotations to destination object. "
                                           + "The destination object was NOT deleted.",
@@ -349,7 +353,8 @@ public final class CopyObjectHelper {
             if (throwable != null) {
                 genericMultipartHelper.handleException(ctx.returnFuture, () -> "Failed to initiate multipart upload", throwable);
             } else {
-                log.debug(() -> "Initiated new multipart upload, uploadId: " + createMultipartUploadResponse.uploadId());
+                log.debug(() -> "Initiated new multipart upload, uploadId: "
+                                + LogSanitizer.escapeControlCharacters(createMultipartUploadResponse.uploadId()));
                 doCopyInParts(ctx, createMultipartUploadResponse.uploadId());
             }
         });
@@ -455,7 +460,7 @@ public final class CopyObjectHelper {
     private CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(
         CopyObjectRequest copyObjectRequest, String uploadId, AtomicReferenceArray<CompletedPart> completedParts) {
         log.debug(() -> String.format("Sending completeMultipartUploadRequest, uploadId: %s",
-                                      uploadId));
+                                      LogSanitizer.escapeControlCharacters(uploadId)));
         CompletedPart[] parts =
             IntStream.range(0, completedParts.length())
                      .mapToObj(completedParts::get)
@@ -504,8 +509,9 @@ public final class CopyObjectHelper {
         UploadPartCopyRequest uploadPartCopyRequest = requestPair.left();
         long partBytes = requestPair.right();
         Integer partNumber = uploadPartCopyRequest.partNumber();
-        log.debug(() -> "Sending uploadPartCopyRequest with range: " + uploadPartCopyRequest.copySourceRange() + " uploadId: "
-                        + uploadId);
+        log.debug(() -> "Sending uploadPartCopyRequest with range: "
+                        + LogSanitizer.escapeControlCharacters(uploadPartCopyRequest.copySourceRange())
+                        + " uploadId: " + LogSanitizer.escapeControlCharacters(uploadId));
 
         CompletableFuture<UploadPartCopyResponse> uploadPartCopyFuture =
             s3AsyncClient.uploadPartCopy(uploadPartCopyRequest);

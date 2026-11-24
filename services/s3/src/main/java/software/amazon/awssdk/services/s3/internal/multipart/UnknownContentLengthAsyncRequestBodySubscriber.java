@@ -42,6 +42,7 @@ import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
@@ -188,7 +189,8 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
                     discard(asyncRequestBody);
                 } else {
                     uploadId = createMultipartUploadResponse.uploadId();
-                    log.debug(() -> "Initiated a new multipart upload, uploadId: " + uploadId);
+                    log.debug(() -> "Initiated a new multipart upload, uploadId: "
+                                    + LogSanitizer.escapeControlCharacters(uploadId));
                     // Complete uploadIdFuture before checking state. A failure's abort waits on it, even when we return below.
                     uploadIdFuture.complete(uploadId);
                     if (state.get() != State.RUNNING) {
@@ -278,7 +280,9 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
 
     @Override
     public void onError(Throwable t) {
-        log.debug(() -> "Received onError() ", t);
+        if (log.logger().isDebugEnabled()) {
+            log.debug(() -> "Received onError() ", LogSanitizer.sanitize(t));
+        }
         if (tryMarkFailing()) {
             isDone = true;
             failUpload(t);

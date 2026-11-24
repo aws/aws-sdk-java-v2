@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
 import software.amazon.awssdk.services.s3.paginators.ListPartsPublisher;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 
@@ -114,7 +115,8 @@ public final class UploadWithKnownContentLengthHelper {
             if (throwable != null) {
                 genericMultipartHelper.handleException(returnFuture, () -> "Failed to initiate multipart upload", throwable);
             } else {
-                log.debug(() -> "Initiated a new multipart upload, uploadId: " + createMultipartUploadResponse.uploadId());
+                log.debug(() -> "Initiated a new multipart upload, uploadId: "
+                                + LogSanitizer.escapeControlCharacters(createMultipartUploadResponse.uploadId()));
                 uploadFromBeginning(Pair.of(putObjectRequest, asyncRequestBody), contentLength, returnFuture,
                                     createMultipartUploadResponse.uploadId());
             }
@@ -158,7 +160,8 @@ public final class UploadWithKnownContentLengthHelper {
         int remainingParts = (int) (resumeToken.totalNumParts() - resumeToken.numPartsCompleted());
         log.debug(() -> String.format("Resuming a paused multipart upload, uploadId: %s, completedPartCount: %d, "
                                   + "remainingPartCount: %d, partSize: %d",
-                                      uploadId, resumeToken.numPartsCompleted(), remainingParts, resumeToken.partSize()));
+                                      LogSanitizer.escapeControlCharacters(uploadId), resumeToken.numPartsCompleted(),
+                                      remainingParts, resumeToken.partSize()));
 
         CompletableFutureUtils.forwardExceptionTo(resumeContext.returnFuture, listPartsFuture);
 

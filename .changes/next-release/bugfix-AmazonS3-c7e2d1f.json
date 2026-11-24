@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Escape control characters in multipart upload IDs, request ranges, annotation names, and exceptions before writing log messages."
+}
