@@ -74,6 +74,13 @@ public interface AwsV4FamilyHttpSigner<T extends Identity> extends HttpSigner<T>
      * the payload signature. For very large payloads, this could impact memory usage and call latency. Some services
      * support this value being disabled, especially over HTTPS where SSL provides some of its own protections against
      * payload tampering.
+     * <p>
+     * Over plaintext HTTP, this property is ignored by the default SigV4 signer and the behavior depends on the signing
+     * method. Synchronous signing ({@code sign}) always signs a request payload sent over HTTP. Asynchronous signing
+     * ({@code signAsync}) does not sign the payload over HTTP when
+     * {@link #CHUNK_ENCODING_ENABLED} is true; the request is sent with {@code x-amz-content-sha256} set to
+     * {@code UNSIGNED-PAYLOAD} or {@code STREAMING-UNSIGNED-PAYLOAD-TRAILER}, and neither the body nor a checksum trailer is
+     * covered by the signature. Use HTTPS when payload integrity is required for asynchronous requests.
      */
     SignerProperty<Boolean> PAYLOAD_SIGNING_ENABLED =
         SignerProperty.create(AwsV4FamilyHttpSigner.class, "PayloadSigningEnabled");
@@ -84,6 +91,9 @@ public interface AwsV4FamilyHttpSigner<T extends Identity> extends HttpSigner<T>
      * <p>
      * Only some services support this value being set to true, but for those services it can prevent the need to read
      * the whole payload before writing when {@link #PAYLOAD_SIGNING_ENABLED} is true.
+     * <p>
+     * Over plaintext HTTP, this property also determines whether an asynchronously signed payload is signed at all. See
+     * {@link #PAYLOAD_SIGNING_ENABLED}.
      */
     SignerProperty<Boolean> CHUNK_ENCODING_ENABLED =
         SignerProperty.create(AwsV4FamilyHttpSigner.class, "ChunkEncodingEnabled");

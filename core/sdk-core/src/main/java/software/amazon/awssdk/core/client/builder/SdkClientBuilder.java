@@ -64,6 +64,12 @@ public interface SdkClientBuilder<B extends SdkClientBuilder<B, C>, C> extends S
      * exclusive. In all existing cases, the endpoint override is passed as a parameter to the provider and the provider *may*
      * modify it. For example, the S3 provider may add the bucket name as a prefix to the endpoint override for virtual bucket
      * addressing.
+     * <p>
+     * An {@code http://} endpoint disables TLS, so request and response headers and bodies are not encrypted in transit.
+     * This is appropriate only for local emulators and trusted private networks. Over plaintext HTTP, SigV4 payload
+     * signing also differs between clients: synchronous clients sign request payloads, while asynchronous clients, including
+     * the default S3 async client, send chunk-encoded payloads unsigned. See the documentation of
+     * {@code AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED} in the {@code http-auth-aws} module.
      */
     B endpointOverride(URI endpointOverride);
 
