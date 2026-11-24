@@ -36,6 +36,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.internal.Crc32Checksum;
@@ -115,6 +116,19 @@ public class ChecksumUtilTest {
         readAll(inputStream);
 
         assertThat(inputStream.readLengths).containsExactly(100, 100);
+    }
+
+    @Test
+    void readAll_whenAvailableThrows_drainsWithFullSizeBuffer() throws IOException {
+        InputStream mock = Mockito.mock(InputStream.class);
+        Mockito.when(mock.available()).thenThrow(new IOException("available() is not supported"));
+        Mockito.when(mock.read(Mockito.any(byte[].class))).thenReturn(10, -1);
+
+        readAll(mock);
+
+        ArgumentCaptor<byte[]> buffers = ArgumentCaptor.forClass(byte[].class);
+        Mockito.verify(mock, Mockito.times(2)).read(buffers.capture());
+        assertThat(buffers.getAllValues()).allSatisfy(buffer -> assertThat(buffer).hasSize(4096));
     }
 
     @Test

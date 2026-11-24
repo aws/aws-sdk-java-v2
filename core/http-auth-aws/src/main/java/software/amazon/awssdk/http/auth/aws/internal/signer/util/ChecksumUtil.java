@@ -101,10 +101,16 @@ public final class ChecksumUtil {
 
     /**
      * Sizes the first drain buffer to the stream's remaining bytes when it reports fewer than {@link #READ_BUFFER_SIZE},
-     * which is what in-memory request bodies do, so a small body does not pay for a full-size buffer.
+     * which is what in-memory request bodies do, so a small body does not pay for a full-size buffer. Uses
+     * {@link #READ_BUFFER_SIZE} when {@code available()} throws, since the size is only a hint and reading may still work.
      */
-    private static int readBufferSize(InputStream inputStream) throws IOException {
-        int available = inputStream.available();
+    private static int readBufferSize(InputStream inputStream) {
+        int available;
+        try {
+            available = inputStream.available();
+        } catch (IOException e) {
+            return READ_BUFFER_SIZE;
+        }
         return available > 0 && available < READ_BUFFER_SIZE ? available : READ_BUFFER_SIZE;
     }
 
