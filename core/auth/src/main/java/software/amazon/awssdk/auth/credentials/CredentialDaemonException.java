@@ -63,7 +63,8 @@ public final class CredentialDaemonException extends SdkClientException {
     public static final String INVALID_CONFIG = "INVALID_CONFIG";
 
     /**
-     * The platform cannot reach the credential daemon. It needs Linux or macOS and Java 16 or later.
+     * The platform cannot reach the credential daemon. It needs Linux or macOS, and either Java 16 or later or the
+     * junixsocket library on the class path.
      */
     public static final String UNSUPPORTED_PLATFORM = "UNSUPPORTED_PLATFORM";
 

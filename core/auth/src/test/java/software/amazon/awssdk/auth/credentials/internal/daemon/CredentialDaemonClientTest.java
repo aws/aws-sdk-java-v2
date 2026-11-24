@@ -27,6 +27,7 @@ import java.net.SocketOption;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.DatagramChannel;
+import java.nio.channels.NotYetConnectedException;
 import java.nio.channels.Pipe;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
@@ -157,6 +158,22 @@ class CredentialDaemonClientTest {
     }
 
     @Test
+    void fetch_whenTheConnectionWasNotEstablished_raisesNotRunning() {
+        HangingSocketChannel channel = new HangingSocketChannel();
+        channel.connectsAtOnce = true;
+        channel.writeFailure = new NotYetConnectedException();
+        CredentialDaemonClient client = client(Duration.ofSeconds(5), Duration.ofSeconds(5), () -> channel);
+
+        assertThatThrownBy(() -> client.fetch(new CredentialDaemonRequest("dev", null, null)))
+            .isInstanceOfSatisfying(CredentialDaemonException.class, e -> {
+                assertThat(e.errorCode()).isEqualTo(CredentialDaemonException.NOT_RUNNING);
+                assertThat(e.getMessage()).contains(SOCKET).contains("the daemon did not accept the connection");
+                assertThat(e.getCause()).hasCauseInstanceOf(NotYetConnectedException.class);
+            });
+        assertThat(channel.isOpen()).isFalse();
+    }
+
+    @Test
     void fetch_whenNoLocationApplies_raisesNotRunningWithoutDialing() {
         environment = k -> Optional.empty();
         CredentialDaemonClient client = client(Duration.ofSeconds(5), Duration.ofSeconds(5), () -> {
@@ -178,6 +195,7 @@ class CredentialDaemonClientTest {
     private static final class HangingSocketChannel extends SocketChannel {
         private volatile IOException connectFailure;
         private volatile boolean connectsAtOnce;
+        private volatile RuntimeException writeFailure;
 
         HangingSocketChannel() {
             super(new StubSelectorProvider());
@@ -271,6 +289,9 @@ class CredentialDaemonClientTest {
 
         @Override
         public int write(ByteBuffer src) throws IOException {
+            if (writeFailure != null) {
+                throw writeFailure;
+            }
             throw new IOException("Broken pipe");
         }
 

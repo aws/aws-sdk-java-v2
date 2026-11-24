@@ -57,13 +57,24 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * the call timeout (default 5 seconds).
  *
  * <p>
- * The daemon is reached over a Unix domain socket, so this provider needs Linux or macOS and a Java runtime that supports
- * Unix domain socket channels, which is Java 16 or later. The SDK supports Java 8, so the provider finds that support at
- * run time. On Java 8 to 15, on Android and on other operating systems such as Windows, every call fails with
+ * The daemon is reached over a Unix domain socket, so this provider needs Linux or macOS. On Java 16 or later, it uses the
+ * Java runtime's Unix domain socket channels. On Java 8 to 15, it needs the
+ * <a href="https://kohlschutter.github.io/junixsocket/">junixsocket</a> library on the class path, which the SDK finds at run
+ * time:
+ * <pre>{@code
+ * <dependency>
+ *     <groupId>com.kohlschutter.junixsocket</groupId>
+ *     <artifactId>junixsocket-core</artifactId>
+ *     <version>${junixsocket.version}</version>
+ *     <type>pom</type>
+ * </dependency>
+ * }</pre>
+ * On Java 16 or later, the provider uses the Java runtime even when junixsocket is present. On Java 8 to 15 without
+ * junixsocket, on Android and on other operating systems such as Windows, every call fails with
  * {@link CredentialDaemonException#UNSUPPORTED_PLATFORM}.
  *
  * <p>
- * On such a platform, an application can still use the daemon's credentials through the AWS CLI. Give it a separate profile
+ * Without junixsocket, an application can still use the daemon's credentials through the AWS CLI. Give it a separate profile
  * that does not set {@code daemon_credential} and runs the CLI as a credential process, for example:
  * <pre>
  * [profile daemon-via-cli]

@@ -36,10 +36,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
+import org.newsclub.net.unix.AFUNIXServerSocketChannel;
+import org.newsclub.net.unix.AFUNIXSocket;
+import org.newsclub.net.unix.AFUNIXSocketAddress;
+import org.newsclub.net.unix.AFUNIXSocketChannel;
 
 /**
- * A fake credential daemon that listens on a Unix domain socket in a fresh temporary directory. Unix domain sockets are
- * reached through reflection only, because the tests are compiled for Java 8.
+ * A fake credential daemon that listens on a Unix domain socket in a fresh temporary directory. It uses the JDK's Unix domain
+ * sockets on Java 16 or later, which it reaches through reflection because the tests are compiled for Java 8, and junixsocket
+ * on older runtimes.
  */
 public final class FakeCredentialDaemon implements AutoCloseable {
     /**
@@ -64,7 +69,7 @@ public final class FakeCredentialDaemon implements AutoCloseable {
         this.directory = newSocketDirectory();
         this.socketPath = directory.resolve("d.sock");
         this.responder = responder;
-        this.server = (ServerSocketChannel) invokeOpen(ServerSocketChannel.class);
+        this.server = openServer();
         server.bind(address(socketPath), backlog);
         if (accept) {
             Thread thread = new Thread(this::acceptLoop, "fake-credential-daemon");
@@ -74,12 +79,19 @@ public final class FakeCredentialDaemon implements AutoCloseable {
     }
 
     /**
-     * Returns whether this JVM and OS can run the fake daemon (Java 16 or later, not Windows).
+     * Returns whether this JVM and OS can run the fake daemon: not Windows, and either Java 16 or later or junixsocket.
      */
     public static boolean isSupported() {
         if (System.getProperty("os.name", "").toLowerCase(Locale.ROOT).startsWith("windows")) {
             return false;
         }
+        return hasJdkUnixDomainSockets() || AFUNIXSocket.isSupported();
+    }
+
+    /**
+     * Returns whether this Java runtime has Unix domain socket channels (Java 16 or later).
+     */
+    public static boolean hasJdkUnixDomainSockets() {
         try {
             Class.forName("java.net.UnixDomainSocketAddress");
             return true;
@@ -120,7 +132,7 @@ public final class FakeCredentialDaemon implements AutoCloseable {
      */
     public static Path staleSocket(Path directory) throws IOException {
         Path path = directory.resolve("stale.sock");
-        try (ServerSocketChannel channel = (ServerSocketChannel) invokeOpen(ServerSocketChannel.class)) {
+        try (ServerSocketChannel channel = openServer()) {
             channel.bind(address(path));
         }
         return path;
@@ -130,7 +142,7 @@ public final class FakeCredentialDaemon implements AutoCloseable {
      * Binds a listening socket at the given path, which the caller closes.
      */
     public static AutoCloseable listeningSocket(Path path) throws IOException {
-        ServerSocketChannel channel = (ServerSocketChannel) invokeOpen(ServerSocketChannel.class);
+        ServerSocketChannel channel = openServer();
         channel.bind(address(path));
         return channel;
     }
@@ -186,10 +198,15 @@ public final class FakeCredentialDaemon implements AutoCloseable {
 
     private void fillBacklog() throws IOException {
         for (int i = 0; i < 1000; i++) {
-            SocketChannel client = (SocketChannel) invokeOpen(SocketChannel.class);
+            SocketChannel client = hasJdkUnixDomainSockets() ? (SocketChannel) invokeOpen(SocketChannel.class)
+                                                             : AFUNIXSocketChannel.open();
             client.configureBlocking(false);
             try {
-                client.connect(address(socketPath));
+                if (!client.connect(address(socketPath))) {
+                    // junixsocket reports a connect to a full listen queue as pending, where the JDK fails it.
+                    client.close();
+                    return;
+                }
                 heldConnections.add(client);
             } catch (IOException e) {
                 client.close();
@@ -279,7 +296,10 @@ public final class FakeCredentialDaemon implements AutoCloseable {
         }
     }
 
-    static SocketAddress address(Path path) {
+    static SocketAddress address(Path path) throws IOException {
+        if (!hasJdkUnixDomainSockets()) {
+            return AFUNIXSocketAddress.of(path);
+        }
         try {
             return (SocketAddress) Class.forName("java.net.UnixDomainSocketAddress")
                                         .getMethod("of", Path.class)
@@ -287,6 +307,19 @@ public final class FakeCredentialDaemon implements AutoCloseable {
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    /**
+     * Opens a server channel that leaves its socket file behind when it closes, as the JDK's does. junixsocket deletes the
+     * file by default.
+     */
+    private static ServerSocketChannel openServer() throws IOException {
+        if (hasJdkUnixDomainSockets()) {
+            return (ServerSocketChannel) invokeOpen(ServerSocketChannel.class);
+        }
+        AFUNIXServerSocketChannel channel = AFUNIXServerSocketChannel.open();
+        channel.socket().setDeleteOnClose(false);
+        return channel;
     }
 
     private static Object invokeOpen(Class<?> channelClass) throws IOException {

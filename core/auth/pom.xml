@@ -103,7 +103,20 @@
             <artifactId>eventstream</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <!-- Optional: the credential daemon provider uses junixsocket on Java 8 to 15 when the application adds it. -->
+        <dependency>
+            <groupId>com.kohlschutter.junixsocket</groupId>
+            <artifactId>junixsocket-common</artifactId>
+            <version>${junixsocket.version}</version>
+            <optional>true</optional>
+        </dependency>
 
+        <dependency>
+            <groupId>com.kohlschutter.junixsocket</groupId>
+            <artifactId>junixsocket-native-common</artifactId>
+            <version>${junixsocket.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

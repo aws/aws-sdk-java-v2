@@ -16,11 +16,7 @@
 package software.amazon.awssdk.auth.credentials.internal.daemon;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.ProtocolFamily;
 import java.net.SocketAddress;
-import java.net.StandardProtocolFamily;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Path;
 import java.util.Locale;
@@ -33,50 +29,52 @@ import software.amazon.awssdk.utils.JavaSystemSetting;
  * Detects whether this platform can reach the credential daemon, and opens Unix domain socket channels to it.
  *
  * <p>
- * The daemon is supported on Linux and macOS only. Unix domain socket channels ({@code java.net.UnixDomainSocketAddress} and
- * {@code SocketChannel.open(StandardProtocolFamily.UNIX)}) need Java 16, and the SDK is compiled for Java 8, so this class
- * finds them through reflection. On Java 8 to 15, on Android (detected from the VM name and vendor) and on other operating
- * systems, {@link #ensureSupported()} raises {@link CredentialDaemonException#UNSUPPORTED_PLATFORM}.
+ * The daemon is supported on Linux and macOS only. The JDK's Unix domain socket channels are used when the Java runtime has
+ * them (Java 16 or later). Otherwise junixsocket is used if the application added it to the class path, which lets Java 8
+ * to 15 reach the daemon. Without either, on Android (detected from the VM name and vendor) and on other operating systems,
+ * {@link #ensureSupported()} raises {@link CredentialDaemonException#UNSUPPORTED_PLATFORM}.
  */
 @SdkInternalApi
 public final class CredentialDaemonPlatform {
-    private static final String ADDRESS_CLASS = "java.net.UnixDomainSocketAddress";
+    static final String JDK_ADDRESS_CLASS = "java.net.UnixDomainSocketAddress";
+    static final String JUNIXSOCKET_CLASS = "org.newsclub.net.unix.AFUNIXSocketChannel";
+    static final String JUNIXSOCKET_ARTIFACT = "com.kohlschutter.junixsocket:junixsocket-core";
 
     private final String unsupportedReason;
-    private final Method addressOf;
-    private final Method openChannel;
-    private final ProtocolFamily unixFamily;
+    private final UnixDomainSockets sockets;
 
+    /**
+     * @param addressClassName the JDK's Unix domain socket address class. Tests pass a missing class to simulate Java 8 to 15.
+     * @param junixsocketClassName a junixsocket class. Tests pass a missing class to simulate an application without
+     * junixsocket.
+     */
     @SdkTestInternalApi
-    CredentialDaemonPlatform(String osName, String vmName, String vendor, String addressClassName) {
-        OperatingSystem os = OperatingSystem.of(osName);
+    CredentialDaemonPlatform(String osName, String vmName, String vendor, String addressClassName,
+                             String junixsocketClassName) {
         String reason = null;
-        Method of = null;
-        Method open = null;
-        ProtocolFamily family = null;
+        UnixDomainSockets found = null;
 
-        if (os == OperatingSystem.UNSUPPORTED) {
+        if (OperatingSystem.of(osName) == OperatingSystem.UNSUPPORTED) {
             reason = "the operating system '" + osName + "' is not supported";
         } else if (contains(vmName, "dalvik") || contains(vendor, "android")) {
             reason = "Android is not supported";
         } else {
-            try {
-                of = Class.forName(addressClassName).getMethod("of", Path.class);
-                open = SocketChannel.class.getMethod("open", ProtocolFamily.class);
-                family = StandardProtocolFamily.valueOf("UNIX");
-            } catch (ReflectiveOperationException | IllegalArgumentException | UnsupportedOperationException
-                     | SecurityException | LinkageError e) {
-                reason = "this Java runtime has no Unix domain socket support";
-                of = null;
-                open = null;
-                family = null;
+            found = JdkUnixDomainSockets.find(addressClassName);
+            if (found == null) {
+                if (!isPresent(junixsocketClassName)) {
+                    reason = "this Java runtime has no Unix domain socket support, and junixsocket is not on the class path. "
+                             + "To use the credential daemon on Java 8 to 15, add a dependency on " + JUNIXSOCKET_ARTIFACT
+                             + " (type pom)";
+                } else if (!junixsocketSupported()) {
+                    reason = "junixsocket is on the class path, but its native library could not be loaded on this platform";
+                } else {
+                    found = new JunixsocketUnixDomainSockets();
+                }
             }
         }
 
         this.unsupportedReason = reason;
-        this.addressOf = of;
-        this.openChannel = open;
-        this.unixFamily = family;
+        this.sockets = found;
     }
 
     /**
@@ -100,54 +98,49 @@ public final class CredentialDaemonPlatform {
      */
     public SocketChannel openChannel() throws IOException {
         ensureSupported();
-        return (SocketChannel) invoke(openChannel, unixFamily);
+        return sockets.openChannel();
     }
 
     /**
      * Returns the Unix domain socket address of the path.
      *
-     * @throws java.nio.file.InvalidPathException if the path cannot be used as a socket address.
+     * @throws IOException or {@link java.nio.file.InvalidPathException} if the path cannot be used as a socket address.
      */
-    public SocketAddress address(Path path) {
+    public SocketAddress address(Path path) throws IOException {
         ensureSupported();
-        try {
-            return (SocketAddress) invoke(addressOf, path);
-        } catch (IOException e) {
-            throw unsupported("this Java runtime cannot create Unix domain socket addresses", e);
-        }
+        return sockets.address(path);
+    }
+
+    static CredentialDaemonException unsupported(String reason, Throwable cause) {
+        String message = "The credential daemon is reached over Unix domain sockets, which need Linux or macOS, and either "
+                         + "Java 16 or later or the junixsocket library, but " + reason + ". See "
+                         + CredentialDaemonUtils.CREDENTIAL_DAEMON_DOC + ".";
+        return CredentialDaemonUtils.error(CredentialDaemonException.UNSUPPORTED_PLATFORM, message, cause);
     }
 
     /**
-     * Calls a static method found by reflection. An {@link IOException} or {@link RuntimeException} it throws is rethrown as
-     * is, except {@link UnsupportedOperationException}, and every other failure is raised as
-     * {@link CredentialDaemonException#UNSUPPORTED_PLATFORM}.
+     * Looks for the class with this class's own loader, not the thread's context loader, because that is the loader that
+     * resolves junixsocket for {@link JunixsocketUnixDomainSockets}.
      */
-    private static Object invoke(Method method, Object... args) throws IOException {
-        Throwable failure;
+    private static boolean isPresent(String className) {
         try {
-            return method.invoke(null, args);
-        } catch (InvocationTargetException e) {
-            failure = e.getCause();
-            if (failure instanceof IOException) {
-                throw (IOException) failure;
-            }
-            if (failure instanceof RuntimeException && !(failure instanceof UnsupportedOperationException)) {
-                throw (RuntimeException) failure;
-            }
-        } catch (IllegalAccessException e) {
-            failure = e;
+            Class.forName(className, false, CredentialDaemonPlatform.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException | LinkageError e) {
+            return false;
         }
-        throw unsupported("this Java runtime cannot use Unix domain sockets", failure);
+    }
+
+    private static boolean junixsocketSupported() {
+        try {
+            return JunixsocketUnixDomainSockets.isSupported();
+        } catch (LinkageError e) {
+            return false;
+        }
     }
 
     private static boolean contains(String value, String part) {
         return value != null && value.toLowerCase(Locale.ROOT).contains(part);
-    }
-
-    private static CredentialDaemonException unsupported(String reason, Throwable cause) {
-        String message = "The credential daemon is reached over Unix domain sockets, which require Linux or macOS and Java 16 "
-                         + "or later, but " + reason + ". See " + CredentialDaemonUtils.CREDENTIAL_DAEMON_DOC + ".";
-        return CredentialDaemonUtils.error(CredentialDaemonException.UNSUPPORTED_PLATFORM, message, cause);
     }
 
     private enum OperatingSystem {
@@ -172,6 +165,7 @@ public final class CredentialDaemonPlatform {
             new CredentialDaemonPlatform(JavaSystemSetting.OS_NAME.getStringValue().orElse(null),
                                           JavaSystemSetting.JAVA_VM_NAME.getStringValue().orElse(null),
                                           JavaSystemSetting.JAVA_VENDOR.getStringValue().orElse(null),
-                                          ADDRESS_CLASS);
+                                          JDK_ADDRESS_CLASS,
+                                          JUNIXSOCKET_CLASS);
     }
 }

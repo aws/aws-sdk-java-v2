@@ -44,9 +44,11 @@ import software.amazon.awssdk.auth.credentials.FakeCredentialDaemon;
  */
 class CredentialDaemonClientLocateTest {
     private static final CredentialDaemonPlatform LINUX =
-        new CredentialDaemonPlatform("Linux", "OpenJDK 64-Bit Server VM", "Amazon.com Inc.", "java.net.UnixDomainSocketAddress");
+        new CredentialDaemonPlatform("Linux", "OpenJDK 64-Bit Server VM", "Amazon.com Inc.",
+                                     CredentialDaemonPlatform.JDK_ADDRESS_CLASS, CredentialDaemonPlatform.JUNIXSOCKET_CLASS);
     private static final CredentialDaemonPlatform MACOS =
-        new CredentialDaemonPlatform("Mac OS X", "OpenJDK 64-Bit Server VM", "Amazon.com Inc.", "java.net.UnixDomainSocketAddress");
+        new CredentialDaemonPlatform("Mac OS X", "OpenJDK 64-Bit Server VM", "Amazon.com Inc.",
+                                     CredentialDaemonPlatform.JDK_ADDRESS_CLASS, CredentialDaemonPlatform.JUNIXSOCKET_CLASS);
     private static final String INSTALL_HINT = "Install the credential daemon or link its socket to "
                                                + "$HOME/.aws/credential-daemon.sock, or set AWS_CREDENTIAL_DAEMON_SOCKET";
     private static final String DOC = "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-credential-daemon.html";

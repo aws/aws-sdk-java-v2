@@ -131,6 +131,7 @@
         <commons-codec.verion>1.17.1</commons-codec.verion>
         <jmh.version>1.37</jmh.version>
         <awscrt.version>0.50.0</awscrt.version>
+        <junixsocket.version>2.11.1</junixsocket.version>
 
         <!--Test dependencies -->
         <junit5.version>5.10.3</junit5.version>

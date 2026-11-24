@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.NotYetConnectedException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -170,12 +171,19 @@ public final class CredentialDaemonClient {
                     channel.write(out);
                 }
                 return readLine(channel);
+            } catch (NotYetConnectedException e) {
+                // junixsocket on Linux reports a connect to a full listen queue as finished, and the first write fails.
+                throw connectFailure(path, new IOException("the daemon did not accept the connection, which happens when "
+                                                           + "its listen queue is full", e));
             } catch (IOException e) {
                 if (Thread.currentThread().isInterrupted()) {
                     throw interrupted(path, e);
                 }
                 if (callTimedOut.get()) {
                     throw callTimeoutFailure(path);
+                }
+                if (e instanceof ResponseEndedException) {
+                    throw protocolError(e.getMessage(), null);
                 }
                 throw protocolError("connection closed before a complete response was received", e);
             }
@@ -242,8 +250,8 @@ public final class CredentialDaemonClient {
                 throw protocolError("response line exceeds " + MAX_LINE + " bytes", null);
             }
             if (channel.read(buffer) < 0) {
-                throw protocolError("connection closed before a complete response line, after " + buffer.position()
-                                    + " bytes", null);
+                throw new ResponseEndedException("connection closed before a complete response line, after "
+                                                 + buffer.position() + " bytes");
             }
             byte[] bytes = buffer.array();
             for (int i = scanned; i < buffer.position(); i++) {
@@ -484,6 +492,18 @@ public final class CredentialDaemonClient {
                                             "The credential daemon at " + path + " did not answer before the " + timeout
                                             + " expired. " + CredentialDaemonUtils.START_HINT,
                                             null);
+    }
+
+    /**
+     * The response ended before its newline. A read that the call timer cuts short can also end this way: junixsocket
+     * reports end of stream when another thread closes the channel, where the JDK throws {@code AsynchronousCloseException}.
+     */
+    private static final class ResponseEndedException extends IOException {
+        private static final long serialVersionUID = 1L;
+
+        ResponseEndedException(String message) {
+            super(message);
+        }
     }
 
     /**
