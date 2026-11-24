@@ -112,7 +112,7 @@ public class AwsCrtHttp2StreamAcquisitionTimeoutTest {
             .satisfies(e -> {
                 assertThat(e.getCause())
                     .isExactlyInstanceOf(IOException.class)
-                    .hasMessageContaining("Stream Manager failed to acquire a stream within the defined timeout");
+                    .hasMessageStartingWith("Acquire operation took longer than the configured maximum time.");
                 assertThat(e.getCause().getCause()).isInstanceOfSatisfying(CrtRuntimeException.class, c -> assertThat(c.errorCode)
                     .isEqualTo(STREAM_MANAGER_ACQUISITION_TIMEOUT));
             });
