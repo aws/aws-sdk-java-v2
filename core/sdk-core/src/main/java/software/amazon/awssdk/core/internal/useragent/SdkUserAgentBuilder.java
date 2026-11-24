@@ -34,6 +34,7 @@ import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.u
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.util.SystemUserAgent;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -134,7 +135,8 @@ public final class SdkUserAgentBuilder {
         if (appId.length() > 50) {
             log.warn(() -> String.format("The configured appId '%s' is longer than the recommended maximum length of 50. "
                                          + "This could result in not being able to transmit and log the whole user agent string, "
-                                         + "including the complete value of this string.", appId));
+                                         + "including the complete value of this string.",
+                                         LogSanitizer.escapeControlCharacters(appId)));
         }
     }
 }

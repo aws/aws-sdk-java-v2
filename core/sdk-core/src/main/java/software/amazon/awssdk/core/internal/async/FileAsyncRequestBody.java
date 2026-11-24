@@ -45,6 +45,7 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
@@ -114,7 +115,11 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             try {
                 this.modifiedTimeAtStart = Files.getLastModifiedTime(path);
             } catch (IOException e) {
-                log.debug(() -> "Failed to get last modified time for path " + path, e);
+                if (log.logger().isDebugEnabled()) {
+                    log.debug(() -> "Failed to get last modified time for path "
+                                    + LogSanitizer.escapeControlCharacters(path.toString()),
+                              LogSanitizer.sanitize(e));
+                }
                 this.modifiedTimeAtStart = null;
             }
         }
@@ -125,7 +130,11 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             try {
                 this.sizeAtStart = Files.size(path);
             } catch (IOException e) {
-                log.debug(() -> "Failed to get file size for path " + path, e);
+                if (log.logger().isDebugEnabled()) {
+                    log.debug(() -> "Failed to get file size for path "
+                                    + LogSanitizer.escapeControlCharacters(path.toString()),
+                              LogSanitizer.sanitize(e));
+                }
                 this.sizeAtStart = null;
             }
         }

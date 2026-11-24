@@ -41,7 +41,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
@@ -55,6 +58,7 @@ import software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
  * Tests for {@link FileAsyncResponseTransformer}.
@@ -466,6 +470,44 @@ class FileAsyncResponseTransformerTest {
 
     private static SdkPublisher<ByteBuffer> testPublisher(String content) {
         return SdkPublisher.adapt(Flowable.just(ByteBuffer.wrap(content.getBytes(StandardCharsets.UTF_8))));
+    }
+
+    @Test
+    void exceptionOccurred_whenDeleteFails_logsEscapedPathAndThrowable() throws Exception {
+        Path destination = testFs.getPath("name\nFORGED LINE\n");
+        FileAsyncResponseTransformer<Object> transformer = new FileAsyncResponseTransformer<>(destination);
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.ERROR)) {
+            CompletableFuture<Object> prepareFuture = transformer.prepare();
+            transformer.onResponse(new Object());
+            transformer.onStream(subscriber -> subscriber.onSubscribe(new Subscription() {
+                @Override
+                public void request(long l) {
+                }
+
+                @Override
+                public void cancel() {
+                }
+            }));
+            Files.delete(destination);
+            Files.createDirectory(destination);
+            Files.write(destination.resolve("child"), new byte[] {1});
+
+            IOException failure = new IOException("boom");
+            transformer.exceptionOccurred(failure);
+
+            assertThatThrownBy(prepareFuture::join).hasCause(failure);
+            List<LogEvent> errors = logCaptor.loggedEvents().stream()
+                                              .filter(e -> e.getLevel() == Level.ERROR)
+                                              .collect(Collectors.toList());
+            assertThat(errors).hasSize(1);
+            LogEvent event = errors.get(0);
+            assertThat(event.getMessage().getFormattedMessage())
+                .contains("name\\nFORGED LINE\\n")
+                .doesNotContain("\n", "\r");
+            assertThat(event.getThrown()).isNotNull();
+            assertThat(event.getThrown().toString()).doesNotContain("\n", "\r");
+        }
     }
 
     private static final class SpyingExecutorService implements ExecutorService {

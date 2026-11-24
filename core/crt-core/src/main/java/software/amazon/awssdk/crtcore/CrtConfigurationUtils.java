@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
 import software.amazon.awssdk.crt.io.TlsContext;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
 
@@ -88,9 +89,11 @@ public final class CrtConfigurationUtils {
     }
 
     private static void warnUnsupportedWildcard(String nonProxyHost) {
-        log.warn(() -> "Unsupported wildcard in nonProxyHosts entry '" + nonProxyHost + "' for the CRT-based HTTP client: only "
-                       + "an exact host, a leading '*.' suffix wildcard (e.g. *.example.com), a single '*', or a CIDR range "
-                       + "are supported. This entry is ignored, so requests to matching hosts will go through the proxy.");
+        log.warn(() -> "Unsupported wildcard in nonProxyHosts entry '"
+                       + LogSanitizer.escapeControlCharacters(nonProxyHost)
+                       + "' for the CRT-based HTTP client: only an exact host, a leading '*.' suffix wildcard "
+                       + "(e.g. *.example.com), a single '*', or a CIDR range are supported. This entry is ignored, so "
+                       + "requests to matching hosts will go through the proxy.");
     }
 
     public static Optional<HttpMonitoringOptions> resolveHttpMonitoringOptions(CrtConnectionHealthConfiguration config) {

@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.async;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_OR_APPEND_TO_EXISTING;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
-import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -45,6 +44,8 @@ import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.utils.FunctionalUtils;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -143,9 +144,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         cf = new CompletableFuture<>();
         cf.whenComplete((r, t) -> {
             if (t != null && fileChannel != null) {
-                runAndLogError(log.logger(),
-                               String.format("Failed to close the file %s, resource may be leaked", path),
-                               () -> fileChannel.close());
+                runAndLogCleanupError("Failed to close the file ", ", resource may be leaked", () -> fileChannel.close());
             }
         });
         return cf.thenApply(ignored -> response);
@@ -174,15 +173,11 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         fileChannel = null;
         try {
             if (currentFileChannel != null) {
-                runAndLogError(log.logger(),
-                               String.format("Failed to close the file %s, resource may be leaked", path),
-                               currentFileChannel::close);
+                runAndLogCleanupError("Failed to close the file ", ", resource may be leaked", currentFileChannel::close);
             }
         } finally {
             if (currentFileChannel != null && configuration.failureBehavior() == FailureBehavior.DELETE) {
-                runAndLogError(log.logger(),
-                               String.format("Failed to delete the file %s", path),
-                               () -> Files.deleteIfExists(path));
+                runAndLogCleanupError("Failed to delete the file ", "", () -> Files.deleteIfExists(path));
             }
         }
         if (cf != null) {
@@ -190,6 +185,18 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         } else {
             log.warn(() -> "An exception occurred before the call to prepare() was able to instantiate the CompletableFuture."
                            + "The future cannot be completed exceptionally because it is null");
+        }
+    }
+
+    private void runAndLogCleanupError(String messagePrefix, String messageSuffix,
+                                       FunctionalUtils.UnsafeRunnable runnable) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            if (log.logger().isErrorEnabled()) {
+                log.error(() -> messagePrefix + LogSanitizer.escapeControlCharacters(path.toString()) + messageSuffix,
+                          LogSanitizer.sanitize(e));
+            }
         }
     }
 

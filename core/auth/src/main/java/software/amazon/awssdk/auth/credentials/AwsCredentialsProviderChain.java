@@ -26,6 +26,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
@@ -108,14 +109,18 @@ public final class AwsCredentialsProviderChain
             try {
                 AwsCredentialsIdentity credentials = CompletableFutureUtils.joinLikeSync(provider.resolveIdentity());
 
-                log.debug(() -> "Loading credentials from " + provider);
+                log.debug(() -> "Loading credentials from "
+                                + LogSanitizer.escapeControlCharacters(String.valueOf(provider)));
 
                 lastUsedProvider = provider;
                 return CredentialUtils.toCredentials(credentials);
             } catch (RuntimeException e) {
                 // Ignore any exceptions and move onto the next provider
                 String message = provider + ": " + e.getMessage();
-                log.debug(() -> "Unable to load credentials from " + message , e);
+                if (log.logger().isDebugEnabled()) {
+                    log.debug(() -> "Unable to load credentials from "
+                                    + LogSanitizer.escapeControlCharacters(message), LogSanitizer.sanitize(e));
+                }
 
                 if (exceptionMessages == null) {
                     exceptionMessages = new ArrayList<>();

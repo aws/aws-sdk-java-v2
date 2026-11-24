@@ -20,6 +20,7 @@ import static org.apache.logging.log4j.Level.INFO;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,8 @@ import software.amazon.awssdk.testutils.LogCaptor;
 class LoggingMetricPublisherTest {
     private static final SdkMetric<Integer> TEST_METRIC =
         SdkMetric.create("LoggingMetricPublisherTest", Integer.class, MetricLevel.INFO, MetricCategory.CORE);
+    private static final SdkMetric<String> STRING_METRIC =
+        SdkMetric.create("Metric\nName", String.class, MetricLevel.INFO, MetricCategory.CORE);
 
     @Test
     void testDefaultConfiguration() {
@@ -93,6 +96,42 @@ class LoggingMetricPublisherTest {
             assertLogged(events, DEBUG, "[%s]     └──────────────────────────────┘", guid);
             assertThat(events).isEmpty();
         }
+    }
+
+    @Test
+    void formats_withControlCharacters_escapesNamesAndValues() {
+        MetricCollection collection = stringMetrics("Collection\rName", "value\nFORGED\u2028");
+
+        try (LogCaptor logCaptor = LogCaptor.create()) {
+            LoggingMetricPublisher.create().publish(collection);
+            List<LogEvent> events = logCaptor.loggedEvents();
+            assertThat(events).hasSize(1);
+            assertNoControlCharacters(events.get(0).getMessage().getFormattedMessage());
+            assertThat(events.get(0).getMessage().getFormattedMessage())
+                .contains("name=Collection\\rName")
+                .contains("metric=Metric\\nName")
+                .contains("value=value\\nFORGED\\u2028");
+        }
+
+        try (LogCaptor logCaptor = LogCaptor.create()) {
+            LoggingMetricPublisher.create(Level.DEBUG, Format.PRETTY).publish(collection);
+            List<LogEvent> events = logCaptor.loggedEvents();
+            assertThat(events).hasSize(4);
+            events.forEach(event -> assertNoControlCharacters(event.getMessage().getFormattedMessage()));
+            assertThat(events.get(0).getMessage().getFormattedMessage()).contains("Collection\\rName");
+            assertThat(events.get(2).getMessage().getFormattedMessage())
+                .contains("Metric\\nName=value\\nFORGED\\u2028");
+        }
+    }
+
+    private static void assertNoControlCharacters(String message) {
+        assertThat(message.chars()).noneMatch(c -> Character.isISOControl(c) || c == '\u2028' || c == '\u2029');
+    }
+
+    private static MetricCollection stringMetrics(String name, String value) {
+        Map<SdkMetric<?>, List<MetricRecord<?>>> recordMap = new HashMap<>();
+        recordMap.put(STRING_METRIC, Arrays.asList(new DefaultMetricRecord<>(STRING_METRIC, value)));
+        return new DefaultMetricCollection(name, recordMap, Collections.emptyList());
     }
 
     private static MetricCollection metrics(String name, MetricCollection... children) {
