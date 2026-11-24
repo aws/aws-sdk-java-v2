@@ -143,7 +143,8 @@ public final class AwsChunkedResponseDecodingUtils {
         if (!trailersFuture.isDone() || trailersFuture.isCompletedExceptionally()) {
             throw new IllegalStateException("Trailers are only available after the stream has been fully decoded");
         }
-        return trailersFuture.join();
+        // The future is already complete, so getNow never blocks
+        return trailersFuture.getNow(null);
     }
 
     private static List<String> contentEncodings(SdkHttpResponse response) {
