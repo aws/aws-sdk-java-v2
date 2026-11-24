@@ -63,6 +63,27 @@ The SDK provides timeout configurations on requests out of box and they can be c
 
 By default, timeouts are disabled. Using them together is helpful to set a hard limit on total time spent on all attempts across retries and each individual HTTP request to fail fast on one slow request.
 
+### Use HTTPS endpoints
+
+The SDK uses HTTPS endpoints by default. Configuring an `http://` endpoint through `endpointOverride` disables TLS, so request
+and response headers and bodies are not encrypted in transit. Use plaintext HTTP only for local emulators and trusted private
+networks.
+
+Over plaintext HTTP, SigV4 payload signing differs between the sync and async clients:
+
+- Sync clients (for example `S3Client`) always sign the request payload over HTTP. The `x-amz-content-sha256` header is set to
+  `STREAMING-AWS4-HMAC-SHA256-PAYLOAD` (or `-PAYLOAD-TRAILER` with a checksum), and each chunk carries a signature. Setting
+  `AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED` to `false` has no effect over HTTP.
+- Async clients (for example `S3AsyncClient` and `S3AsyncClient.crtBuilder()`) do not sign the request payload over HTTP when
+  chunked encoding is enabled, which is the default for `PutObject` and `UploadPart`. The `x-amz-content-sha256` header is set
+  to `UNSIGNED-PAYLOAD` or `STREAMING-UNSIGNED-PAYLOAD-TRAILER`, and the signature covers the request headers only. The
+  Java-based async client logs a warning once per JVM when this happens; the CRT-based client does not.
+
+Flexible checksums (`CRC32`, `CRC32C`, `CRC64NVME`, `SHA1`, `SHA256`) do not replace payload signing over HTTP. When the checksum
+is sent as a trailer, which is the default for streaming uploads, the trailer is not covered by the signature.
+
+If payload integrity matters, use HTTPS.
+
 [default http configurations]: https://github.com/aws/aws-sdk-java-v2/blob/master/http-client-spi/src/main/java/software/amazon/awssdk/http/SdkHttpConfigurationOption.java
 [Netty TLS with OpenSSL]: https://netty.io/wiki/requirements-for-4.x.html#tls-with-openssl
 [Configuring netty-tcnative]: https://netty.io/wiki/forked-tomcat-native.html

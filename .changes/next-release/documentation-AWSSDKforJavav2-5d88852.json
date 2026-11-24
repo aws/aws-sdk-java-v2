@@ -1,0 +1,6 @@
+{
+    "type": "documentation",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Document SigV4 payload signing behavior over plaintext HTTP: synchronous clients always sign request payloads over HTTP, while asynchronous clients using the default AwsV4HttpSigner send chunk-encoded payloads unsigned regardless of PAYLOAD_SIGNING_ENABLED. The async signer now logs a warning once per JVM when it sends an unsigned payload over HTTP."
+}

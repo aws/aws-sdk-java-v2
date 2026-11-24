@@ -144,8 +144,9 @@ public final class ChecksumUtil {
         // presigning requests should always have a null payload, and should always be unsigned-payload
         if (!isEncrypted && request.payload().isPresent()) {
             if (!isPayloadSigningEnabled) {
-                log.debug(() -> "Payload signing was disabled for an HTTP request with a payload. " +
-                                "Signing will be enabled. Use HTTPS for unsigned payloads.");
+                log.debug(() -> "Payload signing was disabled for a plaintext HTTP request with a payload. This setting " +
+                                "only applies to HTTPS requests; the signer decides whether to sign the payload over " +
+                                "HTTP. Use HTTPS to control payload signing with this setting.");
             }
             return true;
         }

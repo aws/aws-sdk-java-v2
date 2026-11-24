@@ -31,9 +31,11 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.util.CredentialUtils;
@@ -56,6 +58,12 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     private static final int DEFAULT_CHUNK_SIZE_IN_BYTES = 128 * 1024;
     private static final Logger LOG = Logger.loggerFor(DefaultAwsV4HttpSigner.class);
+    private static final AtomicBoolean UNSIGNED_HTTP_PAYLOAD_WARNING_LOGGED = new AtomicBoolean(false);
+
+    @SdkTestInternalApi
+    static void resetUnsignedHttpPayloadWarning() {
+        UNSIGNED_HTTP_PAYLOAD_WARNING_LOGGED.set(false);
+    }
 
     @Override
     public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
@@ -133,6 +141,12 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     private static Checksummer asyncChecksummer(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
                                                 PayloadChecksumStore checksumStore) {
         boolean shouldTreatAsUnsigned = asyncShouldTreatAsUnsigned(request);
+
+        if (shouldTreatAsUnsigned && UNSIGNED_HTTP_PAYLOAD_WARNING_LOGGED.compareAndSet(false, true)) {
+            LOG.warn(() -> "Sending an unsigned payload over plaintext HTTP for an asynchronously signed request with chunk "
+                           + "encoding enabled. The request signature does not cover the body or any checksum trailer. "
+                           + "Use HTTPS to sign the payload.");
+        }
 
         // set the override to false if it should be treated as unsigned, otherwise, null should be passed so that the normal
         // check for payload signing is done.
