@@ -53,6 +53,7 @@ import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
 import software.amazon.awssdk.retries.internal.DefaultAwareRetryStrategy;
 import software.amazon.awssdk.utils.Either;
+import software.amazon.awssdk.utils.LogSanitizer;
 
 /**
  * Contains the logic shared by {@link RetryableStage} and {@link AsyncRetryableStage} when querying and interacting with a
@@ -305,7 +306,8 @@ public final class RetryableStageHelper {
      * Log a message to the user at the debug level to indicate that we are sending the request to the service.
      */
     public void logSendingRequest() {
-        SdkStandardLogger.REQUEST_LOGGER.debug(() -> (isInitialAttempt() ? "Sending" : "Retrying") + " Request: " + request);
+        SdkStandardLogger.REQUEST_LOGGER.debug(() -> LogSanitizer.escapeControlCharacters(
+            (isInitialAttempt() ? "Sending" : "Retrying") + " Request: " + request));
     }
 
     /**

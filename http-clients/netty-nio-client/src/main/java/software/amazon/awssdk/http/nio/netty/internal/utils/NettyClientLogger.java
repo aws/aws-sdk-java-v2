@@ -49,6 +49,13 @@ public final class NettyClientLogger {
     }
 
     /**
+     * Returns whether DEBUG logging is enabled.
+     */
+    public boolean isDebugEnabled() {
+        return delegateLogger.isDebugEnabled();
+    }
+
+    /**
      * Log a DEBUG level message including the channel information.
      *
      * @param channel The channel for this message is being logged

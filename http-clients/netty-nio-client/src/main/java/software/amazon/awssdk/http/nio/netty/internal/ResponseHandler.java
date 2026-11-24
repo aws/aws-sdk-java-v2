@@ -69,6 +69,7 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.async.DelegatingSubscription;
 
 @Sharable
@@ -205,7 +206,12 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
-        log.debug(ctx.channel(), () -> "Exception processing request: " + requestContext.executeRequest().request(), cause);
+        if (log.isDebugEnabled()) {
+            log.debug(ctx.channel(),
+                      () -> LogSanitizer.escapeControlCharacters("Exception processing request: "
+                                                                 + requestContext.executeRequest().request()),
+                      LogSanitizer.sanitize(cause));
+        }
         Throwable throwable = NettyUtils.decorateException(ctx.channel(), cause);
         executeFuture(ctx).completeExceptionally(throwable);
         runAndLogError(ctx.channel(), () -> "Fail to execute SdkAsyncHttpResponseHandler#onError",

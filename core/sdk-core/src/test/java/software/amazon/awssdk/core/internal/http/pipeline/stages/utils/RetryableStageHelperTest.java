@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,6 +56,7 @@ import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
+import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Either;
 
@@ -271,6 +273,37 @@ public class RetryableStageHelperTest {
         return SdkClientConfiguration.builder()
                                      .option(SdkClientOption.RETRY_STRATEGY, strategy)
                                      .build();
+    }
+
+    @Test
+    void logSendingRequest_whenHeaderNameContainsControlCharacters_logsOneEscapedLine() {
+        SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .uri(URI.create("https://my-service.amazonaws.com"))
+                                                           .putHeader("x-amz-meta-a\r\nFORGED", "v")
+                                                           .build();
+        ExecutionContext executionContext = ExecutionContext.builder()
+                                                            .executionAttributes(ExecutionAttributes.builder().build())
+                                                            .build();
+        RequestExecutionContext context = RequestExecutionContext.builder()
+                                                                 .originalRequest(mock(SdkRequest.class))
+                                                                 .executionContext(executionContext)
+                                                                 .build();
+        SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
+                                                                    .option(SdkClientOption.RETRY_STRATEGY, mockRetryStrategy)
+                                                                    .build();
+        HttpClientDependencies dependencies = HttpClientDependencies.builder().clientConfiguration(clientConfig).build();
+        RetryableStageHelper helper = new RetryableStageHelper(httpRequest, context, dependencies);
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            helper.logSendingRequest();
+
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event ->
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("Request: ")
+                    .contains("x-amz-meta-a\\r\\nFORGED")
+                    .doesNotContain("\r", "\n"));
+        }
     }
 
     RetryableStageHelper makeTestHelper(ExecutionAttributes executionAttributes) {
