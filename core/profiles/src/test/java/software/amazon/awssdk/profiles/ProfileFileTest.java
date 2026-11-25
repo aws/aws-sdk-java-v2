@@ -808,6 +808,35 @@ public class ProfileFileTest {
 
     }
 
+    @Test
+    public void daemonCredential_inConfigFile_isKept() {
+        assertThat(configFileProfiles("[profile dev]\n"
+                                      + "daemon_credential = dev\n"))
+            .isEqualTo(profiles(profile("dev", property("daemon_credential", "dev"))));
+    }
+
+    @Test
+    public void daemonCredential_inCredentialsFile_isDroppedWithContinuations() {
+        assertThat(credentialFileProfiles("[dev]\n"
+                                          + "daemon_credential =\n"
+                                          + "  sub = value\n"
+                                          + "aws_access_key_id = akid\n"
+                                          + "region = us-west-2\n"
+                                          + "  continued\n"))
+            .isEqualTo(profiles(profile("dev",
+                                        property("aws_access_key_id", "akid"),
+                                        property("region", "us-west-2\ncontinued"))));
+    }
+
+    @Test
+    public void daemonCredential_inCredentialsFileOnly_isAbsentAfterAggregation() {
+        assertThat(aggregateFileProfiles("[profile dev]\n"
+                                         + "region = us-west-2\n",
+                                         "[dev]\n"
+                                         + "daemon_credential = dev\n"))
+            .isEqualTo(profiles(profile("dev", property("region", "us-west-2"))));
+    }
+
     private ProfileFile configFile(String configFile) {
         return ProfileFile.builder()
                           .content(configFile)

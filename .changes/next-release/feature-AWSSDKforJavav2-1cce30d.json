@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Add CredentialDaemonCredentialsProvider, which resolves credentials from a local credential daemon over a Unix domain socket for profiles that set daemon_credential in the shared config file. Compatibility note: the provider requires Linux or macOS. On Java 8 to 15 it also requires the optional junixsocket library (com.kohlschutter.junixsocket:junixsocket-core) on the class path, and fails with UNSUPPORTED_PLATFORM without it."
+}

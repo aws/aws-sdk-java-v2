@@ -78,6 +78,29 @@ public class SsoOidcProfileTokenProviderFactoryTest {
     }
 
     @Test
+    void create_whenDaemonHoldsSsoSession_throwsBearerTokenError() {
+        String profileContent = "[profile dev]\n" +
+                                "daemon_credential=dev\n" +
+                                "sso_session=admin\n" +
+                                "sso_account_id=123456789012\n" +
+                                "sso_role_name=Admin\n" +
+                                "[sso-session admin]\n" +
+                                "sso_region=us-east-1\n" +
+                                "sso_start_url= https://start-url\n";
+        ProfileFile profiles = ProfileFile.builder()
+                                          .content(new StringInputStream(profileContent))
+                                          .type(ProfileFile.Type.CONFIGURATION)
+                                          .build();
+
+        Assertions.assertThatThrownBy(() -> new SsoOidcProfileTokenProviderFactory().create(profiles,
+                                                                                       profiles.profile("dev").get()))
+                  .isInstanceOf(IllegalArgumentException.class)
+                  .hasMessage("Profile dev does not have a usable sso_session: its SSO session is held in the credential "
+                              + "daemon (daemon_credential). Services that use bearer tokens need an SSO session stored in "
+                              + "files; configure a profile with sso_session and sign in with a file-based SSO login.");
+    }
+
+    @Test
     void create_SsooidcTokenProvider_from_SsooidcSpecificProfile() {
         String profileContent = "[profile ssotoken]\n" +
                                 "sso_session=admin\n" +

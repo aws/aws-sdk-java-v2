@@ -155,6 +155,11 @@ public final class ProfileProperty {
      */
     public static final String SSO_START_URL = "sso_start_url";
 
+    /**
+     * The name of the {@code sso-session} section that holds the SSO settings for a profile.
+     */
+    public static final String SSO_SESSION = "sso_session";
+
     public static final String USE_DUALSTACK_ENDPOINT = "use_dualstack_endpoint";
 
     public static final String AUTH_SCHEME_PREFERENCE = "auth_scheme_preference";
@@ -213,6 +218,11 @@ public final class ProfileProperty {
      * Property  name for login session used with AWS Login/Sign-In Credentials.
      */
     public static final String LOGIN_SESSION = "login_session";
+
+    /**
+     * The name of a credential held by a local credential daemon. Read only from the shared config file.
+     */
+    public static final String DAEMON_CREDENTIAL = "daemon_credential";
 
     private ProfileProperty() {
     }

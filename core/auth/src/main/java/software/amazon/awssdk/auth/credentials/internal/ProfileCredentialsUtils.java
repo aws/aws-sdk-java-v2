@@ -32,6 +32,8 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.ChildProfileCredentialsProviderFactory;
 import software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.CredentialDaemonCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.CredentialDaemonException;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProcessCredentialsProvider;
@@ -39,6 +41,7 @@ import software.amazon.awssdk.auth.credentials.ProfileCredentialsProviderFactory
 import software.amazon.awssdk.auth.credentials.ProfileProviderCredentialsContext;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.internal.daemon.CredentialDaemonUtils;
 import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.profiles.Profile;
@@ -118,6 +121,13 @@ public final class ProfileCredentialsUtils {
      * Internal method that returns both the credentials provider and its feature ID.
      */
     private Optional<CredentialsWithFeatureId> credentialsProviderWithFeatureID(Set<String> children) {
+        if (properties.containsKey(ProfileProperty.DAEMON_CREDENTIAL)) {
+            Optional<CredentialsWithFeatureId> daemonProvider = daemonProfileCredentialsProvider();
+            if (daemonProvider.isPresent()) {
+                return daemonProvider;
+            }
+        }
+
         if (properties.containsKey(ProfileProperty.ROLE_ARN) && properties.containsKey(ProfileProperty.WEB_IDENTITY_TOKEN_FILE)) {
             return Optional.of(roleAndWebIdentityTokenProfileCredentialsProvider());
         }
@@ -163,6 +173,56 @@ public final class ProfileCredentialsUtils {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * Load the credential daemon provider configured with {@code daemon_credential} in this profile. This is empty only for an
+     * SSO profile that sets neither sso_account_id nor sso_role_name, which is then resolved as if daemon_credential were
+     * absent.
+     */
+    private Optional<CredentialsWithFeatureId> daemonProfileCredentialsProvider() {
+        boolean ssoProfile = CredentialDaemonUtils.isSsoProfile(properties);
+        boolean hasAccountId = properties.containsKey(ProfileProperty.SSO_ACCOUNT_ID);
+        boolean hasRoleName = properties.containsKey(ProfileProperty.SSO_ROLE_NAME);
+        if (ssoProfile && !hasAccountId && !hasRoleName) {
+            return Optional.empty();
+        }
+
+        String credentialName = properties.get(ProfileProperty.DAEMON_CREDENTIAL);
+        if (!CredentialDaemonUtils.isValidCredentialName(credentialName)) {
+            throw CredentialDaemonUtils.error(
+                CredentialDaemonException.INVALID_CONFIG,
+                "Profile '" + name + "' sets an invalid " + ProfileProperty.DAEMON_CREDENTIAL + ". A credential name is 1 to 64 "
+                + "characters from A-Z, a-z, 0-9, '.', '_' and '-', and does not start with '.'.",
+                null);
+        }
+
+        if (properties.containsKey(ProfileProperty.WEB_IDENTITY_TOKEN_FILE)) {
+            throw CredentialDaemonUtils.error(
+                CredentialDaemonException.INVALID_CONFIG,
+                "Profile '" + name + "' has two credential sources, " + ProfileProperty.DAEMON_CREDENTIAL + " and "
+                + ProfileProperty.WEB_IDENTITY_TOKEN_FILE + ". Remove one of them.",
+                null);
+        }
+
+        if (properties.containsKey(ProfileProperty.ROLE_ARN)) {
+            throw CredentialDaemonUtils.error(
+                CredentialDaemonException.INVALID_CONFIG,
+                "Profile '" + name + "' sets both " + ProfileProperty.DAEMON_CREDENTIAL + " and " + ProfileProperty.ROLE_ARN
+                + ". Move " + ProfileProperty.ROLE_ARN + " into its own profile that sets " + ProfileProperty.SOURCE_PROFILE
+                + " = " + name + ".",
+                null);
+        }
+
+        CredentialDaemonCredentialsProvider.Builder provider =
+            CredentialDaemonCredentialsProvider.builder().credentialName(credentialName);
+        if (ssoProfile) {
+            requireProperties(ProfileProperty.SSO_ACCOUNT_ID, ProfileProperty.SSO_ROLE_NAME);
+            provider.accountId(properties.get(ProfileProperty.SSO_ACCOUNT_ID))
+                    .roleName(properties.get(ProfileProperty.SSO_ROLE_NAME));
+        }
+
+        return Optional.of(new CredentialsWithFeatureId(provider.build(), BusinessMetricFeatureId.CREDENTIAL_DAEMON.value()));
     }
 
     /**
