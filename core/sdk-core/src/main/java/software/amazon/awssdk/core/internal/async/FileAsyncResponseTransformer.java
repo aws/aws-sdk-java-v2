@@ -194,8 +194,8 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
             runnable.run();
         } catch (Exception e) {
             if (log.logger().isErrorEnabled()) {
-                log.error(() -> messagePrefix + LogSanitizer.escapeControlCharacters(path.toString()) + messageSuffix,
-                          LogSanitizer.sanitize(e));
+                String message = messagePrefix + LogSanitizer.escapeControlCharacters(path.toString()) + messageSuffix;
+                log.logger().error(message, LogSanitizer.sanitize(e));
             }
         }
     }
