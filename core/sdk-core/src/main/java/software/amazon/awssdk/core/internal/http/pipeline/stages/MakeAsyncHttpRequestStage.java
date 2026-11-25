@@ -27,8 +27,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -74,6 +74,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         implements RequestPipeline<CompletableFuture<SdkHttpFullRequest>, CompletableFuture<Response<OutputT>>> {
 
     private static final Logger log = Logger.loggerFor(MakeAsyncHttpRequestStage.class);
+    private static final int NO_CURRENT_ATTEMPT = 0;
 
     private final SdkAsyncHttpClient sdkAsyncHttpClient;
     private final TransformingAsyncResponseHandler<Response<OutputT>> responseHandler;
@@ -81,7 +82,8 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private final ScheduledExecutorService timeoutExecutor;
     private final Duration apiCallAttemptTimeout;
     private final CompletableFuture<Void> abortSignal;
-    private final AtomicReference<Object> currentAttempt = new AtomicReference<>();
+    private final AtomicInteger attemptCount = new AtomicInteger();
+    private final AtomicInteger currentAttempt = new AtomicInteger(NO_CURRENT_ATTEMPT);
 
     public MakeAsyncHttpRequestStage(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler,
                                      HttpClientDependencies dependencies,
@@ -109,7 +111,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         CompletableFutureUtils.forwardExceptionTo(toReturn, requestFuture);
 
         requestFuture.thenAccept(request -> {
-            Object attempt = new Object();
+            int attempt = attemptCount.incrementAndGet();
             currentAttempt.set(attempt);
 
             // At this point, we have a request that we're ready to execute; we do everything in a try-catch in case the
@@ -119,7 +121,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
                 executeFuture.whenComplete((r, t) -> {
                     if (t != null) {
-                        currentAttempt.compareAndSet(attempt, null);
+                        currentAttempt.compareAndSet(attempt, NO_CURRENT_ATTEMPT);
                         toReturn.completeExceptionally(t);
                     } else {
                         toReturn.complete(r);
@@ -130,7 +132,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                 // returned future gets an exception, forward to the HTTP execution future
                 CompletableFutureUtils.forwardExceptionTo(toReturn, executeFuture);
             } catch (Throwable t) {
-                currentAttempt.compareAndSet(attempt, null);
+                currentAttempt.compareAndSet(attempt, NO_CURRENT_ATTEMPT);
                 toReturn.completeExceptionally(t);
             }
         });
@@ -140,7 +142,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
     private CompletableFuture<Response<OutputT>> executeHttpRequest(SdkHttpFullRequest request,
                                                                     RequestExecutionContext context,
-                                                                    Object attempt) {
+                                                                    int attempt) {
 
         CompletableFuture<Response<OutputT>> responseFuture = new CompletableFuture<>();
 
@@ -210,7 +212,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
     private CompletableFuture<Void> doExecuteHttpRequest(RequestExecutionContext context,
                                                          AsyncExecuteRequest.Builder executeRequestBuilder,
-                                                         Object attempt) {
+                                                         int attempt) {
         MetricCollector metricCollector = context.attemptMetricCollector();
         AtomicBoolean responseBodyComplete = new AtomicBoolean(false);
         CurrentAttemptResponseHandler<Response<OutputT>> wrappedResponseHandler =
@@ -354,12 +356,12 @@ public final class MakeAsyncHttpRequestStage<OutputT>
      */
     private static final class CurrentAttemptResponseHandler<ResultT>
         extends FilterTransformingAsyncHttpResponseHandler<ResultT> {
-        private final AtomicReference<Object> currentAttempt;
-        private final Object attempt;
+        private final AtomicInteger currentAttempt;
+        private final int attempt;
 
         private CurrentAttemptResponseHandler(TransformingAsyncResponseHandler<ResultT> delegate,
-                                              AtomicReference<Object> currentAttempt,
-                                              Object attempt) {
+                                              AtomicInteger currentAttempt,
+                                              int attempt) {
             super(delegate);
             this.currentAttempt = currentAttempt;
             this.attempt = attempt;
@@ -387,10 +389,12 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         }
 
         private boolean isCurrentAttempt(String event) {
-            if (currentAttempt.get() == attempt) {
+            int current = currentAttempt.get();
+            if (current == attempt) {
                 return true;
             }
-            log.debug(() -> "Ignoring the " + event + " of a request attempt that has already failed or been retried.");
+            log.debug(() -> "Ignoring the " + event + " of a request attempt that has already failed or been retried "
+                            + "[attempt=" + attempt + ", currentAttempt=" + current + "]");
             return false;
         }
     }
