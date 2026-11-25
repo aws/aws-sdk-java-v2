@@ -56,6 +56,7 @@ public class DefaultRequestSignerTest {
         String expectedCanonicalRequestString = "GET\n/\n\n"
                                                 + "host:localhost\n\n"
                                                 + "host\nquux";
+        String expectedCanonicalRequestHash = "7f279c7c23b237d559b30a008d08f2b4a3f2e0bbe4221568057bd28863cb34ed";
         String expectedHost = "localhost";
 
         try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
@@ -68,10 +69,10 @@ public class DefaultRequestSignerTest {
             assertEquals(expectedHost, requestSigningResult.getSignedRequest().firstMatchingHeader("Host").orElse(""));
             assertThat(requestSigningResult.getSignedRequest().build()).usingRecursiveComparison().isEqualTo(request.build());
             List<LogEvent> logEvents = logCaptor.loggedEvents();
-            assertThat(logEvents).hasSize(3);
-            assertThat(logEvents.get(0).getMessage().getFormattedMessage()).contains("AWS4 Canonical Request");
-            assertThat(logEvents.get(1).getMessage().getFormattedMessage()).contains("AWS4 Canonical Request Hash");
-            assertThat(logEvents.get(2).getMessage().getFormattedMessage()).contains("AWS4 String to sign");
+            assertThat(logEvents).hasSize(2);
+            assertThat(logEvents.get(0).getMessage().getFormattedMessage())
+                .isEqualTo("AWS4 Canonical Request Hash: " + expectedCanonicalRequestHash);
+            assertThat(logEvents.get(1).getMessage().getFormattedMessage()).contains("AWS4 String to sign");
         }
     }
 }
