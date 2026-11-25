@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.59.10__ __2026-11-25__
+## __AWS SDK for Java v2__
+  - ### Features
+    - The SDK's HTTP client modules (such as `apache-client` and `netty-nio-client`), metric publishers, high-level libraries (such as `s3-transfer-manager` and `dynamodb-enhanced`), `utils`, `utils-lite`, `http-client-spi`, and `codegen` now include a generated `META-INF/software.amazon.awssdk/<artifactId>/version.properties` resource whose `version` key contains the SDK minor version (for example `2.56.x`).
+    - Updated endpoint and partition metadata.
+
+  - ### Documentations
+    - Document SigV4 payload signing behavior over plaintext HTTP: synchronous clients always sign request payloads over HTTP, while asynchronous clients using the default AwsV4HttpSigner send chunk-encoded payloads unsigned regardless of PAYLOAD_SIGNING_ENABLED. The async signer now logs a warning once per JVM when it sends an unsigned payload over HTTP.
+
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF added support for associating AWS WAF web ACLs with Elastic Load Balancing proxies. You can now use AssociateWebACL, DisassociateWebACL, GetWebACLForResource, and ListResourcesForWebACL with the ELB PROXY resource type to protect your proxies with AWS WAF
+
+## __Elastic Load Balancing for Envoy__
+  - ### Features
+    - Introducing Elastic Load Balancing for Envoy. Run your existing Envoy configurations with AWS integrations, managed scaling, and automatic patching.
+
 # __2.59.9__ __2026-11-24__
 ## __AWS Global Accelerator__
   - ### Features

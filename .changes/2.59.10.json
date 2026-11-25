@@ -1,0 +1,36 @@
+{
+    "version": "2.59.10",
+    "date": "2026-11-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "The SDK's HTTP client modules (such as `apache-client` and `netty-nio-client`), metric publishers, high-level libraries (such as `s3-transfer-manager` and `dynamodb-enhanced`), `utils`, `utils-lite`, `http-client-spi`, and `codegen` now include a generated `META-INF/software.amazon.awssdk/<artifactId>/version.properties` resource whose `version` key contains the SDK minor version (for example `2.56.x`)."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing for Envoy",
+            "contributor": "",
+            "description": "Introducing Elastic Load Balancing for Envoy. Run your existing Envoy configurations with AWS integrations, managed scaling, and automatic patching."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "AWS WAF added support for associating AWS WAF web ACLs with Elastic Load Balancing proxies. You can now use AssociateWebACL, DisassociateWebACL, GetWebACLForResource, and ListResourcesForWebACL with the ELB PROXY resource type to protect your proxies with AWS WAF"
+        },
+        {
+            "type": "documentation",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Document SigV4 payload signing behavior over plaintext HTTP: synchronous clients always sign request payloads over HTTP, while asynchronous clients using the default AwsV4HttpSigner send chunk-encoded payloads unsigned regardless of PAYLOAD_SIGNING_ENABLED. The async signer now logs a warning once per JVM when it sends an unsigned payload over HTTP."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
