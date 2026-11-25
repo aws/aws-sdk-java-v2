@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Improved SigV4 signer diagnostic logging."
+    "description": "Updated SigV4 diagnostic logging to log the canonical request hash instead of the full canonical request."
 }
