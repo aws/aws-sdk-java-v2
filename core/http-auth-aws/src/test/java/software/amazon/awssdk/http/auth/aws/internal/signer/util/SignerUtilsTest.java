@@ -25,6 +25,10 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Random;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,6 +41,50 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
 public class SignerUtilsTest {
+    private static final DateTimeFormatter DATE_FORMAT =
+        DateTimeFormatter.ofPattern("yyyyMMdd").withZone(ZoneId.of("UTC"));
+    private static final DateTimeFormatter DATE_TIME_FORMAT =
+        DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneId.of("UTC"));
+
+    private static Stream<Instant> instants() {
+        Stream<Instant> fixed = Stream.of(
+            Instant.EPOCH,
+            Instant.parse("2013-05-24T00:00:00Z"),
+            Instant.parse("2024-02-29T23:59:59.999999999Z"),
+            Instant.parse("1969-12-31T23:59:59Z"),
+            Instant.parse("1000-01-01T00:00:00Z"),
+            Instant.parse("0999-12-31T23:59:59Z"),
+            Instant.parse("9999-12-31T23:59:59Z"),
+            Instant.parse("+10000-01-01T00:00:00Z"),
+            Instant.parse("-0001-06-15T12:30:45Z"));
+        Random random = new Random(42);
+        long min = Instant.parse("0500-01-01T00:00:00Z").getEpochSecond();
+        long max = Instant.parse("+12000-01-01T00:00:00Z").getEpochSecond();
+        Stream<Instant> randomInstants = Stream.generate(
+            () -> Instant.ofEpochSecond(min + (long) (random.nextDouble() * (max - min)), random.nextInt(1_000_000_000)))
+                                               .limit(500);
+        return Stream.concat(fixed, randomInstants);
+    }
+
+    @ParameterizedTest
+    @MethodSource("instants")
+    void formatDate_matchesDateTimeFormatter(Instant instant) {
+        assertThat(SignerUtils.formatDate(instant)).isEqualTo(DATE_FORMAT.format(instant));
+    }
+
+    @ParameterizedTest
+    @MethodSource("instants")
+    void formatDateTime_matchesDateTimeFormatter(Instant instant) {
+        assertThat(SignerUtils.formatDateTime(instant)).isEqualTo(DATE_TIME_FORMAT.format(instant));
+    }
+
+    @Test
+    void authorizationHeader_withAllParts_formatsSigV4AuthorizationHeader() {
+        assertThat(SignerUtils.authorizationHeader("akid", "20130524/us-east-1/s3/aws4_request", "host;x-amz-date", "abc123"))
+            .isEqualTo("AWS4-HMAC-SHA256 Credential=akid/20130524/us-east-1/s3/aws4_request, "
+                       + "SignedHeaders=host;x-amz-date, Signature=abc123");
+    }
+
 
     @Test
     void computeAndMoveContentLength_decodedContentLengthPresent_shouldNotInvokeNewStream() {

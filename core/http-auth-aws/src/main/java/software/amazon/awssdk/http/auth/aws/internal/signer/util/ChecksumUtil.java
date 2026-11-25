@@ -25,6 +25,7 @@ import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMI
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.UNSIGNED_PAYLOAD;
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_TRAILER;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
@@ -46,6 +47,7 @@ public final class ChecksumUtil {
 
     private static final Logger log = Logger.loggerFor(ChecksumUtil.class);
     private static final String CONSTANT_CHECKSUM = "CONSTANT";
+    private static final int READ_BUFFER_SIZE = 4096;
 
     private ChecksumUtil() {
     }
@@ -84,10 +86,32 @@ public final class ChecksumUtil {
      */
     public static void readAll(InputStream inputStream) {
         FunctionalUtils.invokeSafely(() -> {
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[readBufferSize(inputStream)];
+            boolean firstRead = true;
             while (inputStream.read(buffer) > -1) {
+                // Data after the first read means available() under-reported (InflaterInputStream always reports 1), so
+                // drain the rest with a full-size buffer instead of in available()-sized reads.
+                if (!firstRead && buffer.length < READ_BUFFER_SIZE) {
+                    buffer = new byte[READ_BUFFER_SIZE];
+                }
+                firstRead = false;
             }
         });
+    }
+
+    /**
+     * Sizes the first drain buffer to the stream's remaining bytes when it reports fewer than {@link #READ_BUFFER_SIZE},
+     * which is what in-memory request bodies do, so a small body does not pay for a full-size buffer. Uses
+     * {@link #READ_BUFFER_SIZE} when {@code available()} throws, since the size is only a hint and reading may still work.
+     */
+    private static int readBufferSize(InputStream inputStream) {
+        int available;
+        try {
+            available = inputStream.available();
+        } catch (IOException e) {
+            return READ_BUFFER_SIZE;
+        }
+        return available > 0 && available < READ_BUFFER_SIZE ? available : READ_BUFFER_SIZE;
     }
 
     public static byte[] longToByte(Long input) {

@@ -29,10 +29,17 @@ public final class V4RequestSigningResult {
     private final V4CanonicalRequest canonicalRequest;
     private final SdkHttpRequest.Builder signedRequest;
 
+    /**
+     * Creates a signing result.
+     *
+     * <p>Stores {@code signingKey} without copying it, so callers must not modify it afterward.
+     * {@link software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils#deriveSigningKey} returns a new array
+     * on every call, so its result can be passed in directly. {@link #getSigningKey()} returns a copy.
+     */
     public V4RequestSigningResult(String contentHash, byte[] signingKey, String signature,
                                   V4CanonicalRequest canonicalRequest, SdkHttpRequest.Builder signedRequest) {
         this.contentHash = contentHash;
-        this.signingKey = signingKey.clone();
+        this.signingKey = signingKey;
         this.signature = signature;
         this.canonicalRequest = canonicalRequest;
         this.signedRequest = signedRequest;
