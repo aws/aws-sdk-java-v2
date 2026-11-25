@@ -216,15 +216,8 @@ public final class SignerUtils {
      * signed headers, and signature.
      */
     public static String authorizationHeader(String accessKeyId, String scope, String signedHeaders, String signature) {
-        int length = AWS4_SIGNING_ALGORITHM.length() + CREDENTIAL_PREFIX.length() + accessKeyId.length() + 1
-                     + scope.length() + SIGNED_HEADERS_PREFIX.length() + signedHeaders.length()
-                     + SIGNATURE_PREFIX.length() + signature.length();
-        return new StringBuilder(length)
-            .append(AWS4_SIGNING_ALGORITHM)
-            .append(CREDENTIAL_PREFIX).append(accessKeyId).append('/').append(scope)
-            .append(SIGNED_HEADERS_PREFIX).append(signedHeaders)
-            .append(SIGNATURE_PREFIX).append(signature)
-            .toString();
+        return AWS4_SIGNING_ALGORITHM + CREDENTIAL_PREFIX + accessKeyId + "/" + scope
+               + SIGNED_HEADERS_PREFIX + signedHeaders + SIGNATURE_PREFIX + signature;
     }
 
     /**
