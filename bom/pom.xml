@@ -2498,6 +2498,11 @@
                 <artifactId>apiportal</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>elbproxy</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

@@ -466,6 +466,7 @@
         <module>payments</module>
         <module>sagemakergatewayruntime</module>
         <module>apiportal</module>
+        <module>elbproxy</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
