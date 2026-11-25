@@ -41,6 +41,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -439,6 +440,56 @@ class FileAsyncResponseTransformerTest {
         assertThat(future).failsWithin(1, TimeUnit.SECONDS)
                           .withThrowableOfType(ExecutionException.class)
                           .withCauseInstanceOf(NoSuchFileException.class);
+    }
+
+    @Test
+    void onStream_afterDownloadCompletedSuccessfully_shouldNotDeleteDownloadedFile() throws Exception {
+        Path testPath = testFs.getPath("test_file.txt");
+        String downloadedContent = RandomStringUtils.randomAlphanumeric(30000);
+        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath);
+
+        transformer.prepare();
+        transformer.exceptionOccurred(new RuntimeException("Attempt 1 timed out"));
+        CompletableFuture<String> retryFuture = transformer.prepare();
+
+        transformer.onResponse("attempt-1");
+        transformer.onStream(testPublisher(downloadedContent));
+        assertThat(retryFuture.get(10, TimeUnit.SECONDS)).isEqualTo("attempt-1");
+        assertThat(testPath).hasContent(downloadedContent);
+
+        transformer.onResponse("attempt-2");
+        transformer.onStream(testPublisher(RandomStringUtils.randomAlphanumeric(1000)));
+
+        assertThat(retryFuture).isCompletedWithValue("attempt-1");
+        assertThat(testPath).exists()
+                            .hasContent(downloadedContent);
+    }
+
+    @Test
+    void streamError_fromEarlierAttemptAfterRetryCompleted_shouldNotDeleteDownloadedFile() throws Exception {
+        Path testPath = testFs.getPath("test_file.txt");
+        String downloadedContent = RandomStringUtils.randomAlphanumeric(30000);
+        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath);
+
+        transformer.prepare();
+        transformer.onResponse("attempt-1");
+        AtomicReference<Subscriber<? super ByteBuffer>> attempt1Subscriber = new AtomicReference<>();
+        transformer.onStream(s -> {
+            attempt1Subscriber.set(s);
+            s.onSubscribe(new NoopSubscription(s));
+        });
+        transformer.exceptionOccurred(new RuntimeException("Attempt 1 timed out"));
+
+        CompletableFuture<String> retryFuture = transformer.prepare();
+        transformer.onResponse("attempt-2");
+        transformer.onStream(testPublisher(downloadedContent));
+        assertThat(retryFuture.get(10, TimeUnit.SECONDS)).isEqualTo("attempt-2");
+
+        attempt1Subscriber.get().onError(new IOException("Attempt 1's connection was closed"));
+
+        assertThat(retryFuture).isCompletedWithValue("attempt-2");
+        assertThat(testPath).exists()
+                            .hasContent(downloadedContent);
     }
 
     private static void stubSuccessfulStreaming(String newContent, FileAsyncResponseTransformer<String> transformer) throws Exception {

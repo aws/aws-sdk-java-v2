@@ -33,6 +33,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULE
 import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils.combinedAsyncResponseHandler;
 
 import io.reactivex.Flowable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -50,6 +51,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -360,6 +362,59 @@ public class MakeAsyncHttpRequestStageTest {
             assertThat(capturedRequest.firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
             assertThat(capturedRequest.firstMatchingHeader(Header.TRANSFER_ENCODING)).hasValue("chunked");
         }
+    }
+
+    @Test
+    public void execute_whenAttemptFailed_shouldIgnoreLaterEventsFromAttempt() {
+        CompletableFuture<Response<Object>> preparedFuture = new CompletableFuture<>();
+        TransformingAsyncResponseHandler<Response<Object>> responseHandler = mockResponseHandler(preparedFuture);
+        CompletableFuture<Response<Object>> result = executeOnce(responseHandler);
+        SdkAsyncHttpResponseHandler attempt = capturedResponseHandler();
+
+        preparedFuture.completeExceptionally(new IOException("Attempt failed"));
+        assertThat(result).isCompletedExceptionally();
+        attempt.onHeaders(SdkHttpFullResponse.builder().statusCode(200).build());
+        attempt.onError(new IOException("Late error"));
+
+        verify(responseHandler, never()).onHeaders(any());
+        verify(responseHandler, never()).onError(any());
+    }
+
+    @Test
+    public void execute_whenAttemptSucceeded_shouldDeliverLaterErrorFromAttempt() {
+        CompletableFuture<Response<Object>> preparedFuture = new CompletableFuture<>();
+        TransformingAsyncResponseHandler<Response<Object>> responseHandler = mockResponseHandler(preparedFuture);
+        CompletableFuture<Response<Object>> result = executeOnce(responseHandler);
+        SdkAsyncHttpResponseHandler attempt = capturedResponseHandler();
+
+        preparedFuture.complete(Response.<Object>builder().isSuccess(true).build());
+        assertThat(result).isCompleted();
+        IOException bodyError = new IOException("Response body failed after the response was returned");
+        attempt.onError(bodyError);
+
+        verify(responseHandler).onError(bodyError);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static TransformingAsyncResponseHandler<Response<Object>> mockResponseHandler(
+        CompletableFuture<Response<Object>> preparedFuture) {
+        TransformingAsyncResponseHandler<Response<Object>> responseHandler = mock(TransformingAsyncResponseHandler.class);
+        when(responseHandler.prepare()).thenReturn(preparedFuture);
+        return responseHandler;
+    }
+
+    private CompletableFuture<Response<Object>> executeOnce(TransformingAsyncResponseHandler<Response<Object>> responseHandler) {
+        stage = new MakeAsyncHttpRequestStage<>(responseHandler, clientDependencies(null), abortSignal);
+        RequestExecutionContext context = requestContext();
+        context.attemptMetricCollector(NoOpMetricCollector.create());
+        context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ, new AtomicLong());
+        return stage.execute(CompletableFuture.completedFuture(ValidSdkObjects.sdkHttpFullRequest().build()), context);
+    }
+
+    private SdkAsyncHttpResponseHandler capturedResponseHandler() {
+        ArgumentCaptor<AsyncExecuteRequest> executeRequest = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
+        verify(sdkAsyncHttpClient).execute(executeRequest.capture());
+        return executeRequest.getValue().responseHandler();
     }
 
     private HttpClientDependencies clientDependencies(Duration timeout) {

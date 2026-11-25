@@ -28,6 +28,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -80,6 +81,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private final ScheduledExecutorService timeoutExecutor;
     private final Duration apiCallAttemptTimeout;
     private final CompletableFuture<Void> abortSignal;
+    private final AtomicReference<Object> currentAttempt = new AtomicReference<>();
 
     public MakeAsyncHttpRequestStage(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler,
                                      HttpClientDependencies dependencies,
@@ -107,13 +109,17 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         CompletableFutureUtils.forwardExceptionTo(toReturn, requestFuture);
 
         requestFuture.thenAccept(request -> {
+            Object attempt = new Object();
+            currentAttempt.set(attempt);
+
             // At this point, we have a request that we're ready to execute; we do everything in a try-catch in case the
             // method call to executeHttpRequest throws directly
             try {
-                CompletableFuture<Response<OutputT>> executeFuture = executeHttpRequest(request, context);
+                CompletableFuture<Response<OutputT>> executeFuture = executeHttpRequest(request, context, attempt);
 
                 executeFuture.whenComplete((r, t) -> {
                     if (t != null) {
+                        currentAttempt.compareAndSet(attempt, null);
                         toReturn.completeExceptionally(t);
                     } else {
                         toReturn.complete(r);
@@ -124,6 +130,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                 // returned future gets an exception, forward to the HTTP execution future
                 CompletableFutureUtils.forwardExceptionTo(toReturn, executeFuture);
             } catch (Throwable t) {
+                currentAttempt.compareAndSet(attempt, null);
                 toReturn.completeExceptionally(t);
             }
         });
@@ -132,7 +139,8 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     }
 
     private CompletableFuture<Response<OutputT>> executeHttpRequest(SdkHttpFullRequest request,
-                                                                    RequestExecutionContext context) {
+                                                                    RequestExecutionContext context,
+                                                                    Object attempt) {
 
         CompletableFuture<Response<OutputT>> responseFuture = new CompletableFuture<>();
 
@@ -158,7 +166,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                        .getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES));
         }
 
-        CompletableFuture<Void> httpClientFuture = doExecuteHttpRequest(context, executeRequestBuilder, responseHandler);
+        CompletableFuture<Void> httpClientFuture = doExecuteHttpRequest(context, executeRequestBuilder, attempt);
 
         TimeoutTracker timeoutTracker = setupAttemptTimer(responseFuture, context);
         context.apiCallAttemptTimeoutTracker(timeoutTracker);
@@ -202,12 +210,15 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
     private CompletableFuture<Void> doExecuteHttpRequest(RequestExecutionContext context,
                                                          AsyncExecuteRequest.Builder executeRequestBuilder,
-                                                         TransformingAsyncResponseHandler<Response<OutputT>> responseHandler) {
+                                                         Object attempt) {
         MetricCollector metricCollector = context.attemptMetricCollector();
         AtomicBoolean responseBodyComplete = new AtomicBoolean(false);
-        ReadMetricsTrackingResponseHandler<Response<OutputT>> wrappedResponseHandler =
-            new ReadMetricsTrackingResponseHandler<>(
-                new BodyCompletionTrackingResponseHandler<>(responseHandler, responseBodyComplete), context);
+        CurrentAttemptResponseHandler<Response<OutputT>> wrappedResponseHandler =
+            new CurrentAttemptResponseHandler<>(
+                new ReadMetricsTrackingResponseHandler<>(
+                    new BodyCompletionTrackingResponseHandler<>(responseHandler, responseBodyComplete), context),
+                currentAttempt,
+                attempt);
 
         AsyncExecuteRequest executeRequest = executeRequestBuilder.responseHandler(wrappedResponseHandler)
                                                                   .build();
@@ -334,6 +345,53 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
             trackingPublisher.subscribe(s);
+        }
+    }
+
+    /**
+     * Decorator response handler that drops events the HTTP client delivers for an attempt the SDK has already failed or
+     * replaced, so they cannot act on response handler state shared with the newer attempt.
+     */
+    private static final class CurrentAttemptResponseHandler<ResultT>
+        extends FilterTransformingAsyncHttpResponseHandler<ResultT> {
+        private final AtomicReference<Object> currentAttempt;
+        private final Object attempt;
+
+        private CurrentAttemptResponseHandler(TransformingAsyncResponseHandler<ResultT> delegate,
+                                              AtomicReference<Object> currentAttempt,
+                                              Object attempt) {
+            super(delegate);
+            this.currentAttempt = currentAttempt;
+            this.attempt = attempt;
+        }
+
+        @Override
+        public void onHeaders(SdkHttpResponse headers) {
+            if (isCurrentAttempt("response headers")) {
+                super.onHeaders(headers);
+            }
+        }
+
+        @Override
+        public void onStream(Publisher<ByteBuffer> stream) {
+            if (isCurrentAttempt("response body")) {
+                super.onStream(stream);
+            }
+        }
+
+        @Override
+        public void onError(Throwable error) {
+            if (isCurrentAttempt("error")) {
+                super.onError(error);
+            }
+        }
+
+        private boolean isCurrentAttempt(String event) {
+            if (currentAttempt.get() == attempt) {
+                return true;
+            }
+            log.debug(() -> "Ignoring the " + event + " of a request attempt that has already failed or been retried.");
+            return false;
         }
     }
 
