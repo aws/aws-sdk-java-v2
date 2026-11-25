@@ -130,7 +130,8 @@ public class RepeatableInputStreamRequestEntity extends HttpEntityWrapper {
         try {
             return ContentType.parse(contentTypeValue);
         } catch (Exception e) {
-            log.warn(() -> "Unable to parse content type: " + contentTypeValue);
+            log.warn(() -> "Unable to parse the Content-Type header of the request. "
+                           + "The request entity will be sent without a parsed content type.");
             return null;
         }
     }

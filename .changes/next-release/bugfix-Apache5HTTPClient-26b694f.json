@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Apache 5 HTTP Client",
+    "contributor": "",
+    "description": "Stop including the request's Content-Type header value in the warning logged when it cannot be parsed."
+}
