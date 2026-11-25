@@ -57,6 +57,11 @@ import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
  *                            .checksumAlgorithm(ChecksumAlgorithm.SHA256)
  *                            .bucket("test").key("test").build(), RequestBody.fromBytes("abc".getBytes()));
  * }
+ *
+ * <p>Payload signing behaves differently when the client sends to a plaintext {@code http://} endpoint. The synchronous client
+ * always signs the payload over HTTP, regardless of this setting. The asynchronous client does not sign the payload over
+ * HTTP when chunked encoding is enabled, which is the default for {@code PutObject} and {@code UploadPart}, regardless of
+ * this setting. Use HTTPS when payload signing is required. See {@link AwsV4FamilyHttpSigner#PAYLOAD_SIGNING_ENABLED}.
  */
 @SdkProtectedApi
 public final class S3OverrideAuthSchemePropertiesPlugin implements SdkPlugin {
