@@ -112,6 +112,14 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
+         * Sets the strategy for stored attribute names.
+         */
+        public Builder<T> attributeNamingStrategy(AttributeNamingStrategy attributeNamingStrategy) {
+            this.delegateBuilder.attributeNamingStrategy(attributeNamingStrategy);
+            return this;
+        }
+
+        /**
          * A list of attributes that can be mapped between the data item object and the database record that are to
          * be associated with the schema. Will overwrite any existing attributes.
          */

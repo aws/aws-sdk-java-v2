@@ -35,10 +35,12 @@ public final class ImmutableTableSchemaParams<T>
     implements ToCopyableBuilder<ImmutableTableSchemaParams.Builder<T>, ImmutableTableSchemaParams<T>> {
     private final Class<T> immutableClass;
     private final MethodHandles.Lookup lookup;
+    private final AttributeNamingStrategy attributeNamingStrategy;
 
     private ImmutableTableSchemaParams(BuilderImpl<T> builder) {
         this.immutableClass = builder.immutableClass;
         this.lookup = builder.lookup;
+        this.attributeNamingStrategy = builder.attributeNamingStrategy;
     }
 
     public Class<T> immutableClass() {
@@ -47,6 +49,15 @@ public final class ImmutableTableSchemaParams<T>
 
     public MethodHandles.Lookup lookup() {
         return lookup;
+    }
+
+    /**
+     * Returns the strategy for stored attribute names.
+     *
+     * @return the strategy for stored attribute names
+     */
+    public AttributeNamingStrategy attributeNamingStrategy() {
+        return attributeNamingStrategy;
     }
 
     @Override
@@ -85,11 +96,19 @@ public final class ImmutableTableSchemaParams<T>
          * @return This builder for method chaining.
          */
         Builder<T> lookup(MethodHandles.Lookup lookup);
+
+        /**
+         * Sets the strategy for stored attribute names.
+         *
+         * @return This builder for method chaining.
+         */
+        Builder<T> attributeNamingStrategy(AttributeNamingStrategy attributeNamingStrategy);
     }
 
     private static class BuilderImpl<T> implements Builder<T> {
         private Class<T> immutableClass;
         private MethodHandles.Lookup lookup;
+        private AttributeNamingStrategy attributeNamingStrategy;
 
         private BuilderImpl(Class<T> beanClass) {
             this.immutableClass = beanClass;
@@ -98,6 +117,7 @@ public final class ImmutableTableSchemaParams<T>
         private BuilderImpl(ImmutableTableSchemaParams<T> info) {
             this.immutableClass = info.immutableClass;
             this.lookup = info.lookup;
+            this.attributeNamingStrategy = info.attributeNamingStrategy;
         }
 
         public BuilderImpl<T> immutableClass(Class<T> beanClass) {
@@ -107,6 +127,12 @@ public final class ImmutableTableSchemaParams<T>
 
         public BuilderImpl<T> lookup(MethodHandles.Lookup lookup) {
             this.lookup = lookup;
+            return this;
+        }
+
+        @Override
+        public BuilderImpl<T> attributeNamingStrategy(AttributeNamingStrategy attributeNamingStrategy) {
+            this.attributeNamingStrategy = attributeNamingStrategy;
             return this;
         }
 

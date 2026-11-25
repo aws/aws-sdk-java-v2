@@ -28,12 +28,21 @@ public class TableSchemaFactory {
     }
 
     public static <T> TableSchema<T> fromClass(Class<T> annotatedClass, ExecutionContext context) {
+        return fromClass(annotatedClass, context, null);
+    }
+
+    /**
+     * Builds a schema whose stored attribute names come from the given strategy.
+     */
+    public static <T> TableSchema<T> fromClass(Class<T> annotatedClass,
+                                               ExecutionContext context,
+                                               AttributeNamingStrategy attributeNamingStrategy) {
         if (annotatedClass.getAnnotation(DynamoDbImmutable.class) != null) {
-            return ImmutableTableSchema.create(annotatedClass, context);
+            return ImmutableTableSchema.create(annotatedClass, context, attributeNamingStrategy);
         }
 
         if (annotatedClass.getAnnotation(DynamoDbBean.class) != null) {
-            return BeanTableSchema.create(annotatedClass, context);
+            return BeanTableSchema.create(annotatedClass, context, attributeNamingStrategy);
         }
 
         throw new IllegalArgumentException("Class does not appear to be a valid DynamoDb annotated class. [class = " +
