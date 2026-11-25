@@ -39,6 +39,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -59,6 +61,7 @@ import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.ClassLoaderHelper;
 import software.amazon.awssdk.utils.IoUtils;
@@ -813,6 +816,52 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("314");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void signAsync_WithChunkEncodingTrueAndHttp_sendsUnsignedPayloadAndWarnsOnce(boolean payloadSigningEnabled) {
+        DefaultAwsV4HttpSigner.resetUnsignedHttpPayloadWarning();
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, payloadSigningEnabled)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+        );
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            AsyncSignedRequest first = signer.signAsync(request).join();
+            AsyncSignedRequest second = signer.signAsync(request).join();
+
+            assertThat(first.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+            assertThat(second.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+
+            List<LogEvent> warnEvents = logCaptor.loggedEvents().stream()
+                                                 .filter(e -> e.getLevel() == Level.WARN)
+                                                 .collect(Collectors.toList());
+            org.assertj.core.api.Assertions.assertThat(warnEvents).hasSize(1);
+            assertThat(warnEvents.get(0).getMessage().getFormattedMessage())
+                .contains("unsigned payload over plaintext HTTP");
+        }
+    }
+
+    @Test
+    void signAsync_WithChunkEncodingTrueAndHttps_doesNotWarn() {
+        DefaultAwsV4HttpSigner.resetUnsignedHttpPayloadWarning();
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("https://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+        );
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            signer.signAsync(request).join();
+
+            org.assertj.core.api.Assertions.assertThat(logCaptor.loggedEvents()).isEmpty();
+        }
     }
 
     @Test

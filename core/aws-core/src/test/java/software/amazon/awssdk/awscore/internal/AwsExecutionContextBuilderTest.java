@@ -524,7 +524,8 @@ public class AwsExecutionContextBuilderTest {
     }
 
     @Test
-    public void invokeInterceptorsAndCreateExecutionContext_newRetries2026EnabledConfig_setsCorrectAttributeValue() {
+    @SuppressWarnings("deprecation")
+    public void invokeInterceptorsAndCreateExecutionContext_newRetries2026EnabledConfig_doesNotSetAttribute() {
         SdkClientConfiguration clientConfig = testClientConfiguration()
             .option(SdkClientOption.NEW_RETRIES_2026_ENABLED, true)
             .build();
@@ -533,7 +534,7 @@ public class AwsExecutionContextBuilderTest {
             AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
 
         assertThat(executionContext.executionAttributes()
-                                   .getAttribute(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED)).isTrue();
+                                   .getAttribute(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED)).isNull();
     }
 
     @Test

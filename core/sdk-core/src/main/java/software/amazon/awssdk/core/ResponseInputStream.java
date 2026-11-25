@@ -43,6 +43,13 @@ import software.amazon.awssdk.utils.Validate;
  * The timeout can be customized by passing a {@link Duration} to the constructor, or disabled entirely by
  * passing {@link Duration#ZERO} or a negative {@link Duration}.
  * <p>
+ * <b>Checksum validation:</b> When the SDK validates the checksum of an Amazon S3 {@code GetObject} response, it reports a
+ * checksum mismatch only on the read that reaches the end of this stream, the read that returns -1. If your code reads exactly
+ * the number of bytes in the response and then closes the stream, that read doesn't happen, so no error is thrown, even if the
+ * data is corrupted. To make sure the checksum is checked, keep reading until a read returns -1, or use a method that reads the
+ * whole response for you, such as {@code getObjectAsBytes} on the Amazon S3 client. This also applies to streams returned by
+ * {@link software.amazon.awssdk.core.async.AsyncResponseTransformer#toBlockingInputStream()}.
+ * <p>
  * Note about the Apache http client: This input stream can be used to leverage a feature of the Apache http client where
  * connections are released back to the connection pool to be reused. As such, calling {@link ResponseInputStream#close() close}
  * on this input stream will result in reading the remaining data from the stream and leaving the connection open, even if the

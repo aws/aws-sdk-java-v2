@@ -1570,7 +1570,7 @@
         },
         "resourceType":{
           "shape":"AggregationResourceType",
-          "documentation":"<p>The type of resource.</p>"
+          "documentation":"<p>The type of resource. For Google Cloud Platform (GCP) resources, the resource type is <code>compute.googleapis.com/Instance</code>, <code>cloudfunctions.googleapis.com/Function</code>, or <code>artifactregistry.googleapis.com/DockerImage</code>.</p>"
         },
         "sortOrder":{
           "shape":"SortOrder",
@@ -1749,7 +1749,10 @@
         "CODE_REPOSITORY",
         "Microsoft.Compute/virtualMachines",
         "Microsoft.ContainerRegistry/registry/containerImage",
-        "Microsoft.Web/sites"
+        "Microsoft.Web/sites",
+        "cloudfunctions.googleapis.com/Function",
+        "compute.googleapis.com/Instance",
+        "artifactregistry.googleapis.com/DockerImage"
       ]
     },
     "AggregationResponse":{
@@ -1879,7 +1882,7 @@
         },
         "cloudProvider":{
           "shape":"Provider",
-          "documentation":"<p>The cloud service provider associated with this Amazon Machine Image (AMI) aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> </ul>"
+          "documentation":"<p>The cloud service provider associated with this Amazon Machine Image (AMI) aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Findings from Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "cloudPartition":{
           "shape":"ProviderPartition",
@@ -1887,7 +1890,7 @@
         },
         "cloudRegion":{
           "shape":"ProviderRegion",
-          "documentation":"<p>The cloud Region associated with this AMI aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> </ul>"
+          "documentation":"<p>The cloud Region associated with this AMI aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "cloudOrgId":{
           "shape":"ProviderOrgId",
@@ -3748,6 +3751,7 @@
       "enum":[
         "AWS",
         "AZURE",
+        "GCP",
         "NOT_APPLICABLE"
       ]
     },
@@ -3848,6 +3852,10 @@
       },
       "documentation":"<p>The metadata for a cluster.</p>",
       "union":true
+    },
+    "CodeConnectionsHostArn":{
+      "type":"string",
+      "pattern":"arn:aws(-[\\w]+)*:(codestar-connections|codeconnections):.+:[0-9]{12}:host\\/.+"
     },
     "CodeFilePath":{
       "type":"structure",
@@ -4137,6 +4145,40 @@
         }
       },
       "documentation":"<p>A summary of information about a code security integration.</p>"
+    },
+    "CodeSecurityIntegrationVpcConfiguration":{
+      "type":"structure",
+      "required":[
+        "vpcId",
+        "vpcEndpointId"
+      ],
+      "members":{
+        "vpcId":{
+          "shape":"VpcId",
+          "documentation":"<p>The ID of the VPC that Amazon Inspector connects through to reach the repository provider.</p>"
+        },
+        "vpcEndpointId":{
+          "shape":"VpcEndpointId",
+          "documentation":"<p>The ID of the VPC endpoint used for the connection.</p>"
+        },
+        "codeConnectionsHostArn":{
+          "shape":"CodeConnectionsHostArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the AWS CodeConnections host used for the connection.</p>"
+        },
+        "subnetIds":{
+          "shape":"SubnetIdList",
+          "documentation":"<p>The IDs of the subnets used for the connection.</p>"
+        },
+        "securityGroups":{
+          "shape":"SecurityGroupIdList",
+          "documentation":"<p>The IDs of the security groups used for the connection.</p>"
+        },
+        "tlsCertificate":{
+          "shape":"TlsCertificate",
+          "documentation":"<p>The TLS certificate used to establish a trusted connection to the repository provider.</p>"
+        }
+      },
+      "documentation":"<p>The VPC configuration that Amazon Inspector uses to connect to a source code repository provider that is hosted in a private network.</p>"
     },
     "CodeSecurityResource":{
       "type":"structure",
@@ -4464,6 +4506,14 @@
         "autoInstallVMScanner":{
           "shape":"Boolean",
           "documentation":"<p>Specifies whether the VM scanner is automatically installed on connected resources.</p>"
+        },
+        "gcpRegions":{
+          "shape":"GcpRegionList",
+          "documentation":"<p>The Google Cloud Platform (GCP) locations configured for the connector.</p>"
+        },
+        "gcpScopeConfiguration":{
+          "shape":"GcpScopeConfiguration",
+          "documentation":"<p>The Google Cloud Platform (GCP) scope configuration for the connector.</p>"
         }
       },
       "documentation":"<p>Describes a connector that links an external cloud provider to Amazon Inspector for vulnerability scanning.</p>"
@@ -4508,7 +4558,10 @@
     },
     "ConnectorCloudProvider":{
       "type":"string",
-      "enum":["AZURE"]
+      "enum":[
+        "AZURE",
+        "GCP"
+      ]
     },
     "ConnectorContainerImageScanConfiguration":{
       "type":"structure",
@@ -4724,7 +4777,7 @@
         },
         "cloudProviders":{
           "shape":"StringFilterList",
-          "documentation":"<p>The cloud providers to aggregate findings for. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> </ul>"
+          "documentation":"<p>The cloud providers to aggregate findings for. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Findings from Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "cloudPartitions":{
           "shape":"StringFilterList",
@@ -4732,7 +4785,7 @@
         },
         "cloudRegions":{
           "shape":"StringFilterList",
-          "documentation":"<p>The cloud regions to aggregate findings for. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> </ul>"
+          "documentation":"<p>The cloud regions to aggregate findings for. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "cloudOrgIds":{
           "shape":"StringFilterList",
@@ -4771,7 +4824,7 @@
         },
         "cloudProvider":{
           "shape":"Provider",
-          "documentation":"<p>The cloud service provider associated with this container image aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> </ul>"
+          "documentation":"<p>The cloud service provider associated with this container image aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Findings from Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "cloudAccountId":{
           "shape":"ProviderAccountId",
@@ -4783,7 +4836,7 @@
         },
         "cloudRegion":{
           "shape":"ProviderRegion",
-          "documentation":"<p>The cloud Region associated with this container image aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> </ul>"
+          "documentation":"<p>The cloud Region associated with this container image aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "cloudOrgId":{
           "shape":"ProviderOrgId",
@@ -4997,7 +5050,7 @@
         },
         "resourceType":{
           "shape":"CoverageStringFilterList",
-          "documentation":"<p>An array of Amazon Web Services resource types to return coverage statistics for. The values can be <code>AWS_EC2_INSTANCE</code>, <code>AWS_LAMBDA_FUNCTION</code>, <code>AWS_ECR_CONTAINER_IMAGE</code>, <code>AWS_ECR_REPOSITORY</code> or <code>AWS_ACCOUNT</code>.</p>"
+          "documentation":"<p>An array of resource types to return coverage statistics for. Valid values:</p> <ul> <li> <p>Amazon Web Services – <code>AWS_EC2_INSTANCE</code>, <code>AWS_LAMBDA_FUNCTION</code>, <code>AWS_ECR_CONTAINER_IMAGE</code>, <code>AWS_ECR_REPOSITORY</code>, <code>MACHINE_IMAGE</code>, <code>CODE_REPOSITORY</code>, or <code>AWS_ACCOUNT</code>.</p> </li> <li> <p>Microsoft Azure – <code>Microsoft.Compute/virtualMachines</code>, <code>Microsoft.ContainerRegistry/registries</code>, <code>Microsoft.ContainerRegistry/registry/containerRepository</code>, <code>Microsoft.ContainerRegistry/registry/containerImage</code>, or <code>Microsoft.Web/sites</code>.</p> </li> <li> <p>Google Cloud Platform (GCP) – <code>compute.googleapis.com/Instance</code>, <code>cloudfunctions.googleapis.com/Function</code>, <code>artifactregistry.googleapis.com/Repository</code>, or <code>artifactregistry.googleapis.com/DockerImage</code>.</p> </li> </ul>"
         },
         "scanType":{
           "shape":"CoverageStringFilterList",
@@ -5069,15 +5122,15 @@
         },
         "cloudProvider":{
           "shape":"CoverageStringFilterList",
-          "documentation":"<p>The cloud provider to filter coverage results by.</p>"
+          "documentation":"<p>The cloud provider to filter coverage results by. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "cloudProviderAccountId":{
           "shape":"CoverageStringFilterList",
-          "documentation":"<p>The cloud provider account ID to filter coverage results by.</p>"
+          "documentation":"<p>The cloud provider account ID to filter coverage results by. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services account ID.</p> </li> <li> <p>An Azure subscription ID.</p> </li> <li> <p>A Google Cloud Platform (GCP) project ID, such as <code>my-project</code>.</p> </li> </ul>"
         },
         "cloudProviderRegion":{
           "shape":"CoverageStringFilterList",
-          "documentation":"<p>The cloud provider region to filter coverage results by.</p>"
+          "documentation":"<p>The cloud provider region to filter coverage results by. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "cloudVmInstanceTags":{
           "shape":"CoverageMapFilterList",
@@ -5109,7 +5162,7 @@
         },
         "cloudProviderOrgId":{
           "shape":"CoverageStringFilterList",
-          "documentation":"<p>The cloud provider organization ID to filter coverage results by.</p>"
+          "documentation":"<p>The cloud provider organization ID to filter coverage results by. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Organizations organization ID.</p> </li> <li> <p>An Azure tenant ID.</p> </li> <li> <p>A numeric Google Cloud Platform (GCP) organization ID.</p> </li> </ul>"
         }
       },
       "documentation":"<p>A structure that identifies filter criteria for <code>GetCoverageStatistics</code>.</p>"
@@ -5179,7 +5232,11 @@
         "Microsoft.ContainerRegistry/registry/containerRepository",
         "Microsoft.Web/sites",
         "Microsoft.ContainerRegistry/registries",
-        "MACHINE_IMAGE"
+        "MACHINE_IMAGE",
+        "cloudfunctions.googleapis.com/Function",
+        "compute.googleapis.com/Instance",
+        "artifactregistry.googleapis.com/Repository",
+        "artifactregistry.googleapis.com/DockerImage"
       ]
     },
     "CoverageStringComparison":{
@@ -5229,7 +5286,7 @@
       "members":{
         "resourceType":{
           "shape":"CoverageResourceType",
-          "documentation":"<p>The type of the covered resource.</p>"
+          "documentation":"<p>The type of the covered resource. Valid values:</p> <ul> <li> <p>Amazon Web Services – <code>AWS_EC2_INSTANCE</code>, <code>AWS_LAMBDA_FUNCTION</code>, <code>AWS_ECR_CONTAINER_IMAGE</code>, <code>AWS_ECR_REPOSITORY</code>, <code>MACHINE_IMAGE</code>, <code>CODE_REPOSITORY</code>, or <code>AWS_ACCOUNT</code>.</p> </li> <li> <p>Microsoft Azure – <code>Microsoft.Compute/virtualMachines</code>, <code>Microsoft.ContainerRegistry/registries</code>, <code>Microsoft.ContainerRegistry/registry/containerRepository</code>, <code>Microsoft.ContainerRegistry/registry/containerImage</code>, or <code>Microsoft.Web/sites</code>.</p> </li> <li> <p>Google Cloud Platform (GCP) – <code>compute.googleapis.com/Instance</code>, <code>cloudfunctions.googleapis.com/Function</code>, <code>artifactregistry.googleapis.com/Repository</code>, or <code>artifactregistry.googleapis.com/DockerImage</code>.</p> </li> </ul>"
         },
         "resourceId":{
           "shape":"ResourceId",
@@ -5261,19 +5318,19 @@
         },
         "provider":{
           "shape":"Provider",
-          "documentation":"<p>The cloud provider of the covered resource.</p>"
+          "documentation":"<p>The cloud provider of the covered resource. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "providerAccountId":{
           "shape":"ProviderAccountId",
-          "documentation":"<p>The cloud provider account ID of the covered resource.</p>"
+          "documentation":"<p>The cloud provider account ID of the covered resource. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services account ID.</p> </li> <li> <p>An Azure subscription ID.</p> </li> <li> <p>A Google Cloud Platform (GCP) project ID, such as <code>my-project</code>.</p> </li> </ul>"
         },
         "providerOrgId":{
           "shape":"ProviderOrgId",
-          "documentation":"<p>The cloud provider organization ID of the covered resource.</p>"
+          "documentation":"<p>The cloud provider organization ID of the covered resource. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Organizations organization ID.</p> </li> <li> <p>An Azure tenant ID.</p> </li> <li> <p>A numeric Google Cloud Platform (GCP) organization ID.</p> </li> </ul>"
         },
         "providerRegion":{
           "shape":"ProviderRegion",
-          "documentation":"<p>The cloud provider region of the covered resource.</p>"
+          "documentation":"<p>The cloud provider region of the covered resource. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "providerPartition":{
           "shape":"ProviderPartition",
@@ -5549,6 +5606,21 @@
         }
       }
     },
+    "CreateGitHubEnterpriseIntegrationDetail":{
+      "type":"structure",
+      "required":["instanceUrl"],
+      "members":{
+        "instanceUrl":{
+          "shape":"InstanceUrl",
+          "documentation":"<p>The URL of the GitHub Enterprise Server instance.</p>"
+        },
+        "vpcConfiguration":{
+          "shape":"CodeSecurityIntegrationVpcConfiguration",
+          "documentation":"<p>The VPC configuration used to connect to the GitHub Enterprise Server instance in a private network. For publicly accessible instances, omit this field.</p>"
+        }
+      },
+      "documentation":"<p>Contains the details required to create an integration with a GitHub Enterprise Server instance.</p>"
+    },
     "CreateGitLabSelfManagedIntegrationDetail":{
       "type":"structure",
       "required":[
@@ -5563,6 +5635,10 @@
         "accessToken":{
           "shape":"GitLabAccessToken",
           "documentation":"<p>The personal access token used to authenticate with the self-managed GitLab instance.</p>"
+        },
+        "vpcConfiguration":{
+          "shape":"CodeSecurityIntegrationVpcConfiguration",
+          "documentation":"<p>The VPC configuration used to connect to the self-managed GitLab instance in a private network. For publicly accessible instances, omit this field.</p>"
         }
       },
       "documentation":"<p>Contains details required to create an integration with a self-managed GitLab instance.</p>"
@@ -5573,6 +5649,10 @@
         "gitlabSelfManaged":{
           "shape":"CreateGitLabSelfManagedIntegrationDetail",
           "documentation":"<p>Details specific to creating an integration with a self-managed GitLab instance.</p>"
+        },
+        "githubEnterprise":{
+          "shape":"CreateGitHubEnterpriseIntegrationDetail",
+          "documentation":"<p>Details specific to creating an integration with a GitHub Enterprise Server instance.</p>"
         }
       },
       "documentation":"<p>Contains details required to create a code security integration with a specific repository provider.</p>",
@@ -6816,7 +6896,7 @@
         },
         "resourceType":{
           "shape":"StringFilterList",
-          "documentation":"<p>Details on the resource types used to filter findings.</p>"
+          "documentation":"<p>Details on the resource types used to filter findings. For Google Cloud Platform (GCP) resources, the resource type is <code>compute.googleapis.com/Instance</code>, <code>cloudfunctions.googleapis.com/Function</code>, or <code>artifactregistry.googleapis.com/DockerImage</code>.</p>"
         },
         "resourceId":{
           "shape":"StringFilterList",
@@ -7314,7 +7394,7 @@
         },
         "resourceType":{
           "shape":"AggregationResourceType",
-          "documentation":"<p>The resource type to aggregate.</p>"
+          "documentation":"<p>The resource type to aggregate. For Google Cloud Platform (GCP) resources, the resource type is <code>compute.googleapis.com/Instance</code>, <code>cloudfunctions.googleapis.com/Function</code>, or <code>artifactregistry.googleapis.com/DockerImage</code>.</p>"
         },
         "sortOrder":{
           "shape":"SortOrder",
@@ -7348,7 +7428,7 @@
         },
         "cloudProvider":{
           "shape":"String",
-          "documentation":"<p>The cloud service provider associated with this finding type aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> </ul>"
+          "documentation":"<p>The cloud service provider associated with this finding type aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Findings from Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "cloudAccountId":{
           "shape":"String",
@@ -7360,7 +7440,7 @@
         },
         "cloudRegion":{
           "shape":"String",
-          "documentation":"<p>The cloud Region associated with this finding type aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> </ul>"
+          "documentation":"<p>The cloud Region associated with this finding type aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "cloudPartition":{
           "shape":"String",
@@ -7435,7 +7515,7 @@
         },
         "cloudProvider":{
           "shape":"CloudProvider",
-          "documentation":"<p>The cloud provider associated with the free trial information.</p>"
+          "documentation":"<p>The cloud provider associated with the free trial information. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         }
       },
       "documentation":"<p>An object that contains information about the Amazon Inspector free trial for an account.</p>"
@@ -7507,6 +7587,149 @@
     "FunctionName":{
       "type":"string",
       "pattern":"[a-zA-Z0-9-_\\.]+(:(\\$LATEST|[a-zA-Z0-9-_]+))?"
+    },
+    "GcpCapabilityScope":{
+      "type":"structure",
+      "required":["scopeType"],
+      "members":{
+        "scopeType":{
+          "shape":"ScopeType",
+          "documentation":"<p>The type of scope: <code>ORGANIZATION</code>, which scans all projects in the GCP organization, or <code>PROJECT</code>, which scans only the specified GCP projects.</p>"
+        },
+        "scopeValues":{
+          "shape":"GcpScopeValueList",
+          "documentation":"<p>The GCP project IDs to scan when <code>scopeType</code> is <code>PROJECT</code>. Not used when <code>scopeType</code> is <code>ORGANIZATION</code>. Amazon Inspector scans the organization of the Amazon Web Services Config connector.</p>"
+        },
+        "state":{
+          "shape":"ScopeState",
+          "documentation":"<p>The current state of the scope configuration.</p>"
+        },
+        "stateReason":{
+          "shape":"String",
+          "documentation":"<p>The reason for the current state of the scope configuration.</p>"
+        }
+      },
+      "documentation":"<p>The scope of Google Cloud Platform (GCP) resources that Amazon Inspector scans for a single scanning type, including the scope level, the targeted resources, and the current state.</p>"
+    },
+    "GcpCapabilityScopeInput":{
+      "type":"structure",
+      "required":["scopeType"],
+      "members":{
+        "scopeType":{
+          "shape":"ScopeType",
+          "documentation":"<p>The type of scope: <code>ORGANIZATION</code>, which scans all projects in the GCP organization, or <code>PROJECT</code>, which scans only the specified GCP projects.</p>"
+        },
+        "scopeValues":{
+          "shape":"GcpScopeValueList",
+          "documentation":"<p>The GCP project IDs to scan. Required when <code>scopeType</code> is <code>PROJECT</code>. Don't specify scope values when <code>scopeType</code> is <code>ORGANIZATION</code>. Amazon Inspector scans the organization of the Amazon Web Services Config connector.</p>"
+        }
+      },
+      "documentation":"<p>The scope of Google Cloud Platform (GCP) resources to scan for a single scanning type. Provide this as part of a <code>GcpScopeConfigurationInput</code> when you create or update a connector.</p>"
+    },
+    "GcpProviderDetailCreate":{
+      "type":"structure",
+      "required":[
+        "awsConfigConnectorArn",
+        "scopeConfiguration",
+        "gcpRegions"
+      ],
+      "members":{
+        "awsConfigConnectorArn":{
+          "shape":"AwsConfigConnectorArn",
+          "documentation":"<p>The ARN of the Amazon Web Services Config connector to associate with this connector.</p>"
+        },
+        "scopeConfiguration":{
+          "shape":"GcpScopeConfigurationInput",
+          "documentation":"<p>The scope configuration that defines which GCP resources to scan.</p>"
+        },
+        "gcpRegions":{
+          "shape":"GcpRegionList",
+          "documentation":"<p>The GCP locations to scan, such as regions, zones, multi-regions, or dual-regions. Specify <code>ALL</code> to scan all locations.</p>"
+        },
+        "autoInstallVMScanner":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to automatically install the VM scanner on connected GCP resources. Defaults to <code>true</code>.</p>"
+        }
+      },
+      "documentation":"<p>The configuration details specific to Google Cloud Platform (GCP) for creating a connector, including the Amazon Web Services Config connector association, scan scope, and locations to scan.</p>"
+    },
+    "GcpProviderDetailUpdate":{
+      "type":"structure",
+      "members":{
+        "gcpRegions":{
+          "shape":"GcpRegionList",
+          "documentation":"<p>The updated GCP locations to scan, such as regions, zones, multi-regions, or dual-regions. Specify <code>ALL</code> to scan all locations.</p>"
+        },
+        "scopeConfiguration":{
+          "shape":"GcpScopeConfigurationInput",
+          "documentation":"<p>The updated scope configuration that defines which GCP resources to scan.</p>"
+        },
+        "autoInstallVMScanner":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to automatically install the VM scanner on connected GCP resources.</p>"
+        }
+      },
+      "documentation":"<p>The configuration details specific to Google Cloud Platform (GCP) for updating a connector, including the scan scope and locations to scan.</p>"
+    },
+    "GcpRegion":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"(ALL|[a-z][a-z0-9-]*)"
+    },
+    "GcpRegionList":{
+      "type":"list",
+      "member":{"shape":"GcpRegion"},
+      "max":256,
+      "min":1
+    },
+    "GcpScopeConfiguration":{
+      "type":"structure",
+      "members":{
+        "vmScanning":{
+          "shape":"GcpCapabilityScope",
+          "documentation":"<p>The scope configuration for VM scanning.</p>"
+        },
+        "containerImageScanning":{
+          "shape":"GcpCapabilityScope",
+          "documentation":"<p>The scope configuration for container image scanning.</p>"
+        },
+        "serverlessScanning":{
+          "shape":"GcpCapabilityScope",
+          "documentation":"<p>The scope configuration for serverless scanning.</p>"
+        }
+      },
+      "documentation":"<p>The scope of Google Cloud Platform (GCP) resources that Amazon Inspector scans, defined separately for VM, container image, and serverless scanning. Returned as part of a connector's configuration.</p>"
+    },
+    "GcpScopeConfigurationInput":{
+      "type":"structure",
+      "members":{
+        "vmScanning":{
+          "shape":"GcpCapabilityScopeInput",
+          "documentation":"<p>The scope configuration input for VM scanning.</p>"
+        },
+        "containerImageScanning":{
+          "shape":"GcpCapabilityScopeInput",
+          "documentation":"<p>The scope configuration input for container image scanning.</p>"
+        },
+        "serverlessScanning":{
+          "shape":"GcpCapabilityScopeInput",
+          "documentation":"<p>The scope configuration input for serverless scanning.</p>"
+        }
+      },
+      "documentation":"<p>The scope of Google Cloud Platform (GCP) resources to scan, defined separately for VM, container image, and serverless scanning. Provide this when you create or update a GCP connector.</p>"
+    },
+    "GcpScopeValue":{
+      "type":"string",
+      "max":30,
+      "min":6,
+      "pattern":"([a-z][a-z0-9-]{4,28}[a-z0-9]|[0-9]{6,30})"
+    },
+    "GcpScopeValueList":{
+      "type":"list",
+      "member":{"shape":"GcpScopeValue"},
+      "max":100,
+      "min":0
     },
     "GetCisScanReportRequest":{
       "type":"structure",
@@ -7700,6 +7923,14 @@
         "authorizationUrl":{
           "shape":"AuthorizationUrl",
           "documentation":"<p>The URL used to authorize the integration with the repository provider. This is only returned if reauthorization is required to fix a connection issue. Otherwise, it is null.</p>"
+        },
+        "vpcConfiguration":{
+          "shape":"CodeSecurityIntegrationVpcConfiguration",
+          "documentation":"<p>The VPC configuration associated with the integration, if it connects to a repository provider in a private network.</p>"
+        },
+        "instanceUrl":{
+          "shape":"InstanceUrl",
+          "documentation":"<p>The URL of the self-managed GitLab or GitHub Enterprise Server instance associated with the integration.</p>"
         },
         "tags":{
           "shape":"TagMap",
@@ -8071,6 +8302,24 @@
       "min":1,
       "sensitive":true
     },
+    "GitHubEnterpriseServerAppRegistrationDetail":{
+      "type":"structure",
+      "required":["manifestCode"],
+      "members":{
+        "manifestCode":{
+          "shape":"GitHubEnterpriseServerManifestCode",
+          "documentation":"<p>The manifest code used to register the GitHub App on the GitHub Enterprise Server instance.</p>"
+        }
+      },
+      "documentation":"<p>Contains the details required to register the GitHub App on the GitHub Enterprise Server instance.</p>"
+    },
+    "GitHubEnterpriseServerManifestCode":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":"[a-zA-Z0-9._~+/-]+",
+      "sensitive":true
+    },
     "GitHubInstallationId":{
       "type":"string",
       "max":1024,
@@ -8174,7 +8423,7 @@
         },
         "cloudProviders":{
           "shape":"StringFilterList",
-          "documentation":"<p>The cloud providers to aggregate findings for. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> </ul>"
+          "documentation":"<p>The cloud providers to aggregate findings for. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Findings from Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "cloudAccountIds":{
           "shape":"StringFilterList",
@@ -8186,7 +8435,7 @@
         },
         "cloudRegions":{
           "shape":"StringFilterList",
-          "documentation":"<p>The cloud regions to aggregate findings for. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> </ul>"
+          "documentation":"<p>The cloud regions to aggregate findings for. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "cloudPartitions":{
           "shape":"StringFilterList",
@@ -8230,7 +8479,7 @@
         },
         "cloudProvider":{
           "shape":"String",
-          "documentation":"<p>The cloud service provider associated with this image layer aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> </ul>"
+          "documentation":"<p>The cloud service provider associated with this image layer aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Findings from Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "cloudAccountId":{
           "shape":"String",
@@ -8242,7 +8491,7 @@
         },
         "cloudRegion":{
           "shape":"String",
-          "documentation":"<p>The cloud Region associated with this image layer aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> </ul>"
+          "documentation":"<p>The cloud Region associated with this image layer aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "cloudPartition":{
           "shape":"String",
@@ -8304,7 +8553,13 @@
         "IN_PROGRESS",
         "ACTIVE",
         "INACTIVE",
-        "DISABLING"
+        "DISABLING",
+        "ESTABLISHING_CONNECTION_IN_PROGRESS",
+        "ESTABLISHING_CONNECTION_COMPLETED",
+        "ESTABLISHING_CONNECTION_FAILED",
+        "PENDING_MANIFEST_CODE",
+        "DELETE_IN_PROGRESS",
+        "DELETE_FAILED"
       ]
     },
     "IntegrationSummaries":{
@@ -8317,7 +8572,8 @@
       "type":"string",
       "enum":[
         "GITLAB_SELF_MANAGED",
-        "GITHUB"
+        "GITHUB",
+        "GITHUB_ENTERPRISE_SERVER"
       ]
     },
     "InternalServerException":{
@@ -9078,7 +9334,7 @@
         },
         "groupBy":{
           "shape":"GroupKey",
-          "documentation":"<p>The value to group the results by.</p>"
+          "documentation":"<p>The value to group the results by. For multi-cloud resources, use <code>PROVIDER</code>, <code>PROVIDER_ACCOUNT_ID</code> (Azure subscription ID or Google Cloud Platform (GCP) project ID), <code>PROVIDER_ORG_ID</code> (Azure tenant ID or Google Cloud Platform (GCP) organization ID), or <code>PROVIDER_REGION</code>.</p>"
         },
         "nextToken":{
           "shape":"NextToken",
@@ -9419,50 +9675,50 @@
       "members":{
         "machineImageId":{
           "shape":"MachineImageDetailsMachineImageIdString",
-          "documentation":"<p>The machine image ID (e.g., ami-0abcdef1234567890)</p>"
+          "documentation":"<p>The ID of the machine image, for example <code>ami-0abcdef1234567890</code>.</p>"
         },
         "name":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Human-readable image name</p>"
+          "documentation":"<p>The name of the machine image.</p>"
         },
         "ownerAccountId":{
           "shape":"ProviderAccountId",
-          "documentation":"<p>Account ID that owns the image</p>"
+          "documentation":"<p>The ID of the account that owns the machine image.</p>"
         },
         "platform":{
           "shape":"Platform",
-          "documentation":"<p>OS platform (Linux/Windows)</p>"
+          "documentation":"<p>The operating system platform of the machine image.</p>"
         },
         "architecture":{
           "shape":"Architecture",
-          "documentation":"<p>CPU architecture (x86_64/arm64)</p>"
+          "documentation":"<p>The CPU architecture of the machine image, for example <code>x86_64</code> or <code>arm64</code>.</p>"
         },
         "creationDate":{
           "shape":"DateTimeTimestamp",
-          "documentation":"<p>When the image was created</p>"
+          "documentation":"<p>The date and time that the machine image was created.</p>"
         },
         "state":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Image state (available/pending/deregistered)</p>"
+          "documentation":"<p>The state of the machine image, for example <code>available</code>, <code>pending</code>, or <code>deregistered</code>.</p>"
         },
         "isPublic":{
           "shape":"Boolean",
-          "documentation":"<p>Whether the image is publicly shared</p>"
+          "documentation":"<p>Indicates whether the machine image is shared publicly.</p>"
         },
         "rootDeviceType":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Root device type (ebs/instance-store) — AWS-specific</p>"
+          "documentation":"<p>The root device type of the machine image, either <code>ebs</code> or <code>instance-store</code>.</p>"
         },
         "virtualizationType":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Virtualization type (hvm/paravirtual) — AWS-specific</p>"
+          "documentation":"<p>The virtualization type of the machine image, either <code>hvm</code> or <code>paravirtual</code>.</p>"
         },
         "sourceResourceId":{
           "shape":"MachineImageDetailsSourceResourceIdString",
-          "documentation":"<p>Source resource the image was created from (nullable)</p>"
+          "documentation":"<p>The ID of the Amazon EC2 instance that the machine image was created from, if available.</p>"
         }
       },
-      "documentation":"<p>Details about a machine image resource scanned directly by Inspector.</p>"
+      "documentation":"<p>Contains details about an Amazon Machine Image (AMI) that Amazon Inspector scanned directly.</p>"
     },
     "MachineImageDetailsMachineImageIdString":{
       "type":"string",
@@ -9890,6 +10146,18 @@
         "filePath":{
           "shape":"StringFilter",
           "documentation":"<p>An object that contains details on the package file path to filter on.</p>"
+        },
+        "runtimeReachability":{
+          "shape":"RuntimeReachabilityFilter",
+          "documentation":"<p>An object that contains details on the runtime reachability status of the package to filter on. For more information, see <a href=\"https://docs.aws.amazon.com/inspector/latest/user/findings-understanding-runtime-reachability.html\">Understanding runtime reachability</a> in the Amazon Inspector user guide.</p>"
+        },
+        "runtimeReachabilityReason":{
+          "shape":"RuntimeReachabilityReasonFilter",
+          "documentation":"<p>An object that contains details on the runtime reachability reason of the package to filter on. For more information, see <a href=\"https://docs.aws.amazon.com/inspector/latest/user/findings-understanding-runtime-reachability.html\">Understanding runtime reachability</a> in the Amazon Inspector user guide.</p>"
+        },
+        "purlQualifier":{
+          "shape":"PurlQualifierFilter",
+          "documentation":"<p>An object that contains details on the package URL (purl) qualifier to filter on.</p>"
         }
       },
       "documentation":"<p>Contains information on the details of a package filter.</p>"
@@ -9947,6 +10215,11 @@
         "IMAGE",
         "ZIP"
       ]
+    },
+    "PackageUrl":{
+      "type":"string",
+      "max":2048,
+      "min":1
     },
     "PackageVersion":{
       "type":"string",
@@ -10060,6 +10333,13 @@
       "member":{"shape":"Permission"},
       "max":1024,
       "min":0
+    },
+    "PkceState":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":"[A-Za-z0-9_-]+",
+      "sensitive":true
     },
     "Platform":{
       "type":"string",
@@ -10188,14 +10468,15 @@
       "type":"string",
       "enum":[
         "AWS",
-        "AZURE"
+        "AZURE",
+        "GCP"
       ]
     },
     "ProviderAccountId":{
       "type":"string",
       "max":36,
-      "min":12,
-      "pattern":"(\\d{12}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"
+      "min":6,
+      "pattern":"(\\d{12}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|[a-z][a-z0-9-]{4,28}[a-z0-9])"
     },
     "ProviderComparison":{
       "type":"string",
@@ -10207,6 +10488,10 @@
         "azure":{
           "shape":"AzureProviderDetailCreate",
           "documentation":"<p>The Azure-specific details for creating a connector.</p>"
+        },
+        "gcp":{
+          "shape":"GcpProviderDetailCreate",
+          "documentation":"<p>The details specific to Google Cloud Platform (GCP) for creating a connector.</p>"
         }
       },
       "documentation":"<p>The provider-specific configuration details for creating a connector.</p>",
@@ -10218,6 +10503,10 @@
         "azure":{
           "shape":"AzureProviderDetailUpdate",
           "documentation":"<p>The Azure-specific details for updating a connector.</p>"
+        },
+        "gcp":{
+          "shape":"GcpProviderDetailUpdate",
+          "documentation":"<p>The details specific to Google Cloud Platform (GCP) for updating a connector.</p>"
         }
       },
       "documentation":"<p>The provider-specific configuration details for updating a connector.</p>",
@@ -10250,8 +10539,8 @@
     "ProviderOrgId":{
       "type":"string",
       "max":36,
-      "min":12,
-      "pattern":"(o-[a-z0-9]{10,32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"
+      "min":6,
+      "pattern":"(o-[a-z0-9]{10,32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|[0-9]{6,30})"
     },
     "ProviderPartition":{
       "type":"string",
@@ -10263,7 +10552,50 @@
       "type":"string",
       "max":64,
       "min":1,
-      "pattern":"([a-z]{2}(-[a-z]+)+-\\d+|[a-z][a-z0-9]+)"
+      "pattern":"([a-z]{2}(-[a-z]+)+-\\d+|[a-z][a-z0-9]+|[a-z]+-[a-z]+[0-9]+(-[a-z])?)"
+    },
+    "PurlQualifierFilter":{
+      "type":"structure",
+      "required":[
+        "comparison",
+        "key"
+      ],
+      "members":{
+        "comparison":{
+          "shape":"MapComparison",
+          "documentation":"<p>The operator to use when comparing values in the filter.</p>"
+        },
+        "key":{
+          "shape":"PurlQualifierKey",
+          "documentation":"<p>The package URL (purl) qualifier key to filter on.</p>"
+        },
+        "value":{
+          "shape":"MapValue",
+          "documentation":"<p>The package URL (purl) qualifier value to filter on.</p>"
+        }
+      },
+      "documentation":"<p>An object that describes the details of a package URL (purl) qualifier filter.</p>"
+    },
+    "PurlQualifierKey":{
+      "type":"string",
+      "enum":[
+        "arch",
+        "collector",
+        "dev_dependency",
+        "distro",
+        "epoch",
+        "go_toolchain",
+        "hardened",
+        "private",
+        "rust_toolchain",
+        "scope",
+        "skip_chromium_download",
+        "source",
+        "stream",
+        "transitive_dependency",
+        "unresolved",
+        "vendor"
+      ]
     },
     "Reason":{
       "type":"string",
@@ -10387,7 +10719,7 @@
         },
         "cloudProvider":{
           "shape":"Provider",
-          "documentation":"<p>The cloud service provider associated with this repository aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> </ul>"
+          "documentation":"<p>The cloud service provider associated with this repository aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Findings from Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "cloudPartition":{
           "shape":"ProviderPartition",
@@ -10395,7 +10727,7 @@
         },
         "cloudRegion":{
           "shape":"ProviderRegion",
-          "documentation":"<p>The cloud Region associated with this repository aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> </ul>"
+          "documentation":"<p>The cloud Region associated with this repository aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "cloudOrgId":{
           "shape":"ProviderOrgId",
@@ -10479,15 +10811,15 @@
         },
         "provider":{
           "shape":"Provider",
-          "documentation":"<p>The cloud provider of the resource.</p>"
+          "documentation":"<p>The cloud provider of the resource. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "providerAccountId":{
           "shape":"ProviderAccountId",
-          "documentation":"<p>The cloud provider account ID of the resource.</p>"
+          "documentation":"<p>The cloud provider account ID of the resource. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services account ID.</p> </li> <li> <p>An Azure subscription ID.</p> </li> <li> <p>A Google Cloud Platform (GCP) project ID, such as <code>my-project</code>.</p> </li> </ul>"
         },
         "providerOrgId":{
           "shape":"ProviderOrgId",
-          "documentation":"<p>The cloud provider organization ID of the resource.</p>"
+          "documentation":"<p>The cloud provider organization ID of the resource. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Organizations organization ID.</p> </li> <li> <p>An Azure tenant ID.</p> </li> <li> <p>A numeric Google Cloud Platform (GCP) organization ID.</p> </li> </ul>"
         }
       },
       "documentation":"<p>Details about the resource involved in a finding.</p>"
@@ -10511,7 +10843,10 @@
           "shape":"CodeRepositoryDetails",
           "documentation":"<p>Contains details about a code repository resource associated with a finding.</p>"
         },
-        "machineImage":{"shape":"MachineImageDetails"},
+        "machineImage":{
+          "shape":"MachineImageDetails",
+          "documentation":"<p>An object that contains details about the Amazon Machine Image (AMI) involved in the finding.</p>"
+        },
         "vm":{
           "shape":"Vm",
           "documentation":"<p>An object that contains details about a VM instance involved in the finding.</p>"
@@ -10540,7 +10875,7 @@
         },
         "resourceType":{
           "shape":"ResourceStringFilterList",
-          "documentation":"<p>The resource types used as resource filter criteria.</p>"
+          "documentation":"<p>The resource types used as resource filter criteria. Valid values:</p> <ul> <li> <p>Amazon Web Services – <code>AWS_EC2_INSTANCE</code>, <code>AWS_ECR_CONTAINER_IMAGE</code>, <code>AWS_LAMBDA_FUNCTION</code>, or <code>MACHINE_IMAGE</code>.</p> </li> <li> <p>Microsoft Azure – <code>Microsoft.Compute/virtualMachines</code>, <code>Microsoft.ContainerRegistry/registry/containerImage</code>, or <code>Microsoft.Web/sites</code>.</p> </li> <li> <p>Google Cloud Platform (GCP) – <code>compute.googleapis.com/Instance</code>, <code>cloudfunctions.googleapis.com/Function</code>, or <code>artifactregistry.googleapis.com/DockerImage</code>.</p> </li> </ul>"
         },
         "ecrRepositoryName":{
           "shape":"ResourceStringFilterList",
@@ -10564,19 +10899,19 @@
         },
         "cloudProvider":{
           "shape":"ResourceStringFilterList",
-          "documentation":"<p>The cloud providers used as resource filter criteria.</p>"
+          "documentation":"<p>The cloud providers used as resource filter criteria. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "cloudProviderAccountId":{
           "shape":"ResourceStringFilterList",
-          "documentation":"<p>The cloud provider account IDs used as resource filter criteria.</p>"
+          "documentation":"<p>The cloud provider account IDs used as resource filter criteria. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services account ID.</p> </li> <li> <p>An Azure subscription ID.</p> </li> <li> <p>A Google Cloud Platform (GCP) project ID.</p> </li> </ul>"
         },
         "cloudProviderOrgId":{
           "shape":"ResourceStringFilterList",
-          "documentation":"<p>The cloud provider organization IDs used as resource filter criteria.</p>"
+          "documentation":"<p>The cloud provider organization IDs used as resource filter criteria. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Organizations organization ID.</p> </li> <li> <p>An Azure tenant ID.</p> </li> <li> <p>A Google Cloud Platform (GCP) organization ID.</p> </li> </ul>"
         },
         "cloudProviderRegion":{
           "shape":"ResourceStringFilterList",
-          "documentation":"<p>The cloud provider regions used as resource filter criteria.</p>"
+          "documentation":"<p>The cloud provider regions used as resource filter criteria. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "cloudVmInstanceTags":{
           "shape":"ResourceMapFilterList",
@@ -10847,7 +11182,10 @@
         "Microsoft.Compute/virtualMachines",
         "Microsoft.ContainerRegistry/registry/containerImage",
         "Microsoft.Web/sites",
-        "MACHINE_IMAGE"
+        "MACHINE_IMAGE",
+        "cloudfunctions.googleapis.com/Function",
+        "compute.googleapis.com/Instance",
+        "artifactregistry.googleapis.com/DockerImage"
       ]
     },
     "RiskScore":{
@@ -10909,6 +11247,66 @@
         "DOTNET_8",
         "NODEJS_20_X"
       ]
+    },
+    "RuntimeReachability":{
+      "type":"string",
+      "enum":[
+        "REACHABLE",
+        "NOT_REACHABLE",
+        "UNKNOWN"
+      ]
+    },
+    "RuntimeReachabilityComparison":{
+      "type":"string",
+      "enum":[
+        "EQUALS",
+        "NOT_EQUALS"
+      ]
+    },
+    "RuntimeReachabilityFilter":{
+      "type":"structure",
+      "required":[
+        "comparison",
+        "value"
+      ],
+      "members":{
+        "comparison":{
+          "shape":"RuntimeReachabilityComparison",
+          "documentation":"<p>The operator to use when comparing values in the filter.</p>"
+        },
+        "value":{
+          "shape":"RuntimeReachability",
+          "documentation":"<p>The runtime reachability status to filter on.</p>"
+        }
+      },
+      "documentation":"<p>An object that describes the details of a runtime reachability filter.</p>"
+    },
+    "RuntimeReachabilityReason":{
+      "type":"string",
+      "enum":[
+        "PACKAGE_IN_DOCKERFILE_WORKLOAD_PATH",
+        "PACKAGE_NOT_IN_DOCKERFILE_WORKLOAD_PATH",
+        "PROCESS_OBSERVED_IN_EC2_RUNTIME",
+        "PROCESS_NOT_OBSERVED_IN_EC2_RUNTIME"
+      ]
+    },
+    "RuntimeReachabilityReasonFilter":{
+      "type":"structure",
+      "required":[
+        "comparison",
+        "value"
+      ],
+      "members":{
+        "comparison":{
+          "shape":"RuntimeReachabilityComparison",
+          "documentation":"<p>The operator to use when comparing values in the filter.</p>"
+        },
+        "value":{
+          "shape":"RuntimeReachabilityReason",
+          "documentation":"<p>The runtime reachability reason to filter on.</p>"
+        }
+      },
+      "documentation":"<p>An object that describes the details of a runtime reachability reason filter.</p>"
     },
     "SbomReportFormat":{
       "type":"string",
@@ -11085,7 +11483,7 @@
       "members":{
         "scopeType":{
           "shape":"ScopeType",
-          "documentation":"<p>The type of scope. Valid values are <code>TENANT</code>, which scans all resources in the Azure tenant, and <code>SUBSCRIPTION</code>, which scans only the resources in the specified Azure subscriptions.</p>"
+          "documentation":"<p>The type of scope: <code>TENANT</code>, which scans all resources in the Azure tenant, or <code>SUBSCRIPTION</code>, which scans only the resources in the specified Azure subscriptions.</p>"
         },
         "scopeValues":{
           "shape":"ScopeValueList",
@@ -11117,7 +11515,9 @@
       "type":"string",
       "enum":[
         "TENANT",
-        "SUBSCRIPTION"
+        "SUBSCRIPTION",
+        "ORGANIZATION",
+        "PROJECT"
       ]
     },
     "ScopeValue":{
@@ -11303,7 +11703,7 @@
         },
         "cloudProviders":{
           "shape":"StringFilterList",
-          "documentation":"<p>The cloud providers to aggregate findings for. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> </ul>"
+          "documentation":"<p>The cloud providers to aggregate findings for. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Findings from Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "cloudPartitions":{
           "shape":"StringFilterList",
@@ -11311,7 +11711,7 @@
         },
         "cloudRegions":{
           "shape":"StringFilterList",
-          "documentation":"<p>The cloud regions to aggregate findings for. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> </ul>"
+          "documentation":"<p>The cloud regions to aggregate findings for. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "cloudOrgIds":{
           "shape":"StringFilterList",
@@ -11342,7 +11742,7 @@
         },
         "cloudProvider":{
           "shape":"Provider",
-          "documentation":"<p>The cloud service provider associated with this serverless function aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> </ul>"
+          "documentation":"<p>The cloud service provider associated with this serverless function aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Findings from Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "cloudAccountId":{
           "shape":"ProviderAccountId",
@@ -11354,7 +11754,7 @@
         },
         "cloudRegion":{
           "shape":"ProviderRegion",
-          "documentation":"<p>The cloud Region associated with this serverless function aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> </ul>"
+          "documentation":"<p>The cloud Region associated with this serverless function aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "cloudOrgId":{
           "shape":"ProviderOrgId",
@@ -12120,7 +12520,7 @@
         },
         "resourceType":{
           "shape":"AggregationResourceType",
-          "documentation":"<p>The resource type to aggregate on.</p>"
+          "documentation":"<p>The resource type to aggregate on. For Google Cloud Platform (GCP) resources, the resource type is <code>compute.googleapis.com/Instance</code>, <code>cloudfunctions.googleapis.com/Function</code>, or <code>artifactregistry.googleapis.com/DockerImage</code>.</p>"
         },
         "findingType":{
           "shape":"AggregationFindingType",
@@ -12173,6 +12573,13 @@
         "HIGH",
         "ALL"
       ]
+    },
+    "TlsCertificate":{
+      "type":"string",
+      "max":16384,
+      "min":1,
+      "pattern":"[\\s\\S]*",
+      "sensitive":true
     },
     "Tool":{
       "type":"string",
@@ -12523,6 +12930,43 @@
         }
       }
     },
+    "UpdateGitHubEnterpriseServerAppInstallationDetail":{
+      "type":"structure",
+      "required":[
+        "code",
+        "installationId"
+      ],
+      "members":{
+        "code":{
+          "shape":"GitHubAuthCode",
+          "documentation":"<p>The authorization code received from GitHub Enterprise Server.</p>"
+        },
+        "installationId":{
+          "shape":"GitHubInstallationId",
+          "documentation":"<p>The installation ID of the GitHub App associated with the integration.</p>"
+        },
+        "stateToken":{
+          "shape":"PkceState",
+          "documentation":"<p>The PKCE state token used to validate the authorization request.</p>"
+        }
+      },
+      "documentation":"<p>Contains the details required to complete the GitHub App installation for a GitHub Enterprise Server integration.</p>"
+    },
+    "UpdateGitHubEnterpriseServerIntegrationDetail":{
+      "type":"structure",
+      "members":{
+        "appInstallation":{
+          "shape":"UpdateGitHubEnterpriseServerAppInstallationDetail",
+          "documentation":"<p>Details for completing the GitHub App installation step of the GitHub Enterprise Server integration.</p>"
+        },
+        "appRegistration":{
+          "shape":"GitHubEnterpriseServerAppRegistrationDetail",
+          "documentation":"<p>Details for completing the GitHub App manifest registration step of the GitHub Enterprise Server integration.</p>"
+        }
+      },
+      "documentation":"<p>Contains the details required to update an integration with a GitHub Enterprise Server instance. Provide one of the following, depending on the step of the setup flow.</p>",
+      "union":true
+    },
     "UpdateGitHubIntegrationDetail":{
       "type":"structure",
       "required":[
@@ -12537,6 +12981,10 @@
         "installationId":{
           "shape":"GitHubInstallationId",
           "documentation":"<p>The installation ID of the GitHub App associated with the integration.</p>"
+        },
+        "stateToken":{
+          "shape":"PkceState",
+          "documentation":"<p>The PKCE state token used to validate the authorization request.</p>"
         }
       },
       "documentation":"<p>Contains details required to update an integration with GitHub.</p>"
@@ -12548,6 +12996,10 @@
         "authCode":{
           "shape":"GitLabAuthCode",
           "documentation":"<p>The authorization code received from the self-managed GitLab instance to update the integration.</p>"
+        },
+        "stateToken":{
+          "shape":"PkceState",
+          "documentation":"<p>The PKCE state token used to validate the authorization request.</p>"
         }
       },
       "documentation":"<p>Contains details required to update an integration with a self-managed GitLab instance.</p>"
@@ -12562,6 +13014,10 @@
         "github":{
           "shape":"UpdateGitHubIntegrationDetail",
           "documentation":"<p>Details specific to updating an integration with GitHub.</p>"
+        },
+        "githubEnterpriseServer":{
+          "shape":"UpdateGitHubEnterpriseServerIntegrationDetail",
+          "documentation":"<p>Details specific to updating an integration with a GitHub Enterprise Server instance.</p>"
         }
       },
       "documentation":"<p>Contains details required to update a code security integration with a specific repository provider.</p>",
@@ -12606,7 +13062,7 @@
       "members":{
         "type":{
           "shape":"UsageType",
-          "documentation":"<p>The type scan.</p>"
+          "documentation":"<p>The type of scan. Valid values:</p> <ul> <li> <p>Amazon Web Services – <code>EC2_INSTANCE_HOURS</code>, <code>EC2_AGENTLESS_INSTANCE_HOURS</code>, <code>EC2_AMI_HOURS</code>, <code>EC2_AMI_ONE_SHOT_SCAN</code>, <code>ECR_INITIAL_SCAN</code>, <code>ECR_RESCAN</code>, <code>LAMBDA_FUNCTION_HOURS</code>, <code>LAMBDA_FUNCTION_CODE_HOURS</code>, <code>CODE_REPOSITORY_SAST</code>, <code>CODE_REPOSITORY_IAC</code>, or <code>CODE_REPOSITORY_SCA</code>.</p> </li> <li> <p>Microsoft Azure – <code>AZURE_VM_AGENT_BASED_INSTANCE_HOURS</code>, <code>AZURE_CONTAINER_IMAGE_INITIAL_SCAN</code>, <code>AZURE_CONTAINER_IMAGE_RESCAN</code>, or <code>AZURE_SERVERLESS_FUNCTION_HOURS</code>.</p> </li> <li> <p>Google Cloud Platform (GCP) – <code>GCP_VM_AGENT_BASED_INSTANCE_HOURS</code>, <code>GCP_CONTAINER_IMAGE_INITIAL_SCAN</code>, <code>GCP_CONTAINER_IMAGE_RESCAN</code>, or <code>GCP_CLOUD_RUN_HOURS</code> (Cloud Run functions).</p> </li> </ul>"
         },
         "total":{
           "shape":"UsageValue",
@@ -12622,7 +13078,7 @@
         },
         "cloudProvider":{
           "shape":"CloudProvider",
-          "documentation":"<p>The cloud provider associated with the usage information.</p>"
+          "documentation":"<p>The cloud provider associated with the usage information. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         }
       },
       "documentation":"<p>Contains usage information about the cost of Amazon Inspector operation.</p>"
@@ -12675,7 +13131,12 @@
         "AZURE_CONTAINER_IMAGE_RESCAN",
         "AZURE_VM_AGENT_BASED_INSTANCE_HOURS",
         "AZURE_SERVERLESS_FUNCTION_HOURS",
-        "EC2_AMI_HOURS"
+        "EC2_AMI_HOURS",
+        "EC2_AMI_ONE_SHOT_SCAN",
+        "GCP_VM_AGENT_BASED_INSTANCE_HOURS",
+        "GCP_CLOUD_RUN_HOURS",
+        "GCP_CONTAINER_IMAGE_INITIAL_SCAN",
+        "GCP_CONTAINER_IMAGE_RESCAN"
       ]
     },
     "UsageValue":{
@@ -12853,7 +13314,7 @@
         },
         "cloudProviders":{
           "shape":"StringFilterList",
-          "documentation":"<p>The cloud providers to aggregate findings for. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> </ul>"
+          "documentation":"<p>The cloud providers to aggregate findings for. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Findings from Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "cloudPartitions":{
           "shape":"StringFilterList",
@@ -12861,7 +13322,7 @@
         },
         "cloudRegions":{
           "shape":"StringFilterList",
-          "documentation":"<p>The cloud regions to aggregate findings for. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> </ul>"
+          "documentation":"<p>The cloud regions to aggregate findings for. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "cloudOrgIds":{
           "shape":"StringFilterList",
@@ -12892,7 +13353,7 @@
         },
         "cloudProvider":{
           "shape":"Provider",
-          "documentation":"<p>The cloud service provider associated with this VM instance aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> </ul>"
+          "documentation":"<p>The cloud service provider associated with this VM instance aggregation. Valid values:</p> <ul> <li> <p> <code>AWS</code> – Findings from Amazon Web Services resources.</p> </li> <li> <p> <code>AZURE</code> – Findings from Microsoft Azure resources.</p> </li> <li> <p> <code>GCP</code> – Findings from Google Cloud Platform (GCP) resources.</p> </li> </ul>"
         },
         "cloudAccountId":{
           "shape":"ProviderAccountId",
@@ -12904,7 +13365,7 @@
         },
         "cloudRegion":{
           "shape":"ProviderRegion",
-          "documentation":"<p>The cloud Region associated with this VM instance aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> </ul>"
+          "documentation":"<p>The cloud Region associated with this VM instance aggregation. The value format depends on the cloud provider:</p> <ul> <li> <p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p> </li> <li> <p>An Azure region, such as <code>eastus</code>.</p> </li> <li> <p>A Google Cloud Platform (GCP) location, such as the region <code>us-central1</code> or the zone <code>us-central1-a</code>.</p> </li> </ul>"
         },
         "cloudOrgId":{
           "shape":"ProviderOrgId",
@@ -12990,6 +13451,10 @@
         "LINUX",
         "UNKNOWN"
       ]
+    },
+    "VpcEndpointId":{
+      "type":"string",
+      "pattern":"vpce-[0-9a-f]{8}([0-9a-f]{9})?"
     },
     "VpcId":{
       "type":"string",
@@ -13168,6 +13633,18 @@
         "sourceLambdaLayerArn":{
           "shape":"LambdaLayerArn",
           "documentation":"<p>The Amazon Resource Number (ARN) of the Amazon Web Services Lambda function affected by a finding.</p>"
+        },
+        "runtimeReachability":{
+          "shape":"RuntimeReachability",
+          "documentation":"<p>The runtime reachability status of the vulnerable package. For more information, see <a href=\"https://docs.aws.amazon.com/inspector/latest/user/findings-understanding-runtime-reachability.html\">Understanding runtime reachability</a> in the Amazon Inspector user guide.</p>"
+        },
+        "runtimeReachabilityReason":{
+          "shape":"RuntimeReachabilityReason",
+          "documentation":"<p>The reason for the runtime reachability status of the vulnerable package. For more information, see <a href=\"https://docs.aws.amazon.com/inspector/latest/user/findings-understanding-runtime-reachability.html\">Understanding runtime reachability</a> in the Amazon Inspector user guide.</p>"
+        },
+        "purl":{
+          "shape":"PackageUrl",
+          "documentation":"<p>The package URL (purl) of the vulnerable package.</p>"
         }
       },
       "documentation":"<p>Information on the vulnerable package identified by a finding.</p>"

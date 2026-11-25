@@ -129,9 +129,9 @@ public abstract class SdkHttpClientSdkPipelineBehaviorTestSuite extends WireMock
             // Ignored or expected.
         }
 
-        // The test client uses the default retry policy so there should be 4
+        // The test client uses the default retry strategy so there should be 3
         // total attempts and an equal number created streams
-        assertThat(provider.getCreatedStreams().size()).isEqualTo(4);
+        assertThat(provider.getCreatedStreams().size()).isEqualTo(3);
         for (CloseTrackingInputStream is : provider.getCreatedStreams()) {
             assertThat(is.isClosed()).isTrue();
         }

@@ -66,15 +66,9 @@ public final class MultipartUploadHelper {
         this.multipartUploadThresholdInBytes = multipartUploadThresholdInBytes;
     }
 
-    CompletableFuture<CreateMultipartUploadResponse> createMultipartUpload(PutObjectRequest putObjectRequest,
-                                                                           CompletableFuture<PutObjectResponse> returnFuture) {
+    CompletableFuture<CreateMultipartUploadResponse> createMultipartUpload(PutObjectRequest putObjectRequest) {
         CreateMultipartUploadRequest request = SdkPojoConversionUtils.toCreateMultipartUploadRequest(putObjectRequest);
-        CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
-            s3AsyncClient.createMultipartUpload(request);
-
-        // Ensure cancellations are forwarded to the createMultipartUploadFuture future
-        CompletableFutureUtils.forwardExceptionTo(returnFuture, createMultipartUploadFuture);
-        return createMultipartUploadFuture;
+        return s3AsyncClient.createMultipartUpload(request);
     }
 
     CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(CompletableFuture<PutObjectResponse> returnFuture,
@@ -84,14 +78,19 @@ public final class MultipartUploadHelper {
                                  long contentLength) {
         CompletableFuture<CompleteMultipartUploadResponse> future =
             genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId, completedParts, contentLength);
+        handleCompleteMultipartUploadResult(future, returnFuture, uploadId, putObjectRequest);
+        return future;
+    }
 
+    void handleCompleteMultipartUploadResult(CompletableFuture<CompleteMultipartUploadResponse> future,
+                                             CompletableFuture<PutObjectResponse> returnFuture,
+                                             String uploadId,
+                                             PutObjectRequest putObjectRequest) {
         future.handle(genericMultipartHelper.handleExceptionOrResponse(putObjectRequest, returnFuture, uploadId))
               .exceptionally(throwable -> {
                   genericMultipartHelper.handleException(returnFuture, () -> "Unexpected exception occurred", throwable);
                   return null;
               });
-
-        return future;
     }
 
     CompletableFuture<CompletedPart> sendIndividualUploadPartRequest(String uploadId,

@@ -46,6 +46,8 @@ public class LongPollingOperationProcessor implements CodegenCustomizationProces
         serviceIdToOperationsMap.put("SFN", Collections.singletonList("GetActivityTask"));
         serviceIdToOperationsMap.put("SWF", Collections.unmodifiableList(Arrays.asList("PollForActivityTask",
                                                                                        "PollForDecisionTask")));
+        serviceIdToOperationsMap.put("Kinesis", Collections.unmodifiableList(Arrays.asList("ReceiveQueueRecords",
+                                                                                           "ReceiveDeadLetterQueueRecords")));
 
         SERVICE_ID_TO_OPERATIONS_MAP = Collections.unmodifiableMap(serviceIdToOperationsMap);
     }

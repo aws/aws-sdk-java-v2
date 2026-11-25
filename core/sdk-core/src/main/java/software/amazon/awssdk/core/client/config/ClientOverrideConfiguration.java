@@ -529,7 +529,7 @@ public final class ClientOverrideConfiguration
          * </ol>
          *
          * <p>
-         * Defaults to {@link RetryMode#LEGACY} if no configuration setting is found.
+         * Defaults to {@link RetryMode#STANDARD} if no configuration setting is found.
          * <p>
          * Note that retryStrategy options are mutually exclusive
          */

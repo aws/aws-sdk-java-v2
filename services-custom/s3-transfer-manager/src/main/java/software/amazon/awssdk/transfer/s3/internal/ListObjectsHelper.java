@@ -32,6 +32,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.internal.utils.LogSanitizer;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 
@@ -62,7 +63,8 @@ public class ListObjectsHelper {
             if (response != null && !CollectionUtils.isNullOrEmpty(response.contents())) {
                 return response.contents().stream().filter(r -> {
                     if (response.prefix() != null && response.prefix().equals(r.key())) {
-                        logger.debug(() -> "Skipping download for object (" + r.key() + ") since it is a virtual directory");
+                        logger.debug(() -> LogSanitizer.escapeControlCharacters(
+                            "Skipping download for object (" + r.key() + ") since it is a virtual directory"));
                         return false;
                     }
 

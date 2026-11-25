@@ -1057,6 +1057,17 @@
       "documentation":"<p>Returns a paginated list of threats for a threat model job.</p>",
       "readonly":true
     },
+    "ResumePentestJob":{
+      "name":"ResumePentestJob",
+      "http":{
+        "method":"POST",
+        "requestUri":"/ResumePentestJob",
+        "responseCode":200
+      },
+      "input":{"shape":"ResumePentestJobInput"},
+      "output":{"shape":"ResumePentestJobOutput"},
+      "documentation":"<p>Resumes a stopped or paused pentest job from its last saved checkpoint. The job keeps its pentest job identifier and continues as a new version, keeping the findings and progress from earlier runs. You can resume a job within 7 days of when it was created.</p>"
+    },
     "StartCodeRemediation":{
       "name":"StartCodeRemediation",
       "http":{
@@ -3122,6 +3133,17 @@
       "member":{"shape":"CodeLocation"},
       "documentation":"<p>List of code locations.</p>"
     },
+    "CodeRemediationJobStatus":{
+      "type":"string",
+      "documentation":"<p>Code remediation status for a particular repository.</p>",
+      "enum":[
+        "IN_PROGRESS",
+        "COMPLETED",
+        "FAILED",
+        "NO_CHANGE_REQUIRED",
+        "UNKNOWN"
+      ]
+    },
     "CodeRemediationStrategy":{
       "type":"string",
       "documentation":"<p>Strategy for automated code remediation.</p>",
@@ -3136,15 +3158,15 @@
       "members":{
         "status":{
           "shape":"CodeRemediationTaskStatus",
-          "documentation":"<p>The current status of the code remediation task.</p>"
+          "documentation":"<p>The current status of the overall code remediation task.</p>"
         },
         "statusReason":{
           "shape":"String",
-          "documentation":"<p>The reason for the current status of the code remediation task.</p>"
+          "documentation":"<p>The reason for the current status of the overall code remediation task.</p>"
         },
         "taskDetails":{
           "shape":"CodeRemediationTaskDetailsList",
-          "documentation":"<p>The list of details for the code remediation task, including repository name, code diff link, and pull request link.</p>"
+          "documentation":"<p>The list of details for a code remediation task, including repository names, status of code remediation for each associated repository, and generated code diff or pull request links.</p>"
         }
       },
       "documentation":"<p>Represents a code remediation task that was initiated to fix a security finding.</p>"
@@ -3154,7 +3176,7 @@
       "members":{
         "repoName":{
           "shape":"String",
-          "documentation":"<p>The name of the repository where the remediation was applied.</p>"
+          "documentation":"<p>The name of an associated repository where the remediation was applied.</p>"
         },
         "codeDiffLink":{
           "shape":"String",
@@ -3163,6 +3185,18 @@
         "pullRequestLink":{
           "shape":"String",
           "documentation":"<p>The link to the pull request created for the remediation.</p>"
+        },
+        "status":{
+          "shape":"CodeRemediationJobStatus",
+          "documentation":"<p>The current status of the code remediation task for the particular repository.</p>"
+        },
+        "statusCode":{
+          "shape":"String",
+          "documentation":"<p>A category classifier if a repository's code remediation fails.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>A descriptive reason when a repository's code remediation fails.</p>"
         }
       },
       "documentation":"<p>Contains details about a code remediation task, including links to the code diff and pull request.</p>"
@@ -4044,6 +4078,10 @@
         "codeRemediationStrategy":{
           "shape":"CodeRemediationStrategy",
           "documentation":"<p>The code remediation strategy for the pentest. Valid values are AUTOMATIC and DISABLED.</p>"
+        },
+        "cleanUpStrategy":{
+          "shape":"CleanUpStrategy",
+          "documentation":"<p>The strategy for cleaning up resources after pentest job completion. Valid values are BEST_EFFORT_DELETE and RETAIN_ALL.</p>"
         },
         "disableManagedSkills":{
           "shape":"SkillTypeList",
@@ -5083,7 +5121,8 @@
       "enum":[
         "CLIENT_ERROR",
         "INTERNAL_ERROR",
-        "STOPPED_BY_USER"
+        "STOPPED_BY_USER",
+        "PAUSED_BY_USER"
       ]
     },
     "ErrorInformation":{
@@ -6262,6 +6301,8 @@
         "IN_PROGRESS",
         "STOPPING",
         "STOPPED",
+        "PAUSING",
+        "PAUSED",
         "FAILED",
         "COMPLETED"
       ]
@@ -7652,6 +7693,10 @@
         },
         "cicdConfiguration":{"shape":"CiCdConfiguration"},
         "testScope":{"shape":"TestScope"},
+        "version":{
+          "shape":"String",
+          "documentation":"<p>The version of the pentest job. The version increases each time the job is resumed. This value is absent for jobs created before versions were recorded.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The date and time the pentest job was created, in UTC format.</p>"
@@ -7709,6 +7754,10 @@
         "reportUrl":{
           "shape":"String",
           "documentation":"<p>The URL to view this pentest job's findings report in the console.</p>"
+        },
+        "version":{
+          "shape":"String",
+          "documentation":"<p>The version of the pentest job. The version increases each time the job is resumed. This value is absent for jobs created before versions were recorded.</p>"
         }
       },
       "documentation":"<p>Contains summary information about a pentest job.</p>"
@@ -8092,6 +8141,74 @@
         "DOCUMENT",
         "PROJECT"
       ]
+    },
+    "ResumePentestJobInput":{
+      "type":"structure",
+      "members":{
+        "agentSpaceId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the agent space.</p>"
+        },
+        "pentestJobId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the pentest job to resume.</p>"
+        },
+        "actors":{
+          "shape":"ActorList",
+          "documentation":"<p>The actors to use for the resumed job. When specified, replaces the actors the job used before it stopped.</p>"
+        },
+        "networkTrafficConfig":{
+          "shape":"NetworkTrafficConfig",
+          "documentation":"<p>The network traffic configuration to use for the resumed job. When specified, replaces the configuration the job used before it stopped.</p>"
+        },
+        "vpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>The VPC configuration to use for the resumed job. When specified, replaces the configuration the job used before it stopped.</p>"
+        },
+        "maxTaskHours":{
+          "shape":"Double",
+          "documentation":"<p>The maximum number of task hours for the resumed job. To resume a job that stopped because it reached its task hours limit, specify a higher value.</p>"
+        },
+        "copyConfigFromPentest":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to copy the current actors, network traffic configuration, VPC configuration, and maximum task hours from the pentest to the resumed job. The job's scope, such as its target endpoints, is never changed. Values you specify in this request take precedence over copied values.</p>"
+        }
+      },
+      "documentation":"<p>Input for resuming a stopped or paused pentest job.</p>"
+    },
+    "ResumePentestJobOutput":{
+      "type":"structure",
+      "members":{
+        "title":{
+          "shape":"String",
+          "documentation":"<p>The title of the pentest job.</p>"
+        },
+        "status":{
+          "shape":"JobStatus",
+          "documentation":"<p>The current status of the pentest job.</p>"
+        },
+        "createdAt":{
+          "shape":"SyntheticTimestamp_date_time",
+          "documentation":"<p>The date and time the pentest job was created, in UTC format.</p>"
+        },
+        "updatedAt":{
+          "shape":"SyntheticTimestamp_date_time",
+          "documentation":"<p>The date and time the pentest job was last updated, in UTC format.</p>"
+        },
+        "pentestId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the pentest.</p>"
+        },
+        "pentestJobId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the resumed pentest job.</p>"
+        },
+        "version":{
+          "shape":"String",
+          "documentation":"<p>The version of the pentest job that the resume started. The version increases each time the job is resumed.</p>"
+        }
+      },
+      "documentation":"<p>Output for the ResumePentestJob operation.</p>"
     },
     "RiskLevel":{
       "type":"string",
@@ -8824,6 +8941,10 @@
         "pentestJobId":{
           "shape":"String",
           "documentation":"<p>The unique identifier of the pentest job to stop.</p>"
+        },
+        "pause":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to pause the job instead of stopping it. A paused job moves to <code>PAUSING</code> and then to <code>PAUSED</code>, and you can resume it later with <code>ResumePentestJob</code>. You can pause only a job that is <code>IN_PROGRESS</code>. The default is false.</p>"
         }
       },
       "documentation":"<p>Input for stopping the execution of a pentest.</p>"
@@ -10272,6 +10393,10 @@
         "codeRemediationStrategy":{
           "shape":"CodeRemediationStrategy",
           "documentation":"<p>The updated code remediation strategy for the pentest.</p>"
+        },
+        "cleanUpStrategy":{
+          "shape":"CleanUpStrategy",
+          "documentation":"<p>The updated strategy for cleaning up resources after pentest job completion.</p>"
         },
         "disableManagedSkills":{
           "shape":"SkillTypeList",

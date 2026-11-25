@@ -89,7 +89,7 @@ public class RetryPolicyTest {
     @Test
     public void nonRetryMode_shouldUseDefaultRetryMode() {
         RetryPolicy policy = RetryPolicy.builder().build();
-        assertThat(policy.retryMode().toString()).isEqualTo("LEGACY");
+        assertThat(policy.retryMode().toString()).isEqualTo("STANDARD");
     }
 
     @Test

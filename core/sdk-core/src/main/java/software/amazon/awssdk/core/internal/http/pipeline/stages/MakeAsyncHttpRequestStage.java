@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
@@ -43,6 +44,7 @@ import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
+import software.amazon.awssdk.core.internal.http.async.CompletionTrackingPublisher;
 import software.amazon.awssdk.core.internal.http.async.FilterTransformingAsyncHttpResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublisher;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
@@ -202,8 +204,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                                                          AsyncExecuteRequest.Builder executeRequestBuilder,
                                                          TransformingAsyncResponseHandler<Response<OutputT>> responseHandler) {
         MetricCollector metricCollector = context.attemptMetricCollector();
+        AtomicBoolean responseBodyComplete = new AtomicBoolean(false);
         ReadMetricsTrackingResponseHandler<Response<OutputT>> wrappedResponseHandler =
-            new ReadMetricsTrackingResponseHandler<>(responseHandler, context);
+            new ReadMetricsTrackingResponseHandler<>(
+                new BodyCompletionTrackingResponseHandler<>(responseHandler, responseBodyComplete), context);
 
         AsyncExecuteRequest executeRequest = executeRequestBuilder.responseHandler(wrappedResponseHandler)
                                                                   .build();
@@ -211,6 +215,9 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         long startTime = MetricUtils.resetApiCallAttemptStartNanoTime(context);
         CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
         abortSignal.whenComplete((ignored, cause) -> {
+            if (responseBodyComplete.get()) {
+                return;
+            }
             if (abortSignal.isCancelled()) {
                 httpClientFuture.cancel(true);
             } else if (cause != null) {
@@ -327,6 +334,25 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
             trackingPublisher.subscribe(s);
+        }
+    }
+
+    /**
+     * Decorator response handler that records whether the HTTP client has signaled the end of the response body.
+     */
+    private static final class BodyCompletionTrackingResponseHandler<ResultT>
+        extends FilterTransformingAsyncHttpResponseHandler<ResultT> {
+        private final AtomicBoolean bodyComplete;
+
+        private BodyCompletionTrackingResponseHandler(TransformingAsyncResponseHandler<ResultT> delegate,
+                                                      AtomicBoolean bodyComplete) {
+            super(delegate);
+            this.bodyComplete = bodyComplete;
+        }
+
+        @Override
+        public void onStream(Publisher<ByteBuffer> stream) {
+            super.onStream(new CompletionTrackingPublisher(stream, bodyComplete));
         }
     }
 

@@ -1,0 +1,30 @@
+{
+    "version": "2.59.9",
+    "date": "2026-11-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Global Accelerator",
+            "contributor": "",
+            "description": "AWS Global Accelerator supports Client IP Preservation for NLBs with TLS Listener endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore",
+            "contributor": "",
+            "description": "Adds the optional userLocation parameter to InvokeWebSearch. Specify a two-letter ISO 3166-1 alpha-2 country code to refine web search results for that country. InvokeWebSearch also accepts search queries in languages other than English."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed an issue where a failed async API call also failed the HTTP client's request future after the response had been fully received. With the Netty HTTP client, this could close a pooled connection that another request was using."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fixed `putObject` with an unknown content length on a multipart-enabled `S3AsyncClient` so that a failed request body or a cancelled `putObject` future aborts the multipart upload, instead of completing a partial object or leaving the upload open."
+        }
+    ]
+}

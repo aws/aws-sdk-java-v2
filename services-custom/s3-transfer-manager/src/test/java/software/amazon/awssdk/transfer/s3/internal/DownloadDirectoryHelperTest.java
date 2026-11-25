@@ -50,6 +50,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
 import org.assertj.core.util.Sets;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,6 +68,8 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.testutils.LogCaptor;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
@@ -306,6 +310,44 @@ public class DownloadDirectoryHelperTest {
             assertRefused(failed, windowsDirectory, invalidKey);
             assertThat(failed.exception()).hasMessageContaining("not a valid path on this file system")
                                           .hasCauseInstanceOf(InvalidPathException.class);
+        }
+    }
+
+    @Test
+    void downloadDirectory_keysWithControlCharacters_debugLogsAreOneEscapedLineEach() throws Exception {
+        try (FileSystem unixFs = Jimfs.newFileSystem(Configuration.unix())) {
+            Path destination = unixFs.getPath("/dest");
+            String sentKey = "ok.txt\r\nFORGED level=ERROR";
+            String refusedKey = "../escape\r\nFORGED level=ERROR";
+            stubSuccessfulListObjects(listObjectsHelper, sentKey, refusedKey);
+            ArgumentCaptor<DownloadFileRequest> requestCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
+            when(singleDownloadFunction.apply(requestCaptor.capture())).thenReturn(completedDownload());
+
+            CompletedDirectoryDownload completed;
+            List<String> messages;
+            try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+                completed = downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                                              .destination(destination)
+                                                                                              .bucket("bucket")
+                                                                                              .build())
+                                                   .completionFuture().get(5, TimeUnit.SECONDS);
+                messages = logCaptor.loggedEvents()
+                                    .stream()
+                                    .filter(e -> S3TransferManager.class.getName().equals(e.getLoggerName()))
+                                    .map(LogEvent::getMessage)
+                                    .map(m -> m.getFormattedMessage())
+                                    .collect(Collectors.toList());
+            }
+
+            assertThat(requestCaptor.getAllValues()).extracting(r -> r.getObjectRequest().key()).containsExactly(sentKey);
+            assertThat(completed.failedTransfers()).hasSize(1);
+            assertThat(completed.failedTransfers().get(0).request().getObjectRequest().key()).isEqualTo(refusedKey);
+
+            assertThat(messages).allSatisfy(m -> assertThat(m).doesNotContain("\r", "\n"));
+            assertThat(messages).anySatisfy(m -> assertThat(m).startsWith("Sending download request")
+                                                              .contains("ok.txt\\r\\nFORGED level=ERROR"));
+            assertThat(messages).anySatisfy(m -> assertThat(m).startsWith("Skipping download of key")
+                                                              .contains("../escape\\r\\nFORGED level=ERROR"));
         }
     }
 

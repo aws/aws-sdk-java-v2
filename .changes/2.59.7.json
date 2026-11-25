@@ -1,0 +1,18 @@
+{
+    "version": "2.59.7",
+    "date": "2026-11-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker AI adds APIs to view capacity reservations and their usage."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Quicksight public SDK release for November 20"
+        }
+    ]
+}

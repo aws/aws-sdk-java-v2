@@ -42,14 +42,15 @@ public final class Http2StreamExceptionHandler extends ChannelInboundHandlerAdap
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        if (isIoError(cause) && ctx.channel().parent() != null) {
-            Channel parent = ctx.channel().parent();
-            log.debug(parent, () -> "An I/O error occurred on an Http2 stream, notifying the connection channel " + parent);
-            parent.pipeline().fireExceptionCaught(new Http2ConnectionTerminatingException("An I/O error occurred on an "
-                                                                                          + "associated Http2 "
-                                                                                          + "stream " + ctx.channel()));
+        Channel parent = ctx.channel().parent();
+        if (isIoError(cause) && parent != null) {
+            MultiplexedChannelRecord record = parent.attr(Http2MultiplexedChannelPool.MULTIPLEXED_CHANNEL).get();
+            if (record != null) {
+                log.debug(parent, () -> "An I/O error occurred on HTTP/2 stream " + ctx.channel()
+                                        + ". Connection " + parent + " will take no new streams.");
+                record.closeToNewStreams();
+            }
         }
-
         ctx.fireExceptionCaught(cause);
     }
 

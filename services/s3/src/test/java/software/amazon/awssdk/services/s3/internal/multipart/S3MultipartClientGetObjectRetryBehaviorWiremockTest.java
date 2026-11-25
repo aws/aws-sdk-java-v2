@@ -24,6 +24,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartDownloadTestUtils.internalErrorBody;
@@ -121,16 +122,44 @@ public class S3MultipartClientGetObjectRetryBehaviorWiremockTest {
     }
 
     @Test
-    public void getObject_concurrent503s_shouldRetrySuccessfully() {
+    public void getObject_concurrent500sWithinRetryQuota_shouldRetrySuccessfully() {
         List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
 
-        int numRuns = 100;
+        // The default (STANDARD) retry quota is 500 tokens and each non-throttling retry costs 14, so at most 35 requests can
+        // retry at the same time before the quota is refunded.
+        int numRuns = 35;
         for (int i = 0; i < numRuns; i++) {
             CompletableFuture<ResponseBytes<GetObjectResponse>> resp = mockRetryableErrorThen200Response(multipartClient, i);
             futures.add(resp);
         }
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+    }
+
+    @Test
+    public void getObject_concurrent500sBeyondRetryQuota_requestsThatCannotRetryFailWithTheError() {
+        List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
+
+        int numRuns = 100;
+        for (int i = 0; i < numRuns; i++) {
+            // Delay the successful retries so that no retry quota is returned before every first attempt has failed
+            futures.add(mockRetryableErrorThen200Response(multipartClient, i, 2_000));
+        }
+
+        int succeeded = 0;
+        for (CompletableFuture<ResponseBytes<GetObjectResponse>> future : futures) {
+            try {
+                future.join();
+                succeeded++;
+            } catch (CompletionException e) {
+                assertThat(e).hasCauseInstanceOf(S3Exception.class);
+                assertThat(((S3Exception) e.getCause()).statusCode()).isEqualTo(500);
+            }
+        }
+
+        // At least the first 35 requests to fail can retry (35 * 14 = 490 of the 500-token quota). Retries that succeed return
+        // their tokens, so more can retry later, but not all of them while the successful retries are delayed.
+        assertThat(succeeded).isBetween(35, numRuns - 1);
     }
 
     @Test
@@ -341,6 +370,12 @@ public class S3MultipartClientGetObjectRetryBehaviorWiremockTest {
     }
 
     private CompletableFuture<ResponseBytes<GetObjectResponse>> mockRetryableErrorThen200Response(S3AsyncClient s3Client, int runNumber) {
+        return mockRetryableErrorThen200Response(s3Client, runNumber, 0);
+    }
+
+    private CompletableFuture<ResponseBytes<GetObjectResponse>> mockRetryableErrorThen200Response(S3AsyncClient s3Client,
+                                                                                                   int runNumber,
+                                                                                                   int successDelayMillis) {
         String runId = String.valueOf(runNumber);
 
         stubFor(any(anyUrl())
@@ -359,6 +394,7 @@ public class S3MultipartClientGetObjectRetryBehaviorWiremockTest {
                     .withHeader("RunNum", matching(runId))
                     .whenScenarioStateIs("SecondAttempt" + runId)
                     .willReturn(aResponse().withStatus(200)
+                                           .withFixedDelay(successDelayMillis)
                                            .withHeader("x-amz-request-id", String.valueOf(UUID.randomUUID()))
                                            .withBody("Hello World")));
 

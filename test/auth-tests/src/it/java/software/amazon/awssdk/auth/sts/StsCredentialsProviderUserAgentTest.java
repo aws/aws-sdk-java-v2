@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth.sts;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.RETRY_MODE_STANDARD;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -90,13 +91,13 @@ class StsCredentialsProviderUserAgentTest {
 
     private static Stream<Arguments> stsCredentialsProviders() throws Exception {
         return Stream.of(
-            Arguments.of(createAssumeRoleProvider(), Arrays.asList("D", "i"), "StsAssumeRoleCredentialsProvider"),
-            Arguments.of(createAssumeRoleWithSamlProvider(), Arrays.asList("D", "j"), "StsAssumeRoleWithSamlCredentialsProvider"),
-            Arguments.of(createAssumeRoleWithWebIdentityProvider(), Arrays.asList("D", "k"),
+            Arguments.of(createAssumeRoleProvider(), Arrays.asList(RETRY_MODE_STANDARD.value(), "i"), "StsAssumeRoleCredentialsProvider"),
+            Arguments.of(createAssumeRoleWithSamlProvider(), Arrays.asList(RETRY_MODE_STANDARD.value(), "j"), "StsAssumeRoleWithSamlCredentialsProvider"),
+            Arguments.of(createAssumeRoleWithWebIdentityProvider(), Arrays.asList(RETRY_MODE_STANDARD.value(), "k"),
                          "StsAssumeRoleWithWebIdentityCredentialsProvider"),
-            Arguments.of(createFederationTokenProvider(), Arrays.asList("D", "l"), "StsGetFederationTokenCredentialsProvider"),
-            Arguments.of(createSessionTokenProvider(), Arrays.asList("D", "m"), "StsGetSessionTokenCredentialsProvider"),
-            Arguments.of(createWebIdentityTokenFileProvider(), Arrays.asList("D", "k", "h"),
+            Arguments.of(createFederationTokenProvider(), Arrays.asList(RETRY_MODE_STANDARD.value(), "l"), "StsGetFederationTokenCredentialsProvider"),
+            Arguments.of(createSessionTokenProvider(), Arrays.asList(RETRY_MODE_STANDARD.value(), "m"), "StsGetSessionTokenCredentialsProvider"),
+            Arguments.of(createWebIdentityTokenFileProvider(), Arrays.asList(RETRY_MODE_STANDARD.value(), "k", "h"),
                          "StsWebIdentityTokenFileCredentialsProvider")
         );
     }

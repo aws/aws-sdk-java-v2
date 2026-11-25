@@ -32,6 +32,9 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HT
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils.combinedAsyncResponseHandler;
 
+import io.reactivex.Flowable;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -40,6 +43,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +57,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
@@ -60,10 +65,13 @@ import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndReques
 import software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import utils.ValidSdkObjects;
@@ -159,6 +167,34 @@ public class MakeAsyncHttpRequestStageTest {
         abortSignal.cancel(true);
 
         assertThat(clientExecuteFuture.isCancelled()).isTrue();
+    }
+
+    @Test
+    public void execute_abortSignalCancelledAfterResponseBodyReceived_doesNotCancelHttpRequest() {
+        SdkAsyncHttpResponseHandler responseHandler = executeWithPendingHttpRequest();
+        responseHandler.onHeaders(SdkHttpFullResponse.builder().statusCode(200).build());
+        responseHandler.onStream(Flowable.just(ByteBuffer.wrap("body".getBytes(StandardCharsets.UTF_8))));
+
+        abortSignal.cancel(true);
+
+        assertThat(clientExecuteFuture).isNotDone();
+    }
+
+    @Test
+    public void execute_abortSignalFailsWhileResponseBodyInProgress_abortsHttpRequest() {
+        SdkAsyncHttpResponseHandler responseHandler = executeWithPendingHttpRequest();
+        responseHandler.onHeaders(SdkHttpFullResponse.builder().statusCode(200).build());
+        responseHandler.onStream(Flowable.just(ByteBuffer.wrap("partial body".getBytes(StandardCharsets.UTF_8)))
+                                         .concatWith(Flowable.never()));
+        RuntimeException requestFailure = new RuntimeException("request failure");
+
+        abortSignal.completeExceptionally(requestFailure);
+
+        assertThat(clientExecuteFuture).isCompletedExceptionally();
+        assertThatThrownBy(clientExecuteFuture::join)
+            .hasCauseExactlyInstanceOf(SdkClientException.class)
+            .hasMessageContaining("request execution failed")
+            .hasRootCause(requestFailure);
     }
 
     @Test
@@ -334,7 +370,6 @@ public class MakeAsyncHttpRequestStageTest {
                                                                      .option(API_CALL_ATTEMPT_TIMEOUT, timeout)
                                                                      .build();
 
-
         return HttpClientDependencies.builder()
                                      .clientConfiguration(configuration)
                                      .build();
@@ -346,5 +381,24 @@ public class MakeAsyncHttpRequestStageTest {
                                       .executionContext(executionContext)
                                       .originalRequest(NoopTestRequest.builder().build())
                                       .build();
+    }
+
+    private SdkAsyncHttpResponseHandler executeWithPendingHttpRequest() {
+        clientExecuteFuture = new CompletableFuture<>();
+        when(sdkAsyncHttpClient.execute(any())).thenReturn(clientExecuteFuture);
+        stage = new MakeAsyncHttpRequestStage<>(
+            combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
+                                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
+            clientDependencies(null),
+            abortSignal);
+        RequestExecutionContext context = requestContext();
+        context.attemptMetricCollector(NoOpMetricCollector.create());
+        context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ, new AtomicLong());
+
+        stage.execute(CompletableFuture.completedFuture(ValidSdkObjects.sdkHttpFullRequest().build()), context);
+
+        ArgumentCaptor<AsyncExecuteRequest> executeRequest = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
+        verify(sdkAsyncHttpClient).execute(executeRequest.capture());
+        return executeRequest.getValue().responseHandler();
     }
 }

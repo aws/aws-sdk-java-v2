@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import io.reactivex.Flowable;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -197,6 +198,38 @@ class ResumableRequestConverterTest {
                 .contains("The ETag of the requested object in bucket (bucket) with key (key)"
                           + " has changed since the last pause. The SDK will download the S3 object from the beginning");
         }
+    }
+
+    @Test
+    void toDownloadFileAndTransformer_s3ObjectModifiedKeyWithControlCharacters_debugLogIsOneEscapedLine() {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket("bucket")
+                                                            .key("key\r\nFORGED level=ERROR")
+                                                            .build();
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+        ResumableFileDownload resumableFileDownload =
+            ResumableFileDownload.builder()
+                                 .bytesTransferred(1000L)
+                                 .s3ObjectLastModified(Instant.now().minusSeconds(5))
+                                 .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                 .downloadFileRequest(downloadFileRequest)
+                                 .build();
+        List<String> messages;
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse(Instant.now()),
+                                                downloadFileRequest);
+            messages = logCaptor.loggedEvents()
+                                .stream()
+                                .map(e -> e.getMessage().getFormattedMessage())
+                                .collect(Collectors.toList());
+        }
+
+        assertThat(messages).allSatisfy(m -> assertThat(m).doesNotContain("\r", "\n"));
+        assertThat(messages).anySatisfy(m -> assertThat(m).contains(
+            "The requested object in bucket (bucket) with key (key\\r\\nFORGED level=ERROR) has been modified"));
     }
 
     @Test
@@ -485,6 +518,36 @@ class ResumableRequestConverterTest {
         future.get(5, TimeUnit.SECONDS);
 
         assertThat(file).hasBinaryContent(objectContent);
+    }
+
+    static Stream<Arguments> crtCases() {
+        GetObjectRequest withUserIfMatch = getObjectRequest().toBuilder().ifMatch("*").build();
+        GetObjectRequest withUnresumableRange = getObjectRequest().toBuilder().range("bytes=0-1,5-6").build();
+        return Stream.of(
+            Arguments.of("range resume", getObjectRequest(), false, ETAG_BAR, ETAG_BAR),
+            Arguments.of("range resume, user If-Match", withUserIfMatch, false, ETAG_BAR, ETAG_BAR),
+            Arguments.of("range resume, no token ETag", getObjectRequest(), false, null, null),
+            Arguments.of("range resume, no token ETag, user If-Match", withUserIfMatch, false, null, "*"),
+            Arguments.of("restart", getObjectRequest(), true, ETAG_BAR, null),
+            Arguments.of("unresumable range", withUnresumableRange, false, ETAG_BAR, null)
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("crtCases")
+    void toCrtDownloadFileRequest_shouldSetIfMatchOnlyOnRangeResume(String description,
+                                                                    GetObjectRequest getObjectRequest,
+                                                                    boolean restartFromBeginning,
+                                                                    String s3ObjectEtag,
+                                                                    String expectedIfMatch) {
+        DownloadFileRequest downloadFileRequest = downloadFileRequest(getObjectRequest);
+
+        GetObjectRequest actualRequest =
+            toCrtDownloadFileRequest(resumableFileDownload(downloadFileRequest, S3_LAST_MODIFIED, s3ObjectEtag),
+                                     headObjectResponse(S3_LAST_MODIFIED), downloadFileRequest, restartFromBeginning)
+                .getObjectRequest();
+
+        assertThat(actualRequest.ifMatch()).isEqualTo(expectedIfMatch);
     }
 
     @Test

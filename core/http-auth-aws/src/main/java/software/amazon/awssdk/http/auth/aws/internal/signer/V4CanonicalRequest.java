@@ -54,7 +54,6 @@ public final class V4CanonicalRequest {
     private SortedMap<String, List<String>> canonicalParams;
     private List<Pair<String, List<String>>> canonicalHeaders;
     private String canonicalQueryString;
-    private String canonicalHeadersString;
     private String signedHeadersString;
     private String canonicalRequestString;
 
@@ -88,7 +87,7 @@ public final class V4CanonicalRequest {
     public String getCanonicalRequestString() {
         if (canonicalRequestString == null) {
             canonicalRequestString = getCanonicalRequestString(request.method().toString(), canonicalUri(),
-                                                               canonicalQueryString(), canonicalHeadersString(),
+                                                               canonicalQueryString(), canonicalHeaders(),
                                                                getSignedHeadersString(), contentHash);
         }
         return canonicalRequestString;
@@ -120,13 +119,6 @@ public final class V4CanonicalRequest {
             canonicalQueryString = getCanonicalQueryString(canonicalQueryParams());
         }
         return canonicalQueryString;
-    }
-
-    private String canonicalHeadersString() {
-        if (canonicalHeadersString == null) {
-            canonicalHeadersString = getCanonicalHeadersString(canonicalHeaders());
-        }
-        return canonicalHeadersString;
     }
 
     /**
@@ -181,30 +173,59 @@ public final class V4CanonicalRequest {
      * Each header-value pair is separated by a newline.
      */
     public static String getCanonicalHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
-        // 2048 chosen experimentally to avoid always needing to resize the string builder's internal byte array.
-        // The minimal DynamoDB get-item request at the time of testing used ~1100 bytes. 2048 was chosen as the
-        // next-highest power-of-two.
-        StringBuilder result = new StringBuilder(2048);
-        canonicalHeaders.forEach(header -> {
+        StringBuilder result = new StringBuilder(canonicalHeadersMaxLength(canonicalHeaders));
+        appendCanonicalHeaders(result, canonicalHeaders);
+        return result.toString();
+    }
+
+    private static void appendCanonicalHeaders(StringBuilder result, List<Pair<String, List<String>>> canonicalHeaders) {
+        for (int i = 0; i < canonicalHeaders.size(); i++) {
+            Pair<String, List<String>> header = canonicalHeaders.get(i);
             result.append(header.left());
-            result.append(":");
-            for (String headerValue : header.right()) {
-                addAndTrim(result, headerValue);
-                result.append(",");
+            result.append(':');
+            List<String> values = header.right();
+            for (int j = 0; j < values.size(); j++) {
+                addAndTrim(result, values.get(j));
+                result.append(',');
             }
             result.setLength(result.length() - 1);
-            result.append("\n");
-        });
-        return result.toString();
+            result.append('\n');
+        }
+    }
+
+    /**
+     * Returns the length of the canonical headers string before whitespace is trimmed from the values, which is an upper
+     * bound on its actual length.
+     */
+    private static int canonicalHeadersMaxLength(List<Pair<String, List<String>>> canonicalHeaders) {
+        int length = 0;
+        for (int i = 0; i < canonicalHeaders.size(); i++) {
+            Pair<String, List<String>> header = canonicalHeaders.get(i);
+            // The name and ':', then each value and the ',' or '\n' after it
+            length += header.left().length() + 1;
+            List<String> values = header.right();
+            for (int j = 0; j < values.size(); j++) {
+                String value = values.get(j);
+                length += (value == null ? 0 : value.length()) + 1;
+            }
+            if (values.isEmpty()) {
+                length++;
+            }
+        }
+        return length;
     }
 
     /**
      * Get the string representing which headers are part of the signing process. Header names are separated by a semicolon.
      */
     public static String getSignedHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
-        StringBuilder headersString = new StringBuilder(512);
-        for (Pair<String, List<String>> header : canonicalHeaders) {
-            headersString.append(header.left()).append(';');
+        int length = 0;
+        for (int i = 0; i < canonicalHeaders.size(); i++) {
+            length += canonicalHeaders.get(i).left().length() + 1;
+        }
+        StringBuilder headersString = new StringBuilder(length);
+        for (int i = 0; i < canonicalHeaders.size(); i++) {
+            headersString.append(canonicalHeaders.get(i).left()).append(';');
         }
 
         if (headersString.length() > 0) {
@@ -220,14 +241,20 @@ public final class V4CanonicalRequest {
      * Each {@link String} parameter is separated by a newline character.
      */
     private static String getCanonicalRequestString(String httpMethod, String canonicalUri, String canonicalParamsString,
-                                                    String canonicalHeadersString, String signedHeadersString,
-                                                    String contentHash) {
-        return httpMethod + SignerConstant.LINE_SEPARATOR +
-               canonicalUri + SignerConstant.LINE_SEPARATOR +
-               canonicalParamsString + SignerConstant.LINE_SEPARATOR +
-               canonicalHeadersString + SignerConstant.LINE_SEPARATOR +
-               signedHeadersString + SignerConstant.LINE_SEPARATOR +
-               contentHash;
+                                                    List<Pair<String, List<String>>> canonicalHeaders,
+                                                    String signedHeadersString, String contentHash) {
+        int capacity = httpMethod.length() + canonicalUri.length() + canonicalParamsString.length()
+                       + canonicalHeadersMaxLength(canonicalHeaders) + signedHeadersString.length() + contentHash.length()
+                       + 5 * SignerConstant.LINE_SEPARATOR.length();
+        StringBuilder result = new StringBuilder(capacity);
+        result.append(httpMethod).append(SignerConstant.LINE_SEPARATOR)
+              .append(canonicalUri).append(SignerConstant.LINE_SEPARATOR)
+              .append(canonicalParamsString).append(SignerConstant.LINE_SEPARATOR);
+        appendCanonicalHeaders(result, canonicalHeaders);
+        result.append(SignerConstant.LINE_SEPARATOR)
+              .append(signedHeadersString).append(SignerConstant.LINE_SEPARATOR)
+              .append(contentHash);
+        return result.toString();
     }
 
     /**

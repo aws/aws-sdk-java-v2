@@ -756,6 +756,7 @@
       },
       "aoss" : {
         "endpoints" : {
+          "af-south-1" : { },
           "ap-east-1" : { },
           "ap-northeast-1" : { },
           "ap-northeast-2" : { },
@@ -21876,6 +21877,7 @@
               "tags" : [ "dualstack" ]
             } ]
           },
+          "ap-east-2" : { },
           "ap-northeast-1" : {
             "credentialScope" : {
               "region" : "ap-northeast-1"
@@ -21975,6 +21977,9 @@
               "tags" : [ "dualstack" ]
             } ]
           },
+          "ap-southeast-5" : { },
+          "ap-southeast-6" : { },
+          "ap-southeast-7" : { },
           "ca-central-1" : {
             "credentialScope" : {
               "region" : "ca-central-1"
@@ -22146,6 +22151,7 @@
               "tags" : [ "dualstack" ]
             } ]
           },
+          "mx-central-1" : { },
           "sa-east-1" : {
             "credentialScope" : {
               "region" : "sa-east-1"
@@ -37337,6 +37343,12 @@
         "isRegionalized" : false,
         "partitionEndpoint" : "aws-iso-global"
       },
+      "route53profiles" : {
+        "endpoints" : {
+          "us-iso-east-1" : { },
+          "us-iso-west-1" : { }
+        }
+      },
       "route53resolver" : {
         "endpoints" : {
           "us-iso-east-1" : { },
@@ -37708,6 +37720,11 @@
             "deprecated" : true,
             "hostname" : "translate-fips.us-iso-east-1.c2s.ic.gov"
           }
+        }
+      },
+      "verifiedpermissions" : {
+        "endpoints" : {
+          "us-iso-east-1" : { }
         }
       },
       "wafv2" : {
@@ -38431,6 +38448,12 @@
         "isRegionalized" : false,
         "partitionEndpoint" : "aws-iso-b-global"
       },
+      "route53profiles" : {
+        "endpoints" : {
+          "us-isob-east-1" : { },
+          "us-isob-west-1" : { }
+        }
+      },
       "route53resolver" : {
         "endpoints" : {
           "us-isob-east-1" : { },
@@ -39019,6 +39042,11 @@
           "eu-isoe-west-1" : { }
         }
       },
+      "guardduty" : {
+        "endpoints" : {
+          "eu-isoe-west-1" : { }
+        }
+      },
       "health" : {
         "endpoints" : {
           "eu-isoe-west-1" : {
@@ -39401,6 +39429,12 @@
         }
       },
       "api.sagemaker" : {
+        "endpoints" : {
+          "us-isof-east-1" : { },
+          "us-isof-south-1" : { }
+        }
+      },
+      "apigateway" : {
         "endpoints" : {
           "us-isof-east-1" : { },
           "us-isof-south-1" : { }
@@ -40278,6 +40312,11 @@
           "eusc-de-east-1" : { }
         }
       },
+      "aps" : {
+        "endpoints" : {
+          "eusc-de-east-1" : { }
+        }
+      },
       "arc-zonal-shift" : {
         "endpoints" : {
           "eusc-de-east-1" : { }
@@ -40458,6 +40497,11 @@
           "eusc-de-east-1" : { }
         }
       },
+      "emr-containers" : {
+        "endpoints" : {
+          "eusc-de-east-1" : { }
+        }
+      },
       "emr-serverless" : {
         "endpoints" : {
           "eusc-de-east-1" : { }
@@ -40606,6 +40650,11 @@
         }
       },
       "oidc" : {
+        "endpoints" : {
+          "eusc-de-east-1" : { }
+        }
+      },
+      "outposts" : {
         "endpoints" : {
           "eusc-de-east-1" : { }
         }

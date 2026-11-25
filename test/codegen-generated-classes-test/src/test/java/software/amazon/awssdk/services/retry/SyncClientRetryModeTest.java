@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.services.retry;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Test;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
@@ -28,5 +32,13 @@ public class SyncClientRetryModeTest extends ClientRetryModeTestSuite<ProtocolRe
     @Override
     protected AllTypesResponse callAllTypes(ProtocolRestJsonClient client) {
         return client.allTypes();
+    }
+
+    @Test
+    public void legacyRetryMode_honorsRetryAfter() {
+        stubRetryAfterThenSuccess("Retry-After", "1");
+        ProtocolRestJsonClient client = clientBuilder().overrideConfiguration(o -> o.retryStrategy(RetryMode.LEGACY)).build();
+        assertThat(timeCallMillis(client)).isGreaterThanOrEqualTo(1000);
+        verifyRequestCount(2);
     }
 }

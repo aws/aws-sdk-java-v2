@@ -126,6 +126,34 @@ public class V4CanonicalRequestTest {
     }
 
     @Test
+    void getCanonicalRequestString_withMultiValuedAndSpacedHeaders_matchesCanonicalHeadersString() {
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                                               .protocol("https")
+                                               .host("localhost")
+                                               .method(SdkHttpMethod.POST)
+                                               .encodedPath("/foo/bar")
+                                               .putRawQueryParameter("b", "2")
+                                               .putRawQueryParameter("a", Arrays.asList("y", "x"))
+                                               .putHeader("Host", "localhost")
+                                               .putHeader("X-Multi", Arrays.asList("  one  two ", "three"))
+                                               .putHeader("x-empty", "")
+                                               .putHeader("x-blank", "   ")
+                                               .putHeader("Content-Type", "application/x-amz-json-1.0")
+                                               .build();
+        V4CanonicalRequest cr = new V4CanonicalRequest(request, "sha-256", new V4CanonicalRequest.Options(true, true));
+
+        String expected = "POST\n/foo/bar\na=x&a=y&b=2\n"
+                          + V4CanonicalRequest.getCanonicalHeadersString(V4CanonicalRequest.getCanonicalHeaders(request))
+                          + "\n" + cr.getSignedHeadersString() + "\nsha-256";
+
+        assertEquals(expected, cr.getCanonicalRequestString());
+        assertEquals("content-type:application/x-amz-json-1.0\nhost:localhost\nx-blank:\nx-empty:\n"
+                     + "x-multi:one two,three\n",
+                     V4CanonicalRequest.getCanonicalHeadersString(V4CanonicalRequest.getCanonicalHeaders(request)));
+        assertEquals("content-type;host;x-blank;x-empty;x-multi", cr.getSignedHeadersString());
+    }
+
+    @Test
     public void canonicalRequest_withEmptyHeaders_shouldSucceed() {
         SdkHttpRequest request = SdkHttpRequest.builder()
                                                .protocol("https")

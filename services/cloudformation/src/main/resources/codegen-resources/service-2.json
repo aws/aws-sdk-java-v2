@@ -91,7 +91,7 @@
       "errors":[
         {"shape":"TokenAlreadyExistsException"}
       ],
-      "documentation":"<p>Continues rolling back a stack from <code>UPDATE_ROLLBACK_FAILED</code> to <code>UPDATE_ROLLBACK_COMPLETE</code> state. Depending on the cause of the failure, you can manually fix the error and continue the rollback. By continuing the rollback, you can return your stack to a working state (the <code>UPDATE_ROLLBACK_COMPLETE</code> state) and then try to update the stack again.</p> <p>A stack enters the <code>UPDATE_ROLLBACK_FAILED</code> state when CloudFormation can't roll back all changes after a failed stack update. For example, this might occur when a stack attempts to roll back to an old database that was deleted outside of CloudFormation. Because CloudFormation doesn't know the instance was deleted, it assumes the instance still exists and attempts to roll back to it, causing the update rollback to fail.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-continueupdaterollback.html\">Continue rolling back an update</a> in the <i>CloudFormation User Guide</i>. For information for troubleshooting a failed update rollback, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html#troubleshooting-errors-update-rollback-failed\">Update rollback failed</a>.</p> <p> <code>ForceRollback</code> and <code>ResourcesToSkip</code> are mutually exclusive. For details, see <a>ContinueUpdateRollbackInput$ForceRollback</a>.</p>"
+      "documentation":"<p>Continues rolling back a stack from <code>UPDATE_ROLLBACK_FAILED</code> to <code>UPDATE_ROLLBACK_COMPLETE</code> state. Depending on the cause of the failure, you can manually fix the error and continue the rollback. By continuing the rollback, you can return your stack to a working state (the <code>UPDATE_ROLLBACK_COMPLETE</code> state) and then try to update the stack again.</p> <p>A stack enters the <code>UPDATE_ROLLBACK_FAILED</code> state when CloudFormation can't roll back all changes after a failed stack update. For example, this might occur when a stack attempts to roll back to an old database that was deleted outside of CloudFormation. Because CloudFormation doesn't know the instance was deleted, it assumes the instance still exists and attempts to roll back to it, causing the update rollback to fail.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-continueupdaterollback.html\">Continue rolling back an update</a> in the <i>CloudFormation User Guide</i>. For information for troubleshooting a failed update rollback, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html#troubleshooting-errors-update-rollback-failed\">Update rollback failed</a>.</p> <p> <code>ForceRollback</code> and <code>ResourcesToSkip</code> are mutually exclusive. For details, see the <code>ForceRollback</code> parameter.</p>"
     },
     "CreateChangeSet":{
       "name":"CreateChangeSet",
@@ -584,7 +584,7 @@
         {"shape":"StackSetNotFoundException"},
         {"shape":"OperationNotFoundException"}
       ],
-      "documentation":"<p>Returns the description of the specified StackSet operation.</p> <note> <p>This API provides <i>strongly consistent</i> reads meaning it will always return the most up-to-date data.</p> </note>"
+      "documentation":"<p>Returns the description of the specified StackSet operation.</p> <p>Reports role provisioning and stack instances deployment progress in <code>StatusDetails.Stages</code>. A breakdown for each Amazon Web Services Region is available in <code>RegionalStatusDetails</code>.</p> <note> <p>This API provides <i>strongly consistent</i> reads meaning it will always return the most up-to-date data.</p> </note>"
     },
     "DescribeStacks":{
       "name":"DescribeStacks",
@@ -1053,7 +1053,7 @@
       "errors":[
         {"shape":"StackSetNotFoundException"}
       ],
-      "documentation":"<p>Returns summary information about operations performed on a StackSet.</p> <note> <p>This API provides <i>eventually consistent</i> reads meaning it may take some time but will eventually return the most up-to-date data.</p> </note>"
+      "documentation":"<p>Returns summary information about operations performed on a StackSet.</p> <p>Reports role provisioning and stack instances deployment progress in <code>StatusDetails.Stages</code>. The breakdown for each Amazon Web Services Region is available only from <a>DescribeStackSetOperation</a>.</p> <note> <p>This API provides <i>eventually consistent</i> reads meaning it may take some time but will eventually return the most up-to-date data.</p> </note>"
     },
     "ListStackSets":{
       "name":"ListStackSets",
@@ -1202,6 +1202,15 @@
       "documentation":"<p>Registers an extension with the CloudFormation service. Registering an extension makes it available for use in CloudFormation templates in your Amazon Web Services account, and includes:</p> <ul> <li> <p>Validating the extension schema.</p> </li> <li> <p>Determining which handlers, if any, have been specified for the extension.</p> </li> <li> <p>Making the extension available for use in your account.</p> </li> </ul> <p>For more information about how to develop extensions and ready them for registration, see <a href=\"https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-types.html\">Creating resource types using the CloudFormation CLI</a> in the <i>CloudFormation Command Line Interface (CLI) User Guide</i>.</p> <p>You can have a maximum of 50 resource extension versions registered at a time. This maximum is per account and per Region. Use <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DeregisterType.html\">DeregisterType</a> to deregister specific extension versions if necessary.</p> <p>Once you have initiated a registration request using <a>RegisterType</a>, you can use <a>DescribeTypeRegistration</a> to monitor the progress of the registration request.</p> <p>Once you have registered a private extension in your account and Region, use <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_SetTypeConfiguration.html\">SetTypeConfiguration</a> to specify configuration properties for the extension. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry-set-configuration.html\">Edit configuration data for extensions in your account</a> in the <i>CloudFormation User Guide</i>.</p>",
       "idempotent":true
     },
+    "RemoveAlias":{
+      "name":"RemoveAlias",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RemoveAliasInput"},
+      "documentation":"<p>Removes an alias from a stack. After the alias is removed successfully, it can no longer be used to reference the stack in API calls.</p>"
+    },
     "RollbackStack":{
       "name":"RollbackStack",
       "http":{
@@ -1217,6 +1226,19 @@
         {"shape":"TokenAlreadyExistsException"}
       ],
       "documentation":"<p>When specifying <code>RollbackStack</code>, you preserve the state of previously provisioned resources when an operation fails. You can check the status of the stack through the <a>DescribeStacks</a> operation.</p> <p>Rolls back the specified stack to the last known stable state from <code>CREATE_FAILED</code> or <code>UPDATE_FAILED</code> stack statuses.</p> <p>This operation will delete a stack if it doesn't contain a last known stable state. A last known stable state includes any status in a <code>*_COMPLETE</code>. This includes the following stack statuses.</p> <ul> <li> <p> <code>CREATE_COMPLETE</code> </p> </li> <li> <p> <code>UPDATE_COMPLETE</code> </p> </li> <li> <p> <code>UPDATE_ROLLBACK_COMPLETE</code> </p> </li> <li> <p> <code>IMPORT_COMPLETE</code> </p> </li> <li> <p> <code>IMPORT_ROLLBACK_COMPLETE</code> </p> </li> </ul>"
+    },
+    "SetAlias":{
+      "name":"SetAlias",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"SetAliasInput"},
+      "errors":[
+        {"shape":"LimitExceededException"},
+        {"shape":"AlreadyExistsException"}
+      ],
+      "documentation":"<p>Assigns an alias to an existing stack. An alias is an alternative name for a stack that can be used in place of the stack name in any CloudFormation API call that accepts the <code>StackName</code> parameter. This enables you to effectively rename a stack without recreating it.</p> <p>After setting an alias, both the original stack name and the alias resolve to the same stack. Setting an alias does not change the stack's ARN, physical resource IDs, or any deployed resources.</p> <note> <p>Each stack can have at most one alias. To change a stack's alias, first remove the existing alias using <a>RemoveAlias</a>, then set a new one.</p> </note>"
     },
     "SetStackPolicy":{
       "name":"SetStackPolicy",
@@ -1562,6 +1584,11 @@
       "type":"string",
       "enum":["TEMPLATE"]
     },
+    "AliasName":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
     "AllowedValue":{"type":"string"},
     "AllowedValues":{
       "type":"list",
@@ -1783,6 +1810,10 @@
         }
       },
       "documentation":"<p>The input for the <a>CancelUpdateStack</a> action.</p>"
+    },
+    "CancelledStackInstancesCount":{
+      "type":"integer",
+      "min":0
     },
     "Capabilities":{
       "type":"list",
@@ -2051,6 +2082,14 @@
       "type":"string",
       "max":128,
       "min":1
+    },
+    "CompletedAccountsCount":{
+      "type":"integer",
+      "min":0
+    },
+    "CompletedStackInstancesCount":{
+      "type":"integer",
+      "min":0
     },
     "ConcurrencyMode":{
       "type":"string",
@@ -2471,7 +2510,7 @@
         },
         "Capabilities":{
           "shape":"Capabilities",
-          "documentation":"<p>In some cases, you must explicitly acknowledge that your StackSet template contains certain capabilities in order for CloudFormation to create the StackSet and related stack instances.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your Amazon Web Services account; for example, by creating new IAM users. For those StackSets, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability.</p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>.</p> </li> <li> <p>If you don't specify either of these capabilities, CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-accesskey.html\">AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-group.html\">AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-instanceprofile.html\">AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-policy.html\">AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-role.html\">AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-user.html\">AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-usertogroupaddition.html\">AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/control-access-with-iam.html#using-iam-capabilities\">Acknowledging IAM resources in CloudFormation templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some templates reference macros. If your StackSet template references one or more macros, you must create the StackSet directly from the processed template, without first reviewing the resulting changes in a change set. To create the StackSet directly, you must acknowledge this capability. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Perform custom processing on CloudFormation templates with template macros</a>.</p> <important> <p>StackSets with service-managed permissions don't currently support the use of macros in templates. (This includes the <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-include.html\">AWS::Include</a> and <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by CloudFormation.) Even if you specify this capability for a StackSet with service-managed permissions, if you reference a macro in your template the StackSet operation will fail.</p> </important> </li> </ul>"
+          "documentation":"<p>In some cases, you must explicitly acknowledge that your StackSet template contains certain capabilities in order for CloudFormation to create the StackSet and related stack instances.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your Amazon Web Services account; for example, by creating new IAM users. For those StackSets, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability.</p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>.</p> </li> <li> <p>If you don't specify either of these capabilities, CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-accesskey.html\">AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-group.html\">AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-instanceprofile.html\">AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-policy.html\">AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-role.html\">AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-user.html\">AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-usertogroupaddition.html\">AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/control-access-with-iam.html#using-iam-capabilities\">Acknowledging IAM resources in CloudFormation templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some templates reference macros. If your StackSet template references one or more macros, you must create the StackSet directly from the processed template, without first reviewing the resulting changes in a change set. To create the StackSet directly, you must acknowledge this capability. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Perform custom processing on CloudFormation templates with template macros</a>.</p> <important> <p>With service-managed permissions, CloudFormation can process macros, nested stacks, and transforms in your StackSet template only when you provide a custom execution role template. (Macros include the <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-include.html\">AWS::Include</a> and <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by CloudFormation.) The default service-managed execution role can't provision them: if you reference a macro in your template, the StackSet operation fails even when you specify this capability.</p> <p>To use macros, nested stacks, or transforms with service-managed permissions, specify a custom execution role template in <code>ExecutionRoleTemplateBody</code> or <code>ExecutionRoleTemplateUrl</code>, and specify both <code>CAPABILITY_NAMED_IAM</code> and <code>CAPABILITY_AUTO_EXPAND</code>.</p> </important> </li> </ul>"
         },
         "Tags":{
           "shape":"Tags",
@@ -2483,7 +2522,7 @@
         },
         "ExecutionRoleName":{
           "shape":"ExecutionRoleName",
-          "documentation":"<p>The name of the IAM execution role to use to create the StackSet. If you do not specify an execution role, CloudFormation uses the <code>AWSCloudFormationStackSetExecutionRole</code> role for the StackSet operation.</p> <p>Specify an IAM role only if you are using customized execution roles to control which stack resources users and groups can include in their StackSets.</p> <p>Valid only if the permissions model is <code>SELF_MANAGED</code>.</p>"
+          "documentation":"<p>The name of the IAM execution role that CloudFormation uses for StackSet operations in your target accounts.</p> <p>[Self-managed permissions] If you do not specify an execution role, CloudFormation uses the <code>AWSCloudFormationStackSetExecutionRole</code> role for the StackSet operation. Specify an IAM role only if you are using customized execution roles to control which stack resources users and groups can include in their StackSets.</p> <p>[Service-managed permissions] Set this name when you use custom execution roles. The role that your custom execution role template provisions in your target accounts must have this same name, and the name must begin with <code>stacksets-exec-custom-</code>.</p>"
         },
         "PermissionModel":{
           "shape":"PermissionModels",
@@ -2505,6 +2544,18 @@
         "ManagedExecution":{
           "shape":"ManagedExecution",
           "documentation":"<p>Describes whether CloudFormation performs non-conflicting operations concurrently and queues conflicting operations.</p>"
+        },
+        "ExecutionRoleTemplateBody":{
+          "shape":"TemplateBody",
+          "documentation":"<p>The body of the template that creates a custom execution role in target accounts. This parameter applies only when the permissions model is <code>SERVICE_MANAGED</code>.</p> <p>Conditional: Specify either <code>ExecutionRoleTemplateBody</code> or <code>ExecutionRoleTemplateUrl</code>, but not both. If you don't specify either, CloudFormation uses the default service-managed execution role in target accounts.</p>"
+        },
+        "ExecutionRoleTemplateUrl":{
+          "shape":"TemplateURL",
+          "documentation":"<p>The URL of an Amazon S3 object that contains the template that creates a custom execution role in target accounts. This parameter applies only when the permissions model is <code>SERVICE_MANAGED</code>.</p> <p>Conditional: Specify either <code>ExecutionRoleTemplateBody</code> or <code>ExecutionRoleTemplateUrl</code>, but not both. If you don't specify either, CloudFormation uses the default service-managed execution role in target accounts.</p>"
+        },
+        "StackSetOutputBucket":{
+          "shape":"StackSetOutputBucket",
+          "documentation":"<p>The name of the Amazon S3 bucket that stores the execution role stack template body. CloudFormation uses this bucket only when you specify a custom execution role template.</p>"
         }
       }
     },
@@ -3954,6 +4005,10 @@
     "Exports":{
       "type":"list",
       "member":{"shape":"Export"}
+    },
+    "FailedAccountsCount":{
+      "type":"integer",
+      "min":0
     },
     "FailedEventsFilter":{"type":"boolean"},
     "FailedStackInstancesCount":{
@@ -5886,6 +5941,14 @@
       "type":"list",
       "member":{"shape":"Parameter"}
     },
+    "PendingAccountsCount":{
+      "type":"integer",
+      "min":0
+    },
+    "PendingStackInstancesCount":{
+      "type":"integer",
+      "min":0
+    },
     "PercentageCompleted":{"type":"double"},
     "PermissionModels":{
       "type":"string",
@@ -6097,6 +6160,77 @@
       "type":"list",
       "member":{"shape":"Region"}
     },
+    "RegionalStackInstancesDeployment":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"StageStatus",
+          "documentation":"<p>The status of the stack instances deployment stage can be one of the following values:</p> <ul> <li> <p> <code>NOT_APPLICABLE</code>: The operation does not deploy stack instances, such as a drift detection operation.</p> </li> <li> <p> <code>NOT_STARTED</code>: Stack instances deployment has not started. The operation is still provisioning roles, has not begun, or failed before this stage was reached.</p> </li> <li> <p> <code>IN_PROGRESS</code>: At least one stack instance has started deploying.</p> </li> <li> <p> <code>SUCCEEDED</code>: Deployment finished and succeeded for all stack instances that were not skipped.</p> </li> <li> <p> <code>PARTIAL_SUCCESS</code>: Deployment finished with a mix of succeeded, failed, and canceled stack instances.</p> </li> <li> <p> <code>FAILED</code>: Deployment finished and every stack instance that was not skipped failed or was canceled.</p> </li> </ul>"
+        },
+        "SucceededStackInstancesCount":{
+          "shape":"SucceededStackInstancesCount",
+          "documentation":"<p>The number of stack instances that deployed successfully in this Region.</p>"
+        },
+        "FailedStackInstancesCount":{
+          "shape":"StackInstancesDeploymentFailedStackInstancesCount",
+          "documentation":"<p>The number of stack instances that failed to deploy in this Region.</p>"
+        },
+        "CompletedStackInstancesCount":{
+          "shape":"CompletedStackInstancesCount",
+          "documentation":"<p>The number of stack instances in this Region that have reached a final state. This count includes stack instances that succeeded, failed, were skipped, or were canceled.</p>"
+        },
+        "PendingStackInstancesCount":{
+          "shape":"PendingStackInstancesCount",
+          "documentation":"<p>The number of stack instances in this Region that have not reached a final state. This is the total number of stack instances in this Region minus the completed count.</p>"
+        },
+        "CancelledStackInstancesCount":{
+          "shape":"CancelledStackInstancesCount",
+          "documentation":"<p>The number of stack instances in this Region that were canceled because the operation exceeded its failure tolerance or was stopped.</p>"
+        },
+        "SkippedStackInstancesCount":{
+          "shape":"SkippedStackInstancesCount",
+          "documentation":"<p>The number of stack instances in this Region that were skipped because role provisioning failed for their target account.</p>"
+        },
+        "TotalStackInstancesCount":{
+          "shape":"RegionalTotalStackInstancesCount",
+          "documentation":"<p>The total number of stack instances targeted by this operation in this Region.</p>"
+        },
+        "PercentageCompleted":{
+          "shape":"StagePercentageCompleted",
+          "documentation":"<p>The percentage of stack instances in this Region that have reached a final state.</p>"
+        }
+      },
+      "documentation":"<p>Provides visibility into the stack instances deployment stage for a single Region, including per-stack-instance progress counts and a completion percentage for that Region.</p>"
+    },
+    "RegionalStages":{
+      "type":"structure",
+      "members":{
+        "RegionalStackInstancesDeployment":{
+          "shape":"RegionalStackInstancesDeployment",
+          "documentation":"<p>The progress detail for the stack instances deployment stage in this Region.</p>"
+        }
+      },
+      "documentation":"<p>Contains the progress information for the individual stages of a StackSet operation in a single Region. Currently reports the stack instances deployment stage for the Region.</p>"
+    },
+    "RegionalStatusDetail":{
+      "type":"structure",
+      "members":{
+        "Stages":{
+          "shape":"RegionalStages",
+          "documentation":"<p>The progress information for the individual stages of the operation in this Region.</p>"
+        }
+      },
+      "documentation":"<p>Contains the progress detail for a single Region of a StackSet operation. This information is returned only by <a>DescribeStackSetOperation</a>.</p>"
+    },
+    "RegionalStatusDetails":{
+      "type":"map",
+      "key":{"shape":"Region"},
+      "value":{"shape":"RegionalStatusDetail"}
+    },
+    "RegionalTotalStackInstancesCount":{
+      "type":"integer",
+      "min":0
+    },
     "RegisterPublisherInput":{
       "type":"structure",
       "members":{
@@ -6200,6 +6334,17 @@
       "type":"string",
       "max":16384,
       "min":1
+    },
+    "RemoveAliasInput":{
+      "type":"structure",
+      "required":["AliasName"],
+      "members":{
+        "AliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>The alias name to remove.</p>"
+        }
+      },
+      "documentation":"<p>The input for the <a>RemoveAlias</a> action.</p>"
     },
     "Replacement":{
       "type":"string",
@@ -6800,6 +6945,36 @@
       "min":1,
       "pattern":"arn:.+:iam::[0-9]{12}:role/.+"
     },
+    "RoleProvisioning":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"StageStatus",
+          "documentation":"<p>The status of the role provisioning stage can be one of the following values:</p> <ul> <li> <p> <code>NOT_APPLICABLE</code>: The operation does not provision roles. This includes self-managed operations and service-managed operations whose configuration does not require role provisioning.</p> </li> <li> <p> <code>NOT_STARTED</code>: Role provisioning has not started. The operation has not begun resolving target accounts, or it failed or stopped before the total number of target accounts was resolved.</p> </li> <li> <p> <code>IN_PROGRESS</code>: Role provisioning is actively processing target accounts.</p> </li> <li> <p> <code>SUCCEEDED</code>: Role provisioning finished and succeeded for all target accounts.</p> </li> <li> <p> <code>PARTIAL_SUCCESS</code>: Role provisioning finished, but succeeded for only a subset of target accounts; one or more accounts failed.</p> </li> <li> <p> <code>FAILED</code>: Role provisioning finished and failed for all target accounts.</p> </li> </ul>"
+        },
+        "SucceededAccountsCount":{
+          "shape":"SucceededAccountsCount",
+          "documentation":"<p>The number of accounts for which role provisioning succeeded.</p>"
+        },
+        "FailedAccountsCount":{
+          "shape":"FailedAccountsCount",
+          "documentation":"<p>The number of accounts for which role provisioning failed.</p>"
+        },
+        "CompletedAccountsCount":{
+          "shape":"CompletedAccountsCount",
+          "documentation":"<p>The number of accounts that have finished role provisioning, including both succeeded and failed accounts.</p>"
+        },
+        "PendingAccountsCount":{
+          "shape":"PendingAccountsCount",
+          "documentation":"<p>The number of accounts that are still awaiting role provisioning.</p>"
+        },
+        "PercentageCompleted":{
+          "shape":"StagePercentageCompleted",
+          "documentation":"<p>The percentage of accounts that have completed role provisioning.</p>"
+        }
+      },
+      "documentation":"<p>Provides visibility into the role provisioning stage of a StackSet operation, including per-account progress counts and a completion percentage. For operations that do not provision IAM roles in target accounts, the <code>Status</code> is <code>NOT_APPLICABLE</code> and the progress counts are omitted.</p>"
+    },
     "RollbackConfiguration":{
       "type":"structure",
       "members":{
@@ -6958,6 +7133,24 @@
       "type":"list",
       "member":{"shape":"ResourceAttribute"}
     },
+    "SetAliasInput":{
+      "type":"structure",
+      "required":[
+        "StackName",
+        "AliasName"
+      ],
+      "members":{
+        "StackName":{
+          "shape":"StackName",
+          "documentation":"<p>The name or unique stack ID of the stack to assign an alias to.</p>"
+        },
+        "AliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>The alias to assign to the stack. The alias can then be used in place of the stack name in any API call that accepts <code>StackName</code>.</p> <p>The name must be unique within the same account and Region. It cannot match an existing stack name or another active alias.</p> <note> <p>An alias name can contain only alphanumeric characters (case-sensitive) and hyphens. It must start with an alphabetic character and can't be longer than 128 characters.</p> </note>"
+        }
+      },
+      "documentation":"<p>The input for the <a>SetAlias</a> action.</p>"
+    },
     "SetStackPolicyInput":{
       "type":"structure",
       "required":["StackName"],
@@ -7064,6 +7257,10 @@
         }
       },
       "documentation":"<p>The input for the <a>SignalResource</a> action.</p>"
+    },
+    "SkippedStackInstancesCount":{
+      "type":"integer",
+      "min":0
     },
     "Stack":{
       "type":"structure",
@@ -7180,6 +7377,10 @@
         "LastOperations":{
           "shape":"LastOperations",
           "documentation":"<p>Information about the most recent operations performed on this stack.</p>"
+        },
+        "AliasName":{
+          "shape":"AliasName",
+          "documentation":"<p>The alias assigned to the stack, if one has been set. An alias is an alternative name that can be used in place of the stack name in any CloudFormation API call that accepts the <code>StackName</code> parameter.</p>"
         }
       },
       "documentation":"<p>The <code>Stack</code> data type.</p>"
@@ -7597,6 +7798,48 @@
         }
       },
       "documentation":"<p>The structure that contains summary information about a stack instance.</p>"
+    },
+    "StackInstancesDeployment":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"StageStatus",
+          "documentation":"<p>The status of the stack instances deployment stage can be one of the following values:</p> <ul> <li> <p> <code>NOT_APPLICABLE</code>: The operation does not deploy stack instances, such as a drift detection operation.</p> </li> <li> <p> <code>NOT_STARTED</code>: Stack instances deployment has not started. The operation is still provisioning roles, has not begun, or failed before this stage was reached.</p> </li> <li> <p> <code>IN_PROGRESS</code>: At least one stack instance has started deploying.</p> </li> <li> <p> <code>SUCCEEDED</code>: Deployment finished and succeeded for all stack instances that were not skipped.</p> </li> <li> <p> <code>PARTIAL_SUCCESS</code>: Deployment finished with a mix of succeeded, failed, and canceled stack instances.</p> </li> <li> <p> <code>FAILED</code>: Deployment finished and every stack instance that was not skipped failed or was canceled.</p> </li> </ul>"
+        },
+        "SucceededStackInstancesCount":{
+          "shape":"SucceededStackInstancesCount",
+          "documentation":"<p>The number of stack instances that deployed successfully.</p>"
+        },
+        "FailedStackInstancesCount":{
+          "shape":"StackInstancesDeploymentFailedStackInstancesCount",
+          "documentation":"<p>The number of stack instances that failed to deploy.</p>"
+        },
+        "CompletedStackInstancesCount":{
+          "shape":"CompletedStackInstancesCount",
+          "documentation":"<p>The number of stack instances that have reached a final state. This count includes stack instances that succeeded, failed, were skipped, or were canceled.</p>"
+        },
+        "PendingStackInstancesCount":{
+          "shape":"PendingStackInstancesCount",
+          "documentation":"<p>The number of stack instances that have not reached a final state. This is the total number of stack instances minus the completed count.</p>"
+        },
+        "CancelledStackInstancesCount":{
+          "shape":"CancelledStackInstancesCount",
+          "documentation":"<p>The number of stack instances that were canceled because the operation exceeded its failure tolerance or was stopped.</p>"
+        },
+        "SkippedStackInstancesCount":{
+          "shape":"SkippedStackInstancesCount",
+          "documentation":"<p>The number of stack instances that were skipped because role provisioning failed for their target account.</p>"
+        },
+        "PercentageCompleted":{
+          "shape":"StagePercentageCompleted",
+          "documentation":"<p>The percentage of stack instances that have reached a final state.</p>"
+        }
+      },
+      "documentation":"<p>Provides visibility into the stack instances deployment stage of a StackSet operation, including per-stack-instance progress counts and a completion percentage. For service-managed operations that provision roles, this stage begins after role provisioning finishes.</p>"
+    },
+    "StackInstancesDeploymentFailedStackInstancesCount":{
+      "type":"integer",
+      "min":0
     },
     "StackName":{"type":"string"},
     "StackNameOrId":{
@@ -8142,6 +8385,10 @@
         "Regions":{
           "shape":"RegionList",
           "documentation":"<p>Returns a list of all Amazon Web Services Regions the given StackSet has stack instances deployed in. The Amazon Web Services Regions list output is in no particular order.</p>"
+        },
+        "StackSetOutputBucketPath":{
+          "shape":"StackSetOutputBucketPath",
+          "documentation":"<p>The Amazon S3 bucket path where CloudFormation stores the execution role stack template body. CloudFormation uses this bucket only when you specify a custom execution role template.</p>"
         }
       },
       "documentation":"<p>A structure that contains information about a StackSet. With StackSets, you can provision stacks across Amazon Web Services accounts and Regions from a single CloudFormation template. Each stack is based on the same CloudFormation template, but you can customize individual stacks using parameters.</p>"
@@ -8311,6 +8558,10 @@
         "StatusDetails":{
           "shape":"StackSetOperationStatusDetails",
           "documentation":"<p>Detailed information about the StackSet operation.</p>"
+        },
+        "RegionalStatusDetails":{
+          "shape":"RegionalStatusDetails",
+          "documentation":"<p>The progress detail for each Region of the operation, keyed by Region. Each entry reports the stack instances deployment progress for that Region. This field is returned only by <a>DescribeStackSetOperation</a>. It is not included in the <a>ListStackSetOperations</a> summary.</p>"
         }
       },
       "documentation":"<p>The structure that contains information about a StackSet operation.</p>"
@@ -8416,6 +8667,18 @@
     "StackSetOperationStatusDetails":{
       "type":"structure",
       "members":{
+        "Stages":{
+          "shape":"Stages",
+          "documentation":"<p>The detailed progress information for the individual stages of the StackSet operation: the role provisioning stage and the stack instances deployment stage.</p>"
+        },
+        "TotalAccountsCount":{
+          "shape":"TotalAccountsCount",
+          "documentation":"<p>The total number of accounts targeted by this StackSet operation. Self-managed operations and service-managed operations that do not provision roles also report this value when it is known. CloudFormation populates this value after it resolves the target accounts. Until then, this field is not present.</p>"
+        },
+        "TotalStackInstancesCount":{
+          "shape":"StackSetOperationTotalStackInstancesCount",
+          "documentation":"<p>The total number of stack instances targeted by this StackSet operation. CloudFormation populates this value after it resolves the target stack instances. Until then, this field is not present.</p>"
+        },
         "FailedStackInstancesCount":{
           "shape":"FailedStackInstancesCount",
           "documentation":"<p>The number of stack instances for which the StackSet operation failed.</p>"
@@ -8466,6 +8729,12 @@
       },
       "documentation":"<p>The structures that contain summary information about the specified operation.</p>"
     },
+    "StackSetOperationTotalStackInstancesCount":{
+      "type":"integer",
+      "min":0
+    },
+    "StackSetOutputBucket":{"type":"string"},
+    "StackSetOutputBucketPath":{"type":"string"},
     "StackSetStatus":{
       "type":"string",
       "enum":[
@@ -8623,6 +8892,37 @@
       "type":"list",
       "member":{"shape":"TemplateStage"}
     },
+    "StagePercentageCompleted":{
+      "type":"double",
+      "max":100,
+      "min":0
+    },
+    "StageStatus":{
+      "type":"string",
+      "enum":[
+        "PENDING",
+        "NOT_APPLICABLE",
+        "NOT_STARTED",
+        "IN_PROGRESS",
+        "SUCCEEDED",
+        "PARTIAL_SUCCESS",
+        "FAILED"
+      ]
+    },
+    "Stages":{
+      "type":"structure",
+      "members":{
+        "RoleProvisioning":{
+          "shape":"RoleProvisioning",
+          "documentation":"<p>The progress detail for the role provisioning stage. For operations that do not provision roles, this stage is present with a <code>Status</code> of <code>NOT_APPLICABLE</code>.</p>"
+        },
+        "StackInstancesDeployment":{
+          "shape":"StackInstancesDeployment",
+          "documentation":"<p>The progress detail for the stack instances deployment stage. This stage reports the deployment of stack instances to the target accounts and Amazon Web Services Regions, after any role provisioning has finished.</p>"
+        }
+      },
+      "documentation":"<p>Contains detailed progress information for the individual stages of a StackSet operation: the role provisioning stage and the stack instances deployment stage.</p>"
+    },
     "StaleRequestException":{
       "type":"structure",
       "members":{},
@@ -8684,6 +8984,14 @@
     "StopStackSetOperationOutput":{
       "type":"structure",
       "members":{}
+    },
+    "SucceededAccountsCount":{
+      "type":"integer",
+      "min":0
+    },
+    "SucceededStackInstancesCount":{
+      "type":"integer",
+      "min":0
     },
     "SupportedMajorVersion":{
       "type":"integer",
@@ -8928,6 +9236,10 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "TotalAccountsCount":{
+      "type":"integer",
+      "min":0
     },
     "TotalStackInstancesCount":{
       "type":"integer",
@@ -9443,7 +9755,7 @@
         },
         "Capabilities":{
           "shape":"Capabilities",
-          "documentation":"<p>In some cases, you must explicitly acknowledge that your stack template contains certain capabilities in order for CloudFormation to update the StackSet and its associated stack instances.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your Amazon Web Services account, for example, by creating new IAM users. For those stacks sets, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability.</p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>.</p> </li> <li> <p>If you don't specify either of these capabilities, CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-accesskey.html\">AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-group.html\">AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-instanceprofile.html\">AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-policy.html\">AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-role.html\">AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-user.html\">AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-usertogroupaddition.html\">AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/control-access-with-iam.html#using-iam-capabilities\">Acknowledging IAM resources in CloudFormation templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some templates reference macros. If your StackSet template references one or more macros, you must update the StackSet directly from the processed template, without first reviewing the resulting changes in a change set. To update the StackSet directly, you must acknowledge this capability. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Perform custom processing on CloudFormation templates with template macros</a>.</p> <important> <p>StackSets with service-managed permissions do not currently support the use of macros in templates. (This includes the <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-include.html\">AWS::Include</a> and <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by CloudFormation.) Even if you specify this capability for a StackSet with service-managed permissions, if you reference a macro in your template the StackSet operation will fail.</p> </important> </li> </ul>"
+          "documentation":"<p>In some cases, you must explicitly acknowledge that your stack template contains certain capabilities in order for CloudFormation to update the StackSet and its associated stack instances.</p> <ul> <li> <p> <code>CAPABILITY_IAM</code> and <code>CAPABILITY_NAMED_IAM</code> </p> <p>Some stack templates might include resources that can affect permissions in your Amazon Web Services account, for example, by creating new IAM users. For those stacks sets, you must explicitly acknowledge this by specifying one of these capabilities.</p> <p>The following IAM resources require you to specify either the <code>CAPABILITY_IAM</code> or <code>CAPABILITY_NAMED_IAM</code> capability.</p> <ul> <li> <p>If you have IAM resources, you can specify either capability.</p> </li> <li> <p>If you have IAM resources with custom names, you <i>must</i> specify <code>CAPABILITY_NAMED_IAM</code>.</p> </li> <li> <p>If you don't specify either of these capabilities, CloudFormation returns an <code>InsufficientCapabilities</code> error.</p> </li> </ul> <p>If your stack template contains these resources, we recommend that you review all permissions associated with them and edit their permissions if necessary.</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-accesskey.html\">AWS::IAM::AccessKey</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-group.html\">AWS::IAM::Group</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-instanceprofile.html\">AWS::IAM::InstanceProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-policy.html\">AWS::IAM::Policy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-role.html\">AWS::IAM::Role</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-user.html\">AWS::IAM::User</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-usertogroupaddition.html\">AWS::IAM::UserToGroupAddition</a> </p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/control-access-with-iam.html#using-iam-capabilities\">Acknowledging IAM resources in CloudFormation templates</a>.</p> </li> <li> <p> <code>CAPABILITY_AUTO_EXPAND</code> </p> <p>Some templates reference macros. If your StackSet template references one or more macros, you must update the StackSet directly from the processed template, without first reviewing the resulting changes in a change set. To update the StackSet directly, you must acknowledge this capability. For more information, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-macros.html\">Perform custom processing on CloudFormation templates with template macros</a>.</p> <important> <p>With service-managed permissions, CloudFormation can process macros, nested stacks, and transforms in your StackSet template only when you provide a custom execution role template. (Macros include the <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-include.html\">AWS::Include</a> and <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-serverless.html\">AWS::Serverless</a> transforms, which are macros hosted by CloudFormation.) The default service-managed execution role can't provision them: if you reference a macro in your template, the StackSet operation fails even when you specify this capability.</p> <p>To use macros, nested stacks, or transforms with service-managed permissions, specify a custom execution role template in <code>ExecutionRoleTemplateBody</code> or <code>ExecutionRoleTemplateUrl</code>, and specify both <code>CAPABILITY_NAMED_IAM</code> and <code>CAPABILITY_AUTO_EXPAND</code>.</p> </important> </li> </ul>"
         },
         "Tags":{
           "shape":"Tags",
@@ -9459,7 +9771,7 @@
         },
         "ExecutionRoleName":{
           "shape":"ExecutionRoleName",
-          "documentation":"<p>[Self-managed permissions] The name of the IAM execution role to use to update the stack set. If you do not specify an execution role, CloudFormation uses the <code>AWSCloudFormationStackSetExecutionRole</code> role for the StackSet operation.</p> <p>Specify an IAM role only if you are using customized execution roles to control which stack resources users and groups can include in their StackSets.</p> <p>If you specify a customized execution role, CloudFormation uses that role to update the stack. If you do not specify a customized execution role, CloudFormation performs the update using the role previously associated with the StackSet, so long as you have permissions to perform operations on the StackSet.</p>"
+          "documentation":"<p>The name of the IAM execution role that CloudFormation uses for StackSet operations in your target accounts.</p> <p>[Self-managed permissions] The name of the IAM execution role to use to update the stack set. If you do not specify an execution role, CloudFormation uses the <code>AWSCloudFormationStackSetExecutionRole</code> role for the StackSet operation. Specify an IAM role only if you are using customized execution roles to control which stack resources users and groups can include in their StackSets.</p> <p>If you specify a customized execution role, CloudFormation uses that role to update the stack. If you do not specify a customized execution role, CloudFormation performs the update using the role previously associated with the StackSet, so long as you have permissions to perform operations on the StackSet.</p> <p>[Service-managed permissions] Set this name when you use custom execution roles. The role that your custom execution role template provisions in your target accounts must have this same name, and the name must begin with <code>stacksets-exec-custom-</code>. You don't need to specify this parameter if an execution role name is already configured for the StackSet and you aren't changing it.</p>"
         },
         "DeploymentTargets":{
           "shape":"DeploymentTargets",
@@ -9493,6 +9805,22 @@
         "ManagedExecution":{
           "shape":"ManagedExecution",
           "documentation":"<p>Describes whether CloudFormation performs non-conflicting operations concurrently and queues conflicting operations.</p>"
+        },
+        "ExecutionRoleTemplateBody":{
+          "shape":"TemplateBody",
+          "documentation":"<p>The body of the template that creates or updates a custom execution role in target accounts. This parameter applies only when the permissions model is <code>SERVICE_MANAGED</code>.</p> <p>Conditional: Specify either <code>ExecutionRoleTemplateBody</code> or <code>ExecutionRoleTemplateUrl</code>, but not both. If you don't specify either, CloudFormation uses the default service-managed execution role in target accounts.</p>"
+        },
+        "ExecutionRoleTemplateUrl":{
+          "shape":"TemplateURL",
+          "documentation":"<p>The URL of an Amazon S3 object that contains the template that creates or updates a custom execution role in target accounts. This parameter applies only when the permissions model is <code>SERVICE_MANAGED</code>.</p> <p>Conditional: Specify either <code>ExecutionRoleTemplateBody</code> or <code>ExecutionRoleTemplateUrl</code>, but not both. If you don't specify either, CloudFormation uses the default service-managed execution role in target accounts.</p>"
+        },
+        "UseAdminExecutionRole":{
+          "shape":"UseAdminExecutionRoleNullable",
+          "documentation":"<p>Specifies whether CloudFormation uses the default service-managed execution role instead of a custom execution role in target accounts. If you set this to <code>true</code>, CloudFormation ignores any custom execution role template specified in <code>ExecutionRoleTemplateBody</code> or <code>ExecutionRoleTemplateUrl</code>.</p>"
+        },
+        "StackSetOutputBucket":{
+          "shape":"StackSetOutputBucket",
+          "documentation":"<p>The name of the Amazon S3 bucket that stores the execution role stack template body. CloudFormation uses this bucket only when you specify a custom execution role template.</p>"
         }
       }
     },
@@ -9532,6 +9860,7 @@
       }
     },
     "Url":{"type":"string"},
+    "UseAdminExecutionRoleNullable":{"type":"boolean"},
     "UsePreviousTemplate":{"type":"boolean"},
     "UsePreviousValue":{"type":"boolean"},
     "ValidateTemplateInput":{

@@ -1213,6 +1213,54 @@
       },
       "readonly": true
     },
+    "GetChat": {
+      "name": "GetChat",
+      "http": {
+        "method": "GET",
+        "requestUri": "/agents/agent-space/{agentSpaceId}/chat/get/{executionId}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "GetChatRequest"
+      },
+      "output": {
+        "shape": "GetChatResponse"
+      },
+      "errors": [
+        {
+          "shape": "ValidationException"
+        },
+        {
+          "shape": "ContentSizeExceededException"
+        },
+        {
+          "shape": "ServiceQuotaExceededException"
+        },
+        {
+          "shape": "ConflictException"
+        },
+        {
+          "shape": "InternalServerException"
+        },
+        {
+          "shape": "AccessDeniedException"
+        },
+        {
+          "shape": "ResourceNotFoundException"
+        },
+        {
+          "shape": "ThrottlingException"
+        },
+        {
+          "shape": "InvalidParameterException"
+        }
+      ],
+      "documentation": "<p>Retrieves the details of a chat execution, including its execution ID, summary, timestamps, and archive status.</p>",
+      "endpoint": {
+        "hostPrefix": "dp."
+      },
+      "readonly": true
+    },
     "GetOperatorApp": {
       "name": "GetOperatorApp",
       "http": {
@@ -2734,6 +2782,54 @@
         "hostPrefix": "dp."
       }
     },
+    "UpdateChat": {
+      "name": "UpdateChat",
+      "http": {
+        "method": "PATCH",
+        "requestUri": "/agents/agent-space/{agentSpaceId}/chat/{executionId}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "UpdateChatRequest"
+      },
+      "output": {
+        "shape": "UpdateChatResponse"
+      },
+      "errors": [
+        {
+          "shape": "ValidationException"
+        },
+        {
+          "shape": "ContentSizeExceededException"
+        },
+        {
+          "shape": "ServiceQuotaExceededException"
+        },
+        {
+          "shape": "ConflictException"
+        },
+        {
+          "shape": "InternalServerException"
+        },
+        {
+          "shape": "AccessDeniedException"
+        },
+        {
+          "shape": "ResourceNotFoundException"
+        },
+        {
+          "shape": "ThrottlingException"
+        },
+        {
+          "shape": "InvalidParameterException"
+        }
+      ],
+      "documentation": "<p>Updates a chat execution. You can use this operation to change the chat execution's summary or to archive or unarchive it.</p><p>Archiving a chat execution hides it from the default chat list. Unarchiving a chat execution restores it to the default chat list.</p>",
+      "endpoint": {
+        "hostPrefix": "dp."
+      },
+      "idempotent": true
+    },
     "UpdateGoal": {
       "name": "UpdateGoal",
       "http": {
@@ -3048,6 +3144,10 @@
         "agentElevatedRoleArnStatus": {
           "shape": "ValidationStatus",
           "documentation": "<p>Validation status of the agentElevatedRoleArn. Updated asynchronously after the customer registers an elevated role. Possible values: PENDING_CONFIRMATION (validation in progress), VALID (role validated), INVALID (validation failed).</p>"
+        },
+        "serviceManagementRoleArn": {
+          "shape": "RoleArn",
+          "documentation": "<p>The Amazon Resource Name (ARN) of the Organizations service-managed role that AIDevOps uses to deploy and manage resources across the accounts in your Amazon Web Services Organization.</p>"
         }
       },
       "documentation": "<p>Configuration for AWS monitor account integration, allowing AIDevOps to monitor AWS resources.</p>"
@@ -3073,6 +3173,14 @@
         "senderFault": true
       },
       "exception": true
+    },
+    "AccountIdList": {
+      "type": "list",
+      "member": {
+        "shape": "AwsAccountId"
+      },
+      "max": 1000,
+      "min": 1
     },
     "AdditionalServiceDetails": {
       "type": "structure",
@@ -3192,6 +3300,10 @@
         "preferences": {
           "shape": "AgentSpacePreferences",
           "documentation": "<p>The preferences configured on the agent space. Preferences that are not set take their default values.</p>"
+        },
+        "awsSourceMode": {
+          "shape": "AwsSourceMode",
+          "documentation": "<p>The Amazon Web Services source mode for the AgentSpace, indicating whether its Amazon Web Services source configuration targets an individual Amazon Web Services account or an Amazon Web Services Organization.</p>"
         }
       },
       "documentation": "<p>Represents a complete AgentSpace with all its properties, timestamps, encryption settings, and unique identifier.</p>"
@@ -3792,6 +3904,17 @@
         "idp"
       ]
     },
+    "AwsAccountId": {
+      "type": "string",
+      "pattern": "\\d{12}"
+    },
+    "AwsSourceMode": {
+      "type": "string",
+      "enum": [
+        "standalone",
+        "organization"
+      ]
+    },
     "AzureConfiguration": {
       "type": "structure",
       "required": [
@@ -3874,7 +3997,9 @@
       "documentation": "<p>AWS DevOps Agent capability types representing the set of automated capabilities that can be enabled per association.</p>",
       "enum": [
         "RELEASE_READINESS_REVIEW",
-        "RELEASE_READINESS_REVIEW_AUTOMATED_TESTING"
+        "RELEASE_READINESS_REVIEW_AUTOMATED_TESTING",
+        "CODE_CHANGE_RISK_ANALYSIS",
+        "CODE_CHANGE_RISK_ANALYSIS_AUTOMATED_TESTING"
       ]
     },
     "CertificateString": {
@@ -3882,6 +4007,13 @@
       "documentation": "<p>String type for certificate or certificate chain.</p>",
       "max": 32768,
       "min": 1
+    },
+    "ChatArchiveStatus": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "ARCHIVED"
+      ]
     },
     "ChatExecution": {
       "type": "structure",
@@ -3905,6 +4037,10 @@
         "summary": {
           "shape": "String",
           "documentation": "<p>Summary or title of the chat</p>"
+        },
+        "archiveStatus": {
+          "shape": "ChatArchiveStatus",
+          "documentation": "<p>Indicates whether the chat execution is archived or active.</p>"
         }
       },
       "documentation": "<p>A single chat execution summary</p>"
@@ -3947,6 +4083,10 @@
         "message": {
           "shape": "String",
           "documentation": "<p>Detailed error message describing the conflict.</p>"
+        },
+        "reason": {
+          "shape": "ConflictExceptionReason",
+          "documentation": "<p>A machine-readable reason code that explains why the request conflicted with the current state of the resource. For example, <code>CHAT_ARCHIVED</code> indicates that the request acted on a chat that is archived. This field is absent when no specific reason applies.</p>"
         }
       },
       "documentation": "<p>The request conflicts with the current state of the resource.</p>",
@@ -3955,6 +4095,12 @@
         "senderFault": true
       },
       "exception": true
+    },
+    "ConflictExceptionReason": {
+      "type": "string",
+      "enum": [
+        "CHAT_ARCHIVED"
+      ]
     },
     "ContentSizeExceededException": {
       "type": "structure",
@@ -4007,6 +4153,10 @@
         "preferences": {
           "shape": "AgentSpacePreferences",
           "documentation": "<p>The preferences to configure on the agent space. Preferences not provided take their default values.</p>"
+        },
+        "awsSourceMode": {
+          "shape": "AwsSourceMode",
+          "documentation": "<p>Specifies whether the AgentSpace's Amazon Web Services source configuration targets an individual Amazon Web Services account or an Amazon Web Services Organization.</p>"
         }
       },
       "documentation": "<p>Input for creating a new AgentSpace.</p>"
@@ -5419,6 +5569,58 @@
       },
       "documentation": "<p>Response structure containing the requested backlog task</p>"
     },
+    "GetChatRequest": {
+      "type": "structure",
+      "required": [
+        "agentSpaceId",
+        "executionId"
+      ],
+      "members": {
+        "agentSpaceId": {
+          "shape": "AgentSpaceIdentifier",
+          "documentation": "<p>The unique identifier of the agent space that contains the chat execution.</p>",
+          "location": "uri",
+          "locationName": "agentSpaceId"
+        },
+        "executionId": {
+          "shape": "ResourceId",
+          "documentation": "<p>The unique identifier of the chat execution to retrieve.</p>",
+          "location": "uri",
+          "locationName": "executionId"
+        }
+      }
+    },
+    "GetChatResponse": {
+      "type": "structure",
+      "required": [
+        "executionId",
+        "createdAt",
+        "updatedAt",
+        "archiveStatus"
+      ],
+      "members": {
+        "executionId": {
+          "shape": "ResourceId",
+          "documentation": "<p>The unique identifier of the chat execution.</p>"
+        },
+        "summary": {
+          "shape": "String",
+          "documentation": "<p>The summary of the chat execution.</p>"
+        },
+        "createdAt": {
+          "shape": "Timestamp",
+          "documentation": "<p>The date and time at which the chat execution was created.</p>"
+        },
+        "updatedAt": {
+          "shape": "Timestamp",
+          "documentation": "<p>The date and time at which the chat execution was last updated.</p>"
+        },
+        "archiveStatus": {
+          "shape": "ChatArchiveStatus",
+          "documentation": "<p>Indicates whether the chat execution is archived or active.</p>"
+        }
+      }
+    },
     "GetOperatorAppInput": {
       "type": "structure",
       "required": [
@@ -6557,6 +6759,12 @@
           "documentation": "<p>Token for pagination</p>",
           "location": "querystring",
           "locationName": "nextToken"
+        },
+        "archiveStatus": {
+          "shape": "ChatArchiveStatus",
+          "documentation": "<p>The archive status to filter by. Use this parameter to list only archived chat executions or only active ones.</p>",
+          "location": "querystring",
+          "locationName": "archiveStatus"
         }
       },
       "documentation": "<p>Request structure for listing chats</p>"
@@ -7617,6 +7825,23 @@
       "type": "string",
       "pattern": "[a-zA-Z0-9_-]+"
     },
+    "MSTeamsBidirectionalConfiguration": {
+      "type": "structure",
+      "required": [
+        "roleArn"
+      ],
+      "members": {
+        "roleArn": {
+          "shape": "RoleArn",
+          "documentation": "<p>The Amazon Resource Name (ARN) of the IAM role that the agent assumes to exchange messages with the Microsoft Teams team for this association.</p>"
+        },
+        "enabled": {
+          "shape": "Boolean",
+          "documentation": "<p>Specifies whether bidirectional communication is enabled for this association. If you set this value to <code>true</code>, you can mention the agent in the configured Microsoft Teams channel and it responds in that channel. If you omit this parameter or set it to <code>false</code>, the agent only sends one-way notifications.</p>"
+        }
+      },
+      "documentation": "<p>Configuration for bidirectional communication with a Microsoft Teams channel. When enabled, the agent receives and responds to mentions in the configured channel in addition to sending notifications.</p>"
+    },
     "MSTeamsChannel": {
       "type": "structure",
       "required": [
@@ -7659,6 +7884,10 @@
         "transmissionTarget": {
           "shape": "MSTeamsTransmissionTarget",
           "documentation": "<p>The Microsoft Teams channels that receive agent notifications.</p>"
+        },
+        "bidirectional": {
+          "shape": "MSTeamsBidirectionalConfiguration",
+          "documentation": "<p>The bidirectional communication configuration for the Microsoft Teams integration. Provide this configuration with <code>enabled</code> set to <code>true</code> to allow users to interact with the agent directly from Microsoft Teams.</p>"
         }
       },
       "documentation": "<p>Configuration for connecting a Microsoft Teams team to the DevOps Agent service. Use this configuration to specify which team to connect and how to route agent notifications to channels within that team.</p>"
@@ -7894,6 +8123,91 @@
         "ASC",
         "DESC"
       ]
+    },
+    "OrgSourceAccountReasonCode": {
+      "type": "string",
+      "enum": [
+        "accountSuspended",
+        "accountNotInScope",
+        "managementAccountNotSupported",
+        "stackInstanceInoperable",
+        "accessDenied",
+        "deploymentFailed",
+        "secondaryAccountLimitExceeded"
+      ]
+    },
+    "OrgSourceDeploymentState": {
+      "type": "structure",
+      "members": {
+        "deployedAccountCount": {
+          "shape": "OrgSourceDeploymentStateDeployedAccountCountInteger",
+          "documentation": "<p>The number of accounts in the targeted Amazon Web Services Organization or organizational unit that have successfully been deployed to.</p>"
+        },
+        "issues": {
+          "shape": "OrgSourceIssueList",
+          "documentation": "<p>The issues encountered while deploying the source configuration across the accounts in the Amazon Web Services Organization.</p>"
+        },
+        "lastEvaluatedAt": {
+          "shape": "SyntheticTimestamp_date_time",
+          "documentation": "<p>The timestamp of the most recent evaluation of the organization-wide deployment state.</p>"
+        }
+      },
+      "documentation": "<p>Describes the current rollout state of an Amazon Web Services Organization source configuration, including the number of accounts that have been deployed to and any issues encountered during deployment.</p>"
+    },
+    "OrgSourceDeploymentStateDeployedAccountCountInteger": {
+      "type": "integer",
+      "box": true,
+      "min": 0
+    },
+    "OrgSourceIssue": {
+      "type": "structure",
+      "required": [
+        "reasonCode",
+        "accountCount",
+        "accountIds"
+      ],
+      "members": {
+        "reasonCode": {
+          "shape": "OrgSourceAccountReasonCode",
+          "documentation": "<p>A code that identifies the reason for the issue.</p>"
+        },
+        "accountCount": {
+          "shape": "OrgSourceIssueAccountCountInteger",
+          "documentation": "<p>The number of accounts affected by this issue.</p>"
+        },
+        "accountIds": {
+          "shape": "AccountIdList",
+          "documentation": "<p>The Amazon Web Services account IDs affected by this issue.</p>"
+        },
+        "message": {
+          "shape": "OrgSourceIssueMessage",
+          "documentation": "<p>A description of the issue.</p>"
+        }
+      },
+      "documentation": "<p>Describes an issue encountered while deploying or evaluating an Amazon Web Services Organization source configuration.</p>"
+    },
+    "OrgSourceIssueAccountCountInteger": {
+      "type": "integer",
+      "box": true,
+      "min": 1
+    },
+    "OrgSourceIssueList": {
+      "type": "list",
+      "member": {
+        "shape": "OrgSourceIssue"
+      },
+      "max": 20,
+      "min": 0
+    },
+    "OrgSourceIssueMessage": {
+      "type": "string",
+      "max": 1024,
+      "min": 1,
+      "sensitive": true
+    },
+    "OrgUnitId": {
+      "type": "string",
+      "pattern": "(r-[0-9a-z]{4,32}|ou-[0-9a-z]{4,32}-[a-z0-9]{8,32})"
     },
     "PagerDutyAuthorizationConfig": {
       "type": "structure",
@@ -9670,6 +9984,10 @@
           "shape": "SourceAwsConfiguration",
           "documentation": "<p>AWS source account configuration for monitoring resources.</p>"
         },
+        "sourceAwsOrg": {
+          "shape": "SourceAwsOrgConfiguration",
+          "documentation": "<p>The Amazon Web Services Organization source configuration used to monitor resources across an entire Amazon Web Services Organization or specified organizational units.</p>"
+        },
         "aws": {
           "shape": "AWSConfiguration",
           "documentation": "<p>AWS monitor account configuration.</p>"
@@ -10131,6 +10449,45 @@
       "type": "string",
       "pattern": "\\d{12}"
     },
+    "SourceAwsOrgConfiguration": {
+      "type": "structure",
+      "required": [
+        "accountType",
+        "organizationalUnit"
+      ],
+      "members": {
+        "accountType": {
+          "shape": "SourceAccountType",
+          "documentation": "<p>The account type for this configuration. For Amazon Web Services Organization-level configurations, this value is <code>source</code>.</p>"
+        },
+        "organizationalUnit": {
+          "shape": "SourceAwsOrgUnit",
+          "documentation": "<p>The organizational units within the Amazon Web Services Organization that are targeted for source monitoring.</p>"
+        },
+        "deploymentState": {
+          "shape": "OrgSourceDeploymentState",
+          "documentation": "<p>The current deployment state of the Amazon Web Services Organization-wide source configuration.</p>"
+        }
+      },
+      "documentation": "<p>Configuration for Amazon Web Services Organization-wide source account integration. Use this configuration to monitor Amazon Web Services resources across multiple accounts within an organization or within targeted organizational units.</p>"
+    },
+    "SourceAwsOrgUnit": {
+      "type": "structure",
+      "required": [
+        "organizationalUnitId"
+      ],
+      "members": {
+        "organizationalUnitId": {
+          "shape": "OrgUnitId",
+          "documentation": "<p>The identifier of the Organizations organizational unit.</p>"
+        },
+        "accountIds": {
+          "shape": "AccountIdList",
+          "documentation": "<p>The Amazon Web Services account IDs that belong to this organizational unit and are targeted for source monitoring.</p>"
+        }
+      },
+      "documentation": "<p>Identifies an Organizations organizational unit and its member accounts that are targeted for source monitoring.</p>"
+    },
     "String": {
       "type": "string"
     },
@@ -10392,7 +10749,8 @@
         "INVESTIGATION",
         "EVALUATION",
         "RELEASE_READINESS_REVIEW",
-        "RELEASE_TESTING"
+        "RELEASE_TESTING",
+        "CODE_CHANGE_RISK_ANALYSIS"
       ]
     },
     "ThrottlingException": {
@@ -10665,6 +11023,10 @@
         "preferences": {
           "shape": "AgentSpacePreferences",
           "documentation": "<p>The preferences to configure on the agent space. When provided, this replaces the full set of configured preferences; preferences not included revert to their default values. When omitted, the current preferences are left unchanged.</p>"
+        },
+        "awsSourceMode": {
+          "shape": "AwsSourceMode",
+          "documentation": "<p>Specifies whether the AgentSpace's Amazon Web Services source configuration targets an individual Amazon Web Services account or an Amazon Web Services Organization. Use this parameter to switch an existing AgentSpace between source modes.</p>"
         }
       },
       "documentation": "<p>Input for updating an existing AgentSpace's properties. All fields except agentSpaceId are optional for partial updates.</p>"
@@ -10961,6 +11323,77 @@
         }
       },
       "documentation": "<p>Response structure containing the updated task</p>"
+    },
+    "UpdateChatRequest": {
+      "type": "structure",
+      "required": [
+        "agentSpaceId",
+        "executionId"
+      ],
+      "members": {
+        "agentSpaceId": {
+          "shape": "AgentSpaceIdentifier",
+          "documentation": "<p>The unique identifier of the agent space that contains the chat execution to update.</p>",
+          "location": "uri",
+          "locationName": "agentSpaceId"
+        },
+        "executionId": {
+          "shape": "ResourceId",
+          "documentation": "<p>The unique identifier of the chat execution to update.</p>",
+          "location": "uri",
+          "locationName": "executionId"
+        },
+        "summary": {
+          "shape": "UpdateChatRequestSummaryString",
+          "documentation": "<p>The new summary to set for the chat execution.</p>"
+        },
+        "archiveStatus": {
+          "shape": "ChatArchiveStatus",
+          "documentation": "<p>The archive status to set for the chat execution. Use this parameter to archive the chat execution, hiding it from the default chat list, or to unarchive it, restoring it to the default chat list.</p>"
+        },
+        "clientToken": {
+          "shape": "UpdateChatRequestClientTokenString",
+          "documentation": "<p>A unique, case-sensitive identifier to ensure that the operation completes no more than one time. If this token matches a previous request, the service ignores the request, but does not return an error.</p>",
+          "idempotencyToken": true
+        }
+      }
+    },
+    "UpdateChatRequestClientTokenString": {
+      "type": "string",
+      "max": 64,
+      "min": 1,
+      "pattern": "[\\x21-\\x7E]+"
+    },
+    "UpdateChatRequestSummaryString": {
+      "type": "string",
+      "max": 256,
+      "min": 1
+    },
+    "UpdateChatResponse": {
+      "type": "structure",
+      "required": [
+        "executionId",
+        "updatedAt",
+        "archiveStatus"
+      ],
+      "members": {
+        "executionId": {
+          "shape": "ResourceId",
+          "documentation": "<p>The unique identifier of the updated chat execution.</p>"
+        },
+        "summary": {
+          "shape": "String",
+          "documentation": "<p>The summary of the chat execution after the update.</p>"
+        },
+        "updatedAt": {
+          "shape": "Timestamp",
+          "documentation": "<p>The date and time at which the chat execution was last updated.</p>"
+        },
+        "archiveStatus": {
+          "shape": "ChatArchiveStatus",
+          "documentation": "<p>The archive status of the chat execution after the update.</p>"
+        }
+      }
     },
     "UpdateGoalRequest": {
       "type": "structure",

@@ -1,0 +1,138 @@
+{
+    "version": "2.59.1",
+    "date": "2026-11-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Adding support for dynamic client registration."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Field description update for auto upgrade summaries"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "New DISABLED status for Security Hub CSPM Central Configuration."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge Scheduler",
+            "contributor": "",
+            "description": "Adds EventBridgePutEventsV2Parameters and EventBridgePutRawEventsParameters to Target so schedules can publish to Amazon EventBridge event bus v2 with PutEvents or PutRawEvents."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "Add documentation clarification around List API behavior, and add image available waiter"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda Core",
+            "contributor": "",
+            "description": "Initial release of the customer-managed runtime APIs. Runtime publishers can now create, version, and manage custom runtimes, and use aliases to roll out new runtime versions to the functions that use them."
+        },
+        {
+            "type": "feature",
+            "category": "AWSDeadlineCloud",
+            "contributor": "",
+            "description": "AWS Deadline Cloud now supports the NVIDIA RTX PRO 4500 GPU accelerator (rtx-pro-4500) for service-managed fleets running Amazon EC2 G7 instances."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "Amazon WorkSpaces Agent Access now supports image builders, so AI agents can install, configure, and test applications before you create an image. New Replay Session delivers a video of screenshots, a transcript, and a report for each agent session, optionally encrypted with your own KMS key."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon VPC Lattice",
+            "contributor": "",
+            "description": "Amazon VPC Lattice now supports modification of resource configuration DNS resolution on Resource Gateways"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "Releasing Firewall Proxy API and deprecating Egress Proxy API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Q Connect",
+            "contributor": "",
+            "description": "Amazon Q in Connect now supports additional message template attributes. You can personalize message templates using case fields, Amazon Connect Customer Profiles calculated attributes, and product recommendations."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonConnectCampaignServiceV2",
+            "contributor": "",
+            "description": "Adds LastModifiedTime to DescribeCampaign and ListCampaigns responses."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "New feature for Sagemaker Hyperpod Slurm clusters to install Extensions and view cluster operations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "AWS CloudFormation introduces stack aliases, which let you refer to an existing stack by a new name without deleting and recreating it. Manage aliases with SetAlias and RemoveAlias, and use an alias in place of the stack name in operations such as UpdateStack."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DevOps Agent Service",
+            "contributor": "",
+            "description": "AWS DevOps Agent adds bidirectional communication for Microsoft Teams associations. Set msteams.bidirectional with an IAM role so the agent answers mentions in your Teams channels."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "contributor": "",
+            "description": "Add support for policy operations on the SECURITYHUB CSPM POLICY policy type."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "contributor": "",
+            "description": "Update the documentation for the --engine-version flag for cluster creation"
+        },
+        {
+            "type": "feature",
+            "category": "IAM Roles Anywhere",
+            "contributor": "",
+            "description": "This release adds resource aliases for IAM Roles Anywhere trust anchors, profiles, and certificate revocation lists (CRLs). Assign an optional, unique alias name to a resource and use its alias ARN wherever an identifier is accepted, including CreateSession."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Adds support for customer-managed runtimes in the CreateFunction and UpdateFunctionConfiguration APIs. Functions can now use a customer-managed runtime and receive its updates automatically, or pin to a specific runtime version using the existing runtime controls."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Adding Google Cloud Platform (GCP) support to SSM Cloud Connector to enable onboarding of GCP Compute Engine instances to AWS Systems Manager. Customers can now optionally create an SSM Cloud Connector without an AWS Config connector."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Minor documentation updates only"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adds support for Networking Flexible Cost Allocation APIs, enabling Network Admin, Architect, and Engineers to break down shared networking costs by the resources that generated the traffic."
+        }
+    ]
+}

@@ -233,6 +233,12 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      * This option only currently applies to {@link
      * software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link
      * software.amazon.awssdk.services.s3.model.UploadPartRequest}.
+     * <p>
+     * When the client sends to a plaintext {@code http://} endpoint, this option also determines whether an
+     * {@link S3AsyncClient} signs the request payload. With chunked encoding enabled (the default), the asynchronous
+     * client sends the payload unsigned over HTTP, and the signature does not cover the body or any checksum trailer.
+     * The synchronous {@link S3Client} signs the payload over HTTP in both cases. Use HTTPS when payload integrity is
+     * required for asynchronous uploads.
      *
      * @return True if chunked encoding should be used.
      */
@@ -423,6 +429,9 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          * payload for {@link
          * software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link
          * software.amazon.awssdk.services.s3.model.UploadPartRequest}.
+         * <p>
+         * Over plaintext HTTP, this option also affects whether an {@link S3AsyncClient} signs the payload; see
+         * {@link S3Configuration#chunkedEncodingEnabled()}.
          *
          * @see S3Configuration#chunkedEncodingEnabled()
          */
