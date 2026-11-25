@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.DateUtils;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -73,12 +74,15 @@ public final class ClockSkew {
 
         if (responseDateHeader.isPresent()) {
             String serverDate = responseDateHeader.get();
-            log.debug(() -> "Reported service date: " + serverDate);
+            log.debug(() -> "Reported service date: " + LogSanitizer.escapeControlCharacters(serverDate));
 
             try {
                 return Optional.of(DateUtils.parseRfc822Date(serverDate));
             } catch (RuntimeException e) {
-                log.warn(() -> "Unable to parse clock skew offset from response: " + serverDate, e);
+                if (log.logger().isWarnEnabled()) {
+                    log.warn(() -> "Unable to parse clock skew offset from response: "
+                                   + LogSanitizer.escapeControlCharacters(serverDate), LogSanitizer.sanitize(e));
+                }
                 return Optional.empty();
             }
         }

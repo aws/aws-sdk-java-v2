@@ -281,15 +281,20 @@ public final class RetryableStageHelper {
      * Log a message to the user at the debug level to indicate how long we will wait before retrying the request.
      */
     public void logBackingOff(Duration backoffDelay) {
-        SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Retryable error detected. Will retry in " +
-                                                     backoffDelay.toMillis() + "ms. Request attempt number " +
-                                                     attemptNumber, lastException);
+        if (SdkStandardLogger.REQUEST_LOGGER.logger().isDebugEnabled()) {
+            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Retryable error detected. Will retry in " +
+                                                         backoffDelay.toMillis() + "ms. Request attempt number " +
+                                                         attemptNumber, LogSanitizer.sanitize(lastException));
+        }
     }
 
     public void logAcquireFailureBackingOff(Duration acquireFailureBackoffDelay) {
-        SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Unable to acquire sufficient retry quota to retry. Will cease retrying in "
-                                                     + acquireFailureBackoffDelay.toMillis() + "ms. Request attempt number " +
-                                                     attemptNumber, lastException);
+        if (SdkStandardLogger.REQUEST_LOGGER.logger().isDebugEnabled()) {
+            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Unable to acquire sufficient retry quota to retry. Will cease retrying "
+                                                         + "in " + acquireFailureBackoffDelay.toMillis()
+                                                         + "ms. Request attempt number " + attemptNumber,
+                                                   LogSanitizer.sanitize(lastException));
+        }
     }
 
     /**

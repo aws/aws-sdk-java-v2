@@ -39,6 +39,7 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -304,6 +305,26 @@ public class RetryableStageHelperTest {
                     .contains("x-amz-meta-a\\r\\nFORGED")
                     .doesNotContain("\r", "\n"));
         }
+    }
+
+    @Test
+    void logBackingOff_whenLastExceptionContainsControlCharacters_logsEscapedThrowable() {
+        RetryableStageHelper helper = makeTestHelper(ExecutionAttributes.builder().build());
+        SdkClientException lastException = SdkClientException.create("boom\r\nFORGED");
+        helper.setLastException(lastException);
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            helper.logBackingOff(Duration.ofMillis(10));
+            helper.logAcquireFailureBackingOff(Duration.ofMillis(10));
+
+            assertThat(logCaptor.loggedEvents())
+                .filteredOn(event -> event.getMessage().getFormattedMessage().contains("ms. Request attempt number"))
+                .hasSize(2)
+                .allSatisfy(event -> assertThat(event.getThrown().toString())
+                    .contains("boom\\r\\nFORGED")
+                    .doesNotContain("\r", "\n"));
+        }
+        assertThat(helper.getLastException()).isSameAs(lastException);
     }
 
     RetryableStageHelper makeTestHelper(ExecutionAttributes executionAttributes) {
