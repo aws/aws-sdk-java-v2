@@ -27,6 +27,8 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
@@ -53,7 +55,50 @@ class V4SigningKeyCacheTest {
 
         cache.put(key("secret"), signingKey, DAY_ONE);
 
-        assertThat(cache.get(key("secret"), DAY_ONE_LATE)).isSameAs(signingKey);
+        assertThat(cache.get(key("secret"), DAY_ONE_LATE)).containsExactly(1, 2, 3).isNotSameAs(signingKey);
+    }
+
+    @Test
+    void put_whenCallerModifiesArrayAfterPut_doesNotChangeCachedKey() {
+        V4SigningKeyCache cache = new V4SigningKeyCache(10);
+        byte[] signingKey = {1, 2, 3};
+        cache.put(key("secret"), signingKey, DAY_ONE);
+
+        signingKey[0] = 9;
+
+        assertThat(cache.get(key("secret"), DAY_ONE)).containsExactly(1, 2, 3);
+    }
+
+    @Test
+    void get_whenCallerModifiesReturnedArray_doesNotChangeCachedKey() {
+        V4SigningKeyCache cache = new V4SigningKeyCache(10);
+        cache.put(key("secret"), new byte[] {1, 2, 3}, DAY_ONE);
+
+        cache.get(key("secret"), DAY_ONE)[0] = 9;
+
+        assertThat(cache.get(key("secret"), DAY_ONE)).containsExactly(1, 2, 3);
+    }
+
+    @ParameterizedTest(name = "put at {0}, get at {1}")
+    @CsvSource({
+        "1969-12-31T23:59:59Z, 1970-01-01T00:00:00Z",
+        "1969-12-30T12:00:00Z, 1969-12-31T00:00:00Z"
+    })
+    void get_acrossUtcDayBoundaryBeforeEpoch_returnsNull(String putInstant, String getInstant) {
+        V4SigningKeyCache cache = new V4SigningKeyCache(10);
+
+        cache.put(key("secret"), new byte[] {1}, Instant.parse(putInstant));
+
+        assertThat(cache.get(key("secret"), Instant.parse(getInstant))).isNull();
+    }
+
+    @Test
+    void get_onSameUtcDayBeforeEpoch_returnsCachedKey() {
+        V4SigningKeyCache cache = new V4SigningKeyCache(10);
+
+        cache.put(key("secret"), new byte[] {1}, Instant.parse("1969-12-31T00:00:00Z"));
+
+        assertThat(cache.get(key("secret"), Instant.parse("1969-12-31T23:59:59Z"))).containsExactly(1);
     }
 
     @Test
@@ -149,14 +194,27 @@ class V4SigningKeyCacheTest {
     }
 
     @Test
-    void deriveSigningKey_calledTwiceOnSameDay_returnsSameDerivedKey() {
+    void deriveSigningKey_calledTwiceOnSameDay_returnsEqualKeyInNewArray() {
         AwsCredentialsIdentity credentials = AwsCredentialsIdentity.create("akid", "V4SigningKeyCacheTest-secret");
         CredentialScope scope = new CredentialScope("us-east-1", "dynamodb", DAY_ONE);
 
         byte[] first = SignerUtils.deriveSigningKey(credentials, scope);
         byte[] second = SignerUtils.deriveSigningKey(credentials, new CredentialScope("us-east-1", "dynamodb", DAY_ONE_LATE));
 
-        assertThat(second).isSameAs(first);
+        assertThat(second).isEqualTo(first).isNotSameAs(first);
+    }
+
+    @Test
+    void deriveSigningKey_whenCallerModifiesKeyFromCacheMiss_doesNotChangeLaterKeys() {
+        AwsCredentialsIdentity credentials =
+            AwsCredentialsIdentity.create("akid", "V4SigningKeyCacheTest-cache-miss-secret");
+        CredentialScope scope = new CredentialScope("us-east-1", "dynamodb", DAY_ONE);
+        byte[] first = SignerUtils.deriveSigningKey(credentials, scope);
+        byte[] expected = first.clone();
+
+        first[0]++;
+
+        assertThat(SignerUtils.deriveSigningKey(credentials, scope)).containsExactly(expected);
     }
 
     private static V4SigningKeyCache.CacheKey key(String secret) {

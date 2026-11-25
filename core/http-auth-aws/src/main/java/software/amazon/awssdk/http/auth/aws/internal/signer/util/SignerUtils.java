@@ -144,9 +144,8 @@ public final class SignerUtils {
     /**
      * Get the signing key based on the given credentials and a credential-scope.
      *
-     * <p>Returns a {@code byte[]} owned by the shared cache. Callers must treat it as immutable; mutating it will
-     * corrupt any cached entry. The cache is keyed on (secretAccessKey, region, service) and entries are valid for
-     * one UTC day.
+     * <p>Returns a new array that the caller owns; the shared cache keeps its own copy. The cache is keyed on
+     * (secretAccessKey, region, service) and entries are valid for one UTC day.
      */
     public static byte[] deriveSigningKey(AwsCredentialsIdentity credentials, CredentialScope credentialScope) {
         V4SigningKeyCache.CacheKey cacheKey = new V4SigningKeyCache.CacheKey(

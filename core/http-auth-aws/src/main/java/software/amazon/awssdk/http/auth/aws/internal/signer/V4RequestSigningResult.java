@@ -32,10 +32,9 @@ public final class V4RequestSigningResult {
     /**
      * Creates a signing result.
      *
-     * <p>{@code signingKey} is usually the {@code byte[]} owned by the shared signing-key cache, as returned by
-     * {@link software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils#deriveSigningKey}. This constructor
-     * stores it without copying, so callers must not mutate it afterward; doing so corrupts the cached entry.
-     * {@link #getSigningKey()} returns a copy.
+     * <p>Stores {@code signingKey} without copying it, so callers must not modify it afterward.
+     * {@link software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils#deriveSigningKey} returns a new array
+     * on every call, so its result can be passed in directly. {@link #getSigningKey()} returns a copy.
      */
     public V4RequestSigningResult(String contentHash, byte[] signingKey, String signature,
                                   V4CanonicalRequest canonicalRequest, SdkHttpRequest.Builder signedRequest) {

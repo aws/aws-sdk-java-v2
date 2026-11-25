@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.locks.StampedLock;
@@ -29,6 +28,9 @@ import software.amazon.awssdk.utils.Validate;
  * valid for the UTC day it was derived on. When the cache is full, the oldest entry is evicted first.
  *
  * <p>Lookups use a {@link CacheKey} with a precomputed hash code, so they do not build a string key per request.
+ *
+ * <p>The cache copies signing keys on the way in and on the way out, so no caller can modify a cached entry. A modified
+ * entry would break every signature for its secret, region, and service in the process until it expired.
  */
 @ThreadSafe
 @SdkInternalApi
@@ -36,6 +38,7 @@ public final class V4SigningKeyCache {
 
     /** Default max number of (secret, region, service) → signingKey entries to retain. */
     private static final int DEFAULT_MAX_SIZE = 300;
+    private static final long SECONDS_PER_DAY = 86_400L;
 
     /**
      * Process-wide cache used by {@link SignerUtils#deriveSigningKey}.
@@ -59,14 +62,14 @@ public final class V4SigningKeyCache {
     }
 
     /**
-     * Look up a cached signing key in the shared cache. Returns {@code null} if missing or stale.
+     * Look up a cached signing key in the shared cache. Returns a copy, or {@code null} if missing or stale.
      */
     public static byte[] sharedGet(CacheKey key, Instant signingInstant) {
         return SHARED.get(key, signingInstant);
     }
 
     /**
-     * Insert a freshly-derived signing key into the shared cache.
+     * Insert a copy of a freshly-derived signing key into the shared cache.
      */
     public static void sharedPut(CacheKey key, byte[] signingKey, Instant signingInstant) {
         SHARED.put(key, signingKey, signingInstant);
@@ -74,28 +77,27 @@ public final class V4SigningKeyCache {
 
     /**
      * Look up a cached signing key. Returns {@code null} when the key is missing or stale (different UTC day from
-     * {@code signingInstant}).
-     *
-     * <p>The returned {@code byte[]} is shared with the cache; callers must not mutate it.
+     * {@code signingInstant}). The returned array is a copy that the caller owns.
      */
     public byte[] get(CacheKey key, Instant signingInstant) {
+        CacheEntry entry;
         long stamp = lock.readLock();
         try {
-            CacheEntry entry = store.get(key);
-            if (entry == null) {
-                return null;
-            }
-            return entry.daysSinceEpoch == daysSinceEpoch(signingInstant) ? entry.signingKey : null;
+            entry = store.get(key);
         } finally {
             lock.unlockRead(stamp);
         }
+        if (entry == null || entry.daysSinceEpoch != daysSinceEpoch(signingInstant)) {
+            return null;
+        }
+        return entry.signingKey.clone();
     }
 
     /**
-     * Insert a freshly-derived signing key. The eldest entry is evicted if the cache is at capacity.
+     * Insert a copy of a freshly-derived signing key. The eldest entry is evicted if the cache is at capacity.
      */
     public void put(CacheKey key, byte[] signingKey, Instant signingInstant) {
-        CacheEntry entry = new CacheEntry(signingKey, daysSinceEpoch(signingInstant));
+        CacheEntry entry = new CacheEntry(signingKey.clone(), daysSinceEpoch(signingInstant));
         long stamp = lock.writeLock();
         try {
             store.put(key, entry);
@@ -104,8 +106,12 @@ public final class V4SigningKeyCache {
         }
     }
 
+    /**
+     * Returns the number of the UTC day containing {@code instant}, counted from 1970-01-01. Rounds down, so instants
+     * before the epoch land on negative days instead of sharing day 0 with 1970-01-01.
+     */
     private static long daysSinceEpoch(Instant instant) {
-        return Instant.EPOCH.until(instant, ChronoUnit.DAYS);
+        return Math.floorDiv(instant.getEpochSecond(), SECONDS_PER_DAY);
     }
 
     /**
