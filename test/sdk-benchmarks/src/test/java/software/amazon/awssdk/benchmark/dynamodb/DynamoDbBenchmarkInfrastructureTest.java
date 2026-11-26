@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
 
 import java.util.Collections;
 import java.util.Map;
@@ -27,7 +28,15 @@ import software.amazon.awssdk.benchmark.dynamodb.fixture.BenchmarkItem;
 import software.amazon.awssdk.benchmark.dynamodb.fixture.DynamoDbBenchmarkFixture;
 import software.amazon.awssdk.benchmark.dynamodb.mock.DynamoDbMockClientFactory;
 import software.amazon.awssdk.benchmark.dynamodb.mock.DynamoDbMockResponseFactory;
+import software.amazon.awssdk.benchmark.dynamodb.pipeline.DocumentGetItemBenchmark;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
@@ -35,7 +44,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 
 /**
- * Verifies Phase 1 shared fixture and sync mock infrastructure.
+ * Verifies shared fixture and sync/async mock infrastructure for Tier C benchmarks.
  */
 public class DynamoDbBenchmarkInfrastructureTest {
 
@@ -52,10 +61,21 @@ public class DynamoDbBenchmarkInfrastructureTest {
         assertEquals(low, fixture.tableSchema().itemToMap(typed, true));
         assertEquals(DynamoDbBenchmarkFixture.PARTITION_KEY_VALUE,
                      low.get(DynamoDbBenchmarkFixture.PARTITION_KEY_NAME).s());
-        assertTrue(low.containsKey("stringAttr"));
-        assertTrue(low.containsKey("stringList"));
-        assertTrue(low.containsKey("stringMap"));
-        assertTrue(low.containsKey("nested"));
+        assertTrue(low.containsKey(DynamoDbBenchmarkFixture.STRING_ATTR));
+        assertTrue(low.containsKey(DynamoDbBenchmarkFixture.STRING_LIST_ATTR));
+        assertTrue(low.containsKey(DynamoDbBenchmarkFixture.STRING_MAP_ATTR));
+        assertTrue(low.containsKey(DynamoDbBenchmarkFixture.NESTED_ATTR));
+    }
+
+    @Test
+    public void documentPutPathConvertsJavaValuesToAttributeMap() {
+        DynamoDbBenchmarkFixture fixture = DynamoDbBenchmarkFixture.create();
+        // Document was built via put* Java APIs; toMap must still match the LOW AttributeValue map.
+        assertEquals(fixture.attributeMap(), fixture.document().toMap());
+        assertEquals(DynamoDbBenchmarkFixture.PARTITION_KEY_VALUE,
+                     fixture.document().getString(DynamoDbBenchmarkFixture.PARTITION_KEY_NAME));
+        assertEquals("benchmark-string",
+                     fixture.document().getString(DynamoDbBenchmarkFixture.STRING_ATTR));
     }
 
     @Test
@@ -104,6 +124,48 @@ public class DynamoDbBenchmarkInfrastructureTest {
             assertEquals(1, queryResponse.count().intValue());
             assertEquals(1, queryResponse.items().size());
             assertEquals(item, queryResponse.items().get(0));
+        }
+    }
+
+    @Test
+    public void documentGetAccessorConversionSmokeTest() {
+        DynamoDbBenchmarkFixture fixture = DynamoDbBenchmarkFixture.create();
+        try (DynamoDbClient client = DynamoDbMockClientFactory.syncGetItemClient(fixture.attributeMap())) {
+            DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(client)
+                                                                          .build();
+            TableSchema<EnhancedDocument> documentSchema =
+                TableSchema.documentSchemaBuilder()
+                           .addIndexPartitionKey(TableMetadata.primaryIndexName(),
+                                                 DynamoDbBenchmarkFixture.PARTITION_KEY_NAME,
+                                                 AttributeValueType.S)
+                           .attributeConverterProviders(defaultProvider())
+                           .build();
+            DynamoDbTable<EnhancedDocument> table =
+                enhancedClient.table(DynamoDbBenchmarkConstant.TABLE_NAME, documentSchema);
+            Key key = Key.builder()
+                         .partitionValue(DynamoDbBenchmarkFixture.PARTITION_KEY_VALUE)
+                         .build();
+
+            EnhancedDocument document = table.getItem(key);
+            DocumentGetItemBenchmark.consumeRepresentativeAttributes(document, null);
+        }
+    }
+
+    @Test
+    public void asyncMockGetItemSmokeTestRepeatedCallsSucceed() {
+        DynamoDbBenchmarkFixture fixture = DynamoDbBenchmarkFixture.create();
+        try (DynamoDbMockClientFactory.AsyncMockResources resources =
+                 DynamoDbMockClientFactory.asyncGetItemClient(fixture.attributeMap())) {
+            DynamoDbAsyncClient client = resources.client();
+            for (int i = 0; i < 200; i++) {
+                GetItemResponse response = client.getItem(r -> r.tableName(DynamoDbBenchmarkConstant.TABLE_NAME)
+                                                                .key(Collections.singletonMap(
+                                                                    DynamoDbBenchmarkFixture.PARTITION_KEY_NAME,
+                                                                    fixture.partitionKeyAttribute())))
+                                                 .join();
+                assertEquals(fixture.attributeMap(), response.item());
+            }
         }
     }
 }

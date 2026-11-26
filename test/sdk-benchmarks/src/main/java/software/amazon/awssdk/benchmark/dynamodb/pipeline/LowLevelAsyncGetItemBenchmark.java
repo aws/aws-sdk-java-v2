@@ -77,7 +77,7 @@ public class LowLevelAsyncGetItemBenchmark {
     @TearDown(Level.Trial)
     public void tearDown() {
         if (resources != null) {
-            // Closes DynamoDbAsyncClient and MockAsyncHttpClient (executor shutdown).
+            // Closes DynamoDbAsyncClient and CannedBenchmarkAsyncHttpClient (executor shutdown).
             resources.close();
         }
     }

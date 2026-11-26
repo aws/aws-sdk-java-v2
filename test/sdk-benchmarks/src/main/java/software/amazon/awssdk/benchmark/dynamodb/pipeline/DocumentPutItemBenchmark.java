@@ -44,8 +44,9 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 /**
  * Tier C DOCUMENT sync PutItem: Enhanced Document mapping plus full mocked SDK pipeline.
  *
- * <p>No low-level {@code PutItemRequest} is pre-built. Document→AttributeValue mapping occurs
- * inside the timed {@link DynamoDbTable#putItem(Object)} call; setup does not call {@code toMap()}.
+ * <p>No low-level {@code PutItemRequest} is pre-built. The setup document is built from Java values
+ * via Document {@code put*} APIs (not {@code fromAttributeValueMap}), so Document→AttributeValue
+ * conversion occurs inside the timed {@link DynamoDbTable#putItem(Object)} / {@code toMap()} path.
  */
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)
@@ -74,8 +75,7 @@ public class DocumentPutItemBenchmark {
                        .attributeConverterProviders(defaultProvider())
                        .build();
         table = enhancedClient.table(DynamoDbBenchmarkConstant.TABLE_NAME, documentSchema);
-        // Same logical EnhancedDocument as LOW/TYPED fixture; no toMap() here so document→AV
-        // conversion remains inside the timed putItem path.
+        // Same logical item as LOW/TYPED; Java-value Document so conversion stays in timed putItem.
         document = fixture.document();
 
         // One-time smoke call: verifies the put path succeeds and warms the SDK pipeline before

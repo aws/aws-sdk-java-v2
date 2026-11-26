@@ -15,10 +15,14 @@
 
 package software.amazon.awssdk.benchmark.dynamodb.fixture;
 
+import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -32,7 +36,28 @@ public final class DynamoDbBenchmarkFixture {
     public static final String PARTITION_KEY_NAME = "pk";
     public static final String PARTITION_KEY_VALUE = "benchmark-item-1";
 
+    public static final String STRING_ATTR = "stringAttr";
+    public static final String NUMBER_ATTR = "numberAttr";
+    public static final String BOOL_ATTR = "boolAttr";
+    public static final String STRING_LIST_ATTR = "stringList";
+    public static final String STRING_MAP_ATTR = "stringMap";
+    public static final String NESTED_ATTR = "nested";
+    public static final String NESTED_STRING_ATTR = "nestedString";
+    public static final String NESTED_NUMBER_ATTR = "nestedNumber";
+
     private static final TableSchema<BenchmarkItem> TABLE_SCHEMA = TableSchema.fromBean(BenchmarkItem.class);
+
+    /**
+     * Nested-document schema used so {@code put(nested, EnhancedDocument)} keeps Java values until
+     * {@code toMap()} / {@code itemToMap()}, matching typical Document Put conversion work.
+     */
+    private static final TableSchema<EnhancedDocument> NESTED_DOCUMENT_SCHEMA =
+        TableSchema.documentSchemaBuilder()
+                   .attributeConverterProviders(defaultProvider())
+                   .build();
+
+    private static final EnhancedType<EnhancedDocument> NESTED_DOCUMENT_TYPE =
+        EnhancedType.documentOf(EnhancedDocument.class, NESTED_DOCUMENT_SCHEMA);
 
     private final BenchmarkItem item;
     private final Map<String, AttributeValue> attributeMap;
@@ -53,7 +78,9 @@ public final class DynamoDbBenchmarkFixture {
         BenchmarkItem item = newItem();
         Map<String, AttributeValue> attributeMap =
             Collections.unmodifiableMap(new LinkedHashMap<>(TABLE_SCHEMA.itemToMap(item, true)));
-        EnhancedDocument document = EnhancedDocument.fromAttributeValueMap(attributeMap);
+        // Build via Document put* APIs (Java values), not fromAttributeValueMap, so DOCUMENT Put
+        // measures real Java→AttributeValue conversion inside toMap()/itemToMap().
+        EnhancedDocument document = newDocumentFromJavaValues(item);
         return new DynamoDbBenchmarkFixture(item, attributeMap, document);
     }
 
@@ -95,5 +122,32 @@ public final class DynamoDbBenchmarkFixture {
         item.setStringMap(stringMap);
         item.setNested(nested);
         return item;
+    }
+
+    /**
+     * Document built from Java values so timed Put→{@code toMap()} performs converter work rather
+     * than identity-copying pre-seeded {@link AttributeValue}s.
+     */
+    private static EnhancedDocument newDocumentFromJavaValues(BenchmarkItem item) {
+        EnhancedDocument nested = EnhancedDocument.builder()
+                                                  .attributeConverterProviders(defaultProvider())
+                                                  .putString(NESTED_STRING_ATTR, item.getNested().getNestedString())
+                                                  .putNumber(NESTED_NUMBER_ATTR, item.getNested().getNestedNumber())
+                                                  .build();
+
+        List<String> stringList = item.getStringList();
+        Map<String, String> stringMap = item.getStringMap();
+
+        return EnhancedDocument.builder()
+                               .attributeConverterProviders(defaultProvider())
+                               .putString(PARTITION_KEY_NAME, item.getPk())
+                               .putString(STRING_ATTR, item.getStringAttr())
+                               .putNumber(NUMBER_ATTR, item.getNumberAttr())
+                               .putBoolean(BOOL_ATTR, item.getBoolAttr())
+                               .putList(STRING_LIST_ATTR, stringList, EnhancedType.of(String.class))
+                               .putMap(STRING_MAP_ATTR, stringMap,
+                                       EnhancedType.of(String.class), EnhancedType.of(String.class))
+                               .put(NESTED_ATTR, nested, NESTED_DOCUMENT_TYPE)
+                               .build();
     }
 }

@@ -17,6 +17,7 @@ package software.amazon.awssdk.benchmark.dynamodb.mock;
 
 import java.util.Map;
 import software.amazon.awssdk.benchmark.dynamodb.DynamoDbBenchmarkConstant;
+import software.amazon.awssdk.benchmark.utils.CannedBenchmarkAsyncHttpClient;
 import software.amazon.awssdk.benchmark.utils.MockHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
@@ -61,7 +62,7 @@ public final class DynamoDbMockClientFactory {
      */
     public static AsyncMockResources asyncGetItemClient(Map<String, AttributeValue> item) {
         byte[] body = DynamoDbMockResponseFactory.getItemResponseBytes(item);
-        SdkAsyncHttpClient httpClient = new ReplayingMockAsyncHttpClient(body);
+        SdkAsyncHttpClient httpClient = new CannedBenchmarkAsyncHttpClient(body);
         DynamoDbAsyncClient client = DynamoDbAsyncClient.builder()
                                                         .credentialsProvider(
                                                             DynamoDbBenchmarkConstant.MOCK_CREDENTIALS_PROVIDER)

@@ -17,6 +17,8 @@ package software.amazon.awssdk.benchmark.dynamodb.pipeline;
 
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -30,23 +32,28 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.benchmark.dynamodb.DynamoDbBenchmarkConstant;
 import software.amazon.awssdk.benchmark.dynamodb.fixture.DynamoDbBenchmarkFixture;
 import software.amazon.awssdk.benchmark.dynamodb.mock.DynamoDbMockClientFactory;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Tier C DOCUMENT sync GetItem: Enhanced Document mapping plus full mocked SDK pipeline.
  *
  * <p>No low-level {@code GetItemRequest} is pre-built. Response AttributeValues are mapped to
- * {@link EnhancedDocument} inside the timed {@link DynamoDbTable#getItem(Key)} call.
+ * {@link EnhancedDocument} inside the timed {@link DynamoDbTable#getItem(Key)} call, and
+ * representative attributes are read via Document accessors so lazy AttributeValue→Java conversion
+ * is included in the measurement.
  */
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)
@@ -79,12 +86,13 @@ public class DocumentGetItemBenchmark {
                  .partitionValue(DynamoDbBenchmarkFixture.PARTITION_KEY_VALUE)
                  .build();
 
-        // One-time smoke call: verifies response→EnhancedDocument mapping and warms the SDK
-        // pipeline before JMH warmup iterations begin.
+        // One-time smoke call: verifies response→EnhancedDocument mapping + accessor conversion and
+        // warms the SDK pipeline before JMH warmup iterations begin.
         EnhancedDocument smoke = table.getItem(key);
-        if (smoke == null || smoke.getString(DynamoDbBenchmarkFixture.PARTITION_KEY_NAME) == null) {
-            throw new IllegalStateException("Document GetItem smoke call did not map a usable document");
+        if (smoke == null) {
+            throw new IllegalStateException("Document GetItem smoke call returned null");
         }
+        consumeRepresentativeAttributes(smoke, null);
     }
 
     @TearDown(Level.Trial)
@@ -94,8 +102,51 @@ public class DocumentGetItemBenchmark {
         }
     }
 
+    /**
+     * Times getItem plus lazy Document accessor conversion for the shared fixture attributes.
+     */
     @Benchmark
-    public EnhancedDocument getItem() {
-        return table.getItem(key);
+    public void getItem(Blackhole bh) {
+        EnhancedDocument document = table.getItem(key);
+        consumeRepresentativeAttributes(document, bh);
+    }
+
+    /**
+     * Forces AttributeValue→Java conversion for every representative fixture attribute. When
+     * {@code bh} is null (setup smoke), values are only validated for non-null content.
+     */
+    public static void consumeRepresentativeAttributes(EnhancedDocument document, Blackhole bh) {
+        String pk = document.getString(DynamoDbBenchmarkFixture.PARTITION_KEY_NAME);
+        String stringAttr = document.getString(DynamoDbBenchmarkFixture.STRING_ATTR);
+        Object numberAttr = document.getNumber(DynamoDbBenchmarkFixture.NUMBER_ATTR);
+        Boolean boolAttr = document.getBoolean(DynamoDbBenchmarkFixture.BOOL_ATTR);
+        List<String> stringList = document.getList(DynamoDbBenchmarkFixture.STRING_LIST_ATTR,
+                                                   EnhancedType.of(String.class));
+        Map<String, String> stringMap = document.getMap(DynamoDbBenchmarkFixture.STRING_MAP_ATTR,
+                                                        EnhancedType.of(String.class),
+                                                        EnhancedType.of(String.class));
+        Map<String, AttributeValue> nestedAv =
+            document.getMapOfUnknownType(DynamoDbBenchmarkFixture.NESTED_ATTR);
+        EnhancedDocument nested = EnhancedDocument.fromAttributeValueMap(nestedAv);
+        String nestedString = nested.getString(DynamoDbBenchmarkFixture.NESTED_STRING_ATTR);
+        Object nestedNumber = nested.getNumber(DynamoDbBenchmarkFixture.NESTED_NUMBER_ATTR);
+
+        if (pk == null || stringAttr == null || numberAttr == null || boolAttr == null
+            || stringList == null || stringList.isEmpty()
+            || stringMap == null || stringMap.isEmpty()
+            || nestedString == null || nestedNumber == null) {
+            throw new IllegalStateException("Document GetItem did not expose usable converted attributes");
+        }
+
+        if (bh != null) {
+            bh.consume(pk);
+            bh.consume(stringAttr);
+            bh.consume(numberAttr);
+            bh.consume(boolAttr);
+            bh.consume(stringList);
+            bh.consume(stringMap);
+            bh.consume(nestedString);
+            bh.consume(nestedNumber);
+        }
     }
 }

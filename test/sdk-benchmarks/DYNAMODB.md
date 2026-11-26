@@ -111,7 +111,12 @@ java -jar target/benchmarks.jar LowLevelGetItemBenchmark -prof gc
 ## Interpretation
 
 - **Tier C** is deterministic SDK-side cost (mock HTTP). Best signal for SDK regressions.
-- **Async** single-op benches include mock/async executor scheduling and `.join()` completion.
+- **DOCUMENT Get** includes lazy Document accessor conversion (representative attributes are read
+  inside the timed method). **DOCUMENT Put** uses a Java-value Document (Document `put*` APIs), so
+  `toMap()` conversion is inside the timed path.
+- **Async** single-op benches include mock/async executor scheduling and `.join()` completion via
+  `CannedBenchmarkAsyncHttpClient` (fixed response bytes, no request-capture list, request body
+  drained and discarded).
 - Untimed smoke calls (pipeline warm on mocked) are **not** JMH warmup iterations — JMH still runs
   its own warmup afterward.
 
