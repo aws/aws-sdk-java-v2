@@ -143,10 +143,12 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
          * Similar to {@link #refreshRequest(AssumeRoleWithWebIdentityRequest)}, but takes a lambda to configure a new
          * {@link AssumeRoleWithWebIdentityRequest.Builder}. This removes the need to called
          * {@link AssumeRoleWithWebIdentityRequest#builder()} and {@link AssumeRoleWithWebIdentityRequest.Builder#build()}.
+         * The lambda is invoked each time the credentials are refreshed.
          */
         public Builder refreshRequest(Consumer<AssumeRoleWithWebIdentityRequest.Builder> assumeRoleWithWebIdentityRequest) {
-            return refreshRequest(AssumeRoleWithWebIdentityRequest.builder().applyMutation(assumeRoleWithWebIdentityRequest)
-                                                                  .build());
+            return refreshRequest(() ->
+                AssumeRoleWithWebIdentityRequest.builder().applyMutation(assumeRoleWithWebIdentityRequest)
+                                                .build());
         }
 
         /**
