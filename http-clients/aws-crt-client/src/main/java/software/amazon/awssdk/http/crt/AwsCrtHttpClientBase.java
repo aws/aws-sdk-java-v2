@@ -221,7 +221,9 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
                 .withProxyOptions(proxyOptions)
                 .withMonitoringOptions(monitoringOptions)
                 .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds)
-                .withConnectionAcquisitionTimeoutInMilliseconds(connectionAcquisitionTimeout);
+                // On HTTP/2, the stream manager's acquisition timeout (set below) covers both the wait for a new connection and
+                // the wait for a stream, so the connection manager's own acquisition timer is disabled.
+                .withConnectionAcquisitionTimeoutInMilliseconds(protocol == Protocol.HTTP2 ? 0 : connectionAcquisitionTimeout);
 
         if (maxPendingConnectionAcquires != null) {
             h1Options.withMaxPendingConnectionAcquisitions(maxPendingConnectionAcquires);
@@ -233,6 +235,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
         if (protocol == Protocol.HTTP2) {
             Http2StreamManagerOptions h2Options = new Http2StreamManagerOptions()
                 .withMaxConcurrentStreams(maxStreamsPerEndpoint)
+                .withStreamAcquisitionTimeoutInMilliseconds(connectionAcquisitionTimeout)
                 .withConnectionManagerOptions(h1Options);
 
             if (!isHttps) {

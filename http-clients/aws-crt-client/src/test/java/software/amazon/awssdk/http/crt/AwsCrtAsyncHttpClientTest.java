@@ -19,15 +19,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
+import java.net.URI;
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedStatic;
+import software.amazon.awssdk.crt.http.Http2StreamManagerOptions;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
+import software.amazon.awssdk.crt.http.HttpStreamManagerOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -95,6 +105,29 @@ class AwsCrtAsyncHttpClientTest extends AwsCrtHttpClientTestBase {
                                                      .minTlsVersion(TlsVersion.TLS_1_3)
                                                      .build())
             .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void asyncBuilder_http2ConnectionAcquisitionTimeout_setsStreamTimeoutAndDisablesConnectionManagerTimeout() {
+        Duration acquisitionTimeout = Duration.ofMillis(1234);
+        AtomicReference<HttpStreamManagerOptions> captured = new AtomicReference<>();
+        try (MockedStatic<HttpStreamManager> streamManager = mockStatic(HttpStreamManager.class);
+             AwsCrtAsyncHttpClient client = (AwsCrtAsyncHttpClient) AwsCrtAsyncHttpClient.builder()
+                                                                                          .protocol(Protocol.HTTP2)
+                                                                                          .connectionAcquisitionTimeout(
+                                                                                              acquisitionTimeout)
+                                                                                          .build()) {
+            streamManager.when(() -> HttpStreamManager.create(any())).thenAnswer(invocation -> {
+                captured.set(invocation.getArgument(0));
+                return mock(HttpStreamManager.class);
+            });
+
+            client.getOrCreateConnectionPool(URI.create("http://localhost:1234"));
+        }
+
+        Http2StreamManagerOptions h2Options = captured.get().getHTTP2StreamManagerOptions();
+        assertThat(h2Options.getStreamAcquisitionTimeoutInMilliseconds()).isEqualTo(acquisitionTimeout.toMillis());
+        assertThat(h2Options.getConnectionManagerOptions().getConnectionAcquisitionTimeoutInMilliseconds()).isZero();
     }
 
     static Stream<Arguments> minTlsVersionInputs() {

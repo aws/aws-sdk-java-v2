@@ -35,6 +35,7 @@ import software.amazon.awssdk.metrics.MetricCollector;
 public class CrtUtilsTest {
     private static final String MAX_PENDING_MESSAGE =
         "Maximum pending connection acquisitions exceeded. The request rate is too high for the client to keep up.";
+    private static final String ACQUIRE_TIMEOUT_MESSAGE = "Acquire operation took longer than the configured maximum time.";
 
     /**
      * Locks in retryability of HTTP error codes that are NOT classified as transient by the native
@@ -170,6 +171,28 @@ public class CrtUtilsTest {
         IllegalStateException other = new IllegalStateException("Client is closed", new HttpException(2087));
 
         assertThat(CrtUtils.isMaxPendingAcquisitionsExceeded(other)).isFalse();
+    }
+
+    @Test
+    public void wrapCrtException_connectionManagerAcquisitionTimeout_wrapsInIOExceptionWithAcquireTimeoutMessage() {
+        HttpException httpException = new HttpException(CrtUtils.CRT_CONNECTION_MANAGER_ACQUISITION_TIMEOUT);
+
+        Throwable result = CrtUtils.wrapCrtException(new CompletionException(httpException));
+
+        assertThat(result).isExactlyInstanceOf(IOException.class)
+                          .hasMessageStartingWith(ACQUIRE_TIMEOUT_MESSAGE)
+                          .hasCause(httpException);
+    }
+
+    @Test
+    public void wrapCrtException_streamManagerAcquisitionTimeout_wrapsInIOExceptionWithAcquireTimeoutMessage() {
+        CrtRuntimeException crtException = new CrtRuntimeException(CrtUtils.CRT_STREAM_MANAGER_ACQUISITION_TIMEOUT);
+
+        Throwable result = CrtUtils.wrapCrtException(new CompletionException(crtException));
+
+        assertThat(result).isExactlyInstanceOf(IOException.class)
+                          .hasMessageStartingWith(ACQUIRE_TIMEOUT_MESSAGE)
+                          .hasCause(crtException);
     }
 
     @Test
