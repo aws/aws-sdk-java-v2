@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Updated SigV4 diagnostic logging to log the canonical request hash instead of the full canonical request."
+}

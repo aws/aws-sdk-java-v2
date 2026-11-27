@@ -61,6 +61,7 @@ import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.ClassLoaderHelper;
@@ -1028,6 +1029,76 @@ public class DefaultAwsV4HttpSignerTest {
             .hasMessageContaining("Content-Length header must be specified");
     }
 
+    @Test
+    void sign_WithSessionCredentialsAndSseCustomerKey_LogsCanonicalRequestHashOnly() {
+        String sessionToken = "SECRET-SESSION-TOKEN-VALUE";
+        String customerKey = "SECRET-SSE-C-KEY-VALUE";
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsSessionCredentialsIdentity.create("access", "secret", sessionToken),
+            httpRequest -> httpRequest.putHeader("x-amz-server-side-encryption-customer-key", customerKey)
+                                      .putRawQueryParameter("prefix", "SECRET-QUERY-VALUE"),
+            signRequest -> {
+            }
+        );
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            SignedRequest signedRequest = signer.sign(request);
+
+            assertThat(signedRequest.request().firstMatchingHeader("x-amz-security-token")).hasValue(sessionToken);
+            assertThat(signedRequest.request().firstMatchingHeader("Authorization").get())
+                .endsWith("Signature=6b655ed30e882f022ed6beab909e24584af0c0e6b5694852251b711705ed0254");
+            List<String> logs = logMessages(logCaptor);
+            assertCanonicalRequestHashLogged(logs);
+            assertThat(String.join("\n", logs)).doesNotContain(sessionToken, customerKey, "SECRET-QUERY-VALUE");
+        }
+    }
+
+    @Test
+    void sign_Presign_WithSessionCredentials_LogsCanonicalRequestHashOnly() {
+        String sessionToken = "SECRET-SESSION-TOKEN-VALUE";
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsSessionCredentialsIdentity.create("access", "secret", sessionToken),
+            httpRequest -> {
+            },
+            signRequest -> signRequest.putProperty(AUTH_LOCATION, AuthLocation.QUERY_STRING)
+                                      .putProperty(EXPIRATION_DURATION, Duration.ofDays(1))
+        );
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            SignedRequest signedRequest = signer.sign(request);
+
+            assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Security-Token"))
+                .hasValue(sessionToken);
+            assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Signature"))
+                .hasValue("b69b0d04ce1c4b596e8182951bec17f0cfdb86cf2aba45ddc2e3f6a2936aff0a");
+            List<String> logs = logMessages(logCaptor);
+            assertCanonicalRequestHashLogged(logs);
+            assertThat(String.join("\n", logs)).doesNotContain(sessionToken);
+        }
+    }
+
+    private static List<String> logMessages(LogCaptor logCaptor) {
+        return logCaptor.loggedEvents()
+                        .stream()
+                        .map(e -> e.getMessage().getFormattedMessage())
+                        .collect(Collectors.toList());
+    }
+
+    private static void assertCanonicalRequestHashLogged(List<String> logs) {
+        assertThat(logs.stream().noneMatch(m -> m.startsWith("AWS4 Canonical Request:"))).isTrue();
+        String hashPrefix = "AWS4 Canonical Request Hash: ";
+        String hash = logs.stream()
+                          .filter(m -> m.startsWith(hashPrefix))
+                          .map(m -> m.substring(hashPrefix.length()))
+                          .findFirst()
+                          .orElseThrow(() -> new AssertionError("No canonical request hash was logged"));
+        assertThat(hash).matches("[0-9a-f]{64}");
+        String stringToSign = logs.stream()
+                                  .filter(m -> m.startsWith("AWS4 String to sign: "))
+                                  .findFirst()
+                                  .orElseThrow(() -> new AssertionError("No string to sign was logged"));
+        assertThat(stringToSign).endsWith("\n" + hash);
+    }
 
     private static byte[] computeChecksum(ChecksumAlgorithm algorithm, byte[] data) {
         SdkChecksum checksum = SdkChecksum.forAlgorithm(algorithm);

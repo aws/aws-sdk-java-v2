@@ -28,8 +28,11 @@ import java.time.Clock;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
+import org.apache.logging.log4j.Level;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,6 +41,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerUtils;
 import software.amazon.awssdk.auth.signer.params.SignerChecksumParams;
 import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
@@ -45,6 +49,7 @@ import software.amazon.awssdk.auth.signer.internal.SignerTestUtils;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
  * Unit tests for the {@link Aws4Signer}.
@@ -232,6 +237,68 @@ public class Aws4SignerTest {
             .hasValue("AWS4-HMAC-SHA256 Credential=akid/19810216/us-east-1/demo/aws4_request, "
                       + "SignedHeaders=host;x-amz-archive-description;x-amz-date, "
                       + "Signature=581d0042389009a28d461124138f1fe8eeb8daed87611d2a2b47fd3d68d81d73");
+    }
+
+    @Test
+    public void sign_withSessionCredentialsAndSseCustomerKey_logsCanonicalRequestHashOnly() {
+        String sessionToken = "SECRET-SESSION-TOKEN-VALUE";
+        String customerKey = "SECRET-SSE-C-KEY-VALUE";
+        AwsSessionCredentials credentials = AwsSessionCredentials.create("access", "secret", sessionToken);
+        SdkHttpFullRequest.Builder request = generateBasicRequest()
+            .putHeader("x-amz-server-side-encryption-customer-key", customerKey)
+            .putRawQueryParameter("prefix", "SECRET-QUERY-VALUE");
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials,
+                                                                    "demo", signingOverrideClock, "us-east-1");
+
+            assertThat(signed.firstMatchingHeader("x-amz-security-token")).hasValue(sessionToken);
+            assertThat(signed.firstMatchingHeader("Authorization").get()).endsWith("Signature=509766c6494c311e4284e57860c1daa2c0dea1851e663a9c1511971c74bec392");
+            List<String> logs = logMessages(logCaptor);
+            assertCanonicalRequestHashLogged(logs);
+            assertThat(String.join("\n", logs)).doesNotContain(sessionToken, customerKey, "SECRET-QUERY-VALUE");
+        }
+    }
+
+    @Test
+    public void presign_withSessionCredentials_logsCanonicalRequestHashOnly() {
+        String sessionToken = "SECRET-SESSION-TOKEN-VALUE";
+        AwsSessionCredentials credentials = AwsSessionCredentials.create("access", "secret", sessionToken);
+        SdkHttpFullRequest request = generateBasicRequest().build();
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            SdkHttpFullRequest signed = SignerTestUtils.presignRequest(signer, request, credentials, null, "demo",
+                                                                       signingOverrideClock, "us-east-1");
+
+            assertThat(signed.rawQueryParameters().get("X-Amz-Security-Token")).containsExactly(sessionToken);
+            assertThat(signed.rawQueryParameters().get("X-Amz-Signature")).containsExactly("e86bbee8e8142fe17222e0bbf39cbd9dbd5c85ed2a154e3dd122027f1c01a771");
+            List<String> logs = logMessages(logCaptor);
+            assertCanonicalRequestHashLogged(logs);
+            assertThat(String.join("\n", logs)).doesNotContain(sessionToken);
+        }
+    }
+
+    private static List<String> logMessages(LogCaptor logCaptor) {
+        return logCaptor.loggedEvents()
+                        .stream()
+                        .map(e -> e.getMessage().getFormattedMessage())
+                        .collect(Collectors.toList());
+    }
+
+    private static void assertCanonicalRequestHashLogged(List<String> logs) {
+        assertThat(logs.stream().noneMatch(m -> m.startsWith("AWS4 Canonical Request:"))).isTrue();
+        String hashPrefix = "AWS4 Canonical Request Hash: ";
+        String hash = logs.stream()
+                          .filter(m -> m.startsWith(hashPrefix))
+                          .map(m -> m.substring(hashPrefix.length()))
+                          .findFirst()
+                          .orElseThrow(() -> new AssertionError("No canonical request hash was logged"));
+        assertThat(hash).matches("[0-9a-f]{64}");
+        String stringToSign = logs.stream()
+                                  .filter(m -> m.startsWith("AWS4 String to sign: "))
+                                  .findFirst()
+                                  .orElseThrow(() -> new AssertionError("No string to sign was logged"));
+        assertThat(stringToSign).endsWith("\n" + hash);
     }
 
     private SdkHttpFullRequest.Builder generateBasicRequest() {

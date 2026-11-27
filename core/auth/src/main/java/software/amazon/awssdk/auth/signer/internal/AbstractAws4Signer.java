@@ -266,9 +266,9 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     private String createStringToSign(String canonicalRequest,
                                       Aws4SignerRequestParams requestParams) {
 
-        LOG.debug(() -> "AWS4 Canonical Request: " + canonicalRequest);
-
         String requestHash = BinaryUtils.toHex(hash(canonicalRequest));
+
+        LOG.debug(() -> "AWS4 Canonical Request Hash: " + requestHash);
 
         String stringToSign = requestParams.getSigningAlgorithm() +
                               SignerConstant.LINE_SEPARATOR +
