@@ -24,6 +24,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
@@ -95,7 +96,7 @@ public class DownloadObjectHelper {
                 reason = " because getObjectRequest part number is included in the request."
                          + " part number = " + getObjectRequest.partNumber();
             }
-            return "Using single part download" + reason;
+            return "Using single part download" + LogSanitizer.escapeControlCharacters(reason);
         });
     }
 }

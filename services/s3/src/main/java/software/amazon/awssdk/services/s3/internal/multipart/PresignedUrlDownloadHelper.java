@@ -27,6 +27,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtension;
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -59,7 +60,7 @@ public class PresignedUrlDownloadHelper {
 
         if (presignedRequest.range() != null) {
             log.debug(() -> "Using single part download because presigned URL request range is included in the request. range = "
-                            + presignedRequest.range());
+                            + LogSanitizer.escapeControlCharacters(presignedRequest.range()));
             return asyncPresignedUrlExtension.getObject(presignedRequest, asyncResponseTransformer);
         }
 

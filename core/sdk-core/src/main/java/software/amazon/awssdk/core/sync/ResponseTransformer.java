@@ -40,6 +40,7 @@ import software.amazon.awssdk.core.internal.io.GzipAvailabilityInputStream;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.internal.EnumUtils;
 
@@ -138,10 +139,13 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
                     try {
                         Files.deleteIfExists(path);
                     } catch (IOException deletionException) {
-                        Logger.loggerFor(ResponseTransformer.class)
-                              .error(() -> "Failed to delete destination file '" + path +
-                                           "' after reading the service response " +
-                                           "failed.", deletionException);
+                        Logger logger = Logger.loggerFor(ResponseTransformer.class);
+                        if (logger.logger().isErrorEnabled()) {
+                            logger.error(() -> "Failed to delete destination file '"
+                                               + LogSanitizer.escapeControlCharacters(path.toString())
+                                               + "' after reading the service response failed.",
+                                         LogSanitizer.sanitize(deletionException));
+                        }
 
                         throw new IOException(copyError + ". Additionally, the file could not be cleaned up (" +
                                               deletionException.getMessage() + "), so the request will not be retried.",

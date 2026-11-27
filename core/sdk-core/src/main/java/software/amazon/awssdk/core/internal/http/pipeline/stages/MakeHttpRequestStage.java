@@ -40,6 +40,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.io.LengthAwareInputStream;
@@ -116,8 +117,9 @@ public class MakeHttpRequestStage
 
             Optional<Long> contentLength = contentLength(request);
             if (!contentLength.isPresent()) {
-                LOG.debug(() -> String.format("Request contains a body but does not have a Content-Length header. Not validating "
-                                              + "the amount of data sent to the service: %s", request));
+                LOG.debug(() -> LogSanitizer.escapeControlCharacters(
+                    String.format("Request contains a body but does not have a Content-Length header. Not validating "
+                                  + "the amount of data sent to the service: %s", request)));
                 return stream;
             }
 

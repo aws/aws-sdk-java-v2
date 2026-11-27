@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,6 +48,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.testutils.LogCaptor;
 import utils.ValidSdkObjects;
 
 public class MakeHttpRequestStageTest {
@@ -141,6 +143,31 @@ public class MakeHttpRequestStageTest {
             }
         } else {
             assertThat(capturedRequest.contentStreamProvider()).isEmpty();
+        }
+    }
+
+    @Test
+    public void execute_bodyWithoutContentLengthAndHeaderNameWithControlCharacters_logsOneEscapedLine() throws IOException {
+        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                       .method(SdkHttpMethod.PUT)
+                                                       .host("mybucket.s3.us-west-2.amazonaws.com")
+                                                       .protocol("https")
+                                                       .putHeader("x-amz-meta-a\r\nFORGED", "v")
+                                                       .contentStreamProvider(() -> new ByteArrayInputStream(new byte[16]))
+                                                       .build();
+        when(mockClient.prepareRequest(any())).thenThrow(new RuntimeException("BOOM"));
+        assertThatThrownBy(() -> stage.execute(request, createContext())).hasMessage("BOOM");
+        ArgumentCaptor<HttpExecuteRequest> requestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
+        verify(mockClient).prepareRequest(requestCaptor.capture());
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            requestCaptor.getValue().contentStreamProvider().get().newStream().close();
+
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event ->
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("does not have a Content-Length header")
+                    .contains("x-amz-meta-a\\r\\nFORGED")
+                    .doesNotContain("\r", "\n"));
         }
     }
 

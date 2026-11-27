@@ -20,12 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
+import org.apache.logging.log4j.Level;
 import org.junit.Test;
 import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class AwsCredentialsProviderChainTest {
@@ -118,6 +120,52 @@ public class AwsCredentialsProviderChainTest {
         SdkClientException e = assertThrows(SdkClientException.class, () -> chain.resolveCredentials());
         assertThat(e.getMessage()).contains(provider1.exceptionMessage);
         assertThat(e.getMessage()).contains(provider2.exceptionMessage);
+    }
+
+    @Test
+    public void resolveCredentials_providerLogDataContainsControlCharacters_escapesMessageAndThrowable() {
+        AwsCredentialsProvider failing = new AwsCredentialsProvider() {
+            @Override
+            public AwsCredentials resolveCredentials() {
+                throw new RuntimeException("failure\nFORGED");
+            }
+
+            @Override
+            public String toString() {
+                return "provider\r\nFORGED";
+            }
+        };
+        AwsCredentialsProvider fallback = new AwsCredentialsProvider() {
+            @Override
+            public AwsCredentials resolveCredentials() {
+                return AwsBasicCredentials.create("akid", "skid");
+            }
+
+            @Override
+            public String toString() {
+                return "fallback\r\nFORGED";
+            }
+        };
+        AwsCredentialsProviderChain chain = AwsCredentialsProviderChain.builder()
+                                                                       .credentialsProviders(failing, fallback)
+                                                                       .build();
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            chain.resolveCredentials();
+
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event -> {
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("provider\\r\\nFORGED: failure\\nFORGED");
+                assertThat(event.getThrown().toString())
+                    .contains("failure\\nFORGED")
+                    .doesNotContain("\n");
+            });
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event ->
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("Loading credentials from fallback\\r\\nFORGED"));
+            assertThat(logCaptor.loggedEvents()).allSatisfy(event ->
+                assertThat(event.getMessage().getFormattedMessage()).doesNotContain("\r", "\n"));
+        }
     }
 
     @Test

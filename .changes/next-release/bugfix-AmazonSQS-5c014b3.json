@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon SQS",
+    "contributor": "",
+    "description": "Escape control characters in queue URLs and exceptions before writing visibility-reset log messages."
+}

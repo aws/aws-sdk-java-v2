@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import org.mockito.Mockito;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
 import software.amazon.awssdk.crt.io.TlsContext;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 class CrtConnectionUtilsTest {
 
@@ -40,6 +42,25 @@ class CrtConnectionUtilsTest {
         System.clearProperty("http.proxyHost");
         System.clearProperty("http.proxyPort");
         System.clearProperty("http.nonProxyHosts");
+    }
+
+    @Test
+    void resolveProxy_whenUnsupportedWildcardContainsControlCharacters_escapesWarning() {
+        String nonProxyHost = "bad*\r\nFORGED";
+        CrtProxyConfiguration configuration = new TestProxy.Builder().host("1.2.3.4")
+                                                                     .port(123)
+                                                                     .addNonProxyHost(nonProxyHost)
+                                                                     .build();
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            HttpProxyOptions proxy = CrtConfigurationUtils.resolveProxy(configuration, Mockito.mock(TlsContext.class)).get();
+
+            assertThat(proxy.getNoProxyHosts()).isEqualTo(nonProxyHost);
+            assertThat(logCaptor.loggedEvents().size()).isEqualTo(1);
+            assertThat(logCaptor.loggedEvents().get(0).getMessage().getFormattedMessage())
+                .contains("bad*\\r\\nFORGED")
+                .doesNotContain("\r", "\n");
+        }
     }
 
     @Test

@@ -35,6 +35,7 @@ import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Request;
 import software.amazon.awssdk.services.s3.model.S3Response;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
@@ -85,7 +86,7 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
     public CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(
         PutObjectRequest request, String uploadId, CompletedPart[] parts, long contentLength) {
         log.debug(() -> String.format("Sending completeMultipartUploadRequest, uploadId: %s",
-                                      uploadId));
+                                      LogSanitizer.escapeControlCharacters(uploadId)));
 
         CompleteMultipartUploadRequest completeMultipartUploadRequest = toCompleteMultipartUploadRequest(request, uploadId,
                                                                                                          parts, contentLength);
@@ -115,17 +116,20 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
     }
 
     public void cleanUpParts(String uploadId, AbortMultipartUploadRequest.Builder abortMultipartUploadRequest) {
-        log.debug(() -> "Aborting multipart upload: " + uploadId);
+        log.debug(() -> "Aborting multipart upload: " + LogSanitizer.escapeControlCharacters(uploadId));
         AbortMultipartUploadRequest request = abortMultipartUploadRequest.uploadId(uploadId).build();
         s3AsyncClient.abortMultipartUpload(request)
                      .exceptionally(throwable -> {
-                         log.warn(() -> String.format("Failed to abort previous multipart upload "
-                                                      + "(id: %s)"
-                                                      + ". You may need to call "
-                                                      + "S3AsyncClient#abortMultiPartUpload to "
-                                                      + "free all storage consumed by"
-                                                      + " all parts. ",
-                                                      uploadId), throwable);
+                         if (log.logger().isWarnEnabled()) {
+                             log.warn(() -> String.format("Failed to abort previous multipart upload "
+                                                          + "(id: %s)"
+                                                          + ". You may need to call "
+                                                          + "S3AsyncClient#abortMultiPartUpload to "
+                                                          + "free all storage consumed by"
+                                                          + " all parts. ",
+                                                          LogSanitizer.escapeControlCharacters(uploadId)),
+                                      LogSanitizer.sanitize(throwable));
+                         }
                          return null;
                      });
     }

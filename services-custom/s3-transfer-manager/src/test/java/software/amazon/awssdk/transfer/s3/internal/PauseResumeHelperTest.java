@@ -18,6 +18,9 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +29,7 @@ import java.nio.file.Files;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -37,6 +41,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadResponse;
 import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
@@ -125,6 +132,35 @@ class PauseResumeHelperTest {
 
         assertThat(messages).allSatisfy(m -> assertThat(m).doesNotContain("\r", "\n"));
         assertThat(messages).anySatisfy(m -> assertThat(m).contains("with key (key\\r\\nFORGED level=ERROR)"));
+    }
+
+    @Test
+    void fileModified_abortFailsForUploadIdWithControlCharacters_logsEscapedWarningAndThrowable() {
+        UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
+                                                               .putObjectRequest(r -> r.bucket("bucket").key("key"))
+                                                               .source(file)
+                                                               .build();
+        ResumableFileUpload upload = ResumableFileUpload.builder()
+                                                        .fileLength(file.length() + 1)
+                                                        .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                                        .multipartUploadId("upload\r\nFORGED")
+                                                        .uploadFileRequest(uploadFileRequest)
+                                                        .build();
+        CompletableFuture<AbortMultipartUploadResponse> failedAbort = new CompletableFuture<>();
+        failedAbort.completeExceptionally(new RuntimeException("abort\r\nfailed"));
+        S3AsyncClient s3AsyncClient = mock(S3AsyncClient.class);
+        when(s3AsyncClient.abortMultipartUpload(any(AbortMultipartUploadRequest.class))).thenReturn(failedAbort);
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            assertThat(helper.fileModified(upload, s3AsyncClient)).isTrue();
+
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event -> {
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("(id: upload\\r\\nFORGED)")
+                    .doesNotContain("\r", "\n");
+                assertThat(event.getThrown()).hasToString("java.lang.RuntimeException: abort\\r\\nfailed");
+            });
+        }
     }
 
     private ResumableFileUpload upload(Long fileLength, Long partSizeInBytes, Long totalParts, Long transferredParts) {

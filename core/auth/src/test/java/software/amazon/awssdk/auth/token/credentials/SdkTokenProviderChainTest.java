@@ -21,12 +21,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Instant;
 import java.util.Arrays;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.auth.token.TestBearerToken;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 public class SdkTokenProviderChainTest {
 
@@ -101,6 +103,52 @@ public class SdkTokenProviderChainTest {
         SdkClientException e = assertThrows(SdkClientException.class, () -> chain.resolveToken());
         assertThat(e.getMessage()).contains(provider1.exceptionMessage);
         assertThat(e.getMessage()).contains(provider2.exceptionMessage);
+    }
+
+    @Test
+    public void resolveToken_providerLogDataContainsControlCharacters_escapesMessageAndThrowable() {
+        SdkTokenProvider failing = new SdkTokenProvider() {
+            @Override
+            public SdkToken resolveToken() {
+                throw new RuntimeException("failure\nFORGED");
+            }
+
+            @Override
+            public String toString() {
+                return "provider\r\nFORGED";
+            }
+        };
+        SdkTokenProvider fallback = new SdkTokenProvider() {
+            @Override
+            public SdkToken resolveToken() {
+                return TestBearerToken.create(SAMPLE_TOKEN_STRING, SAMPLE_EXPIRATION_TIME);
+            }
+
+            @Override
+            public String toString() {
+                return "fallback\r\nFORGED";
+            }
+        };
+        SdkTokenProviderChain chain = SdkTokenProviderChain.builder()
+                                                           .tokenProviders(failing, fallback)
+                                                           .build();
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            chain.resolveToken();
+
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event -> {
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("provider\\r\\nFORGED: failure\\nFORGED");
+                assertThat(event.getThrown().toString())
+                    .contains("failure\\nFORGED")
+                    .doesNotContain("\n");
+            });
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event ->
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("Loading token from fallback\\r\\nFORGED"));
+            assertThat(logCaptor.loggedEvents()).allSatisfy(event ->
+                assertThat(event.getMessage().getFormattedMessage()).doesNotContain("\r", "\n"));
+        }
     }
 
     @Test

@@ -16,16 +16,48 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtension;
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 class PresignedUrlDownloadHelperTest {
+
+    @Test
+    void downloadObject_whenRangeContainsControlCharacters_logsEscapedRange() throws Exception {
+        S3AsyncClient s3AsyncClient = mock(S3AsyncClient.class);
+        AsyncPresignedUrlExtension extension = mock(AsyncPresignedUrlExtension.class);
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer = mock(AsyncResponseTransformer.class);
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(new URL("https://example.com"))
+                                                                         .range("bytes=0-10\r\nFORGED")
+                                                                         .build();
+        when(extension.getObject(any(PresignedUrlDownloadRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(GetObjectResponse.builder().build()));
+        PresignedUrlDownloadHelper helper = new PresignedUrlDownloadHelper(s3AsyncClient, extension, 1024, 1024);
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            helper.downloadObject(request, transformer).join();
+
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event ->
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("range = bytes=0-10\\r\\nFORGED")
+                    .doesNotContain("\r", "\n"));
+        }
+    }
 
     @Test
     void validatePartResponse_validResponse_shouldReturnEmpty() {

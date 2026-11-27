@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.event.Level;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -123,7 +124,8 @@ public final class LoggingMetricPublisher implements MetricPublisher {
         }
         switch (format) {
             case PLAIN:
-                LOGGER.log(logLevel, () -> "Metrics published: " + metrics);
+                LOGGER.log(logLevel, () -> "Metrics published: "
+                                           + LogSanitizer.escapeControlCharacters(String.valueOf(metrics)));
                 break;
             case PRETTY:
                 String guid = Integer.toHexString(metrics.hashCode());
@@ -137,7 +139,8 @@ public final class LoggingMetricPublisher implements MetricPublisher {
     private void logPretty(String guid, MetricCollection metrics, int indent) {
         // Pre-determine metric key-value-pairs so that we can calculate the necessary padding
         List<String> metricValues = new ArrayList<>();
-        metrics.forEach(m -> metricValues.add(String.format("%s=%s", m.metric().name(), m.value())));
+        metrics.forEach(m -> metricValues.add(LogSanitizer.escapeControlCharacters(
+            String.format("%s=%s", m.metric().name(), m.value()))));
 
         int maxLen = getMaxLen(metricValues);
 
@@ -145,7 +148,7 @@ public final class LoggingMetricPublisher implements MetricPublisher {
         LOGGER.log(logLevel, () -> String.format("[%s]%s %s",
                                                  guid,
                                                  repeat(" ", indent),
-                                                 metrics.name()));
+                                                 LogSanitizer.escapeControlCharacters(metrics.name())));
 
         // Open box
         LOGGER.log(logLevel, () -> String.format("[%s]%s ┌%s┐",

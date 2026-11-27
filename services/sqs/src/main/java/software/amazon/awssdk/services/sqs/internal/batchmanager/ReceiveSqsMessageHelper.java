@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.LogSanitizer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
 
@@ -129,18 +130,20 @@ public class ReceiveSqsMessageHelper {
             if (nackedMessages != null) {
                 nackedMessages.whenComplete((response, throwable) -> {
                     if (throwable != null) {
-                        log.warn(() -> String.format(
-                            "Failed to reset the visibility timeout of unprocessed messages for queueUrl: %s. "
-                            + "As a result, these unprocessed messages will remain invisible in the queue for the "
-                            + "duration of the visibility timeout (%s).",
-                            queueUrl, visibilityTimeout
-                        ), throwable);
+                        if (log.logger().isWarnEnabled()) {
+                            log.warn(() -> String.format(
+                                "Failed to reset the visibility timeout of unprocessed messages for queueUrl: %s. "
+                                + "As a result, these unprocessed messages will remain invisible in the queue for the "
+                                + "duration of the visibility timeout (%s).",
+                                LogSanitizer.escapeControlCharacters(queueUrl), visibilityTimeout
+                            ), LogSanitizer.sanitize(throwable));
+                        }
                     } else if (!response.failed().isEmpty()) {
                         log.debug(() -> String.format(
                             "Failed to reset the visibility timeout of %d unprocessed messages for queueUrl: %s. "
                             + "As a result, these messages will remain invisible in the queue for the duration of the "
                             + "visibility timeout (%s).",
-                            response.failed().size(), queueUrl, visibilityTimeout));
+                            response.failed().size(), LogSanitizer.escapeControlCharacters(queueUrl), visibilityTimeout));
                     }
                 });
             }

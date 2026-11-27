@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Escape control characters in log messages that include HTTP requests, file paths, provider names, exceptions, or metric data. Exceptions that contain control characters are attached to log events as a sanitized wrapper whose message starts with the original exception class."
+}

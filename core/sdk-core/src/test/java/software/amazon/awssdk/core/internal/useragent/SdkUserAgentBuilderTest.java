@@ -27,13 +27,31 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-import org.junit.Test;
+import org.apache.logging.log4j.Level;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.util.SystemUserAgent;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 class SdkUserAgentBuilderTest {
+
+    @Test
+    void buildClientUserAgentString_whenLongAppIdContainsControlCharacters_escapesWarning() {
+        String appId = "123456789012345678901234567890123456789012345678901\nFORGED";
+        SdkClientUserAgentProperties properties = sdkProperties(null, null, null, appId, null);
+        SystemUserAgent systemUserAgent = customSysAgent("2.0", "os", "java", null, "vm", null, null, null);
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            SdkUserAgentBuilder.buildClientUserAgentString(systemUserAgent, properties);
+
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event ->
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("appId '123456789012345678901234567890123456789012345678901\\nFORGED'")
+                    .doesNotContain("\n", "\r"));
+        }
+    }
 
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource("inputValues")

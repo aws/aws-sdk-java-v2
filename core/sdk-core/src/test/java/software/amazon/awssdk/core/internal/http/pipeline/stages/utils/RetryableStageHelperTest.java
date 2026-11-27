@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,6 +39,7 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -55,6 +57,7 @@ import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
+import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Either;
 
@@ -271,6 +274,57 @@ public class RetryableStageHelperTest {
         return SdkClientConfiguration.builder()
                                      .option(SdkClientOption.RETRY_STRATEGY, strategy)
                                      .build();
+    }
+
+    @Test
+    void logSendingRequest_whenHeaderNameContainsControlCharacters_logsOneEscapedLine() {
+        SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .uri(URI.create("https://my-service.amazonaws.com"))
+                                                           .putHeader("x-amz-meta-a\r\nFORGED", "v")
+                                                           .build();
+        ExecutionContext executionContext = ExecutionContext.builder()
+                                                            .executionAttributes(ExecutionAttributes.builder().build())
+                                                            .build();
+        RequestExecutionContext context = RequestExecutionContext.builder()
+                                                                 .originalRequest(mock(SdkRequest.class))
+                                                                 .executionContext(executionContext)
+                                                                 .build();
+        SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
+                                                                    .option(SdkClientOption.RETRY_STRATEGY, mockRetryStrategy)
+                                                                    .build();
+        HttpClientDependencies dependencies = HttpClientDependencies.builder().clientConfiguration(clientConfig).build();
+        RetryableStageHelper helper = new RetryableStageHelper(httpRequest, context, dependencies);
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            helper.logSendingRequest();
+
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event ->
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("Request: ")
+                    .contains("x-amz-meta-a\\r\\nFORGED")
+                    .doesNotContain("\r", "\n"));
+        }
+    }
+
+    @Test
+    void logBackingOff_whenLastExceptionContainsControlCharacters_logsEscapedThrowable() {
+        RetryableStageHelper helper = makeTestHelper(ExecutionAttributes.builder().build());
+        SdkClientException lastException = SdkClientException.create("boom\r\nFORGED");
+        helper.setLastException(lastException);
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            helper.logBackingOff(Duration.ofMillis(10));
+            helper.logAcquireFailureBackingOff(Duration.ofMillis(10));
+
+            assertThat(logCaptor.loggedEvents())
+                .filteredOn(event -> event.getMessage().getFormattedMessage().contains("ms. Request attempt number"))
+                .hasSize(2)
+                .allSatisfy(event -> assertThat(event.getThrown().toString())
+                    .contains("boom\\r\\nFORGED")
+                    .doesNotContain("\r", "\n"));
+        }
+        assertThat(helper.getLastException()).isSameAs(lastException);
     }
 
     RetryableStageHelper makeTestHelper(ExecutionAttributes executionAttributes) {
