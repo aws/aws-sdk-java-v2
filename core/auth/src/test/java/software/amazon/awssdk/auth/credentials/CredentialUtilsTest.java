@@ -17,12 +17,21 @@ package software.amazon.awssdk.auth.credentials;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 
 public class CredentialUtilsTest {
+
+    private static final Instant SIGNING_INSTANT = Instant.parse("2024-01-01T00:00:00Z");
+    private static final Duration REQUESTED_DURATION = Duration.ofHours(2);
 
     @Test
     public void isAnonymous_AwsCredentials_true() {
@@ -122,5 +131,29 @@ public class CredentialUtilsTest {
         AwsCredentials credentials = credentialsProvider.resolveCredentials();
         assertThat(credentials.accessKeyId()).isEqualTo("akid");
         assertThat(credentials.secretAccessKey()).isEqualTo("skid");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("credentialExpirations")
+    public void calculateDurationCappedAtExpiration_givenExpirationTime_returnsExpectedDuration(
+        String scenario,
+        Instant expirationTime,
+        Duration expected) {
+        assertThat(CredentialUtils.calculateDurationCappedAtExpiration(REQUESTED_DURATION, SIGNING_INSTANT, expirationTime))
+            .isEqualTo(expected);
+    }
+
+    private static Stream<Arguments> credentialExpirations() {
+        return Stream.of(
+            Arguments.of("expires before requested end, capped", SIGNING_INSTANT.plus(Duration.ofHours(1)), Duration.ofHours(1)),
+            Arguments.of("fractional remaining, truncated to whole seconds",
+                         SIGNING_INSTANT.plus(Duration.ofMinutes(90)).plusMillis(700), Duration.ofMinutes(90)),
+            Arguments.of("expires at requested end, not capped", SIGNING_INSTANT.plus(REQUESTED_DURATION), REQUESTED_DURATION),
+            Arguments.of("expires after requested end, not capped", SIGNING_INSTANT.plus(Duration.ofHours(5)), REQUESTED_DURATION),
+            Arguments.of("no expiration, not capped", null, REQUESTED_DURATION),
+            Arguments.of("Instant.MAX expiration, not capped", Instant.MAX, REQUESTED_DURATION),
+            Arguments.of("under one second remaining, not capped", SIGNING_INSTANT.plusMillis(500), REQUESTED_DURATION),
+            Arguments.of("expires at signing instant, not capped", SIGNING_INSTANT, REQUESTED_DURATION),
+            Arguments.of("already expired, not capped", SIGNING_INSTANT.minus(Duration.ofMinutes(30)), REQUESTED_DURATION));
     }
 }
