@@ -158,14 +158,31 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
+        CompletableFuture<Void> streamFuture = cf;
         try {
-            // onStream may be called multiple times so reset the file channel every time
-            this.fileChannel = createChannel(path);
-            publisher.subscribe(new FileSubscriber(this.fileChannel, path, cf, this::exceptionOccurred,
+            // onStream may be called multiple times so reset the file channel every time. Clear it first so a failed open
+            // doesn't leave an earlier stream's channel for exceptionOccurred to delete.
+            this.fileChannel = null;
+            AsynchronousFileChannel streamChannel = createChannel(path);
+            this.fileChannel = streamChannel;
+            publisher.subscribe(new FileSubscriber(streamChannel, path, streamFuture,
+                                                   t -> streamFailed(streamChannel, streamFuture, t),
                                                    position));
         } catch (Throwable e) {
             exceptionOccurred(e);
         }
+    }
+
+    private void streamFailed(AsynchronousFileChannel streamChannel, CompletableFuture<Void> streamFuture, Throwable t) {
+        if (streamChannel == fileChannel) {
+            exceptionOccurred(t);
+            return;
+        }
+        // This stream no longer owns the transformer's state, so clean up only its own channel and future.
+        runAndLogError(log.logger(),
+                       String.format("Failed to close the file %s, resource may be leaked", path),
+                       streamChannel::close);
+        streamFuture.completeExceptionally(t);
     }
 
     @Override
