@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB",
+    "contributor": "petercipov",
+    "description": "Pass DynamoDbResponseMetadata via ItemEnhancedResponse objects to retrieve requestId using enhanced client"
+}
