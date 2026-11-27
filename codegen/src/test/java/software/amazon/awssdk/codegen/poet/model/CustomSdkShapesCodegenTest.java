@@ -16,12 +16,17 @@
 package software.amazon.awssdk.codegen.poet.model;
 
 
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.codegen.C2jModels;
@@ -64,5 +69,55 @@ public class CustomSdkShapesCodegenTest {
             memberNames.add(member.getName());
         }
         assertThat(memberNames).contains("CustomShape1","CustomShape2");
+    }
+
+    @Test
+    public void trustedStructureConfiguration_rejectsUnknownShape() throws IOException {
+        IntermediateModel model = model(Collections.emptyMap(),
+                                        singletonMap("MissingShape", singletonList("SimpleList")));
+
+        assertThatThrownBy(() -> source(model, "AllTypesRequest"))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void trustedStructureConfiguration_rejectsNonCollectionMember() throws IOException {
+        IntermediateModel model = model(Collections.emptyMap(),
+                                        singletonMap("AllTypesRequest", singletonList("StringMember")));
+
+        assertThatThrownBy(() -> source(model, "AllTypesRequest"))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void trustedUnionConfiguration_requiresDirectUnionConstructor() throws IOException {
+        IntermediateModel model = model(singletonMap("AllTypesRequest", singletonList("SimpleList")),
+                                        Collections.emptyMap());
+
+        assertThatThrownBy(() -> source(model, "AllTypesUnionStructure"))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private static IntermediateModel model(Map<String, List<String>> trustedUnions,
+                                           Map<String, List<String>> trustedStructures) throws IOException {
+        File serviceModelFile = new File(AwsModelSpecTest.class.getResource("service-2.json").getFile());
+        File customizationConfigFile = new File(AwsModelSpecTest.class
+                                                    .getResource("customization.config")
+                                                    .getFile());
+        ServiceModel serviceModel = ModelLoaderUtils.loadModel(ServiceModel.class, serviceModelFile);
+        CustomizationConfig config = ModelLoaderUtils.loadModel(CustomizationConfig.class, customizationConfigFile);
+        config.setGenerateTrustedUnionCollectionConstructors(trustedUnions);
+        config.setGenerateTrustedStructureCollectionBuilders(trustedStructures);
+
+        return new IntermediateModelBuilder(
+            C2jModels.builder()
+                     .serviceModel(serviceModel)
+                     .customizationConfig(config)
+                     .build())
+            .build();
+    }
+
+    private static String source(IntermediateModel model, String shapeName) {
+        return new AwsServiceModel(model, model.getShapes().get(shapeName)).poetSpec().toString();
     }
 }
