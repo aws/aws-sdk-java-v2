@@ -193,7 +193,10 @@ public final class Apache5HttpClient implements SdkHttpClient {
                //This is done to keep backward compatibility with Apache 4.x
                .disableRedirectHandling()
                // SDK handles retries , we do not need additional retries on Http clients.
-               .disableAutomaticRetries();
+               .disableAutomaticRetries()
+               // Each request gets a new context with no user token, so a connection pooled with a user token
+               // (the TLS client certificate's principal, when one is presented) would never be reused.
+               .disableConnectionState();
 
         addProxyConfig(builder, configuration);
 
