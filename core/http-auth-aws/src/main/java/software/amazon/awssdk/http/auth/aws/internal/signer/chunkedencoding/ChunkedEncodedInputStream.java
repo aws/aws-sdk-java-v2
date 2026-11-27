@@ -65,6 +65,7 @@ public final class ChunkedEncodedInputStream extends InputStream {
     private final List<ChunkExtensionProvider> extensions = new ArrayList<>();
     private final List<TrailerProvider> trailers = new ArrayList<>();
 
+    private byte[] chunkData;
     private Chunk currentChunk;
     private boolean isFinished = false;
 
@@ -108,14 +109,24 @@ public final class ChunkedEncodedInputStream extends InputStream {
         }
 
         // We have to read from the input stream into a format that can be used for signing and headers.
-        byte[] chunkData = new byte[chunkSize];
-        int read = read(stream, chunkData, chunkSize);
+        if (chunkData == null) {
+            chunkData = new byte[chunkSize];
+        }
+
+        int read;
+        try {
+            read = read(stream, chunkData, chunkSize);
+        } catch (IOException | RuntimeException e) {
+            chunkData = null;
+            throw e;
+        }
 
         if (read > 0) {
             // set the current chunk to the newly written chunk
             return getNextChunk(ByteBuffer.wrap(chunkData, 0, read));
         }
 
+        chunkData = null;
         LOG.debug(() -> "End of backing stream reached. Reading final chunk.");
         isFinished = true;
         // set the current chunk to the written final chunk
@@ -226,7 +237,15 @@ public final class ChunkedEncodedInputStream extends InputStream {
 
     @Override
     public void close() throws IOException {
-        inputStream.close();
+        try {
+            if (currentChunk != null) {
+                currentChunk.close();
+            }
+        } finally {
+            currentChunk = null;
+            chunkData = null;
+            inputStream.close();
+        }
     }
 
     public static class Builder {
@@ -333,4 +352,3 @@ public final class ChunkedEncodedInputStream extends InputStream {
         }
     }
 }
-
