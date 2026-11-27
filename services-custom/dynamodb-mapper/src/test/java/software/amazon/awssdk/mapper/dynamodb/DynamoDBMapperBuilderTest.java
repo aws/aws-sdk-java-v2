@@ -24,6 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
@@ -32,6 +33,7 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.ConsistentReads;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.SaveBehavior;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.TableNameOverride;
+import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
@@ -145,6 +147,46 @@ public class DynamoDBMapperBuilderTest {
     }
 
     @Test
+    public void build_withAttributeTransformer_requestDoesNotAliasTransformerResult() {
+        RetainingTransformer transformer = new RetainingTransformer();
+        DynamoDBMapper mapper = DynamoDBMapper.builder()
+                                              .dynamoDbClient(ddb)
+                                              .mapperConfig(SaveBehavior.CLOBBER.config())
+                                              .attributeTransformer(transformer)
+                                              .build();
+
+        mapper.save(item("new"));
+
+        ArgumentCaptor<PutItemRequest> captor = ArgumentCaptor.forClass(PutItemRequest.class);
+        verify(ddb).putItem(captor.capture());
+        transformer.returned.put("mutated", AttributeValue.builder().s("later").build());
+        assertFalse(captor.getValue().item().containsKey("mutated"));
+    }
+
+    @Test
+    public void build_load_resolvesTableModelOncePerOperation() throws Exception {
+        DynamoDBMapper mapper = DynamoDBMapper.builder().dynamoDbClient(ddb).build();
+        CountingModelFactory models = installCountingModelFactory(mapper);
+
+        mapper.load(StringItem.class, HASH_KEY);
+
+        assertEquals(1, models.lookups);
+    }
+
+    @Test
+    public void build_clobberSave_resolvesTableModelOncePerOperation() throws Exception {
+        DynamoDBMapper mapper = DynamoDBMapper.builder()
+                                              .dynamoDbClient(ddb)
+                                              .mapperConfig(SaveBehavior.CLOBBER.config())
+                                              .build();
+        CountingModelFactory models = installCountingModelFactory(mapper);
+
+        mapper.save(item("new"));
+
+        assertEquals(1, models.lookups);
+    }
+
+    @Test
     public void build_withLaterSetterCall_lastValueWins() {
         DynamoDBMapper mapper = DynamoDBMapper.builder()
                                               .dynamoDbClient(ddb)
@@ -187,6 +229,14 @@ public class DynamoDBMapperBuilderTest {
         return item;
     }
 
+    private static CountingModelFactory installCountingModelFactory(DynamoDBMapper mapper) throws Exception {
+        CountingModelFactory counting = new CountingModelFactory(StandardModelFactories.of());
+        Field models = DynamoDBMapper.class.getDeclaredField("models");
+        models.setAccessible(true);
+        models.set(mapper, counting);
+        return counting;
+    }
+
     @DynamoDBTable(tableName = "M_String")
     public static class StringItem {
         private String id;
@@ -227,6 +277,36 @@ public class DynamoDBMapperBuilderTest {
             Map<String, AttributeValue> copy = new HashMap<>(attributes);
             copy.put("value", AttributeValue.builder().s(value).build());
             return copy;
+        }
+    }
+
+    private static final class RetainingTransformer implements AttributeTransformer {
+        private Map<String, AttributeValue> returned;
+
+        @Override
+        public Map<String, AttributeValue> transform(Parameters<?> parameters) {
+            returned = new HashMap<>(parameters.getAttributeValues());
+            return returned;
+        }
+
+        @Override
+        public Map<String, AttributeValue> untransform(Parameters<?> parameters) {
+            return parameters.getAttributeValues();
+        }
+    }
+
+    private static final class CountingModelFactory implements DynamoDBMapperModelFactory {
+        private final DynamoDBMapperModelFactory delegate;
+        private int lookups;
+
+        private CountingModelFactory(DynamoDBMapperModelFactory delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public TableFactory getTableFactory(DynamoDBMapperConfig config) {
+            lookups++;
+            return delegate.getTableFactory(config);
         }
     }
 }

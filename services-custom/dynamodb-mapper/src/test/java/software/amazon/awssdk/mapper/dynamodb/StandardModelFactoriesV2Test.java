@@ -17,6 +17,7 @@ package software.amazon.awssdk.mapper.dynamodb;
 import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -31,6 +32,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -333,6 +335,24 @@ public class StandardModelFactoriesV2Test {
     }
 
     @Test
+    public void emptyListAndMap_areExplicitValuesAndRoundTrip() {
+        DynamoDBMapperTableModel<EmptyCollections> model = models.getTable(EmptyCollections.class);
+        DynamoDBMapperFieldModel<EmptyCollections, List<String>> listField = model.field("list");
+        DynamoDBMapperFieldModel<EmptyCollections, Map<String, String>> mapField = model.field("map");
+
+        AttributeValue listValue = listField.convert(Collections.<String>emptyList());
+        AttributeValue mapValue = mapField.convert(Collections.<String, String>emptyMap());
+
+        assertTrue(listValue.hasL());
+        assertTrue(listValue.l().isEmpty());
+        assertEquals(Collections.emptyList(), listField.unconvert(listValue));
+
+        assertTrue(mapValue.hasM());
+        assertTrue(mapValue.m().isEmpty());
+        assertEquals(Collections.emptyMap(), mapField.unconvert(mapValue));
+    }
+
+    @Test
     public void testSetMap() {
         assertEquals(new HashMap<String, AttributeValue>() {{
                 put("a", AttributeValue.builder().ss("a", "b").build());
@@ -380,6 +400,29 @@ public class StandardModelFactoriesV2Test {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static final class EmptyCollections {
+        private List<String> list;
+        private Map<String, String> map;
+
+        @DynamoDBAttribute(attributeName = "list")
+        public List<String> getList() {
+            return list;
+        }
+
+        public void setList(List<String> list) {
+            this.list = list;
+        }
+
+        @DynamoDBAttribute(attributeName = "map")
+        public Map<String, String> getMap() {
+            return map;
+        }
+
+        public void setMap(Map<String, String> map) {
+            this.map = map;
         }
     }
 

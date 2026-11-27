@@ -70,7 +70,7 @@ public class MapToMapMarshaller implements MapAttributeMarshaller {
             values.put(entry.getKey(), value);
         }
 
-        return AttributeValue.builder().m(values).build();
+        return AttributeValue.createMTrusted(values);
     }
 
     public ArgumentMarshaller getMemberMarshaller() {
