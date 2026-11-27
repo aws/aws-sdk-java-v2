@@ -36,8 +36,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.URI;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,6 +50,7 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 class RepeatableInputStreamRequestEntityTest {
 
@@ -116,6 +120,41 @@ class RepeatableInputStreamRequestEntityTest {
                                                        .build();
         entity = new RepeatableInputStreamRequestEntity(request);
         assertEquals(contentType, entity.getContentType());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "text/plain; charset=\r\nWARN com.example.audit - injected",
+        "text/plain; charset=evil\u001b[2Jname",
+        "text/plain; charset=nosuchcharsetxyz"
+    })
+    @DisplayName("Unparseable content type should not be written to the log")
+    void constructor_WithUnparseableContentType_DoesNotLogHeaderValue(String contentType) {
+        SdkHttpRequest httpRequest = httpRequestBuilder
+            .putHeader("Content-Type", contentType)
+            .build();
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                       .request(httpRequest)
+                                                       .build();
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            entity = assertDoesNotThrow(() -> new RepeatableInputStreamRequestEntity(request));
+            assertNull(entity.getContentType());
+
+            List<LogEvent> events = logCaptor.loggedEvents();
+            assertTrue(events.stream()
+                             .anyMatch(e -> e.getMessage().getFormattedMessage().contains("Unable to parse")));
+            for (LogEvent event : events) {
+                String message = event.getMessage().getFormattedMessage();
+                assertFalse(message.contains("\r"), message);
+                assertFalse(message.contains("\n"), message);
+                assertFalse(message.contains("\u001b"), message);
+                assertFalse(message.contains("injected"), message);
+                assertFalse(message.contains("evil"), message);
+                assertFalse(message.contains("nosuchcharsetxyz"), message);
+                assertNull(event.getThrown());
+            }
+        }
     }
 
     @Test
