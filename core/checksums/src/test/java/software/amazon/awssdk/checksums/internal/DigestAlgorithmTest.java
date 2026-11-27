@@ -169,4 +169,53 @@ class DigestAlgorithmTest {
         CloseableMessageDigest digest = DigestAlgorithm.SHA1.getDigest();
         assertThat(digest).isNotNull();
     }
+
+    @Test
+    void cacheHoldsAtMostMaxDigests() {
+        int maxCached = 10_000;
+        int total = maxCached + 5;
+        List<CloseableMessageDigest> digests = new ArrayList<>();
+        List<MessageDigest> originals = new ArrayList<>();
+        for (int i = 0; i < total; i++) {
+            CloseableMessageDigest digest = DigestAlgorithm.SHA1.getDigest();
+            digests.add(digest);
+            originals.add(digest.messageDigest());
+        }
+        digests.forEach(CloseableMessageDigest::close);
+
+        int reused = 0;
+        for (int i = 0; i < total; i++) {
+            MessageDigest md = DigestAlgorithm.SHA1.getDigest().messageDigest();
+            if (originals.stream().anyMatch(o -> o == md)) {
+                reused++;
+            }
+        }
+        assertThat(reused).isEqualTo(maxCached);
+    }
+
+    @Test
+    void concurrentUse_producesCorrectDigestsAndStaysUsable() throws Exception {
+        int threads = 8;
+        java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newFixedThreadPool(threads);
+        try {
+            List<java.util.concurrent.Future<Boolean>> results = new ArrayList<>();
+            for (int t = 0; t < threads; t++) {
+                results.add(executor.submit(() -> {
+                    for (int i = 0; i < 2_000; i++) {
+                        CloseableMessageDigest digest = DigestAlgorithm.SHA1.getDigest();
+                        digest.messageDigest().update("Hello, World!".getBytes(StandardCharsets.UTF_8));
+                        if (!"CgqfKmdylCVXq1NV12r0Qvj2XgE=".equals(BinaryUtils.toBase64(digest.digest()))) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }));
+            }
+            for (java.util.concurrent.Future<Boolean> result : results) {
+                assertThat(result.get()).isTrue();
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
 }

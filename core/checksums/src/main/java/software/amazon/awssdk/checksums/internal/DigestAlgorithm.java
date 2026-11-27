@@ -18,7 +18,8 @@ package software.amazon.awssdk.checksums.internal;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Deque;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -39,7 +40,10 @@ public enum DigestAlgorithm {
 
     private static final int MAX_CACHED_DIGESTS = 10_000;
     private final String algorithmName;
-    private final Deque<MessageDigest> digestCache = new LinkedBlockingDeque<>(MAX_CACHED_DIGESTS); // LIFO
+    // A lock-free deque is used so that getting and releasing a digest never parks a thread, which matters on the
+    // non-blocking paths of the async clients. The size is tracked separately to keep the cache bounded.
+    private final Deque<MessageDigest> digestCache = new ConcurrentLinkedDeque<>(); // LIFO
+    private final AtomicInteger digestCacheSize = new AtomicInteger();
 
     DigestAlgorithm(String algorithmName) {
         this.algorithmName = algorithmName;
@@ -55,6 +59,7 @@ public enum DigestAlgorithm {
     public CloseableMessageDigest getDigest() {
         MessageDigest digest = digestCache.pollFirst();
         if (digest != null) {
+            digestCacheSize.decrementAndGet();
             digest.reset();
             return new CloseableMessageDigest(digest);
         }
@@ -74,6 +79,7 @@ public enum DigestAlgorithm {
     static void clearCaches() {
         for (DigestAlgorithm value : values()) {
             value.digestCache.clear();
+            value.digestCacheSize.set(0);
         }
     }
 
@@ -115,8 +121,12 @@ public enum DigestAlgorithm {
                 return;
             }
 
-            // Drop this digest is the cache is full.
-            digestCache.offerFirst(digest.get());
+            // Drop this digest if the cache is full.
+            if (digestCacheSize.incrementAndGet() <= MAX_CACHED_DIGESTS) {
+                digestCache.offerFirst(digest.get());
+            } else {
+                digestCacheSize.decrementAndGet();
+            }
 
             digest = CLOSED_DIGEST;
         }
