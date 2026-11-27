@@ -22,10 +22,14 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.operations.Updat
 import static software.amazon.awssdk.utils.CollectionUtils.filterMap;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -43,6 +47,12 @@ public final class UpdateExpressionUtils {
 
     private static final Pattern PATTERN = Pattern.compile(NESTED_OBJECT_UPDATE);
 
+    /**
+     * Expression attribute name placeholders are {@code #} followed by one or more word characters. Matching whole tokens
+     * avoids prefix collisions such as {@code #attr} vs {@code #attribute}.
+     */
+    private static final Pattern EXPRESSION_NAME_TOKEN = Pattern.compile("#[\\w]+");
+
     private UpdateExpressionUtils() {
     }
 
@@ -54,31 +64,34 @@ public final class UpdateExpressionUtils {
     }
 
     /**
-     * Generates an UpdateExpression representing a POJO, with only SET and REMOVE actions.
+     * SET actions for every {@code itemMap} entry that is not DynamoDB NULL. For each attribute, {@link UpdateBehavior} is
+     * resolved from {@code tableMetadata}.
      */
-    public static UpdateExpression operationExpression(Map<String, AttributeValue> itemMap,
-                                                       TableMetadata tableMetadata,
-                                                       List<String> nonRemoveAttributes) {
-
+    static UpdateExpression generateItemSetExpression(Map<String, AttributeValue> itemMap,
+                                                      TableMetadata tableMetadata) {
         Map<String, AttributeValue> setAttributes = filterMap(itemMap, e -> !isNullAttributeValue(e.getValue()));
-        UpdateExpression setAttributeExpression = UpdateExpression.builder()
-                                                                  .actions(setActionsFor(setAttributes, tableMetadata))
-                                                                  .build();
+        return UpdateExpression.builder()
+                               .actions(setActionsFor(setAttributes, tableMetadata))
+                               .build();
+    }
 
-        Map<String, AttributeValue> removeAttributes =
-            filterMap(itemMap, e -> isNullAttributeValue(e.getValue()) && !nonRemoveAttributes.contains(e.getKey()));
-
-        UpdateExpression removeAttributeExpression = UpdateExpression.builder()
-                                                                     .actions(removeActionsFor(removeAttributes))
-                                                                     .build();
-
-        return UpdateExpression.mergeExpressions(setAttributeExpression, removeAttributeExpression);
+    /**
+     * REMOVE actions for NULL-valued {@code itemMap} attributes, except names in {@code nonRemoveAttributes} (e.g. already
+     * updated elsewhere when merging expressions).
+     */
+    static UpdateExpression generateItemRemoveExpression(Map<String, AttributeValue> itemMap,
+                                                         Collection<String> nonRemoveAttributes) {
+        Map<String, AttributeValue> removeAttributes = filterMap(itemMap, e -> isNullAttributeValue(e.getValue())
+                                                                               && !nonRemoveAttributes.contains(e.getKey()));
+        return UpdateExpression.builder()
+                               .actions(removeActionsFor(removeAttributes))
+                               .build();
     }
 
     /**
      * Creates a list of SET actions for all attributes supplied in the map.
      */
-    private static List<SetAction> setActionsFor(Map<String, AttributeValue> attributesToSet, TableMetadata tableMetadata) {
+    static List<SetAction> setActionsFor(Map<String, AttributeValue> attributesToSet, TableMetadata tableMetadata) {
         return attributesToSet.entrySet()
                               .stream()
                               .map(entry -> setValue(entry.getKey(),
@@ -90,11 +103,48 @@ public final class UpdateExpressionUtils {
     /**
      * Creates a list of REMOVE actions for all attributes supplied in the map.
      */
-    private static List<RemoveAction> removeActionsFor(Map<String, AttributeValue> attributesToSet) {
+    static List<RemoveAction> removeActionsFor(Map<String, AttributeValue> attributesToSet) {
         return attributesToSet.entrySet()
                               .stream()
                               .map(entry -> remove(entry.getKey()))
                               .collect(Collectors.toList());
+    }
+
+    /**
+     * Distinct top-level names from non-null expressions (see {@link UpdateExpressionConverter#findAttributeNames}). Skips
+     * {@code null} elements; used to avoid REMOVE when those attributes are updated in other expressions.
+     */
+    static Set<String> attributesPresentInOtherExpressions(Collection<UpdateExpression> updateExpressions) {
+        return updateExpressions.stream()
+                                .filter(Objects::nonNull)
+                                .map(UpdateExpressionConverter::findAttributeNames)
+                                .flatMap(List::stream)
+                                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Resolves an update path by substituting whole expression attribute name placeholders (e.g. {@code #a} → logical name).
+     * Only complete {@code #[\\w]+} tokens are replaced, so a shorter placeholder such as {@code #attr} cannot corrupt a longer
+     * one such as {@code #attribute}. The result is the full DynamoDB document path as used for overlap detection.
+     */
+    static String resolveDocumentPath(String fullAttributePath, Map<String, String> expressionNames) {
+        if (fullAttributePath == null) {
+            return null;
+        }
+        Map<String, String> names = expressionNames == null ? Collections.emptyMap() : expressionNames;
+        if (names.isEmpty()) {
+            return fullAttributePath;
+        }
+
+        Matcher matcher = EXPRESSION_NAME_TOKEN.matcher(fullAttributePath);
+        StringBuffer resolved = new StringBuffer();
+        while (matcher.find()) {
+            String token = matcher.group();
+            String replacement = names.getOrDefault(token, token);
+            matcher.appendReplacement(resolved, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(resolved);
+        return resolved.toString();
     }
 
     /**

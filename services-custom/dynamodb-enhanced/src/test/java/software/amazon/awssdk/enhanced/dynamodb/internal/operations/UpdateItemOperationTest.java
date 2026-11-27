@@ -53,8 +53,10 @@ import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.update.DeleteAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -395,6 +397,441 @@ public class UpdateItemOperationTest {
         assertThat(request.conditionExpression(), is("condition"));
         assertThat(request.updateExpression(), is("DELETE attr1 :val"));
         assertThat(request.expressionAttributeValues(), is(Expression.joinValues(fakeMap, deleteActionMap)));
+    }
+
+    @Test
+    public void generateRequest_withRequestUpdateExpression_only_generatesUpdateItemRequest() {
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("only_from_request")
+                                                .value(":v")
+                                                .putExpressionValue(":v", AttributeValue.builder().s("req").build())
+                                                .build())
+                            .build();
+
+        FakeItem item = createUniqueFakeItem();
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItem(item,
+                                                       b -> b.ignoreNulls(true).updateExpression(requestExpression)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+
+        assertThat(request.updateExpression(), is("SET only_from_request = :v"));
+        assertThat(request.expressionAttributeValues(), is(singletonMap(":v", AttributeValue.builder().s("req").build())));
+    }
+
+    @Test
+    public void generateRequest_extensionAndRequest_mergeStrategyLegacy_mergesExpressions() {
+        Map<String, AttributeValue> deleteActionMap = singletonMap(":val", AttributeValue.builder().s("s").build());
+        DeleteAction deleteAction = DeleteAction.builder().path("attr1")
+                                                .value(":val")
+                                                .expressionValues(deleteActionMap)
+                                                .build();
+        UpdateExpression extensionExpression = UpdateExpression.builder().addAction(deleteAction).build();
+
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("attr2")
+                                                .value(":v2")
+                                                .putExpressionValue(":v2", AttributeValue.builder().n("1").build())
+                                                .build())
+                            .build();
+
+        FakeItem item = createUniqueFakeItem();
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
+            .thenReturn(WriteModification.builder().updateExpression(extensionExpression).build());
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItem(item,
+                                                       b -> b.ignoreNulls(true)
+                                                             .updateExpression(requestExpression)
+                                                             .updateExpressionMergeStrategy(
+                                                                 UpdateExpressionMergeStrategy.LEGACY)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        mockDynamoDbEnhancedClientExtension);
+
+        assertThat(request.updateExpression(), is("SET attr2 = :v2 DELETE attr1 :val"));
+        assertThat(request.expressionAttributeValues(), is(Expression.joinValues(deleteActionMap,
+                                                                                 singletonMap(":v2", numberValue(1)))));
+    }
+
+    @Test
+    public void generateRequest_extensionAndRequest_mergeStrategyPrioritize_nonOverlapping_mergesBoth() {
+        Map<String, AttributeValue> deleteActionMap = singletonMap(":val", AttributeValue.builder().s("s").build());
+        DeleteAction deleteAction = DeleteAction.builder().path("attr1")
+                                                .value(":val")
+                                                .expressionValues(deleteActionMap)
+                                                .build();
+        UpdateExpression extensionExpression = UpdateExpression.builder().addAction(deleteAction).build();
+
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("attr2")
+                                                .value(":v2")
+                                                .putExpressionValue(":v2", AttributeValue.builder().n("1").build())
+                                                .build())
+                            .build();
+
+        FakeItem item = createUniqueFakeItem();
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
+            .thenReturn(WriteModification.builder().updateExpression(extensionExpression).build());
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItem(item,
+                                                       b -> b.ignoreNulls(true)
+                                                             .updateExpression(requestExpression)
+                                                             .updateExpressionMergeStrategy(
+                                                                 UpdateExpressionMergeStrategy.PRIORITIZE_HIGHER_SOURCE)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        mockDynamoDbEnhancedClientExtension);
+
+        assertThat(request.updateExpression(), is("SET attr2 = :v2 DELETE attr1 :val"));
+        assertThat(request.expressionAttributeValues(), is(Expression.joinValues(deleteActionMap,
+                                                                                 singletonMap(":v2", numberValue(1)))));
+    }
+
+    @Test
+    public void generateRequest_extensionAndRequest_mergeStrategyPrioritize_requestWinsOnSamePath() {
+        UpdateExpression extensionExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("subclass_attribute")
+                                                .value(":extVal")
+                                                .putExpressionValue(":extVal", AttributeValue.builder().s("fromExt").build())
+                                                .build())
+                            .build();
+
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("subclass_attribute")
+                                                .value(":reqVal")
+                                                .putExpressionValue(":reqVal", AttributeValue.builder().s("fromReq").build())
+                                                .build())
+                            .build();
+
+        FakeItem item = createUniqueFakeItem();
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
+            .thenReturn(WriteModification.builder().updateExpression(extensionExpression).build());
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItem(item,
+                                                       b -> b.ignoreNulls(true)
+                                                             .updateExpression(requestExpression)
+                                                             .updateExpressionMergeStrategy(
+                                                                 UpdateExpressionMergeStrategy.PRIORITIZE_HIGHER_SOURCE)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        mockDynamoDbEnhancedClientExtension);
+
+        assertThat(request.updateExpression(), is("SET subclass_attribute = :reqVal"));
+        assertThat(request.expressionAttributeValues(),
+                   is(singletonMap(":reqVal", AttributeValue.builder().s("fromReq").build())));
+    }
+
+    @Test
+    public void generateRequest_extensionAndRequest_mergeStrategyLegacy_samePath_keepsBothSetActions() {
+        UpdateExpression extensionExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("subclass_attribute")
+                                                .value(":extVal")
+                                                .putExpressionValue(":extVal", AttributeValue.builder().s("fromExt").build())
+                                                .build())
+                            .build();
+
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("subclass_attribute")
+                                                .value(":reqVal")
+                                                .putExpressionValue(":reqVal", AttributeValue.builder().s("fromReq").build())
+                                                .build())
+                            .build();
+
+        FakeItem item = createUniqueFakeItem();
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
+            .thenReturn(WriteModification.builder().updateExpression(extensionExpression).build());
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItem(item,
+                                                       b -> b.ignoreNulls(true)
+                                                             .updateExpression(requestExpression)
+                                                             .updateExpressionMergeStrategy(
+                                                                 UpdateExpressionMergeStrategy.LEGACY)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        mockDynamoDbEnhancedClientExtension);
+
+        assertThat(request.updateExpression(),
+                   is("SET subclass_attribute = :extVal, subclass_attribute = :reqVal"));
+        Map<String, AttributeValue> expectedValues = new HashMap<>();
+        expectedValues.put(":extVal", AttributeValue.builder().s("fromExt").build());
+        expectedValues.put(":reqVal", AttributeValue.builder().s("fromReq").build());
+        assertThat(request.expressionAttributeValues(), is(expectedValues));
+    }
+
+    @Test
+    public void generateRequest_pojoAndRequest_mergeStrategyLegacy_mergesExpressions() {
+        FakeItemWithSort item = createUniqueFakeItemWithSort();
+        item.setOtherAttribute1("value-1");
+        item.setOtherAttribute2("value-2");
+
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("attr_from_request")
+                                                .value(":r")
+                                                .putExpressionValue(":r", AttributeValue.builder().s("req").build())
+                                                .build())
+                            .build();
+
+        UpdateItemOperation<FakeItemWithSort> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItemWithSort(item,
+                                                               b -> b.ignoreNulls(false)
+                                                                     .updateExpression(requestExpression)
+                                                                     .updateExpressionMergeStrategy(
+                                                                         UpdateExpressionMergeStrategy.LEGACY)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+
+        String setPojoFirst =
+            "SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE + ", "
+            + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE + ", attr_from_request = :r";
+        String setPojoSecond =
+            "SET " + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE + ", "
+            + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE + ", attr_from_request = :r";
+        Map<String, AttributeValue> expectedValues =
+            Expression.joinValues(expressionValuesFor(OTHER_ATTRIBUTE_1_VALUE, OTHER_ATTRIBUTE_2_VALUE),
+                                  singletonMap(":r", AttributeValue.builder().s("req").build()));
+
+        assertThat(request.updateExpression(), either(is(setPojoFirst)).or(is(setPojoSecond)));
+        assertThat(request.expressionAttributeValues(), is(expectedValues));
+        assertThat(request.expressionAttributeNames(), is(expressionNamesFor(OTHER_ATTRIBUTE_1_NAME, OTHER_ATTRIBUTE_2_NAME)));
+    }
+
+    @Test
+    public void generateRequest_pojoAndExtension_mergeStrategyLegacy_mergesExpressions() {
+        FakeItemWithSort item = createUniqueFakeItemWithSort();
+        item.setOtherAttribute1("value-1");
+        item.setOtherAttribute2("value-2");
+
+        Map<String, AttributeValue> deleteActionMap = singletonMap(":val", AttributeValue.builder().s("s").build());
+        DeleteAction deleteAction = DeleteAction.builder().path("attr1")
+                                                .value(":val")
+                                                .expressionValues(deleteActionMap)
+                                                .build();
+        UpdateExpression extensionExpression = UpdateExpression.builder().addAction(deleteAction).build();
+
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
+            .thenReturn(WriteModification.builder().updateExpression(extensionExpression).build());
+
+        UpdateItemOperation<FakeItemWithSort> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItemWithSort(item,
+                                                               b -> b.ignoreNulls(false)
+                                                                     .updateExpressionMergeStrategy(
+                                                                         UpdateExpressionMergeStrategy.LEGACY)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        mockDynamoDbEnhancedClientExtension);
+
+        String setPojoFirst =
+            "SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE + ", "
+            + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE + " DELETE attr1 :val";
+        String setPojoSecond =
+            "SET " + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE + ", "
+            + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE + " DELETE attr1 :val";
+        Map<String, AttributeValue> expectedValues =
+            Expression.joinValues(expressionValuesFor(OTHER_ATTRIBUTE_1_VALUE, OTHER_ATTRIBUTE_2_VALUE), deleteActionMap);
+
+        assertThat(request.updateExpression(), either(is(setPojoFirst)).or(is(setPojoSecond)));
+        assertThat(request.expressionAttributeValues(), is(expectedValues));
+        assertThat(request.expressionAttributeNames(), is(expressionNamesFor(OTHER_ATTRIBUTE_1_NAME, OTHER_ATTRIBUTE_2_NAME)));
+    }
+
+    @Test
+    public void generateRequest_pojoExtensionAndRequest_mergeStrategyLegacy_mergesExpressions() {
+        FakeItemWithSort item = createUniqueFakeItemWithSort();
+        item.setOtherAttribute1("value-1");
+        item.setOtherAttribute2("value-2");
+
+        Map<String, AttributeValue> deleteActionMap = singletonMap(":val", AttributeValue.builder().s("s").build());
+        DeleteAction deleteAction = DeleteAction.builder().path("attr1")
+                                                .value(":val")
+                                                .expressionValues(deleteActionMap)
+                                                .build();
+        UpdateExpression extensionExpression = UpdateExpression.builder().addAction(deleteAction).build();
+
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("attr2")
+                                                .value(":v2")
+                                                .putExpressionValue(":v2", AttributeValue.builder().n("1").build())
+                                                .build())
+                            .build();
+
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
+            .thenReturn(WriteModification.builder().updateExpression(extensionExpression).build());
+
+        UpdateItemOperation<FakeItemWithSort> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItemWithSort(item,
+                                                               b -> b.ignoreNulls(false)
+                                                                     .updateExpression(requestExpression)
+                                                                     .updateExpressionMergeStrategy(
+                                                                         UpdateExpressionMergeStrategy.LEGACY)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        mockDynamoDbEnhancedClientExtension);
+
+        String setPojoFirst =
+            "SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE + ", "
+            + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE + ", attr2 = :v2 DELETE attr1 :val";
+        String setPojoSecond =
+            "SET " + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE + ", "
+            + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE + ", attr2 = :v2 DELETE attr1 :val";
+        Map<String, AttributeValue> expectedValues =
+            Expression.joinValues(
+                Expression.joinValues(expressionValuesFor(OTHER_ATTRIBUTE_1_VALUE, OTHER_ATTRIBUTE_2_VALUE), deleteActionMap),
+                singletonMap(":v2", numberValue(1)));
+
+        assertThat(request.updateExpression(), either(is(setPojoFirst)).or(is(setPojoSecond)));
+        assertThat(request.expressionAttributeValues(), is(expectedValues));
+        assertThat(request.expressionAttributeNames(), is(expressionNamesFor(OTHER_ATTRIBUTE_1_NAME, OTHER_ATTRIBUTE_2_NAME)));
+    }
+
+    @Test
+    public void generateRequest_pojoAndRequest_mergeStrategyPrioritize_requestWinsOverlappingPath() {
+        FakeItemWithSort item = createUniqueFakeItemWithSort();
+        item.setOtherAttribute1("value-1");
+        item.setOtherAttribute2("value-2");
+
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("other_attribute_1")
+                                                .value(":reqVal")
+                                                .putExpressionValue(":reqVal", AttributeValue.builder().s("fromReq").build())
+                                                .build())
+                            .build();
+
+        UpdateItemOperation<FakeItemWithSort> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItemWithSort(item,
+                                                               b -> b.ignoreNulls(false)
+                                                                     .updateExpression(requestExpression)
+                                                                     .updateExpressionMergeStrategy(
+                                                                         UpdateExpressionMergeStrategy.PRIORITIZE_HIGHER_SOURCE)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+
+        assertThat(request.updateExpression(),
+                   is("SET other_attribute_1 = :reqVal, " + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE));
+        assertThat(request.expressionAttributeValues(),
+                   is(Expression.joinValues(singletonMap(":reqVal", AttributeValue.builder().s("fromReq").build()),
+                                            expressionValuesFor(OTHER_ATTRIBUTE_2_VALUE))));
+        assertThat(request.expressionAttributeNames(), is(expressionNamesFor(OTHER_ATTRIBUTE_2_NAME)));
+    }
+
+    @Test
+    public void generateRequest_pojoAndExtension_mergeStrategyPrioritize_extensionWinsOverlappingPath() {
+        FakeItemWithSort item = createUniqueFakeItemWithSort();
+        item.setOtherAttribute1("value-1");
+        item.setOtherAttribute2("value-2");
+
+        UpdateExpression extensionExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("other_attribute_1")
+                                                .value(":extVal")
+                                                .putExpressionValue(":extVal", AttributeValue.builder().s("fromExt").build())
+                                                .build())
+                            .build();
+
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
+            .thenReturn(WriteModification.builder().updateExpression(extensionExpression).build());
+
+        UpdateItemOperation<FakeItemWithSort> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItemWithSort(item,
+                                                               b -> b.ignoreNulls(false)
+                                                                     .updateExpressionMergeStrategy(
+                                                                         UpdateExpressionMergeStrategy.PRIORITIZE_HIGHER_SOURCE)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        mockDynamoDbEnhancedClientExtension);
+
+        assertThat(request.updateExpression(),
+                   is("SET other_attribute_1 = :extVal, " + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE));
+        assertThat(request.expressionAttributeValues(),
+                   is(Expression.joinValues(singletonMap(":extVal", AttributeValue.builder().s("fromExt").build()),
+                                            expressionValuesFor(OTHER_ATTRIBUTE_2_VALUE))));
+        assertThat(request.expressionAttributeNames(), is(expressionNamesFor(OTHER_ATTRIBUTE_2_NAME)));
+    }
+
+    @Test
+    public void generateRequest_pojoExtensionAndRequest_mergeStrategyPrioritize_resolvesPathPriority() {
+        FakeItemWithSort item = createUniqueFakeItemWithSort();
+        item.setOtherAttribute1("value-1");
+        item.setOtherAttribute2("value-2");
+
+        UpdateExpression extensionExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("other_attribute_1")
+                                                .value(":extVal")
+                                                .putExpressionValue(":extVal", AttributeValue.builder().s("fromExt").build())
+                                                .build())
+                            .build();
+
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("isolated_attr")
+                                                .value(":reqVal")
+                                                .putExpressionValue(":reqVal", AttributeValue.builder().s("fromReq").build())
+                                                .build())
+                            .build();
+
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
+            .thenReturn(WriteModification.builder().updateExpression(extensionExpression).build());
+
+        UpdateItemOperation<FakeItemWithSort> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItemWithSort(item,
+                                                               b -> b.ignoreNulls(false)
+                                                                     .updateExpression(requestExpression)
+                                                                     .updateExpressionMergeStrategy(
+                                                                         UpdateExpressionMergeStrategy.PRIORITIZE_HIGHER_SOURCE)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        mockDynamoDbEnhancedClientExtension);
+
+        assertThat(request.updateExpression(),
+                   is("SET isolated_attr = :reqVal, other_attribute_1 = :extVal, "
+                      + OTHER_ATTRIBUTE_2_NAME + " = " + OTHER_ATTRIBUTE_2_VALUE));
+        Map<String, AttributeValue> expectedValues = new HashMap<>();
+        expectedValues.put(":reqVal", AttributeValue.builder().s("fromReq").build());
+        expectedValues.put(":extVal", AttributeValue.builder().s("fromExt").build());
+        expectedValues.put(OTHER_ATTRIBUTE_2_VALUE, EXPRESSION_VALUES.get(OTHER_ATTRIBUTE_2_VALUE));
+        assertThat(request.expressionAttributeValues(), is(expectedValues));
+        assertThat(request.expressionAttributeNames(), is(expressionNamesFor(OTHER_ATTRIBUTE_2_NAME)));
     }
 
     @Test
