@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Use a non-blocking cache for message digests so that computing checksums no longer takes a lock on async code paths. Fixes [#6590](https://github.com/aws/aws-sdk-java-v2/issues/6590)."
+}
