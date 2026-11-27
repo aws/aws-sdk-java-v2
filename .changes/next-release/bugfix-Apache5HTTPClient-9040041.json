@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Apache 5 HTTP Client",
+    "description": "Fixed an issue where `Apache5HttpClient` opened a new connection for every request, instead of reusing pooled connections, when it presented a TLS client certificate.",
+    "contributor": "jaeyeonme"
+}
