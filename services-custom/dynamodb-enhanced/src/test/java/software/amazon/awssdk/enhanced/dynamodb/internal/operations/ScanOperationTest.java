@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -46,6 +47,7 @@ import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
@@ -227,6 +229,103 @@ public class ScanOperationTest {
                 .expressionAttributeNames(expectedExpressionAttributeNames)
                 .build();
         assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_projectionExpressionWithListDereference() {
+        ScanOperation<FakeItem> operation = ScanOperation.create(
+                ScanEnhancedRequest.builder()
+                        .addAttributeToProject("tags[0]")
+                        .build()
+        );
+        ScanRequest request = operation.generateRequest(FakeItem.getTableSchema(),
+                PRIMARY_CONTEXT,
+                null);
+
+        ScanRequest expectedRequest = ScanRequest.builder()
+                .tableName(TABLE_NAME)
+                .projectionExpression("#AMZN_MAPPED_tags[0]")
+                .expressionAttributeNames(singletonMap("#AMZN_MAPPED_tags", "tags"))
+                .build();
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_filterAndListProjection_mergesExpressionNames() {
+        Expression filterExpression = Expression.builder()
+                .expression("#status = :status")
+                .putExpressionName("#status", "status")
+                .putExpressionValue(":status", stringValue("active"))
+                .build();
+
+        ScanOperation<FakeItem> operation = ScanOperation.create(
+                ScanEnhancedRequest.builder()
+                        .filterExpression(filterExpression)
+                        .addNestedAttributeToProject(NestedAttributeName.create("phoneNumbers[1]", "type"))
+                        .build()
+        );
+        ScanRequest request = operation.generateRequest(FakeItem.getTableSchema(),
+                PRIMARY_CONTEXT,
+                null);
+
+        assertThat(request.filterExpression(), is("#status = :status"));
+        assertThat(request.projectionExpression(),
+                   is("#AMZN_MAPPED_phoneNumbers[1].#AMZN_MAPPED_type"));
+        assertThat(request.expressionAttributeNames(), hasEntry("#status", "status"));
+        assertThat(request.expressionAttributeNames(), hasEntry("#AMZN_MAPPED_phoneNumbers", "phoneNumbers"));
+        assertThat(request.expressionAttributeNames(), hasEntry("#AMZN_MAPPED_type", "type"));
+        assertThat(request.expressionAttributeValues(), hasEntry(":status", stringValue("active")));
+    }
+
+    @Test
+    public void generateRequest_filterAndListProjection_sameAttributeCompatibleAliases() {
+        Expression filterExpression = Expression.builder()
+                .expression("#AMZN_MAPPED_phoneNumbers[1].#AMZN_MAPPED_type = :type")
+                .putExpressionName("#AMZN_MAPPED_phoneNumbers", "phoneNumbers")
+                .putExpressionName("#AMZN_MAPPED_type", "type")
+                .putExpressionValue(":type", stringValue("cell"))
+                .build();
+
+        ScanOperation<FakeItem> operation = ScanOperation.create(
+                ScanEnhancedRequest.builder()
+                        .filterExpression(filterExpression)
+                        .addNestedAttributeToProject(NestedAttributeName.create("phoneNumbers[1]", "type"))
+                        .build()
+        );
+        ScanRequest request = operation.generateRequest(FakeItem.getTableSchema(),
+                PRIMARY_CONTEXT,
+                null);
+
+        assertThat(request.filterExpression(),
+                   is("#AMZN_MAPPED_phoneNumbers[1].#AMZN_MAPPED_type = :type"));
+        assertThat(request.projectionExpression(),
+                   is("#AMZN_MAPPED_phoneNumbers[1].#AMZN_MAPPED_type"));
+        assertThat(request.expressionAttributeNames(), hasEntry("#AMZN_MAPPED_phoneNumbers", "phoneNumbers"));
+        assertThat(request.expressionAttributeNames(), hasEntry("#AMZN_MAPPED_type", "type"));
+        assertThat(request.expressionAttributeValues(), hasEntry(":type", stringValue("cell")));
+    }
+
+    @Test
+    public void generateRequest_filterAndListProjection_conflictingAliases_throws() {
+        Expression filterExpression = Expression.builder()
+                .expression("#AMZN_MAPPED_phoneNumbers = :value")
+                .putExpressionName("#AMZN_MAPPED_phoneNumbers", "otherAttr")
+                .putExpressionValue(":value", stringValue("x"))
+                .build();
+
+        ScanOperation<FakeItem> operation = ScanOperation.create(
+                ScanEnhancedRequest.builder()
+                        .filterExpression(filterExpression)
+                        .addNestedAttributeToProject(NestedAttributeName.create("phoneNumbers[1]", "type"))
+                        .build()
+        );
+
+        try {
+            operation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+            fail("Expected IllegalArgumentException for conflicting expression names");
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage().contains("#AMZN_MAPPED_phoneNumbers"), is(true));
+        }
     }
 
     @Test
