@@ -1,0 +1,5 @@
+{
+  "type": "bugfix",
+  "category": "AWS SDK for Java v2",
+  "description": "Fixed a race condition in `EndpointDiscoveryRefreshCache` where multiple concurrent threads reading the same expired cache entry could each independently trigger a background endpoint-discovery refresh call for the same key, instead of only one."
+}
