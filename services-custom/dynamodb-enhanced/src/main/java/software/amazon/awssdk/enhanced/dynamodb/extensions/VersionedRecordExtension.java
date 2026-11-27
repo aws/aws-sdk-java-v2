@@ -96,25 +96,41 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         }
 
         public static StaticAttributeTag versionAttribute(Long startAt, Long incrementBy) {
-            return new VersionAttribute(startAt, incrementBy);
+            return new VersionAttribute(startAt, incrementBy, false);
+        }
+
+        /**
+         * Creates a version attribute tag, optionally enabling optimistic locking on {@code deleteItem(T)}.
+         *
+         * @param startAt              starting value for version comparison; may be null to use the extension default
+         * @param incrementBy          amount to increment on each write; may be null to use the extension default
+         * @param useVersionOnDelete   whether {@code deleteItem(T)} applies a version condition
+         * @return the version attribute tag
+         */
+        public static StaticAttributeTag versionAttribute(Long startAt, Long incrementBy, boolean useVersionOnDelete) {
+            return new VersionAttribute(startAt, incrementBy, useVersionOnDelete);
         }
     }
 
     private static final class VersionAttribute implements StaticAttributeTag {
         private static final String START_AT_METADATA_KEY = "VersionedRecordExtension:StartAt";
         private static final String INCREMENT_BY_METADATA_KEY = "VersionedRecordExtension:IncrementBy";
+        private static final String USE_VERSION_ON_DELETE_METADATA_KEY = "VersionedRecordExtension:UseVersionOnDelete";
 
         private final Long startAt;
         private final Long incrementBy;
+        private final Boolean useVersionOnDelete;
 
         private VersionAttribute() {
             this.startAt = null;
             this.incrementBy = null;
+            this.useVersionOnDelete = null;
         }
 
-        private VersionAttribute(Long startAt, Long incrementBy) {
+        private VersionAttribute(Long startAt, Long incrementBy, boolean useVersionOnDelete) {
             this.startAt = startAt;
             this.incrementBy = incrementBy;
+            this.useVersionOnDelete = useVersionOnDelete;
         }
 
         @Override
@@ -137,6 +153,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             return metadata -> metadata.addCustomMetadataObject(CUSTOM_METADATA_KEY, attributeName)
                                        .addCustomMetadataObject(START_AT_METADATA_KEY, startAt)
                                        .addCustomMetadataObject(INCREMENT_BY_METADATA_KEY, incrementBy)
+                                       .addCustomMetadataObject(USE_VERSION_ON_DELETE_METADATA_KEY, useVersionOnDelete)
                                        .markAttributeAsKey(attributeName, attributeValueType);
         }
     }
