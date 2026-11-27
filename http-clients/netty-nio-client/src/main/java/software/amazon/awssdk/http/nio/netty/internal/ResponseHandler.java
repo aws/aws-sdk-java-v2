@@ -372,7 +372,11 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                             finalizeResponse(requestContext, channelContext);
                         }
                     } catch (IOException e) {
-                        notifyError(e);
+                        Throwable throwable = NettyUtils.decorateException(channelContext.channel(), e);
+                        runAndLogError(channelContext.channel(),
+                                       () -> String.format("Subscriber %s threw an exception in onError.", subscriber),
+                                       () -> subscriber.onError(throwable));
+                        notifyError(throwable);
                         runAndLogError(channelContext.channel(), () -> "Could not release channel back to the pool",
                                        () -> closeAndRelease(channelContext));
                     }
