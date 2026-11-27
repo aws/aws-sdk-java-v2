@@ -38,9 +38,9 @@ import org.junit.jupiter.api.Test;
 import reactor.blockhound.BlockHound;
 import reactor.blockhound.BlockingOperationError;
 import reactor.blockhound.integration.BlockHoundIntegration;
-import reactor.blockhound.junit.platform.BlockHoundTestExecutionListener;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
+import software.amazon.awssdk.testutils.service.BlockHoundInstallingTestExecutionListener;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -49,8 +49,8 @@ import software.amazon.awssdk.utils.Logger;
  * <p>
  * BlockHound is installed in one of two ways:
  * <ol>
- *     <li>Using BlockHound's provided {@link BlockHoundTestExecutionListener}, which will be automatically detected by the
- *     JUnit 5 platform upon initialization.</li>
+ *     <li>Using the SDK's {@link BlockHoundInstallingTestExecutionListener}, which the JUnit 5 platform detects automatically
+ *     and which installs BlockHound when test execution starts.</li>
  *     <li>Manually calling {@link BlockHound#install(BlockHoundIntegration...)}. This is done as part of static initialization in
  *     {@link AwsIntegrationTestBase} and {@link AwsTestBase}, which most integration/stability tests extend.
  * </ol>
@@ -116,8 +116,8 @@ class BlockHoundInstalledTest {
         latch.await(5, TimeUnit.SECONDS);
         assertThat(throwableReference.get())
             .withFailMessage("BlockHound does not appear to be successfully installed. Ensure that either BlockHound.install() "
-                             + "is called prior to all test executions or that BlockHoundTestExecutionListener is available on "
-                             + "the class path and correctly detected by JUnit: "
+                             + "is called prior to all test executions or that BlockHoundInstallingTestExecutionListener is "
+                             + "available on the class path and correctly detected by JUnit: "
                              + "https://github.com/reactor/BlockHound/blob/master/docs/supported_testing_frameworks.md")
             .isInstanceOf(BlockingOperationError.class);
     }

@@ -30,7 +30,7 @@ mvn org.openrewrite.maven:rewrite-maven-plugin:6.17.0 \
 To build this module locally for fast development, run the following command.
 
 ```
-mvn clean install -pl :bom-internal,:bom,:v2-migration -P quick --am
+mvn clean install -pl :bom-internal,:bom,:v2-migration -P quick -am
 ```
 
 ### Testing

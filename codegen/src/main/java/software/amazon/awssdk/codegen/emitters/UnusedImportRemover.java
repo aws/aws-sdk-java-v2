@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.emitters;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -25,9 +26,21 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Removes unused and duplicate imports from generated Java source.
+ * <p>
+ * An import is unused when its simple name (the part after the last {@code .}) does not appear as a whole word anywhere
+ * in the file outside the import lines. Comments, Javadoc and string literals count, so an import whose name only
+ * appears in a {@code {@link}} is kept. Wildcard imports are never removed. An import that appears more than once is
+ * removed once.
+ */
 public class UnusedImportRemover implements CodeTransformer {
     private static final Pattern IMPORT_PATTERN = Pattern.compile("^import(?:\\s+)(?:static\\s+)?(.*)(?:\\s*);",
                                                             Pattern.MULTILINE);
+    private static final Pattern WORD = Pattern.compile("\\b\\w+\\b");
+    private static final Pattern IDENTIFIER = Pattern.compile("\\w+");
+    private static final Pattern REGEX_SAFE_IMPORT = Pattern.compile("[\\w.$]*");
+    private static final String IMPORT_KEYWORD = "import";
 
     @Override
     public String apply(String content) {
@@ -59,18 +72,64 @@ public class UnusedImportRemover implements CodeTransformer {
 
     private Predicate<String> isUnused(String content) {
         String contentWithoutImports = removeAllImports(content);
+        Set<String> words = findWords(contentWithoutImports);
+        int[] importKeywordPositions = findImportKeywordPositions(content);
         return importToCheck -> !importToCheck.contains("*")
-                && (isNotReferenced(contentWithoutImports, importToCheck) || isDuplicate(content, importToCheck));
+                && (isNotReferenced(words, contentWithoutImports, importToCheck)
+                    || isDuplicate(content, importKeywordPositions, importToCheck));
     }
 
-    private boolean isNotReferenced(String contentWithoutImports, String importToCheck) {
+    private static Set<String> findWords(String contentWithoutImports) {
+        Set<String> words = new HashSet<>();
+        Matcher m = WORD.matcher(contentWithoutImports);
+        while (m.find()) {
+            words.add(m.group());
+        }
+        return words;
+    }
+
+    private static int[] findImportKeywordPositions(String content) {
+        List<Integer> positions = new ArrayList<>();
+        for (int i = content.indexOf(IMPORT_KEYWORD); i >= 0; i = content.indexOf(IMPORT_KEYWORD, i + 1)) {
+            positions.add(i);
+        }
+        return positions.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    private boolean isNotReferenced(Set<String> words, String contentWithoutImports, String importToCheck) {
         String symbol = importToCheck.substring(importToCheck.lastIndexOf('.') + 1);
+        if (IDENTIFIER.matcher(symbol).matches()) {
+            // Same answer as the regex below, without a scan per import: a "\b<symbol>\b" match is a whole run of
+            // \w characters with a \b on each side, and the "\b\w+\b" scan in findWords returns exactly those runs.
+            // This holds for both the JDK 8-18 and the JDK 19+ definitions of \b.
+            return !words.contains(symbol);
+        }
         return !Pattern.compile(String.format("\\b%s\\b", symbol)).matcher(contentWithoutImports).find();
     }
 
-    private boolean isDuplicate(String content, String importToCheck) {
+    private boolean isDuplicate(String content, int[] importKeywordPositions, String importToCheck) {
         Matcher m = Pattern.compile(findSpecificImportRegex(importToCheck)).matcher(content);
-        return m.find() && m.find();
+        if (!REGEX_SAFE_IMPORT.matcher(importToCheck).matches()) {
+            return m.find() && m.find();
+        }
+        // Same answer as "m.find() && m.find()", trying only the positions where "import" occurs: when the import
+        // contains only word characters, '.' and '$', every match of the regex starts with the literal "import".
+        m.useAnchoringBounds(false).useTransparentBounds(true);
+        int count = 0;
+        int nextStart = 0;
+        for (int position : importKeywordPositions) {
+            if (position < nextStart) {
+                continue;
+            }
+            m.region(position, content.length());
+            if (m.lookingAt()) {
+                if (++count == 2) {
+                    return true;
+                }
+                nextStart = m.end();
+            }
+        }
+        return false;
     }
 
     private String findSpecificImportRegex(String specificImport) {

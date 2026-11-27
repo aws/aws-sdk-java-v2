@@ -11,7 +11,7 @@ There are three ways to run benchmarks.
 
 - Using the executable JAR (Preferred usage per JMH site)
 ```
-  mvn clean install -P quick -pl :http-client-benchmarks --am
+  mvn clean install -P quick -pl :http-client-benchmarks -am
 ```
   
 # Run specific benchmark
@@ -26,7 +26,7 @@ java -jar target/http-client-benchmarks.jar -wi 3 -i 3 -f 1
 
 - Using `mvn exec:exec` commands to invoke `UnifiedBenchmarkRunner` main method
 ```
-  mvn clean install -P quick -pl :http-client-benchmarks --am
+  mvn clean install -P quick -pl :http-client-benchmarks -am
   mvn clean install -pl :bom-internal
   cd test/http-client-benchmarks
   mvn exec:exec
