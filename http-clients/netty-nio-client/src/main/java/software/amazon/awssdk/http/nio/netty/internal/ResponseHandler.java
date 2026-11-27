@@ -198,6 +198,9 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         if (!channelContext.channel().attr(KEEP_ALIVE).get()) {
             closeAndRelease(channelContext);
         } else {
+            // The channel stays open in the pool, so drop the request (and its body) instead of keeping it reachable until
+            // the next request on this channel.
+            channelContext.channel().attr(REQUEST_CONTEXT_KEY).set(null);
             requestContext.channelPool().release(channelContext.channel());
         }
     }
