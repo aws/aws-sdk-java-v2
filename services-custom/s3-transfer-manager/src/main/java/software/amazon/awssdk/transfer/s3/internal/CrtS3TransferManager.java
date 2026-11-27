@@ -209,19 +209,20 @@ class CrtS3TransferManager extends GenericS3TransferManager {
     }
 
     /**
-     * Downloads the object by handing the destination file to CRT, which writes the response body to it directly rather than
+     * Downloads the object by handing {@code writePath} to CRT, which writes the response body to it directly rather than
      * streaming the body back through the SDK.
      */
     @Override
-    FileDownload doDownloadFile(DownloadFileRequest downloadRequest) {
+    FileDownload downloadFileTo(DownloadFileRequest downloadRequest, Path writePath, Runnable beforeCompletion) {
+        Validate.paramNotNull(writePath, "writePath");
         S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
 
-        DownloadFileRequest crtDownloadRequest = crtDownloadFileRequest(downloadRequest, observable, progressUpdater,
+        DownloadFileRequest crtDownloadRequest = crtDownloadFileRequest(downloadRequest, writePath, observable, progressUpdater,
                                                                        ResponseFileOption.CREATE_OR_REPLACE);
 
         CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
-        initiateCrtDownload(crtDownloadRequest, progressUpdater, returnFuture);
+        initiateCrtDownload(crtDownloadRequest, progressUpdater, returnFuture, beforeCompletion);
 
         return new CrtFileDownload(returnFuture, progressUpdater.progress(), observable, () -> crtDownloadRequest, null);
     }
@@ -268,13 +269,14 @@ class CrtS3TransferManager extends GenericS3TransferManager {
                                                                         : ResponseFileOption.CREATE_OR_APPEND;
 
             TransferProgressUpdater progressUpdater = new TransferProgressUpdater(newDownloadFileRequest, null);
-            DownloadFileRequest crtDownloadRequest = crtDownloadFileRequest(newDownloadFileRequest, observable,
+            DownloadFileRequest crtDownloadRequest = crtDownloadFileRequest(newDownloadFileRequest,
+                                                                           newDownloadFileRequest.destination(), observable,
                                                                            progressUpdater, responseFileOption);
 
             newDownloadFileRequestFuture.complete(crtDownloadRequest);
             log.debug(() -> LogSanitizer.escapeControlCharacters("Sending downloadFileRequest " + crtDownloadRequest));
 
-            initiateCrtDownload(crtDownloadRequest, progressUpdater, returnFuture);
+            initiateCrtDownload(crtDownloadRequest, progressUpdater, returnFuture, NO_OP);
             progressFuture.complete(progressUpdater.progress());
         }).exceptionally(throwable -> {
             handleException(returnFuture, progressFuture, newDownloadFileRequestFuture, throwable);
@@ -303,7 +305,8 @@ class CrtS3TransferManager extends GenericS3TransferManager {
 
     private void initiateCrtDownload(DownloadFileRequest downloadRequest,
                                      TransferProgressUpdater progressUpdater,
-                                     CompletableFuture<CompletedFileDownload> returnFuture) {
+                                     CompletableFuture<CompletedFileDownload> returnFuture,
+                                     Runnable beforeCompletion) {
         try {
             progressUpdater.transferInitiated();
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
@@ -318,26 +321,28 @@ class CrtS3TransferManager extends GenericS3TransferManager {
             // Forward download cancellation to CRT future
             CompletableFutureUtils.forwardExceptionTo(returnFuture, crtFuture);
 
-            CompletableFutureUtils.forwardTransformedResultTo(crtFuture, returnFuture,
-                                                             res -> CompletedFileDownload.builder()
-                                                                                         .response(res)
-                                                                                         .build());
+            CompletableFutureUtils.forwardTransformedResultTo(crtFuture, returnFuture, res -> {
+                CompletedFileDownload completed = CompletedFileDownload.builder().response(res).build();
+                beforeCompletion.run();
+                return completed;
+            });
         } catch (Throwable throwable) {
             returnFuture.completeExceptionally(throwable);
         }
     }
 
     /**
-     * Attaches the execution attributes that tell the CRT-based client to write the response body straight to the destination
-     * file, together with the progress listener and pause observable needed to report progress on and pause that transfer.
+     * Attaches the execution attributes that tell the CRT-based client to write the response body straight to {@code writePath},
+     * together with the progress listener and pause observable needed to report progress on and pause that transfer.
      */
     private DownloadFileRequest crtDownloadFileRequest(DownloadFileRequest downloadRequest,
+                                                       Path writePath,
                                                        S3MetaRequestPauseObservable observable,
                                                        TransferProgressUpdater progressUpdater,
                                                        ResponseFileOption responseFileOption) {
         GetObjectRequest getObjectRequest = attachSdkAttribute(
             downloadRequest.getObjectRequest(),
-            b -> b.putExecutionAttribute(RESPONSE_FILE_PATH, downloadRequest.destination())
+            b -> b.putExecutionAttribute(RESPONSE_FILE_PATH, writePath)
                   .putExecutionAttribute(RESPONSE_FILE_OPTION, responseFileOption));
 
         GetObjectRequest crtGetObjectRequest = attachCrtSdkAttribute(
