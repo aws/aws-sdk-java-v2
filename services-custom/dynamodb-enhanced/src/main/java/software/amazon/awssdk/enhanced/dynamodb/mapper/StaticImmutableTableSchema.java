@@ -203,8 +203,12 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                 ConverterProviderResolver.resolveProviders(builder.attributeConverterProviders);
 
         // Resolve declared attributes and find converters for them
+        // The strategy transforms declared names once, before tags record them.
+        // Names from extend() and flatten() were resolved by their own schemas and stay unchanged.
         Stream<ResolvedImmutableAttribute<T, B>> attributesStream = builder.attributes == null ?
-            Stream.empty() : builder.attributes.stream().map(a -> a.resolve(this.attributeConverterProvider));
+            Stream.empty() : builder.attributes.stream()
+                                    .map(attribute -> applyNamingStrategy(attribute, builder.attributeNamingStrategy))
+                                    .map(attribute -> attribute.resolve(this.attributeConverterProvider));
 
         // Merge resolved declared attributes
         List<ResolvedImmutableAttribute<T, B>> mutableAttributeMappers = new ArrayList<>();
@@ -307,6 +311,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         private List<ImmutableAttribute<T, B, ?>> attributes;
         private Supplier<B> newBuilderSupplier;
         private Function<B, T> buildItemFunction;
+        private AttributeNamingStrategy attributeNamingStrategy;
         private List<StaticTableTag> tags;
         private List<AttributeConverterProvider> attributeConverterProviders =
             Collections.singletonList(ConverterProviderResolver.defaultConverterProvider());
@@ -324,6 +329,14 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         public Builder<T, B> newItemBuilder(Supplier<B> newBuilderMethod, Function<B, T> buildMethod) {
             this.newBuilderSupplier = newBuilderMethod;
             this.buildItemFunction = buildMethod;
+            return this;
+        }
+
+        /**
+         * Sets the strategy for stored attribute names.
+         */
+        public Builder<T, B> attributeNamingStrategy(AttributeNamingStrategy attributeNamingStrategy) {
+            this.attributeNamingStrategy = attributeNamingStrategy;
             return this;
         }
 
@@ -695,6 +708,19 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
      */
     public AttributeConverterProvider attributeConverterProvider() {
         return this.attributeConverterProvider;
+    }
+
+    private static <T, B> ImmutableAttribute<T, B, ?> applyNamingStrategy(ImmutableAttribute<T, B, ?> attribute,
+                                                                         AttributeNamingStrategy strategy) {
+        if (strategy == null) {
+            return attribute;
+        }
+        return withStoredName(attribute, strategy.transform(attribute.name()));
+    }
+
+    private static <T, B, R> ImmutableAttribute<T, B, R> withStoredName(ImmutableAttribute<T, B, R> attribute,
+                                                                       String storedName) {
+        return attribute.toBuilder().name(storedName).build();
     }
 
     private B constructNewBuilder() {

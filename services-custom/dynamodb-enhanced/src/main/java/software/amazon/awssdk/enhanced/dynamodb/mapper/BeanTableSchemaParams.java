@@ -35,10 +35,12 @@ public final class BeanTableSchemaParams<T>
     implements ToCopyableBuilder<BeanTableSchemaParams.Builder<T>, BeanTableSchemaParams<T>> {
     private final Class<T> beanClass;
     private final MethodHandles.Lookup lookup;
+    private final AttributeNamingStrategy attributeNamingStrategy;
 
     private BeanTableSchemaParams(BuilderImpl<T> builder) {
         this.beanClass = builder.beanClass;
         this.lookup = builder.lookup;
+        this.attributeNamingStrategy = builder.attributeNamingStrategy;
     }
 
     public Class<T> beanClass() {
@@ -47,6 +49,15 @@ public final class BeanTableSchemaParams<T>
 
     public MethodHandles.Lookup lookup() {
         return lookup;
+    }
+
+    /**
+     * Returns the strategy for stored attribute names.
+     *
+     * @return the strategy for stored attribute names
+     */
+    public AttributeNamingStrategy attributeNamingStrategy() {
+        return attributeNamingStrategy;
     }
 
     @Override
@@ -86,11 +97,19 @@ public final class BeanTableSchemaParams<T>
          * @return This builder for method chaining.
          */
         Builder<T> lookup(MethodHandles.Lookup lookup);
+
+        /**
+         * Sets the strategy for stored attribute names.
+         *
+         * @return This builder for method chaining.
+         */
+        Builder<T> attributeNamingStrategy(AttributeNamingStrategy attributeNamingStrategy);
     }
 
     private static class BuilderImpl<T> implements Builder<T> {
         private Class<T> beanClass;
         private MethodHandles.Lookup lookup;
+        private AttributeNamingStrategy attributeNamingStrategy;
 
         private BuilderImpl(Class<T> beanClass) {
             this.beanClass = beanClass;
@@ -99,6 +118,7 @@ public final class BeanTableSchemaParams<T>
         private BuilderImpl(BeanTableSchemaParams<T> info) {
             this.beanClass = info.beanClass;
             this.lookup = info.lookup;
+            this.attributeNamingStrategy = info.attributeNamingStrategy;
         }
 
         public BuilderImpl<T> beanClass(Class<T> beanClass) {
@@ -108,6 +128,12 @@ public final class BeanTableSchemaParams<T>
 
         public BuilderImpl<T> lookup(MethodHandles.Lookup lookup) {
             this.lookup = lookup;
+            return this;
+        }
+
+        @Override
+        public BuilderImpl<T> attributeNamingStrategy(AttributeNamingStrategy attributeNamingStrategy) {
+            this.attributeNamingStrategy = attributeNamingStrategy;
             return this;
         }
 
