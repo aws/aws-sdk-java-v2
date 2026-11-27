@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Apache HTTP Client",
+    "contributor": "",
+    "description": "Requests on an `ApacheHttpClient` whose connection pool has been shut down, because the client was closed or because a `java.lang.Error` escaped an earlier request, now fail with the new `ConnectionPoolShutdownException`. It is an `IllegalStateException` with the same message as before, and its `reason()` reports why the pool was shut down."
+}
