@@ -293,6 +293,16 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
      * completed after the entire response body has finished streaming.
      * <p>
+     * Successful completion of the client future does not mean the full body transferred successfully. An error while the
+     * body is consumed, such as an HTTP read timeout or a connection failure, is delivered to the subscriber through the
+     * publisher {@link org.reactivestreams.Subscriber#onError(Throwable)} signal. The SDK does not automatically retry that
+     * error, and the error does not change the client future after it has completed successfully. This boundary is separate
+     * from the subscription timeout, which cancels the response only when no subscriber is registered in time. Failures
+     * before successful completion remain subject to the configured retry strategy. When the caller needs the SDK to observe
+     * transfer completion, use {@link #toBytes()} for a body that fits in memory or {@link #toFile(Path)} for disk-backed
+     * consumption. Not every failure those transformers observe is retryable. Application-level recovery must cover
+     * consumption and account for partial output.
+     * <p>
      * The publisher has a default timeout of 60 seconds that starts when the response body begins streaming. If no subscriber is
      * registered within this time, the subscription will be automatically cancelled. Use {@link #toPublisher(Duration)} to
      * specify a custom timeout.
@@ -337,6 +347,16 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
      * completed after the entire response body has finished streaming.
      * <p>
+     * Successful completion of the client future does not mean the full body transferred successfully. An error while the
+     * body is consumed, such as an HTTP read timeout or a connection failure, is delivered to the subscriber through the
+     * publisher {@link org.reactivestreams.Subscriber#onError(Throwable)} signal. The SDK does not automatically retry that
+     * error, and the error does not change the client future after it has completed successfully. This boundary is separate
+     * from the subscription timeout, which cancels the response only when no subscriber is registered in time. Failures
+     * before successful completion remain subject to the configured retry strategy. When the caller needs the SDK to observe
+     * transfer completion, use {@link #toBytes()} for a body that fits in memory or {@link #toFile(Path)} for disk-backed
+     * consumption. Not every failure those transformers observe is retryable. Application-level recovery must cover
+     * consumption and account for partial output.
+     * <p>
      * The timeout starts when the response body begins streaming. If no subscriber is registered within the specified timeout,
      * the subscription will be automatically cancelled. To disable the timeout, pass {@link Duration#ZERO} or a negative
      * {@link Duration}.
@@ -371,6 +391,14 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
      * completed after the entire response body has finished streaming.
      * <p>
+     * Successful completion of the client future does not mean the full body transferred successfully. An error while the
+     * body is consumed, such as an HTTP read timeout or a connection failure, is observed on a subsequent read of the
+     * input stream. The SDK does not automatically retry that error, and the error does not change the client future after
+     * it has completed successfully. Failures before successful completion remain subject to the configured retry strategy.
+     * When the caller needs the SDK to observe transfer completion, use {@link #toBytes()} for a body that fits in memory or
+     * {@link #toFile(Path)} for disk-backed consumption. Not every failure those transformers observe is retryable.
+     * Application-level recovery must cover consumption and account for partial output.
+     * <p>
      * You are responsible for performing blocking reads from this input stream and closing the stream when you are finished.
      * <p>
      * Example usage:
@@ -398,6 +426,14 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * once the {@link SdkResponse} is available and the response body <i>begins</i> streaming. This behavior differs from some
      * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
      * completed after the entire response body has finished streaming.
+     * <p>
+     * Successful completion of the client future does not mean the full body transferred successfully. An error while the
+     * body is consumed, such as an HTTP read timeout or a connection failure, is observed on a subsequent read of the
+     * input stream. The SDK does not automatically retry that error, and the error does not change the client future after
+     * it has completed successfully. Failures before successful completion remain subject to the configured retry strategy.
+     * When the caller needs the SDK to observe transfer completion, use {@link #toBytes()} for a body that fits in memory or
+     * {@link #toFile(Path)} for disk-backed consumption. Not every failure those transformers observe is retryable.
+     * Application-level recovery must cover consumption and account for partial output.
      * <p>
      * GZIP response streams are adapted so that {@link InputStream#available()} does not temporarily return {@code 0} while the
      * stream is still open. This works around {@code GZIPInputStream} treating a temporary {@code 0} at a concatenated GZIP

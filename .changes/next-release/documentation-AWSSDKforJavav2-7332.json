@@ -1,0 +1,6 @@
+{
+    "type": "documentation",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Document the retry boundary for both `AsyncResponseTransformer.toPublisher` overloads, `toBlockingInputStream`, and `toGzipCompatibleBlockingInputStream`. These factories complete the client future when the response body begins streaming. Errors while consuming the body are not automatically retried and do not change that completed future. Failures before successful completion remain subject to the configured retry strategy. Refs [#7332](https://github.com/aws/aws-sdk-java-v2/issues/7332)"
+}
