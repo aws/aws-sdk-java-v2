@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO Async HTTP Client",
+    "contributor": "",
+    "description": "Fix async streaming responses so channel-inactive errors are surfaced until the response has been finalized."
+}
