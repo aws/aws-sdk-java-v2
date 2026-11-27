@@ -34,6 +34,7 @@ import io.netty.handler.codec.http2.DefaultHttp2Headers;
 import io.netty.handler.codec.http2.DefaultHttp2HeadersFrame;
 import io.netty.handler.codec.http2.Http2DataFrame;
 import io.netty.handler.codec.http2.Http2Frame;
+import io.netty.handler.codec.http2.Http2HeadersFrame;
 import io.netty.handler.codec.http2.Http2FrameCodec;
 import io.netty.handler.codec.http2.Http2FrameCodecBuilder;
 import io.netty.handler.codec.http2.Http2FrameLogger;
@@ -220,7 +221,8 @@ public class ServerCloseConnectionTest {
 
             @Override
             protected void channelRead0(ChannelHandlerContext ctx, Http2Frame frame) {
-                if (frame instanceof Http2DataFrame) {
+                if (frame instanceof Http2DataFrame
+                    || (frame instanceof Http2HeadersFrame && ((Http2HeadersFrame) frame).isEndStream())) {
                     // Not respond if this is channel 1
                     if (channelIds[0].equals(ctx.channel().parent().id().asShortText()) && failOnFirstChannel) {
                         ctx.channel().parent().close();

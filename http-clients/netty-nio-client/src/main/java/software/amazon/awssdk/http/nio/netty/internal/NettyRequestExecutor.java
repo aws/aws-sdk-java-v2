@@ -35,8 +35,12 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.DecoderResult;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpContent;
+import io.netty.handler.codec.http.EmptyHttpHeaders;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -241,14 +245,30 @@ public final class NettyRequestExecutor {
     }
 
     private void writeRequest(HttpRequest request) {
-        addWriteTimeoutHandlers();
-        StreamedRequest streamedRequest = new StreamedRequest(request,
-                                                              context.executeRequest().requestContentPublisher());
+        if (shouldWriteAsEmptyFullRequest(request)) {
+            // Still subscribe to the (empty) request publisher: some bodies, e.g.
+            // AsyncRequestBody.forBlockingInputStream(0L), block their producer until they are subscribed to.
+            context.executeRequest().requestContentPublisher().subscribe(new EmptyBodySubscriber(request));
+            return;
+        }
+        writeToChannel(new StreamedRequest(request, context.executeRequest().requestContentPublisher()));
+    }
 
-        channel.writeAndFlush(streamedRequest)
+    private void writeToChannel(HttpRequest requestToWrite) {
+        addWriteTimeoutHandlers();
+
+        channel.writeAndFlush(requestToWrite)
                .addListener(wireCall -> {
                    // Done writing so remove the idle write timeout handler
                    removeWriteTimeoutHandlers();
+                   if (!wireCall.isSuccess() && isResponseCompletedSuccessfully()) {
+                       // The server may respond and close/reset the stream before our END_STREAM has been written
+                       // (e.g. RST_STREAM(NO_ERROR), RFC 9113 section 8.1). The response has already been delivered
+                       // and the channel released, so this late write failure must not fail the request.
+                       log.debug(channel, () -> "Ignoring request write failure after the response completed for "
+                                                + endpoint(), wireCall.cause());
+                       return;
+                   }
                    if (wireCall.isSuccess()) {
                        NettyRequestMetrics.publishHttp2StreamMetrics(context.metricCollector(), channel);
 
@@ -281,6 +301,121 @@ public final class NettyRequestExecutor {
             }
 
             channel.read();
+        }
+    }
+
+    private boolean isResponseCompletedSuccessfully() {
+        return executeFuture.isDone() && !executeFuture.isCompletedExceptionally();
+    }
+
+    /**
+     * For HTTP/2 requests without a body, send a single HEADERS frame with END_STREAM instead of HEADERS followed by
+     * a separate empty DATA(END_STREAM) frame. Otherwise the server can respond and reset the stream before the
+     * trailing empty DATA frame is written, which fails a request whose response was already received.
+     */
+    private boolean shouldWriteAsEmptyFullRequest(HttpRequest request) {
+        if (ChannelAttributeKey.getProtocolNow(channel) != Protocol.HTTP2
+            || context.executeRequest().fullDuplex()
+            || is100ContinueExpected()) {
+            return false;
+        }
+        Optional<Long> publisherLength = context.executeRequest().requestContentPublisher().contentLength();
+        if (!publisherLength.isPresent() || publisherLength.get() != 0L) {
+            return false;
+        }
+        String contentLength = request.headers().get(HttpHeaderNames.CONTENT_LENGTH);
+        return (contentLength == null || "0".equals(contentLength.trim()))
+               && !request.headers().contains(HttpHeaderNames.TRANSFER_ENCODING);
+    }
+
+    private static FullHttpRequest toEmptyFullRequest(HttpRequest request) {
+        return new DefaultFullHttpRequest(request.protocolVersion(), request.method(), request.uri(),
+                                          Unpooled.EMPTY_BUFFER, request.headers(), EmptyHttpHeaders.INSTANCE);
+    }
+
+    /**
+     * Drives the lifecycle of a request publisher that declared a zero content length, then writes the request as a
+     * single {@link FullHttpRequest} (HEADERS with END_STREAM) once the publisher completes. Publisher errors fail the
+     * request, and the subscription is cancelled if the request fails or is cancelled first.
+     */
+    private final class EmptyBodySubscriber implements Subscriber<ByteBuffer> {
+        private final HttpRequest request;
+        private final boolean contentLengthHeaderPresent;
+        private Subscription subscription;
+        private boolean done;
+
+        private EmptyBodySubscriber(HttpRequest request) {
+            this.request = request;
+            this.contentLengthHeaderPresent = request.headers().contains(HttpHeaderNames.CONTENT_LENGTH);
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            if (subscription != null) {
+                s.cancel();
+                return;
+            }
+            subscription = s;
+            executeFuture.whenComplete((r, t) -> {
+                if (t != null) {
+                    s.cancel();
+                }
+            });
+            s.request(Long.MAX_VALUE);
+        }
+
+        @Override
+        public void onNext(ByteBuffer byteBuffer) {
+            if (done || !byteBuffer.hasRemaining()) {
+                return;
+            }
+            subscription.cancel();
+            if (contentLengthHeaderPresent) {
+                // Same as StreamedRequest: content beyond the declared Content-Length (0) is not sent.
+                complete();
+            } else {
+                onError(new IllegalStateException("Request content publisher declared a content length of 0 but "
+                                                  + "published " + byteBuffer.remaining() + " bytes."));
+            }
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            if (done) {
+                return;
+            }
+            done = true;
+            NettyUtils.doInEventLoop(channel.eventLoop(), () -> {
+                if (executeFuture.isDone()) {
+                    // The request already completed or was cancelled; the publisher error raced with it.
+                    return;
+                }
+                closeAndRelease(channel);
+                handleFailure(channel, () -> "Failed to read request content for " + endpoint(), t);
+            });
+        }
+
+        @Override
+        public void onComplete() {
+            complete();
+        }
+
+        private void complete() {
+            if (done) {
+                return;
+            }
+            done = true;
+            NettyUtils.doInEventLoop(channel.eventLoop(), () -> {
+                if (executeFuture.isDone()) {
+                    return;
+                }
+                try {
+                    writeToChannel(toEmptyFullRequest(request));
+                } catch (Throwable t) {
+                    closeAndRelease(channel);
+                    handleFailure(channel, () -> "Failed to make request to " + endpoint(), t);
+                }
+            });
         }
     }
 
