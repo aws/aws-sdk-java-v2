@@ -1,6 +1,0 @@
-{
-    "type": "perf-improvement",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Reduced the memory allocated while signing requests with SigV4."
-}

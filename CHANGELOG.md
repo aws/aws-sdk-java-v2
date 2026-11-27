@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.59.11__ __2026-11-27__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Add `maxPendingConnectionAcquires` to `AwsCrtHttpClient.Builder` and `AwsCrtAsyncHttpClient.Builder`. Unbounded by default.
+
+  - ### Bugfixes
+    - `AwsCrtAsyncHttpClient` now applies `connectionAcquisitionTimeout` to HTTP/2 requests waiting for a stream when all `maxConcurrency` streams are in use, or for a new connection, matching the Netty client. Previously these requests waited without a time limit. Requests that wait longer than the acquisition timeout (10 seconds by default) now fail with an `IOException`, like the HTTP/1.1 acquisition timeout. To allow longer waits, increase `maxConcurrency` or `connectionAcquisitionTimeout`.
+    - `AwsCrtHttpClient` and `AwsCrtAsyncHttpClient` now report a connection acquisition timeout with a message that explains the cause and how to mitigate it.
+
+## __AWS Marketplace Agreement Service__
+  - ### Features
+    - This release adds per-Region pricing to AWS Marketplace usage-based pricing terms. Rate card items can now include Region-specific price overrides. When a Regional price is present for an AWS Region, it replaces the default price for that dimension.
+
+## __AWS SDK for Java v2__
+  - ### Performance Improvements
+    - Reduced the memory allocated while signing requests with SigV4.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - CloudWatch OTel enrichment supports a free basic option and a paid tag enrichment option, using the EnableTagEnrichment flag. Set it to true (default) to enrich vended metrics with resource ARN and tag labels for PromQL queries. Set it to false to get the free basic option without resource tags.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Catalog APIs for Optimized engine domains
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Adds support for Graph Sessions, a new offering backed by on-demand ephemeral compute.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Catalog APIs for Optimized engine domains
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Aurora PostgreSQL and Aurora MySQL now let you delete a DB cluster and all its instances in a single API call or console action, without deleting each instance first. Cluster deletion also completes faster.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed a race in parallel multipart downloads where `getObject` could complete with a `null` response and a paused download's resume token could be missing part 1.
+
 # __2.59.10__ __2026-11-25__
 ## __AWS SDK for Java v2__
   - ### Features

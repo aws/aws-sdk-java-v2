@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "`AwsCrtHttpClient` and `AwsCrtAsyncHttpClient` now report a connection acquisition timeout with a message that explains the cause and how to mitigate it."
-}

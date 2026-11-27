@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "`AwsCrtAsyncHttpClient` now applies `connectionAcquisitionTimeout` to HTTP/2 requests waiting for a stream when all `maxConcurrency` streams are in use, or for a new connection, matching the Netty client. Previously these requests waited without a time limit. Requests that wait longer than the acquisition timeout (10 seconds by default) now fail with an `IOException`, like the HTTP/1.1 acquisition timeout. To allow longer waits, increase `maxConcurrency` or `connectionAcquisitionTimeout`."
-}
