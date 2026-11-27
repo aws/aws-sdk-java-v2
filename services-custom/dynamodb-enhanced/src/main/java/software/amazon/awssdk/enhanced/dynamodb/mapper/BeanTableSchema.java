@@ -231,6 +231,7 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
 
         try {
             beanInfo = Introspector.getBeanInfo(beanClass);
+            enhanceDescriptorsWithIgnoredBooleanGetters(beanClass, beanInfo);
             enhanceDescriptorsWithFluentSetters(beanClass, beanInfo);
         } catch (IntrospectionException e) {
             throw new IllegalArgumentException(e);
@@ -288,6 +289,58 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         builder.attributes(attributes);
 
         return builder.build(context);
+    }
+
+    // Introspector prefers a boolean isX() over getX(), even when isX() is ignored. If their types differ, this also
+    // prevents Introspector from associating the setter for getX(), so restore that valid getter/setter pair.
+    private static <T> void enhanceDescriptorsWithIgnoredBooleanGetters(Class<T> beanClass, BeanInfo beanInfo) {
+        Arrays.stream(beanInfo.getPropertyDescriptors())
+              .filter(descriptor -> descriptor.getReadMethod() != null && descriptor.getWriteMethod() == null)
+              .filter(descriptor -> isIgnoredBooleanGetter(descriptor.getReadMethod(), descriptor.getName()))
+              .forEach(descriptor -> findAlternativeGetter(beanClass, descriptor.getName())
+                  .ifPresent(getter -> findSetter(beanClass, descriptor.getName(), getter.getReturnType())
+                      .ifPresent(setter -> setPropertyMethods(descriptor, getter, setter))));
+    }
+
+    private static boolean isIgnoredBooleanGetter(Method method, String propertyName) {
+        return method.getName().equals("is" + StringUtils.capitalize(propertyName))
+               && method.getReturnType().equals(boolean.class)
+               && (method.getAnnotation(DynamoDbIgnore.class) != null || method.getAnnotation(Transient.class) != null);
+    }
+
+    private static Optional<Method> findAlternativeGetter(Class<?> beanClass, String propertyName) {
+        try {
+            Method getter = beanClass.getMethod("get" + StringUtils.capitalize(propertyName));
+            if (getter.getReturnType().equals(void.class) || Modifier.isStatic(getter.getModifiers()) ||
+                getter.getAnnotation(DynamoDbIgnore.class) != null || getter.getAnnotation(Transient.class) != null) {
+                return Optional.empty();
+            }
+            return Optional.of(getter);
+        } catch (NoSuchMethodException e) {
+            return Optional.empty();
+        }
+    }
+
+    private static Optional<Method> findSetter(Class<?> beanClass, String propertyName, Class<?> propertyType) {
+        try {
+            Method setter = beanClass.getMethod("set" + StringUtils.capitalize(propertyName), propertyType);
+            if (!Modifier.isStatic(setter.getModifiers()) &&
+                (setter.getReturnType().equals(void.class) || setter.getReturnType().equals(beanClass))) {
+                return Optional.of(setter);
+            }
+            return Optional.empty();
+        } catch (NoSuchMethodException e) {
+            return Optional.empty();
+        }
+    }
+
+    private static void setPropertyMethods(PropertyDescriptor descriptor, Method getter, Method setter) {
+        try {
+            descriptor.setReadMethod(getter);
+            descriptor.setWriteMethod(setter);
+        } catch (IntrospectionException e) {
+            throw new RuntimeException("Failed to set methods for " + descriptor.getName(), e);
+        }
     }
 
     // Enhance beanInfo descriptors with fluent setter when the default set method is absent
@@ -603,4 +656,3 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         BEAN_TABLE_SCHEMA_CACHE.clear();
     }
 }
-

@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "description": "Fix bean property mapping when an ignored boolean `isX` getter conflicts with a valid `getX`/`setX` pair. Fixes [#7328](https://github.com/aws/aws-sdk-java-v2/issues/7328).",
+    "contributor": "IamPritamAcharya"
+}
