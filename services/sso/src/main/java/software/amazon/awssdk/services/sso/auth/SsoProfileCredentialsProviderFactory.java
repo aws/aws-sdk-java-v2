@@ -97,10 +97,12 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
     private static final class SsoProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
         private final SsoClient ssoClient;
         private final SsoCredentialsProvider credentialsProvider;
+        private final SdkTokenProvider tokenProvider;
 
         private SsoProfileCredentialsProvider(ProfileProviderCredentialsContext credentialsContext,
                                               SdkTokenProvider tokenProvider,
                                               SsoClient ssoClient) {
+            this.tokenProvider = tokenProvider;
             Profile profile = credentialsContext.profile();
             String ssoAccountId = profile.properties().get(ProfileProperty.SSO_ACCOUNT_ID);
             String ssoRoleName = profile.properties().get(ProfileProperty.SSO_ROLE_NAME);
@@ -141,6 +143,7 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
         public void close() {
             IoUtils.closeQuietly(credentialsProvider, null);
             IoUtils.closeQuietly(ssoClient, null);
+            IoUtils.closeIfCloseable(tokenProvider, null);
         }
 
         private static SdkToken resolveTokenOrThrow(SdkTokenProvider tokenProvider) {
