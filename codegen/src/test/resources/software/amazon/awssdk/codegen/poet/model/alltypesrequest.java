@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.Mutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
@@ -1602,6 +1603,34 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             default:
                 return Optional.empty();
         }
+    }
+
+    /**
+     * Creates a builder with SimpleList set without defensively copying the collection. The caller must provide an
+     * immutable or exclusively owned collection.
+     */
+    @SdkInternalApi
+    public static Builder builderWithSimpleListTrusted(List<String> simpleList) {
+        BuilderImpl builder = new BuilderImpl();
+        if (simpleList == null || simpleList instanceof SdkAutoConstructList) {
+            return builder;
+        }
+        builder.simpleList = Collections.unmodifiableList(simpleList);
+        return builder;
+    }
+
+    /**
+     * Creates a builder with MapOfStringToString set without defensively copying the collection. The caller must
+     * provide an immutable or exclusively owned collection.
+     */
+    @SdkInternalApi
+    public static Builder builderWithMapOfStringToStringTrusted(Map<String, String> mapOfStringToString) {
+        BuilderImpl builder = new BuilderImpl();
+        if (mapOfStringToString == null || mapOfStringToString instanceof SdkAutoConstructMap) {
+            return builder;
+        }
+        builder.mapOfStringToString = Collections.unmodifiableMap(mapOfStringToString);
+        return builder;
     }
 
     @Override

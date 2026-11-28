@@ -31,6 +31,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.Put;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 
 /**
  * Verifies that the generated {@code createX} factories on {@link AttributeValue} (emitted under the
@@ -130,6 +134,105 @@ class AttributeValueCreateConstructorTest {
     }
 
     @Test
+    void trustedList_usesExclusivelyOwnedInputWithoutCopyingAndExposesItUnmodifiable() {
+        List<AttributeValue> values = new ArrayList<>();
+        values.add(AttributeValue.fromS("first"));
+
+        AttributeValue attributeValue = AttributeValue.createLTrusted(values);
+        values.add(AttributeValue.fromS("second"));
+
+        assertThat(attributeValue.type()).isEqualTo(AttributeValue.Type.L);
+        assertThat(attributeValue.l()).containsExactlyElementsOf(values);
+        assertThatThrownBy(() -> attributeValue.l().add(AttributeValue.fromS("third")))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void trustedMap_usesExclusivelyOwnedInputWithoutCopyingAndExposesItUnmodifiable() {
+        Map<String, AttributeValue> values = new HashMap<>();
+        values.put("first", AttributeValue.fromS("one"));
+
+        AttributeValue attributeValue = AttributeValue.createMTrusted(values);
+        values.put("second", AttributeValue.fromS("two"));
+
+        assertThat(attributeValue.type()).isEqualTo(AttributeValue.Type.M);
+        assertThat(attributeValue.m()).containsAllEntriesOf(values);
+        assertThatThrownBy(() -> attributeValue.m().put("third", AttributeValue.fromS("three")))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void trustedEmptyCollections_arePresentUnionMembers() {
+        assertThat(AttributeValue.createLTrusted(new ArrayList<>()).type()).isEqualTo(AttributeValue.Type.L);
+        assertThat(AttributeValue.createMTrusted(new HashMap<>()).type()).isEqualTo(AttributeValue.Type.M);
+    }
+
+    @Test
+    void trustedNullAndAutoConstructCollections_areUnsetUnionMembers() {
+        AttributeValue unset = AttributeValue.builder().build();
+
+        assertThat(AttributeValue.createLTrusted(null)).isEqualTo(unset);
+        assertThat(AttributeValue.createMTrusted(null)).isEqualTo(unset);
+        assertThat(AttributeValue.createLTrusted(unset.l())).isEqualTo(unset);
+        assertThat(AttributeValue.createMTrusted(unset.m())).isEqualTo(unset);
+    }
+
+    @Test
+    void trustedRequestBuilders_useExclusivelyOwnedMapsWithoutCopying() {
+        Map<String, AttributeValue> key = trustedMap("key");
+        GetItemRequest get = GetItemRequest.builderWithKeyTrusted(key).build();
+        key.put("later", AttributeValue.fromS("mutation"));
+        assertThat(get.key()).containsKey("later");
+        assertThatThrownBy(() -> get.key().put("getter", AttributeValue.fromS("mutation")))
+            .isInstanceOf(UnsupportedOperationException.class);
+
+        Map<String, AttributeValue> putItem = trustedMap("item");
+        PutItemRequest putItemRequest = PutItemRequest.builderWithItemTrusted(putItem).build();
+        putItem.put("later", AttributeValue.fromS("mutation"));
+        assertThat(putItemRequest.item()).containsKey("later");
+        assertThatThrownBy(() -> putItemRequest.item().put("getter", AttributeValue.fromS("mutation")))
+            .isInstanceOf(UnsupportedOperationException.class);
+
+        Map<String, AttributeValue> batchItem = trustedMap("batch");
+        PutRequest putRequest = PutRequest.builderWithItemTrusted(batchItem).build();
+        batchItem.put("later", AttributeValue.fromS("mutation"));
+        assertThat(putRequest.item()).containsKey("later");
+        assertThatThrownBy(() -> putRequest.item().put("getter", AttributeValue.fromS("mutation")))
+            .isInstanceOf(UnsupportedOperationException.class);
+
+        Map<String, AttributeValue> transactionItem = trustedMap("transaction");
+        Put put = Put.builderWithItemTrusted(transactionItem).build();
+        transactionItem.put("later", AttributeValue.fromS("mutation"));
+        assertThat(put.item()).containsKey("later");
+        assertThatThrownBy(() -> put.item().put("getter", AttributeValue.fromS("mutation")))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void existingRequestBuilder_stillDefensivelyCopies() {
+        Map<String, AttributeValue> item = trustedMap("item");
+        PutItemRequest request = PutItemRequest.builder().item(item).build();
+
+        item.put("later", AttributeValue.fromS("mutation"));
+
+        assertThat(request.item()).doesNotContainKey("later");
+    }
+
+    @Test
+    void trustedRequestBuilders_nullAndAutoConstructMapsRemainUnset() {
+        Map<String, AttributeValue> autoConstruct = PutItemRequest.builder().build().item();
+
+        assertThat(GetItemRequest.builderWithKeyTrusted(null).build().hasKey()).isFalse();
+        assertThat(GetItemRequest.builderWithKeyTrusted(autoConstruct).build().hasKey()).isFalse();
+        assertThat(PutItemRequest.builderWithItemTrusted(null).build().hasItem()).isFalse();
+        assertThat(PutItemRequest.builderWithItemTrusted(autoConstruct).build().hasItem()).isFalse();
+        assertThat(PutRequest.builderWithItemTrusted(null).build().hasItem()).isFalse();
+        assertThat(PutRequest.builderWithItemTrusted(autoConstruct).build().hasItem()).isFalse();
+        assertThat(Put.builderWithItemTrusted(null).build().hasItem()).isFalse();
+        assertThat(Put.builderWithItemTrusted(autoConstruct).build().hasItem()).isFalse();
+    }
+
+    @Test
     void fastStringSet_defensivelyCopiesAndStoresUnmodifiable() {
         List<String> input = new ArrayList<>(Arrays.asList("a"));
         AttributeValue value = AttributeValue.createSs(input);
@@ -200,6 +303,10 @@ class AttributeValueCreateConstructorTest {
         Map<String, AttributeValue> m = new HashMap<>();
         m.put(k, v);
         return m;
+    }
+
+    private static Map<String, AttributeValue> trustedMap(String value) {
+        return singletonMap("id", AttributeValue.fromS(value));
     }
 
     private static Arguments arg(String name, Supplier<AttributeValue> fast, Supplier<AttributeValue> builder) {

@@ -67,7 +67,7 @@ public class CollectionToListMarshaller implements ListAttributeMarshaller {
             values.add(value);
         }
 
-        return AttributeValue.builder().l(values).build();
+        return AttributeValue.createLTrusted(values);
     }
 
     public ArgumentMarshaller getMemberMarshaller() {

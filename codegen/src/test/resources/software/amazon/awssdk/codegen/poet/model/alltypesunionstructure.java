@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.Mutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
@@ -2150,6 +2151,18 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
   }
 
   /**
+   * Creates the SimpleList union member without defensively copying the collection. The caller must provide an exclusively owned collection and relinquish all mutable references to it.
+   */
+  @SdkInternalApi
+  public static AllTypesUnionStructure createSimpleListTrusted(List<String> simpleList) {
+    if (simpleList == null || simpleList instanceof SdkAutoConstructList) {
+      return UNSET_INSTANCE;
+    }
+    List<String> trusted = Collections.unmodifiableList(simpleList);
+    return new AllTypesUnionStructure(Type.SIMPLE_LIST, null, null, null, null, null, null, null, trusted, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
+  }
+
+  /**
    * Equivalent to {@code builder().listOfEnumsWithStrings(listOfEnums).build()} but with a single allocation.
    */
   public static AllTypesUnionStructure createListOfEnumsWithStrings(List<String> listOfEnums) {
@@ -2249,6 +2262,19 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
       return UNSET_INSTANCE;
     }
     return new AllTypesUnionStructure(Type.MAP_OF_STRING_TO_STRING, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), copied, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
+  }
+
+  /**
+   * Creates the MapOfStringToString union member without defensively copying the collection. The caller must provide an exclusively owned collection and relinquish all mutable references to it.
+   */
+  @SdkInternalApi
+  public static AllTypesUnionStructure createMapOfStringToStringTrusted(
+      Map<String, String> mapOfStringToString) {
+    if (mapOfStringToString == null || mapOfStringToString instanceof SdkAutoConstructMap) {
+      return UNSET_INSTANCE;
+    }
+    Map<String, String> trusted = Collections.unmodifiableMap(mapOfStringToString);
+    return new AllTypesUnionStructure(Type.MAP_OF_STRING_TO_STRING, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), trusted, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
   /**

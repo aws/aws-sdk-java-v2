@@ -618,7 +618,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(List<AttributeValue> o) {
-                return AttributeValue.createL(o);
+                return AttributeValue.createLTrusted(o);
             }
         }
 
@@ -663,7 +663,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(List<AttributeValue> o) {
-                return AttributeValue.createL(o);
+                return AttributeValue.createLTrusted(o);
             }
         }
 
@@ -691,7 +691,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(Map<String,AttributeValue> o) {
-                return AttributeValue.createM(o);
+                return AttributeValue.createMTrusted(o);
             }
         }
 
@@ -727,7 +727,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(Map<String,AttributeValue> o) {
-                return AttributeValue.createM(o);
+                return AttributeValue.createMTrusted(o);
             }
         }
 
